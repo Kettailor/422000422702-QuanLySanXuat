@@ -15,33 +15,41 @@
   </a>
 </p>
 
-**Môn học:** Phát triển ứng dụng - 422000422702
+<h1 align="center"><b>PHÁT TRIỂN ỨNG DỤNG</b></h>
 
-**Nhóm:** Sinh Viên 5 Tốt
+## THÀNH VIÊN NHÓM
+|STT| MSSV      | Họ và Tên       |Chức Vụ    | Github                                                  | Email                   |
+|---|:---------:| ---------------:|----------:|--------------------------------------------------------:|-------------------------:
+| 1 | 22694611  | Trần Lê Kiệt    |Nhóm trưởng|[trong-khanh-1109](https://github.com/trong-khanh-1109)  |19521676@gm.uit.edu.vn   |
+| 2 | 19521383  | |Thành viên |[ducducqn123](https://github.com/ducducqn123)            |19521383@gm.uit.edu.vn   |
+| 3 | 19521699  | Phạm Anh Khoa   |Thành viên |[khoaphamj1505](https://github.com/khoaphamj1505)        |19521699@gm.uit.edu.vn   |
 
-**Thành viên:**
+## GIỚI THIỆU MÔN HỌC
+* **Tên môn học:** Phát triển ứng dụng Web
+* **Mã môn học:** IS207
+* **Mã lớp:** IS207.M12.HTCL
+* **Năm học:** HK1 (2021 - 2022)
+* **Giảng viên**: ThS.Mai Xuân Hùng
 
-| MSSV     | Họ và Tên              | Lớp         |
-| -------- | ---------------------- | ----------- |
-| 22715051 | Vũ Hải Đăng            | DHHTTT18BTT |
-| 22641441 | Nguyễn Đức Huy         | DHHTTT18BTT |
-| 22694611 | Trần Lê Kiệt           | DHHTTT18BTT |
-| 22702081 | Lê Hoàng My            | DHHTTT18BTT |
-| 22637391 | Nguyễn Trần Thanh Trúc | DHHTTT18ATT |
-| 22653991 | Trần Tiến              | DHDTMT18CTT |
+## THỰC HÀNH
+### Assignment 1: UseCase Diagram
 
-## Mô tả dự án
+### Assignment 2: Domain Model
 
-Đây là ứng dụng quản lý sản xuất được phát triển trong khuôn khổ môn học "Phát triển ứng dụng". Ứng dụng hỗ trợ quản lý, theo dõi quy trình sản xuất một cách hiệu quả.
+### Assignment 3: Database
 
-## Tính năng
+### Assignment 4: Ngôn ngữ lập trình 
 
-- Quản lý quy trình sản xuất
-- Theo dõi tiến độ sản xuất
-- Báo cáo và thống kê sản xuất
-- Giao diện người dùng thân thiện
+### Assignment 5: Công nghệ áp dụng
 
-## Cài đặt
+## ĐỒ ÁN CUỐI KÌ
+- Front-end: 
+- Back-end: 
+- File report:
+- Source Code and Installation Instructions:
+
+<!-- Footer -->
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`Copyright © 2025 - Trần Lê Kiệt`
 
 ### Yêu cầu hệ thống
 
@@ -73,7 +81,3 @@
 ## Đóng góp
 
 Vui lòng đọc [CONTRIBUTING.md](.github/CONTRIBUTING.md) để biết chi tiết về quy trình đóng góp code.
-
-## Giấy phép
-
-Dự án này được phân phối dưới giấy phép MIT. Xem file [LICENSE](LICENSE) để biết thêm chi tiết.
