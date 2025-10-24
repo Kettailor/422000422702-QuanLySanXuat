@@ -12,6 +12,7 @@ const groups = [
   {
     title: 'Dashboard',
     links: [
+      { to: '/dashboard/overview', label: 'Tổng quan' },
       { to: '/dashboard/hr', label: 'Nhân sự & hiệu suất' },
       { to: '/dashboard/production', label: 'Sản xuất & chất lượng' },
       { to: '/dashboard/sales', label: 'Đơn hàng & bán hàng' },

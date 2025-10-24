@@ -65,3 +65,125 @@ ALTER TABLE THANH_PHAM ADD CONSTRAINT FKTHANH_PHAM566175 FOREIGN KEY (IdLo) REFE
 ALTER TABLE PHIEU ADD CONSTRAINT `Nhan vien xac nhan phieu` FOREIGN KEY (NHAN_VIENIdNhanVien2) REFERENCES NHAN_VIEN (IdNhanVien);
 ALTER TABLE CT_DON_HANG ADD CONSTRAINT FKCT_DON_HAN479798 FOREIGN KEY (IdDonHang) REFERENCES DON_HANG (IdDonHang);
 ALTER TABLE KHO ADD CONSTRAINT FKKHO901694 FOREIGN KEY (IdXuong) REFERENCES XUONG (IdXuong);
+
+CREATE TABLE IF NOT EXISTS production_lines (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(20) UNIQUE NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  department VARCHAR(120) NOT NULL,
+  status VARCHAR(40) NOT NULL DEFAULT 'active',
+  target_oee NUMERIC(5,2) DEFAULT 0.00,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS shifts (
+  id SERIAL PRIMARY KEY,
+  shift_date DATE NOT NULL,
+  shift_name VARCHAR(60) NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  UNIQUE (shift_date, shift_name)
+);
+
+CREATE TABLE IF NOT EXISTS work_orders (
+  id SERIAL PRIMARY KEY,
+  order_code VARCHAR(40) UNIQUE NOT NULL,
+  line_id INTEGER NOT NULL REFERENCES production_lines (id) ON DELETE RESTRICT,
+  product_code VARCHAR(40) NOT NULL,
+  planned_quantity INTEGER NOT NULL,
+  completed_quantity INTEGER NOT NULL DEFAULT 0,
+  scrap_quantity INTEGER NOT NULL DEFAULT 0,
+  status VARCHAR(40) NOT NULL,
+  due_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS line_shift_metrics (
+  id SERIAL PRIMARY KEY,
+  line_id INTEGER NOT NULL REFERENCES production_lines (id) ON DELETE CASCADE,
+  shift_id INTEGER NOT NULL REFERENCES shifts (id) ON DELETE CASCADE,
+  planned_output INTEGER NOT NULL,
+  actual_output INTEGER NOT NULL,
+  downtime_minutes INTEGER NOT NULL DEFAULT 0,
+  note VARCHAR(255),
+  UNIQUE (line_id, shift_id)
+);
+
+INSERT INTO production_lines (code, name, department, status, target_oee)
+VALUES
+  ('PL-01', 'Chuyền lắp ráp 01', 'Lắp ráp', 'active', 0.87),
+  ('PL-02', 'Chuyền kiểm thử 02', 'Kiểm thử', 'active', 0.83),
+  ('PL-03', 'Chuyền đóng gói 03', 'Đóng gói', 'active', 0.80),
+  ('PL-04', 'Chuyền cơ khí 04', 'Gia công', 'maintenance', 0.78)
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO shifts (shift_date, shift_name, start_time, end_time)
+VALUES
+  (CURRENT_DATE - INTERVAL '2 day', 'Ca sáng', '06:00', '14:00'),
+  (CURRENT_DATE - INTERVAL '2 day', 'Ca tối', '14:00', '22:00'),
+  (CURRENT_DATE - INTERVAL '1 day', 'Ca sáng', '06:00', '14:00'),
+  (CURRENT_DATE - INTERVAL '1 day', 'Ca tối', '14:00', '22:00'),
+  (CURRENT_DATE, 'Ca sáng', '06:00', '14:00'),
+  (CURRENT_DATE, 'Ca tối', '14:00', '22:00')
+ON CONFLICT (shift_date, shift_name) DO NOTHING;
+
+INSERT INTO work_orders (
+  order_code,
+  line_id,
+  product_code,
+  planned_quantity,
+  completed_quantity,
+  scrap_quantity,
+  status,
+  due_time
+)
+SELECT data.order_code,
+       pl.id,
+       data.product_code,
+       data.planned_quantity,
+       data.completed_quantity,
+       data.scrap_quantity,
+       data.status,
+       data.due_time
+FROM (
+  VALUES
+    ('WO-2025-001', 'PL-01', 'SPK-101', 450, 420, 8, 'in_progress', NOW() + INTERVAL '1 day'),
+    ('WO-2025-002', 'PL-02', 'SPK-201', 300, 300, 2, 'completed', NOW() - INTERVAL '6 hour'),
+    ('WO-2025-003', 'PL-03', 'SPK-305', 520, 480, 15, 'in_progress', NOW() + INTERVAL '2 day'),
+    ('WO-2025-004', 'PL-04', 'SPK-410', 260, 140, 5, 'planned', NOW() + INTERVAL '3 day'),
+    ('WO-2025-005', 'PL-01', 'SPK-109', 380, 360, 4, 'completed', NOW() - INTERVAL '1 day'),
+    ('WO-2025-006', 'PL-02', 'SPK-220', 420, 0, 0, 'planned', NOW() + INTERVAL '4 day')
+) AS data(order_code, line_code, product_code, planned_quantity, completed_quantity, scrap_quantity, status, due_time)
+JOIN production_lines pl ON pl.code = data.line_code
+ON CONFLICT (order_code) DO NOTHING;
+
+WITH metrics AS (
+  SELECT pl.code AS line_code,
+         s.shift_date,
+         s.shift_name,
+         data.planned_output,
+         data.actual_output,
+         data.downtime_minutes
+  FROM (
+    VALUES
+      ('PL-01', CURRENT_DATE - INTERVAL '2 day', 'Ca sáng', 400, 388, 20),
+      ('PL-01', CURRENT_DATE - INTERVAL '1 day', 'Ca sáng', 420, 405, 18),
+      ('PL-01', CURRENT_DATE, 'Ca sáng', 430, 410, 15),
+      ('PL-01', CURRENT_DATE, 'Ca tối', 380, 350, 32),
+      ('PL-02', CURRENT_DATE - INTERVAL '2 day', 'Ca tối', 320, 310, 12),
+      ('PL-02', CURRENT_DATE - INTERVAL '1 day', 'Ca sáng', 340, 330, 10),
+      ('PL-02', CURRENT_DATE, 'Ca sáng', 360, 355, 6),
+      ('PL-03', CURRENT_DATE - INTERVAL '1 day', 'Ca tối', 500, 470, 25),
+      ('PL-03', CURRENT_DATE, 'Ca sáng', 520, 500, 14),
+      ('PL-04', CURRENT_DATE - INTERVAL '2 day', 'Ca sáng', 260, 190, 45),
+      ('PL-04', CURRENT_DATE - INTERVAL '1 day', 'Ca tối', 280, 200, 60)
+  ) AS data(line_code, shift_date, shift_name, planned_output, actual_output, downtime_minutes)
+  JOIN production_lines pl ON pl.code = data.line_code
+  JOIN shifts s ON s.shift_date = data.shift_date AND s.shift_name = data.shift_name
+)
+INSERT INTO line_shift_metrics (line_id, shift_id, planned_output, actual_output, downtime_minutes)
+SELECT pl.id, s.id, m.planned_output, m.actual_output, m.downtime_minutes
+FROM metrics m
+JOIN production_lines pl ON pl.code = m.line_code
+JOIN shifts s ON s.shift_date = m.shift_date AND s.shift_name = m.shift_name
+ON CONFLICT (line_id, shift_id) DO NOTHING;

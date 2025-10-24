@@ -4,6 +4,7 @@ const titleMap: Record<string, string> = {
   '/quality/form': 'Chất Lượng',
   '/quality/result': 'Chất Lượng',
   '/quality/list': 'Chất Lượng',
+  '/dashboard/overview': 'Tổng Quan',
   '/dashboard/hr': 'Dashboard',
   '/dashboard/production': 'Dashboard',
   '/dashboard/sales': 'Dashboard',
