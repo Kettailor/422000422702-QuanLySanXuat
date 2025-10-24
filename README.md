@@ -1,89 +1,138 @@
-# Quản Lý Sản Xuất - Microservice Monorepo
+# Hệ thống Quản lý Sản xuất (MVC PHP)
 
-Dự án mẫu cung cấp kiến trúc microservice cho hệ thống quản lý sản xuất nhà máy. Mục tiêu là giúp team phát triển đồng bộ, chia sẻ dữ liệu sản xuất (lệnh, chuyền, hiệu suất máy) giữa các dịch vụ mà không cần triển khai lên môi trường host bên ngoài.
+Dự án được viết lại theo yêu cầu với kiến trúc MVC sử dụng PHP, HTML, CSS và JavaScript.
 
-## Tổng quan kiến trúc
+## Cấu trúc thư mục
 
-Kiến trúc bao gồm ba dịch vụ Node.js triển khai bằng Docker cùng với PostgreSQL và MongoDB để lưu trữ dữ liệu quan hệ và phi cấu trúc:
-
-- **API Gateway** (`services/api-gateway`): cung cấp điểm truy cập REST chung, xác thực yêu cầu và định tuyến đến các dịch vụ con.
-- **Production Service** (`services/production-service`): quản lý lệnh sản xuất, chuyền, ca làm việc và hiệu suất sản lượng trong PostgreSQL.
-- **Reporting Service** (`services/reporting-service`): tổng hợp báo cáo sản xuất (OEE, log máy) kết hợp dữ liệu từ PostgreSQL và MongoDB.
-- **PostgreSQL** (`postgres` service): chứa dữ liệu quan hệ (lệnh sản xuất, nhân sự, ca làm việc,…).
-- **MongoDB** (`mongo` service): chứa dữ liệu phi cấu trúc (log máy móc, cảm biến,…).
-
-Tất cả dịch vụ giao tiếp qua HTTP nội bộ và chia sẻ dữ liệu thông qua API và hàng đợi sự kiện (gợi ý mở rộng).
-
-## Chạy dự án nội bộ với Docker Compose
-
-```bash
-docker compose up --build
+```
+app/
+├── controllers/        # Bộ điều khiển xử lý luồng nghiệp vụ
+├── models/             # Lớp truy cập và xử lý dữ liệu
+└── views/              # Giao diện người dùng (chia nhỏ theo layout và module)
+assets/
+├── css/                # Tệp định dạng giao diện
+└── js/                 # Script tương tác phía client
+config/                 # Cấu hình ứng dụng và cơ sở dữ liệu
+core/                   # Lớp nền tảng cho MVC (App, Controller, Model, View)
+public/                 # Điểm vào ứng dụng, phục vụ tĩnh (index.php, .htaccess)
+database/               # Giữ nguyên cấu trúc và script khởi tạo cơ sở dữ liệu
 ```
 
-Mặc định các cổng:
+## Yêu cầu hệ thống
 
-- API Gateway: `http://localhost:3000`
-- Production Service: `http://localhost:4000`
-- Reporting Service: `http://localhost:5000`
-- PostgreSQL: `localhost:5432` (user: `prod_admin`, password: `prod_admin`, database: `production`)
-- MongoDB: `localhost:27017` (user: `mongo_admin`, password: `mongo_admin`)
+* Docker Desktop hoặc Docker Engine 20.10+
+* Docker Compose v2
+* (Tùy chọn cho cách chạy thủ công) PHP 8.1+, MySQL/MariaDB
 
-## Quy ước phát triển và Git Flow
+## Chạy dự án bằng Docker
 
-- `main`: nhánh ổn định, luôn triển khai được. Bảo vệ bởi review bắt buộc và kiểm tra CI.
-- `develop`: tích hợp các tính năng đã review, dùng để kiểm thử nội bộ.
-- `feature/<tên>`: phát triển chức năng mới, merge vào `develop` thông qua Pull Request sau khi đạt yêu cầu CI và review.
-- `hotfix/<tên>`: sửa lỗi khẩn cấp trên `main`. Sau khi merge vào `main`, cần đồng bộ lại với `develop`.
+Docker Compose đã được cấu hình để khởi chạy toàn bộ hệ thống (ứng dụng PHP + MySQL) chỉ với một lệnh.
 
-### Quyền truy cập gợi ý
+1. Bảo đảm bạn đang ở thư mục gốc của dự án.
+2. Khởi động stack:
+   ```bash
+   docker compose up --build
+   ```
+   Lần chạy đầu tiên sẽ build image PHP dựa trên `Dockerfile`, đồng thời MySQL sẽ được khởi tạo với dữ liệu trong `database/init/production.sql`.
+3. Truy cập ứng dụng tại `http://localhost:8080`.
 
-| Vai trò | Quyền | Ghi chú |
-| --- | --- | --- |
-| Tech Lead | push trực tiếp `develop`, approve PR, quản lý release | Ít nhất 2 người approve khi merge vào `main`. |
-| Senior Dev | tạo/merge PR vào `develop`, review chéo | Không được push trực tiếp `main`. |
-| Junior Dev | tạo PR từ `feature/*` | Yêu cầu 1 review từ Senior trở lên. |
+### Biến môi trường
 
-### Quy tắc commit & PR
+Các thông số kết nối mặc định đã được cấu hình trong `docker-compose.yml`:
 
-- Sử dụng Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`...).
-- Mỗi PR phải đi kèm mô tả, checklist kiểm thử, và phải pass workflow CI.
-- Không merge khi pipeline đỏ.
+* `DB_HOST=mysql`
+* `DB_DATABASE=quan_ly_san_xuat`
+* `DB_USERNAME=qlsx_user`
+* `DB_PASSWORD=qlsx_password`
 
-## CI/CD
+Có thể thay đổi các giá trị này trong file compose, sau đó chạy lại `docker compose up --build` để áp dụng.
 
-Workflow GitHub Actions (`.github/workflows/ci.yml`):
+### Dừng và xóa container
 
-- Chạy trên `push`/`pull_request` với nhánh `main`, `develop`, `feature/**`, `hotfix/**`.
-- Kiểm tra định dạng (`npm run lint`) và unit test (`npm test`) cho từng dịch vụ.
-- Dễ dàng mở rộng thêm bước build Docker hoặc triển khai nội bộ (ví dụ với self-hosted runner).
+* Dừng dịch vụ: `docker compose down`
+* Dừng và xóa volume dữ liệu MySQL: `docker compose down -v`
 
-Đối với môi trường nội bộ (không cần host công khai), có thể sử dụng:
+## Hướng dẫn chạy thủ công (tuỳ chọn)
 
-1. **Runner tự quản lý**: cài GitHub Actions runner trên máy nội bộ (NAS, server nội bộ) để chạy pipeline và triển khai Docker Compose.
-2. **Quy trình triển khai**: sau khi merge vào `develop` hoặc `main`, pipeline có thể chạy script `docker compose pull && docker compose up -d` trên máy nội bộ.
+1. Cài đặt PHP 8.1 trở lên và bảo đảm có sẵn tiện ích dòng lệnh `php`.
+2. Cài đặt MySQL/MariaDB nếu muốn dùng dữ liệu thật.
+3. Clone dự án và truy cập vào thư mục gốc:
+   ```bash
+   git clone <repo-url>
+   cd 422000422702-QuanLySanXuat
+   ```
+4. (Tuỳ chọn) Cập nhật thông tin kết nối CSDL trong `config/database.php` cho phù hợp môi trường của bạn.
+5. Khởi động webserver tích hợp của PHP trỏ tới thư mục `public/`:
+   ```bash
+   php -S localhost:8000 -t public
+   ```
+6. Mở trình duyệt và truy cập `http://localhost:8000` để xem dashboard. Ứng dụng sẽ tự động hiển thị dữ liệu mẫu nếu không kết nối được cơ sở dữ liệu.
 
-## Chia sẻ dữ liệu giữa dịch vụ
+### Kết nối cơ sở dữ liệu (tuỳ chọn)
 
-- Production Service cung cấp REST API phục vụ nghiệp vụ nhà máy:
-  - `GET /work-orders`: danh sách lệnh sản xuất kèm chuyền phụ trách và sản lượng.
-  - `POST /work-orders`: tạo lệnh sản xuất mới.
-  - `GET /production-lines`: trạng thái từng chuyền với kế hoạch/thực tế và downtime trong ngày.
-  - `GET /performance/daily`: tổng hợp sản lượng theo ca trong 3 ngày gần nhất.
-- Reporting Service gọi API Gateway để nhận dữ liệu sản xuất, tính toán KPI (ví dụ OEE) và kết hợp với log máy từ MongoDB (`machine_logs`).
-- API Gateway gộp các endpoint `/api/production/...` (work-order, line, performance) và `/api/reports/...` (summary, OEE) để client nội bộ sử dụng thống nhất.
-- Các dịch vụ có thể phát sự kiện (RabbitMQ/Kafka - placeholder) qua HTTP hoặc message broker (chưa cấu hình, gợi ý mở rộng trong `docs/integration.md`).
+* Tạo sẵn một database MySQL/MariaDB trống và cấu hình quyền truy cập.
+* Import các bảng cần thiết từ file `database/init/production.sql`. File chứa lại toàn bộ schema gốc (MySQL) kèm một số bảng mẫu phục vụ dashboard.
+* Điều chỉnh `config/database.php` cho đúng host, username, password, tên database.
+* Khởi tạo các bảng dữ liệu cho dashboard nếu muốn hiển thị số liệu thật:
+  ```sql
+  CREATE TABLE dashboard_statistics (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    metric VARCHAR(120) NOT NULL,
+    value INT NOT NULL,
+    display_order INT DEFAULT 0
+  );
 
-## Phát triển cục bộ
+  CREATE TABLE dashboard_activities (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(50),
+    occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 
-1. Cài đặt `Node.js >= 18` và `Docker`.
-2. Trong mỗi thư mục dịch vụ, chạy `npm install`.
-3. Chạy unit test: `npm test`.
-4. Khởi chạy một dịch vụ riêng: `npm start` (sử dụng `.env` để cấu hình biến môi trường cục bộ).
+  CREATE TABLE dashboard_alerts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    message TEXT NOT NULL,
+    type VARCHAR(30) NOT NULL,
+    highlight VARCHAR(120),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 
-Các biến môi trường mặc định được định nghĩa trong `docker-compose.yml` và có thể override bằng file `.env` ở thư mục gốc.
+  CREATE TABLE dashboard_timeline (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    schedule_date DATE NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    status VARCHAR(60)
+  );
+  ```
+* Sau khi có bảng, chèn dữ liệu vào các bảng trên để thay thế số liệu mặc định hiển thị trên dashboard.
 
-## Tài liệu bổ sung
+## Triển khai với Apache/Nginx
 
-- [`docs/integration.md`](docs/integration.md): mô tả chi tiết luồng dữ liệu và đồng bộ giữa SQL/Mongo.
-- [`docs/branch-protection.md`](docs/branch-protection.md): đề xuất cấu hình bảo vệ nhánh và quyền truy cập GitHub.
+* **Apache**: Bật module `mod_rewrite` và trỏ VirtualHost vào thư mục `public/`. File `.htaccess` đã được chuẩn bị để tất cả request được điều hướng về `index.php`.
+* **Nginx + PHP-FPM**: Cấu hình server block phục vụ `public/index.php` làm entry point. Tham khảo mẫu:
+  ```nginx
+  server {
+      listen 80;
+      server_name your-domain.test;
+      root /var/www/422000422702-QuanLySanXuat/public;
 
+      index index.php;
+
+      location / {
+          try_files $uri $uri/ /index.php?$query_string;
+      }
+
+      location ~ \.php$ {
+          include fastcgi_params;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+      }
+  }
+  ```
+
+## Cấu hình bổ sung
+
+* Thay đổi layout, stylesheet tại `public/assets/css/styles.css`.
+* Các controller chính nằm trong `app/controllers/` (ví dụ `DashboardController` xử lý trang dashboard).
+* Mọi request mặc định điều hướng tới `DashboardController@index`; có thể bổ sung controller/method mới bằng cách tạo file tương ứng và truy cập theo định dạng `/{controller}/{action}`.
