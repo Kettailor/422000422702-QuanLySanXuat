@@ -13,9 +13,13 @@ class SalaryController extends Controller
     public function index(): void
     {
         $payrolls = $this->salaryModel->getPayrolls();
+        $summary = $this->salaryModel->getPayrollSummary();
+        $pending = $this->salaryModel->getPendingPayrolls();
         $this->render('salary/index', [
             'title' => 'Bảng lương',
             'payrolls' => $payrolls,
+            'summary' => $summary,
+            'pending' => $pending,
         ]);
     }
 
@@ -23,9 +27,19 @@ class SalaryController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $payroll = $id ? $this->salaryModel->find($id) : null;
+        $figures = null;
+        if ($payroll) {
+            $figures = Salary::calculateFigures(
+                (float) ($payroll['LuongCoBan'] ?? 0),
+                (float) ($payroll['PhuCap'] ?? 0),
+                (float) ($payroll['KhauTru'] ?? 0),
+                (float) ($payroll['ThueTNCN'] ?? 0)
+            );
+        }
         $this->render('salary/read', [
             'title' => 'Chi tiết bảng lương',
             'payroll' => $payroll,
+            'figures' => $figures,
         ]);
     }
 
@@ -42,20 +56,8 @@ class SalaryController extends Controller
             $this->redirect('?controller=salary&action=index');
         }
 
-        $data = [
-            'IdBangLuong' => $_POST['IdBangLuong'] ?: uniqid('BL'),
-            '`KETOAN IdNhanVien2`' => $_POST['KeToan'] ?? null,
-            'NHAN_VIENIdNhanVien' => $_POST['IdNhanVien'] ?? null,
-            'ThangNam' => $_POST['ThangNam'] ?? null,
-            'LuongCoBan' => $_POST['LuongCoBan'] ?? 0,
-            'PhuCap' => $_POST['PhuCap'] ?? 0,
-            'KhauTru' => $_POST['KhauTru'] ?? 0,
-            'ThueTNCN' => $_POST['ThueTNCN'] ?? 0,
-            'TongThuNhap' => $_POST['TongThuNhap'] ?? 0,
-            'TrangThai' => $_POST['TrangThai'] ?? 'Chờ duyệt',
-            'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
-            'ChuKy' => null,
-        ];
+        $data = $this->mapPayrollInput($_POST);
+        $data['IdBangLuong'] = $data['IdBangLuong'] ?: uniqid('BL');
 
         try {
             $this->salaryModel->create($data);
@@ -84,18 +86,8 @@ class SalaryController extends Controller
         }
 
         $id = $_POST['IdBangLuong'];
-        $data = [
-            '`KETOAN IdNhanVien2`' => $_POST['KeToan'] ?? null,
-            'NHAN_VIENIdNhanVien' => $_POST['IdNhanVien'] ?? null,
-            'ThangNam' => $_POST['ThangNam'] ?? null,
-            'LuongCoBan' => $_POST['LuongCoBan'] ?? 0,
-            'PhuCap' => $_POST['PhuCap'] ?? 0,
-            'KhauTru' => $_POST['KhauTru'] ?? 0,
-            'ThueTNCN' => $_POST['ThueTNCN'] ?? 0,
-            'TongThuNhap' => $_POST['TongThuNhap'] ?? 0,
-            'TrangThai' => $_POST['TrangThai'] ?? 'Chờ duyệt',
-            'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
-        ];
+        $data = $this->mapPayrollInput($_POST);
+        unset($data['IdBangLuong']);
 
         try {
             $this->salaryModel->update($id, $data);
@@ -105,6 +97,52 @@ class SalaryController extends Controller
         }
 
         $this->redirect('?controller=salary&action=index');
+    }
+
+    public function approve(): void
+    {
+        $this->changeStatus('Đã duyệt');
+    }
+
+    public function finalize(): void
+    {
+        $this->changeStatus('Đã chi');
+    }
+
+    public function revert(): void
+    {
+        $this->changeStatus('Chờ duyệt');
+    }
+
+    public function recalculate(): void
+    {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            $this->setFlash('danger', 'Không xác định được bảng lương.');
+            $this->redirect('?controller=salary&action=index');
+        }
+
+        $payroll = $this->salaryModel->find($id);
+        if (!$payroll) {
+            $this->setFlash('danger', 'Không tìm thấy bảng lương.');
+            $this->redirect('?controller=salary&action=index');
+        }
+
+        $figures = Salary::calculateFigures(
+            (float) ($payroll['LuongCoBan'] ?? 0),
+            (float) ($payroll['PhuCap'] ?? 0),
+            (float) ($payroll['KhauTru'] ?? 0),
+            (float) ($payroll['ThueTNCN'] ?? 0)
+        );
+
+        try {
+            $this->salaryModel->update($id, ['TongThuNhap' => $figures['net']]);
+            $this->setFlash('success', 'Đã tính lại lương thực nhận.');
+        } catch (Throwable $e) {
+            $this->setFlash('danger', 'Không thể tính lại: ' . $e->getMessage());
+        }
+
+        $this->redirect('?controller=salary&action=read&id=' . urlencode($id));
     }
 
     public function delete(): void
@@ -117,6 +155,64 @@ class SalaryController extends Controller
             } catch (Throwable $e) {
                 $this->setFlash('danger', 'Không thể xóa bảng lương: ' . $e->getMessage());
             }
+        }
+
+        $this->redirect('?controller=salary&action=index');
+    }
+
+    private function mapPayrollInput(array $input): array
+    {
+        $baseSalary = (float) ($input['LuongCoBan'] ?? 0);
+        $allowance = (float) ($input['PhuCap'] ?? 0);
+        $deduction = (float) ($input['KhauTru'] ?? 0);
+        $personalIncomeTax = (float) ($input['ThueTNCN'] ?? 0);
+        $figures = Salary::calculateFigures($baseSalary, $allowance, $deduction, $personalIncomeTax);
+
+        $status = $input['TrangThai'] ?? 'Chờ duyệt';
+        if (!in_array($status, ['Chờ duyệt', 'Đã duyệt', 'Đã chi'], true)) {
+            $status = 'Chờ duyệt';
+        }
+
+        return [
+            'IdBangLuong' => trim($input['IdBangLuong'] ?? ''),
+            Salary::ACCOUNTANT_COLUMN => trim($input['KeToan'] ?? ''),
+            Salary::EMPLOYEE_COLUMN => trim($input['IdNhanVien'] ?? ''),
+            'ThangNam' => trim($input['ThangNam'] ?? ''),
+            'LuongCoBan' => $baseSalary,
+            'PhuCap' => $allowance,
+            'KhauTru' => $deduction,
+            'ThueTNCN' => $personalIncomeTax,
+            'TongThuNhap' => $figures['net'],
+            'TrangThai' => $status,
+            'NgayLap' => $input['NgayLap'] ?? date('Y-m-d'),
+            'ChuKy' => trim((string) ($input['ChuKy'] ?? '')) ?: null,
+        ];
+    }
+
+    private function changeStatus(string $status): void
+    {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            $this->setFlash('danger', 'Không xác định được bảng lương.');
+            $this->redirect('?controller=salary&action=index');
+        }
+
+        $signature = null;
+        $user = $this->currentUser();
+        if ($user) {
+            $signature = $user['TenDangNhap'] ?? $user['HoTen'] ?? ($user['IdNhanVien'] ?? null);
+        }
+
+        try {
+            $this->salaryModel->updateStatus($id, $status, $signature);
+            $message = match ($status) {
+                'Đã duyệt' => 'Đã phê duyệt bảng lương.',
+                'Đã chi' => 'Đã đánh dấu bảng lương đã chi trả.',
+                default => 'Đã cập nhật trạng thái bảng lương.',
+            };
+            $this->setFlash('success', $message);
+        } catch (Throwable $e) {
+            $this->setFlash('danger', 'Không thể cập nhật trạng thái: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=salary&action=index');

@@ -27,4 +27,24 @@ class Order extends BaseModel
                 LIMIT 6';
         return $this->db->query($sql)->fetchAll();
     }
+
+    public function getOrderStatistics(): array
+    {
+        $sql = 'SELECT COUNT(*) AS total_orders,
+                       SUM(TongTien) AS total_revenue,
+                       SUM(CASE WHEN TrangThai = "Hoàn thành" THEN 1 ELSE 0 END) AS completed_orders,
+                       SUM(CASE WHEN TrangThai = "Đang xử lý" THEN 1 ELSE 0 END) AS processing_orders,
+                       SUM(CASE WHEN TrangThai = "Chờ duyệt" THEN 1 ELSE 0 END) AS pending_orders
+                FROM DON_HANG';
+
+        $stats = $this->db->query($sql)->fetch();
+
+        return [
+            'total_orders' => (int) ($stats['total_orders'] ?? 0),
+            'total_revenue' => (float) ($stats['total_revenue'] ?? 0),
+            'completed_orders' => (int) ($stats['completed_orders'] ?? 0),
+            'processing_orders' => (int) ($stats['processing_orders'] ?? 0),
+            'pending_orders' => (int) ($stats['pending_orders'] ?? 0),
+        ];
+    }
 }

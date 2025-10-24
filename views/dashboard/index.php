@@ -1,37 +1,48 @@
+<?php
+$orderStats = $orderStats ?? ['total_orders' => 0, 'pending_orders' => 0, 'total_revenue' => 0, 'completed_orders' => 0];
+$payrollSummary = $payrollSummary ?? ['total_amount' => 0, 'pending' => 0];
+$workshopSummary = $workshopSummary ?? ['utilization' => 0, 'workforce' => 0];
+$pendingPayrolls = $pendingPayrolls ?? [];
+?>
+
 <div class="row g-4">
     <div class="col-xl-3 col-sm-6">
         <div class="card metric-card">
-            <div class="icon-wrap bg-primary bg-opacity-10 text-primary"><i class="bi bi-calendar-event"></i></div>
+            <div class="icon-wrap bg-primary bg-opacity-10 text-primary"><i class="bi bi-bag-check"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Tổng ngày làm</div>
-                <div class="fs-3 fw-bold"><?= $stats['totalWorkingDays'] ?></div>
+                <div class="text-muted text-uppercase small">Tổng đơn hàng</div>
+                <div class="fs-3 fw-bold"><?= number_format($orderStats['total_orders']) ?></div>
+                <div class="small text-muted">Chờ xử lý: <?= number_format($orderStats['pending_orders']) ?> đơn</div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-sm-6">
         <div class="card metric-card">
-            <div class="icon-wrap bg-success bg-opacity-10 text-success"><i class="bi bi-people"></i></div>
+            <div class="icon-wrap bg-success bg-opacity-10 text-success"><i class="bi bi-currency-exchange"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Nhân sự tham gia</div>
-                <div class="fs-3 fw-bold"><?= $stats['participationRate'] ?></div>
+                <div class="text-muted text-uppercase small">Tổng doanh thu</div>
+                <div class="fs-3 fw-bold"><?= number_format($orderStats['total_revenue'], 0, ',', '.') ?> đ</div>
+                <div class="small text-muted">Đơn hoàn thành: <?= number_format($orderStats['completed_orders']) ?></div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-sm-6">
         <div class="card metric-card">
-            <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-check2-circle"></i></div>
+            <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-wallet2"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Hoàn thành</div>
-                <div class="fs-3 fw-bold"><?= $stats['completedPlans'] ?></div>
+                <div class="text-muted text-uppercase small">Quỹ lương</div>
+                <div class="fs-3 fw-bold"><?= number_format($payrollSummary['total_amount'], 0, ',', '.') ?> đ</div>
+                <div class="small text-muted">Chờ duyệt: <?= number_format($payrollSummary['pending']) ?> bảng</div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-sm-6">
         <div class="card metric-card">
-            <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-bell"></i></div>
+            <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-gear-wide-connected"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Thông báo mới</div>
-                <div class="fs-3 fw-bold"><?= $stats['newNotifications'] ?></div>
+                <div class="text-muted text-uppercase small">Hiệu suất xưởng</div>
+                <div class="fs-3 fw-bold"><?= $workshopSummary['utilization'] ?>%</div>
+                <div class="small text-muted">Nhân sự: <?= number_format($workshopSummary['workforce']) ?> người</div>
             </div>
         </div>
     </div>
@@ -41,10 +52,10 @@
     <div class="col-xl-8">
         <div class="card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Hoạt động trong tháng</h5>
-                <span class="text-muted small">Tổng quan công việc</span>
+                <h5 class="mb-0">Doanh thu & chi phí lương theo tháng</h5>
+                <span class="text-muted small">So sánh dòng tiền 6 tháng gần nhất</span>
             </div>
-            <canvas id="orderChart" height="160"></canvas>
+            <canvas id="financeChart" height="160"></canvas>
         </div>
     </div>
     <div class="col-xl-4">
@@ -64,9 +75,9 @@
 
 <div class="row g-4 mt-1">
     <div class="col-xl-6">
-        <div class="card p-4">
+        <div class="card p-4 h-100">
             <div class="d-flex justify-content-between mb-3">
-                <h5 class="mb-0">Lịch làm việc</h5>
+                <h5 class="mb-0">Lịch sản xuất</h5>
                 <a href="?controller=plan&action=index" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
             </div>
             <div class="table-responsive">
@@ -98,6 +109,53 @@
             </div>
         </div>
     </div>
+    <div class="col-xl-3">
+        <div class="card p-4 h-100">
+            <h5 class="mb-3">Năng lực vận hành</h5>
+            <ul class="list-unstyled mb-0">
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span>Ngày làm việc chuẩn</span>
+                    <span class="fw-semibold"><?= $stats['totalWorkingDays'] ?></span>
+                </li>
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span>Nhân sự đang hoạt động</span>
+                    <span class="fw-semibold"><?= $stats['participationRate'] ?></span>
+                </li>
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span>Kế hoạch hoàn thành</span>
+                    <span class="fw-semibold"><?= $stats['completedPlans'] ?></span>
+                </li>
+                <li class="d-flex justify-content-between py-2">
+                    <span>Thông báo mới</span>
+                    <span class="fw-semibold"><?= $stats['newNotifications'] ?></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-xl-3">
+        <div class="card p-4 h-100">
+            <h5 class="mb-3">Bảng lương chờ xử lý</h5>
+            <?php if (!$pendingPayrolls): ?>
+                <div class="text-muted">Không có bảng lương nào cần duyệt.</div>
+            <?php else: ?>
+                <ul class="list-unstyled mb-0">
+                    <?php foreach ($pendingPayrolls as $payroll): ?>
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div>
+                                <div class="fw-semibold"><?= htmlspecialchars($payroll['HoTen']) ?></div>
+                                <div class="small text-muted">Tháng <?= htmlspecialchars($payroll['ThangNam']) ?></div>
+                            </div>
+                            <span class="badge bg-light text-dark"><?= number_format($payroll['TongThuNhap'], 0, ',', '.') ?> đ</span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+            <a href="?controller=salary&action=index" class="btn btn-sm btn-outline-primary mt-3">Quản lý bảng lương</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
     <div class="col-xl-6">
         <div class="card p-4 h-100">
             <h5 class="mb-3">Đánh giá chất lượng</h5>
@@ -116,49 +174,91 @@
                         <div class="text-muted">Không đạt</div>
                     </div>
                 </div>
+            <?php else: ?>
+                <div class="text-muted">Chưa có dữ liệu đánh giá chất lượng.</div>
             <?php endif; ?>
-            <div class="mt-4">
-                <h6 class="fw-semibold mb-2">Đơn hàng gần đây</h6>
-                <?php foreach ($orders as $order): ?>
-                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                        <div>
-                            <div class="fw-semibold"><?= htmlspecialchars($order['IdDonHang']) ?> - <?= htmlspecialchars($order['TenKhachHang']) ?></div>
-                            <div class="text-muted small">Ngày: <?= date('d/m/Y', strtotime($order['NgayLap'])) ?></div>
-                        </div>
-                        <span class="badge bg-light text-dark"><?= number_format($order['TongTien'], 0, ',', '.') ?> đ</span>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card p-4 h-100">
+            <h5 class="mb-3">Đơn hàng gần đây</h5>
+            <?php foreach ($orders as $order): ?>
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                        <div class="fw-semibold"><?= htmlspecialchars($order['IdDonHang']) ?> - <?= htmlspecialchars($order['TenKhachHang']) ?></div>
+                        <div class="text-muted small">Ngày: <?= date('d/m/Y', strtotime($order['NgayLap'])) ?></div>
                     </div>
-                <?php endforeach; ?>
-            </div>
+                    <span class="badge bg-light text-dark"><?= number_format($order['TongTien'], 0, ',', '.') ?> đ</span>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const ctx = document.getElementById('orderChart');
-    if (!ctx) return;
-    const labels = <?= json_encode(array_column($monthlyRevenue, 'thang')) ?>.reverse();
-    const dataValues = <?= json_encode(array_map('floatval', array_column($monthlyRevenue, 'tong_doanh_thu'))) ?>.reverse();
+    const financeCanvas = document.getElementById('financeChart');
+    if (!financeCanvas) return;
 
-    new Chart(ctx, {
-        type: 'line',
+    const revenueRaw = <?= json_encode($monthlyRevenue) ?>;
+    const payrollRaw = <?= json_encode($payrollTrend) ?>;
+
+    const monthSet = new Set();
+    revenueRaw.forEach(item => monthSet.add(item.thang));
+    payrollRaw.forEach(item => monthSet.add(item.thang));
+
+    const labels = Array.from(monthSet).sort();
+    const revenueMap = {};
+    const payrollMap = {};
+
+    revenueRaw.forEach(item => { revenueMap[item.thang] = parseFloat(item.tong_doanh_thu); });
+    payrollRaw.forEach(item => { payrollMap[item.thang] = parseFloat(item.tong_chi); });
+
+    if (!labels.length) {
+        financeCanvas.parentElement.classList.add('d-flex', 'align-items-center', 'justify-content-center', 'text-muted');
+        financeCanvas.replaceWith('Chưa có dữ liệu tài chính.');
+        return;
+    }
+
+    const revenueData = labels.map(label => revenueMap[label] ?? 0);
+    const payrollData = labels.map(label => payrollMap[label] ?? 0);
+
+    new Chart(financeCanvas, {
         data: {
             labels,
-            datasets: [{
-                label: 'Doanh thu đơn hàng',
-                data: dataValues,
-                fill: true,
-                borderColor: '#1976d2',
-                backgroundColor: 'rgba(25,118,210,0.1)',
-                tension: 0.4,
-                pointRadius: 4,
-                pointBackgroundColor: '#0d47a1'
-            }]
+            datasets: [
+                {
+                    type: 'line',
+                    label: 'Doanh thu đơn hàng',
+                    data: revenueData,
+                    borderColor: '#1976d2',
+                    backgroundColor: 'rgba(25,118,210,0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#0d47a1'
+                },
+                {
+                    type: 'bar',
+                    label: 'Chi phí lương',
+                    data: payrollData,
+                    backgroundColor: 'rgba(240, 98, 146, 0.45)',
+                    borderRadius: 6
+                }
+            ]
         },
         options: {
-            plugins: { legend: { display: false } },
+            responsive: true,
+            plugins: {
+                legend: { display: true }
+            },
             scales: {
-                y: { beginAtZero: true, ticks: { callback: value => value.toLocaleString('vi-VN') } }
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => value.toLocaleString('vi-VN')
+                    }
+                }
             }
         }
     });

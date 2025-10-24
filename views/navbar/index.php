@@ -37,6 +37,11 @@ $canAccess = function (array $roles) use ($role): bool {
                 <i class="bi bi-building"></i> Kế hoạch xưởng
             </a>
         <?php endif; ?>
+        <?php if ($canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC'])): ?>
+            <a class="nav-link <?= $currentController === 'workshop' ? 'active' : '' ?>" href="?controller=workshop&action=index">
+                <i class="bi bi-houses"></i> Quản lý xưởng
+            </a>
+        <?php endif; ?>
         <?php if ($canAccess(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU'])): ?>
             <a class="nav-link <?= $currentController === 'human_resources' ? 'active' : '' ?>" href="?controller=human_resources&action=index">
                 <i class="bi bi-people"></i> Nhân sự
