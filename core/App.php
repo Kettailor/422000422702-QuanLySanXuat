@@ -14,7 +14,7 @@ class App
 
         if (!empty($url[0])) {
             $potentialController = ucfirst($url[0]) . 'Controller';
-            if (file_exists('../app/controllers/' . $potentialController . '.php')) {
+            if (file_exists(__DIR__ . '/../app/controllers/' . $potentialController . '.php')) {
                 $this->controller = $potentialController;
             }
             array_shift($url);
