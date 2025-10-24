@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    build: ./services/api-gateway
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=api-gateway
+      - NODE_ENV=development
+      - GATEWAY_PORT=3000
+      - PRODUCTION_SERVICE_URL=http://production-service:4000
+      - REPORTING_SERVICE_URL=http://reporting-service:5000
+    depends_on:
+      - production-service
+      - reporting-service
+    networks:
+      - internal
+
+  production-service:
+    build: ./services/production-service
+    command: npm run start:dev
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=production-service
+      - NODE_ENV=development
+      - PORT=4000
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=production
+      - POSTGRES_USER=prod_admin
+      - POSTGRES_PASSWORD=prod_admin
+    depends_on:
+      - postgres
+    networks:
+      - internal
+
+  reporting-service:
+    build: ./services/reporting-service
+    command: npm run start:dev
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=reporting-service
+      - NODE_ENV=development
+      - PORT=5000
+      - PRODUCTION_API_URL=http://production-service:4000
+      - MONGO_URI=mongodb://mongo_admin:mongo_admin@mongo:27017/reports?authSource=admin
+    depends_on:
+      - mongo
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=production
+      - POSTGRES_USER=prod_admin
+      - POSTGRES_PASSWORD=prod_admin
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo_admin
+      - MONGO_INITDB_ROOT_PASSWORD=mongo_admin
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - internal
+
+volumes:
+  postgres-data:
+  mongo-data:
+
+networks:
+  internal:
+    driver: bridge
