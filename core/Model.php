@@ -11,14 +11,13 @@ class Model
 
     public function __construct()
     {
-        $configPath = __DIR__ . '/../config/database.php';
+        $configPath = '../config/database.php';
         if (!file_exists($configPath)) {
             return;
         }
 
         $config = require $configPath;
-        $dsn = sprintf(
-            '%s:host=%s;port=%d;dbname=%s;charset=%s',
+        $dsn = sprintf('%s:host=%s;port=%d;dbname=%s;charset=%s',
             $config['driver'],
             $config['host'],
             $config['port'],
