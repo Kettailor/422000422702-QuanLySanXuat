@@ -1,9 +1,0 @@
-{
-  "name": "422000422702-quan-ly-san-xuat",
-  "version": "0.0.1",
-  "dependencies": {},
-  "devDependencies": {
-    "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.29.7"
-  }
-}
