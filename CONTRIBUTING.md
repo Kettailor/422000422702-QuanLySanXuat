@@ -87,11 +87,5 @@ git push origin --delete <ten-nhanh>
 - Cập nhật `README.md`, `CHANGELOG.md` và các hướng dẫn người dùng khi có thay đổi chức năng.
 - Thêm chú thích code khi xử lý nghiệp vụ khó hiểu.
 
-## CI/CD và bảo vệ nhánh
-- `main` là nhánh bảo vệ, chỉ merge từ `dev` sau khi phát hành và đã qua kiểm thử.
-- `dev` nhận code thông qua PR từ các nhánh chức năng/sửa lỗi.
-- Kích hoạt workflow CI để tự động build/lint/test mỗi khi có PR.
-- Thiết lập tự động deploy khi merge vào `main` (nếu hệ thống có hỗ trợ).
-- Workflow GitHub Actions mặc định nằm tại `.github/workflows/ci.yml` và sẽ lint toàn bộ file PHP trên mọi PR/push vào `dev`.
 
 Mọi đóng góp đều được ghi nhận. Hãy mở issue nếu có câu hỏi!
