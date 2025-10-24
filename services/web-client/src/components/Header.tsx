@@ -1,4 +1,5 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const titleMap: Record<string, string> = {
   '/quality/form': 'Chất Lượng',
@@ -16,7 +17,16 @@ const titleMap: Record<string, string> = {
 
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const sectionTitle = titleMap[location.pathname] ?? 'ERP';
+
+  const initials = (user?.username ?? 'SV').substring(0, 2).toUpperCase();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <header className="app-header">
@@ -32,12 +42,15 @@ export default function Header() {
           <input placeholder="Tìm kiếm nhanh" />
         </div>
         <div className="avatar">
-          <div className="avatar__circle">TK</div>
+          <div className="avatar__circle">{initials}</div>
           <div>
-            <div style={{ fontWeight: 600 }}>Trần Lê Kiệt</div>
-            <div style={{ fontSize: 12, color: '#64748b' }}>Quản trị viên</div>
+            <div style={{ fontWeight: 600 }}>{user?.username ?? 'Người dùng'}</div>
+            <div style={{ fontSize: 12, color: '#64748b' }}>{user?.role ?? 'Quản trị viên'}</div>
           </div>
         </div>
+        <button className="button-secondary" onClick={handleLogout} type="button">
+          Đăng xuất
+        </button>
       </div>
     </header>
   );

@@ -1,47 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  SummaryResponse,
-  WorkOrderEvent,
-  authenticate,
-  fetchSummaryReport,
-  UnauthorizedError,
-} from '../api/client';
-
-const TOKEN_STORAGE_KEY = 'qlsx.session.token';
-
-const tokenStorage = {
-  get(): string | null {
-    if (typeof window === 'undefined') {
-      return null;
-    }
-    try {
-      return window.sessionStorage.getItem(TOKEN_STORAGE_KEY);
-    } catch (error) {
-      console.warn('Không thể đọc token từ sessionStorage', error);
-      return null;
-    }
-  },
-  set(token: string) {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    try {
-      window.sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
-    } catch (error) {
-      console.warn('Không thể lưu token vào sessionStorage', error);
-    }
-  },
-  clear() {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    try {
-      window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-    } catch (error) {
-      console.warn('Không thể xóa token khỏi sessionStorage', error);
-    }
-  },
-};
+import { SummaryResponse, WorkOrderEvent, fetchSummaryReport, UnauthorizedError } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 interface StatCardData {
   label: string;
@@ -91,6 +50,7 @@ interface LineHighlight {
 const placeholderStats: (StatCardData | null)[] = [null, null, null, null];
 
 export default function DashboardOverview() {
+  const { token, handleUnauthorized } = useAuth();
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -103,6 +63,10 @@ export default function DashboardOverview() {
 
   const loadSummary = useCallback(
     async (options?: { silent?: boolean }) => {
+      if (!token) {
+        return;
+      }
+
       const silent = options?.silent ?? false;
       if (isMounted.current) {
         setError(null);
@@ -114,30 +78,19 @@ export default function DashboardOverview() {
       }
 
       try {
-        let token = tokenStorage.get();
-        if (!token) {
-          token = await authenticate();
-          tokenStorage.set(token);
-        }
-
-        let report: SummaryResponse;
-        try {
-          report = await fetchSummaryReport(token);
-        } catch (fetchError) {
-          if (fetchError instanceof UnauthorizedError) {
-            tokenStorage.clear();
-            token = await authenticate();
-            tokenStorage.set(token);
-            report = await fetchSummaryReport(token);
-          } else {
-            throw fetchError;
-          }
-        }
-
+        const report = await fetchSummaryReport(token);
         if (isMounted.current) {
           setSummary(report);
         }
       } catch (loadError) {
+        if (loadError instanceof UnauthorizedError) {
+          if (isMounted.current) {
+            setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          }
+          await handleUnauthorized();
+          return;
+        }
+
         if (isMounted.current) {
           setSummary(null);
           setError((loadError as Error).message || 'Không thể tải dữ liệu tổng quan');
@@ -152,12 +105,15 @@ export default function DashboardOverview() {
         }
       }
     },
-    []
+    [handleUnauthorized, token]
   );
 
   useEffect(() => {
+    if (!token) {
+      return;
+    }
     loadSummary();
-  }, [loadSummary]);
+  }, [loadSummary, token]);
 
   const stats = useMemo<StatCardData[] | null>(() => {
     if (!summary) {
