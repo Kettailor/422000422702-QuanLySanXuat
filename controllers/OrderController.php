@@ -7,6 +7,7 @@ class OrderController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC']);
         $this->orderModel = new Order();
         $this->customerModel = new Customer();
     }

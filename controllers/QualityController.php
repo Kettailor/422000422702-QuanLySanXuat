@@ -6,6 +6,7 @@ class QualityController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
         $this->qualityModel = new QualityReport();
     }
 

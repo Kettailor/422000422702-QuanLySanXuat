@@ -69,8 +69,17 @@ ALTER TABLE KHO ADD CONSTRAINT FKKHO901694 FOREIGN KEY (IdXuong) REFERENCES XUON
 
 INSERT INTO VAI_TRO (IdVaiTro, TenVaiTro) VALUES
 ('VT_ADMIN', 'Quản trị hệ thống'),
+('VT_BAN_GIAM_DOC', 'Ban giám đốc'),
+('VT_QUANLY_XUONG', 'Quản lý xưởng'),
+('VT_NHANVIEN_SANXUAT', 'Nhân viên sản xuất'),
+('VT_NHANVIEN_KHO', 'Nhân viên kho'),
 ('VT_KETOAN', 'Kế toán'),
-('VT_QUANLY', 'Quản lý xưởng');
+('VT_KIEM_SOAT_CL', 'Kiểm soát chất lượng'),
+('VT_KINH_DOANH', 'Kinh doanh'),
+('VT_NHAN_SU', 'Nhân sự'),
+('VT_DOI_TAC_VAN_TAI', 'Đối tác vận tải'),
+('VT_KHACH', 'Khách hàng nội bộ')
+ON DUPLICATE KEY UPDATE TenVaiTro = VALUES(TenVaiTro);
 
 INSERT INTO NHAN_VIEN (IdNhanVien, HoTen, NgaySinh, GioiTinh, ChucVu, HeSoLuong, TrangThai, DiaChi, ThoiGianLamViec, ChuKy) VALUES
 ('NV001', 'Nguyễn Thị Lan', '1985-05-10', 0, 'Quản đốc xưởng', 5, 'Đang làm việc', 'Khu phố 3, phường Phú Lợi, TP.Thủ Dầu Một', '2020-01-15 07:30:00', NULL),
@@ -78,18 +87,26 @@ INSERT INTO NHAN_VIEN (IdNhanVien, HoTen, NgaySinh, GioiTinh, ChucVu, HeSoLuong,
 ('NV003', 'Lê Hoàng Anh', '1990-03-18', 1, 'Tổ trưởng chuyền may', 3, 'Đang làm việc', 'Ấp 2, xã Phú An, Bến Cát', '2021-03-10 07:45:00', NULL),
 ('NV004', 'Phạm Thu Trang', '1992-08-05', 0, 'Thủ kho nguyên liệu', 3, 'Đang làm việc', 'Khu phố Đông, phường Hòa Phú, TP.Thủ Dầu Một', '2020-09-01 08:00:00', NULL),
 ('NV005', 'Đặng Quốc Việt', '1988-01-26', 1, 'Tổ trưởng đóng gói', 3, 'Đang làm việc', 'Phường Chánh Nghĩa, TP.Thủ Dầu Một', '2021-06-21 07:20:00', NULL),
-('NV006', 'Vũ Hữu Tài', '1983-09-14', 1, 'Kế toán trưởng', 4, 'Đang làm việc', 'Khu phố 5, thị trấn Mỹ Phước, Bến Cát', '2018-04-02 08:05:00', NULL);
+('NV006', 'Vũ Hữu Tài', '1983-09-14', 1, 'Kế toán trưởng', 4, 'Đang làm việc', 'Khu phố 5, thị trấn Mỹ Phước, Bến Cát', '2018-04-02 08:05:00', NULL),
+('NV007', 'Đào Ngọc Hạnh', '1987-04-19', 0, 'Trưởng nhóm kiểm soát chất lượng', 4, 'Đang làm việc', 'Phường Hiệp Thành, TP.Thủ Dầu Một', '2019-02-11 08:00:00', NULL),
+('NV008', 'Phạm Đức Long', '1989-12-02', 1, 'Chuyên viên kinh doanh', 3, 'Đang làm việc', 'Phường Hưng Định, TP.Thuận An', '2020-05-05 08:15:00', NULL),
+('NV009', 'Nguyễn Hải Nam', '1991-07-23', 1, 'Điều phối kho vận', 3, 'Đang làm việc', 'Phường Mỹ Phước, TX.Bến Cát', '2021-08-09 07:50:00', NULL),
+('NV010', 'Võ Thị Mai', '1986-03-30', 0, 'Chuyên viên nhân sự', 4, 'Đang làm việc', 'Phường Phú Tân, TP.Thủ Dầu Một', '2018-09-17 08:10:00', NULL);
 
 INSERT INTO XUONG (IdXuong, TenXuong, SlThietBi, SlNhanVien, TenQuyTrinh, NHANVIENSANXUAT_IdNhanVien, XUONGTRUONG_IdNhanVien) VALUES
 ('XU001', 'Xưởng May Thành Phẩm', 25, 40, 'May & hoàn thiện', 'NV003', 'NV001'),
 ('XU002', 'Xưởng Đóng Gói & Kiểm Định', 18, 28, 'Đóng gói & kiểm soát chất lượng', 'NV005', 'NV002');
 
-INSERT INTO VAI_TRO (IdVaiTro, TenVaiTro) VALUES ('VT_KHACH', 'Khách hàng nội bộ') ON DUPLICATE KEY UPDATE TenVaiTro = VALUES(TenVaiTro);
-
 INSERT INTO NGUOI_DUNG (IdNguoiDung, TenDangNhap, MatKhau, TrangThai, IdNhanVien, IdVaiTro) VALUES
-('ND001', 'ql.lan', 'matkhau@123', 'Hoạt động', 'NV001', 'VT_QUANLY'),
+('ND001', 'ql.lan', 'matkhau@123', 'Hoạt động', 'NV001', 'VT_QUANLY_XUONG'),
 ('ND002', 'ketoan.tai', 'matkhau@123', 'Hoạt động', 'NV006', 'VT_KETOAN'),
-('ND003', 'admin.minh', 'Matkhau!2023', 'Hoạt động', 'NV002', 'VT_ADMIN');
+('ND003', 'admin.minh', 'Matkhau!2023', 'Hoạt động', 'NV002', 'VT_ADMIN'),
+('ND004', 'sx.anh', 'matkhau@123', 'Hoạt động', 'NV003', 'VT_NHANVIEN_SANXUAT'),
+('ND005', 'kho.trang', 'matkhau@123', 'Hoạt động', 'NV004', 'VT_NHANVIEN_KHO'),
+('ND006', 'cl.hanh', 'matkhau@123', 'Hoạt động', 'NV007', 'VT_KIEM_SOAT_CL'),
+('ND007', 'kd.long', 'matkhau@123', 'Hoạt động', 'NV008', 'VT_KINH_DOANH'),
+('ND008', 'nhansu.mai', 'matkhau@123', 'Hoạt động', 'NV010', 'VT_NHAN_SU'),
+('ND009', 'vantai.nam', 'matkhau@123', 'Hoạt động', 'NV009', 'VT_DOI_TAC_VAN_TAI');
 
 INSERT INTO KHACH_HANG (IdKhachHang, HoTen, GioiTinh, DiaChi, SoLuongDonHang, SoDienThoai, TongTien, LoaiKhachHang) VALUES
 ('KH001', 'Công ty Thực phẩm Ánh Dương', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 525000000, 'Bán buôn chiến lược'),

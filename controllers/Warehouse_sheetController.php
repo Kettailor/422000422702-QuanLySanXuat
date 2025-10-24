@@ -6,6 +6,7 @@ class Warehouse_sheetController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_NHANVIEN_KHO']);
         $this->sheetModel = new InventorySheet();
     }
 

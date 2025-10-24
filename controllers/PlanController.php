@@ -6,6 +6,7 @@ class PlanController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG']);
         $this->planModel = new ProductionPlan();
     }
 
