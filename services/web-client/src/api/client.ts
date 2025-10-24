@@ -60,21 +60,7 @@ export interface AuthUser {
   role?: string;
 }
 
-const DEFAULT_API_BASE = 'http://localhost:3000';
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE).replace(/\/$/, '');
-
-const createUrl = (path: string) => `${API_BASE_URL}${path}`;
-
-const wrapNetworkError = async <T>(promise: Promise<T>): Promise<T> => {
-  try {
-    return await promise;
-  } catch (error) {
-    if (error instanceof TypeError) {
-      throw new Error('Không thể kết nối tới máy chủ. Vui lòng thử lại sau.');
-    }
-    throw error;
-  }
-};
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api';
 
 interface LoginResponse {
   token?: string;
@@ -102,16 +88,14 @@ export const login = async ({
   username: string;
   password: string;
 }): Promise<{ token: string; user: AuthUser | null }> => {
-  const response = await wrapNetworkError(
-    fetch(createUrl(`/auth/login`), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ username, password }),
-    })
-  );
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ username, password }),
+  });
 
   const data = await handleResponse<LoginResponse>(response, 'Không thể đăng nhập');
   if (!data.token) {
@@ -122,15 +106,13 @@ export const login = async ({
 };
 
 export const logout = async (token: string): Promise<void> => {
-  const response = await wrapNetworkError(
-    fetch(createUrl(`/auth/logout`), {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-    })
-  );
+  const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     throw new Error('Không thể đăng xuất');
@@ -138,14 +120,12 @@ export const logout = async (token: string): Promise<void> => {
 };
 
 export const getSession = async (token: string): Promise<{ token: string; user: AuthUser | null }> => {
-  const response = await wrapNetworkError(
-    fetch(createUrl(`/auth/session`), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-    })
-  );
+  const response = await fetch(`${API_BASE_URL}/auth/session`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: 'include',
+  });
 
   const data = await handleResponse<LoginResponse>(response, 'Không thể khôi phục phiên đăng nhập');
   if (!data.token) {
@@ -156,14 +136,12 @@ export const getSession = async (token: string): Promise<{ token: string; user: 
 };
 
 export const fetchSummaryReport = async (token: string): Promise<SummaryResponse> => {
-  const response = await wrapNetworkError(
-    fetch(createUrl(`/api/reports/summary`), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-    })
-  );
+  const response = await fetch(`${API_BASE_URL}/reports/summary`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: 'include',
+  });
 
   return handleResponse<SummaryResponse>(response, 'Không thể tải báo cáo tổng quan');
 };
