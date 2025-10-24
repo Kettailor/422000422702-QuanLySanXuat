@@ -4,7 +4,18 @@ Cảm ơn bạn đã quan tâm đóng góp cho dự án. Vui lòng tuân thủ c
 
 ## Quy trình chung
 1. Tạo issue mô tả rõ nhu cầu hoặc lỗi.
-2. Fork hoặc tạo nhánh mới từ `main` cho từng thay đổi.
+2. Fork hoặc tạo nhánh mới từ `dev` cho từng thay đổi.
+````bash
+# Luôn đặt vị trí ở branch dev để xem tiến độ
+git checkout dev
+git pull origin dev
+
+# Khi cập nhật dự án của bạn lên có thể bỏ nếu bạn làm việc tại repo mà bạn fork
+git add .
+git commmit -m "[Lí do cập nhật]"
+git checkout feature/[vị trí code] #VD: feature/views_auth
+git push origin feature/[vị trí code]
+````
 3. Đảm bảo commit có thông điệp ngắn gọn, nêu bật mục đích thay đổi.
 4. Mở pull request và mô tả rõ phạm vi, ảnh hưởng, cách kiểm thử.
 
