@@ -6,6 +6,7 @@ class Human_resourcesController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU']);
         $this->employeeModel = new Employee();
     }
 

@@ -6,6 +6,7 @@ class BillController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_KETOAN', 'VT_KINH_DOANH']);
         $this->billModel = new Bill();
     }
 

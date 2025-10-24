@@ -6,6 +6,7 @@ class Factory_planController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT']);
         $this->workshopPlanModel = new WorkshopPlan();
     }
 

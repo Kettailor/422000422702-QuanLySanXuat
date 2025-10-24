@@ -4,11 +4,13 @@ class AuthController extends Controller
 {
     private User $userModel;
     private Employee $employeeModel;
+    private Role $roleModel;
 
     public function __construct()
     {
         $this->userModel = new User();
         $this->employeeModel = new Employee();
+        $this->roleModel = new Role();
     }
 
     public function login(): void
@@ -19,7 +21,10 @@ class AuthController extends Controller
 
             $user = $this->userModel->findByUsername($username);
             if ($user && ($user['MatKhau'] === $password || password_verify($password, $user['MatKhau']))) {
-                $_SESSION['user'] = $user;
+                $role = $this->roleModel->find($user['IdVaiTro']);
+                $_SESSION['user'] = array_merge($user, [
+                    'TenVaiTro' => $role['TenVaiTro'] ?? null,
+                ]);
                 $this->setFlash('success', 'Đăng nhập thành công.');
                 $this->redirect('?controller=dashboard&action=index');
                 return;

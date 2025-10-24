@@ -2,6 +2,36 @@
 
 abstract class Controller
 {
+    protected function currentUser(): ?array
+    {
+        return $_SESSION['user'] ?? null;
+    }
+
+    protected function authorize(array $allowedRoles): void
+    {
+        $user = $this->currentUser();
+
+        if (!$user) {
+            $this->setFlash('danger', 'Vui lòng đăng nhập để tiếp tục.');
+            $this->redirect('?controller=auth&action=login');
+        }
+
+        $role = $user['IdVaiTro'] ?? null;
+        if (!$role) {
+            $this->setFlash('danger', 'Không xác định được vai trò người dùng.');
+            $this->redirect('?controller=dashboard&action=index');
+        }
+
+        if ($role === 'VT_ADMIN') {
+            return;
+        }
+
+        if (!in_array($role, $allowedRoles, true)) {
+            $this->setFlash('danger', 'Bạn không có quyền truy cập chức năng này.');
+            $this->redirect('?controller=dashboard&action=index');
+        }
+    }
+
     protected function render(string $view, array $data = []): void
     {
         $viewFile = __DIR__ . '/../views/' . $view . '.php';

@@ -6,6 +6,7 @@ class SalaryController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_KETOAN', 'VT_BAN_GIAM_DOC']);
         $this->salaryModel = new Salary();
     }
 

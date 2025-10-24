@@ -11,7 +11,12 @@
         <div class="card p-4 text-center">
             <div class="display-5 text-primary mb-3"><i class="bi bi-person-circle"></i></div>
             <h5 class="fw-bold mb-1"><?= htmlspecialchars($user['TenDangNhap'] ?? 'Khách') ?></h5>
-            <p class="text-muted">Vai trò: <?= htmlspecialchars($user['IdVaiTro'] ?? 'N/A') ?></p>
+            <p class="text-muted">
+                Vai trò: <?= htmlspecialchars($user['TenVaiTro'] ?? 'N/A') ?>
+                <?php if (!empty($user['IdVaiTro'])): ?>
+                    <span class="badge bg-light text-muted border ms-1">#<?= htmlspecialchars($user['IdVaiTro']) ?></span>
+                <?php endif; ?>
+            </p>
             <a href="?controller=auth&action=logout" class="btn btn-outline-danger">Đăng xuất</a>
         </div>
     </div>
