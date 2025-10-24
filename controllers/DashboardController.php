@@ -9,6 +9,8 @@ class DashboardController extends Controller
         $planModel = new ProductionPlan();
         $activityModel = new SystemActivity();
         $qualityModel = new QualityReport();
+        $salaryModel = new Salary();
+        $workshopModel = new Workshop();
 
         $orders = $orderModel->getOrdersWithCustomer(5);
         $employees = $employeeModel->getActiveEmployees();
@@ -16,6 +18,11 @@ class DashboardController extends Controller
         $activities = $activityModel->latest(6);
         $qualitySummary = $qualityModel->getQualitySummary();
         $monthlyRevenue = $orderModel->getMonthlyRevenue();
+        $payrollTrend = $salaryModel->getMonthlyPayoutTrend();
+        $orderStats = $orderModel->getOrderStatistics();
+        $payrollSummary = $salaryModel->getPayrollSummary();
+        $workshopSummary = $workshopModel->getCapacitySummary();
+        $pendingPayrolls = $salaryModel->getPendingPayrolls();
 
         $stats = [
             'totalWorkingDays' => 22,
@@ -33,6 +40,11 @@ class DashboardController extends Controller
             'qualitySummary' => $qualitySummary,
             'stats' => $stats,
             'monthlyRevenue' => $monthlyRevenue,
+            'payrollTrend' => $payrollTrend,
+            'orderStats' => $orderStats,
+            'payrollSummary' => $payrollSummary,
+            'workshopSummary' => $workshopSummary,
+            'pendingPayrolls' => $pendingPayrolls,
         ]);
     }
 }
