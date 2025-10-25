@@ -65,8 +65,8 @@ $isEdit = $isEdit ?? false;
                 </select>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-semibold">Người xác nhận</label>
-                <select class="form-select" name="NguoiXacNhan">
+                <label class="form-label fw-semibold">Người xác nhận <span class="text-danger">*</span></label>
+                <select class="form-select" name="NguoiXacNhan" required>
                     <option value="">-- Chọn nhân viên --</option>
                     <?php foreach ($employees as $employee): ?>
                         <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien2'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>

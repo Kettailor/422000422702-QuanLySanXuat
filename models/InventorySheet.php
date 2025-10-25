@@ -215,12 +215,17 @@ class InventorySheet extends BaseModel
             }
 
             $value = $data[$field];
+
+            if (is_string($value)) {
+                $value = trim($value);
+            }
+
             if ($value === '') {
                 $value = null;
             }
 
             if ($field === 'TongTien' && $value !== null) {
-                $value = (float) $value;
+                $value = (int) $value;
             }
 
             $payload[$field] = $value;
