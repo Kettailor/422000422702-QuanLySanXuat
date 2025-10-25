@@ -19,10 +19,6 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
         box-shadow: none;
     }
 
-    .metric-trigger:focus-visible .metric-card {
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-
     .metric-trigger .metric-card {
         transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
@@ -30,6 +26,12 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
     .metric-trigger:hover .metric-card {
         transform: translateY(-3px);
         box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.12);
+    }
+
+    .metric-trigger:focus-visible .metric-card,
+    .metric-trigger.active .metric-card {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        transform: translateY(-2px);
     }
 </style>
 
@@ -226,6 +228,23 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
         var modalCount = modal.querySelector('[data-modal-count]');
         var tableBody = modal.querySelector('tbody');
         var emptyState = modal.querySelector('[data-empty-state]');
+        var triggers = Array.prototype.slice.call(document.querySelectorAll('[data-document-group-trigger]'));
+
+        function setActiveTrigger(groupKey) {
+            triggers.forEach(function (trigger) {
+                if (!groupKey) {
+                    trigger.classList.remove('active');
+                    return;
+                }
+
+                var triggerKey = trigger.getAttribute('data-document-group-trigger');
+                if (triggerKey === groupKey) {
+                    trigger.classList.add('active');
+                } else {
+                    trigger.classList.remove('active');
+                }
+            });
+        }
 
         function formatDate(value) {
             if (!value) {
@@ -283,7 +302,16 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
             return container;
         }
 
+        triggers.forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                var groupKey = this.getAttribute('data-document-group-trigger');
+                renderDocuments(groupKey);
+            });
+        });
+
         function renderDocuments(groupKey) {
+            setActiveTrigger(groupKey);
+
             var group = groups[groupKey];
             if (!group) {
                 tableBody.innerHTML = '';
@@ -291,6 +319,7 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                 modalDescription.textContent = 'Không tìm thấy dữ liệu phiếu.';
                 modalCount.textContent = '';
                 modalTitle.textContent = 'Danh sách phiếu kho';
+                setActiveTrigger(null);
                 return;
             }
 
@@ -358,13 +387,6 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
             });
         }
 
-        document.querySelectorAll('[data-document-group-trigger]').forEach(function (trigger) {
-            trigger.addEventListener('click', function () {
-                var groupKey = this.getAttribute('data-document-group-trigger');
-                renderDocuments(groupKey);
-            });
-        });
-
         modal.addEventListener('shown.bs.modal', function (event) {
             var button = event.relatedTarget;
             if (!button) {
@@ -373,6 +395,10 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
 
             var key = button.getAttribute('data-document-group-trigger');
             renderDocuments(key);
+        });
+
+        modal.addEventListener('hidden.bs.modal', function () {
+            setActiveTrigger(null);
         });
     });
 </script>
