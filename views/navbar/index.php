@@ -16,7 +16,7 @@ $canAccess = function (array $roles) use ($role): bool {
 <nav class="sidebar">
     <div class="logo">
         <span class="bi bi-grid-1x2-fill"></span>
-        <span>Sản xuất ERP</span>
+        <span>Aurora Keyboard Ops</span>
     </div>
     <div class="nav flex-column">
         <a class="nav-link <?= $currentController === 'dashboard' ? 'active' : '' ?>" href="?controller=dashboard&action=index">
@@ -83,11 +83,11 @@ $canAccess = function (array $roles) use ($role): bool {
     <header class="topbar">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-outline-primary d-lg-none" data-toggle="sidebar"><i class="bi bi-list"></i></button>
-            <div class="fw-semibold text-secondary">Sinh viên 5 Tốt ERP</div>
+            <div class="fw-semibold text-secondary">Aurora Keyboard Manufacturing Hub</div>
         </div>
         <div class="d-flex align-items-center gap-3">
             <div class="search-bar d-none d-md-block">
-                <input type="search" class="form-control" placeholder="Tìm kiếm nhanh...">
+                <input type="search" class="form-control" placeholder="Tìm nhanh đơn hàng, kế hoạch Aurora...">
             </div>
             <a href="?controller=auth&action=profile" class="btn btn-light border d-flex align-items-center gap-2">
                 <i class="bi bi-person-circle"></i>

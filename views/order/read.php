@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Chi tiết đơn hàng</h3>
-        <p class="text-muted mb-0">Thông tin chi tiết về đơn hàng và khách hàng liên quan.</p>
+        <h3 class="fw-bold mb-1">Chi tiết đơn Aurora</h3>
+        <p class="text-muted mb-0">Thông tin chi tiết về đơn bàn phím Aurora và khách hàng liên quan.</p>
     </div>
     <a href="?controller=order&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
@@ -12,7 +12,7 @@
     <div class="row g-4">
         <div class="col-lg-6">
             <div class="card p-4">
-                <h5 class="fw-semibold mb-3">Thông tin đơn hàng</h5>
+                <h5 class="fw-semibold mb-3">Thông tin đơn Aurora</h5>
                 <dl class="row mb-0">
                     <dt class="col-sm-5">Mã đơn hàng</dt>
                     <dd class="col-sm-7">#<?= htmlspecialchars($order['IdDonHang']) ?></dd>
@@ -24,7 +24,7 @@
                     <dd class="col-sm-7 fw-semibold text-primary"><?= number_format($order['TongTien'], 0, ',', '.') ?> đ</dd>
                 </dl>
                 <div class="mt-3">
-                    <h6 class="fw-semibold">Yêu cầu sản xuất</h6>
+                    <h6 class="fw-semibold">Yêu cầu cấu hình Aurora</h6>
                     <p class="text-muted mb-0"><?= nl2br(htmlspecialchars($order['YeuCau'])) ?></p>
                 </div>
             </div>
@@ -53,7 +53,7 @@
         <div class="col-12">
             <div class="card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-semibold mb-0">Danh sách sản phẩm</h5>
+                    <h5 class="fw-semibold mb-0">Danh sách cấu hình Aurora</h5>
                     <span class="badge bg-light text-dark">Tổng số dòng: <?= count($orderDetails) ?></span>
                 </div>
                 <?php if (!empty($orderDetails)): ?>
@@ -61,12 +61,12 @@
                         <table class="table align-middle">
                             <thead>
                             <tr>
-                                <th>Sản phẩm</th>
+                                <th>Cấu hình Aurora</th>
                                 <th class="text-center">Số lượng</th>
                                 <th>Đơn giá</th>
                                 <th>VAT</th>
                                 <th>Thời gian giao</th>
-                                <th>Yêu cầu</th>
+                                <th>Yêu cầu Aurora</th>
                                 <th class="text-end">Thành tiền</th>
                             </tr>
                             </thead>
@@ -106,7 +106,7 @@
                         <span class="fw-bold fs-5 text-primary"><?= number_format($totalAmount, 0, ',', '.') ?> đ</span>
                     </div>
                 <?php else: ?>
-                    <p class="text-muted mb-0">Đơn hàng chưa có sản phẩm nào.</p>
+                    <p class="text-muted mb-0">Đơn Aurora chưa có cấu hình nào.</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -122,7 +122,7 @@
                 <div class="row g-4">
                     <div class="col-lg-4">
                         <div class="border rounded p-3 h-100">
-                            <h6 class="fw-semibold mb-3">Trạng thái đơn hàng</h6>
+                            <h6 class="fw-semibold mb-3">Trạng thái đơn Aurora</h6>
                             <select name="order_status" class="form-select">
                                 <option value="">-- Giữ nguyên --</option>
                                 <?php foreach ($orderStatuses as $status): ?>
@@ -134,12 +134,12 @@
                     </div>
                     <div class="col-lg-4">
                         <div class="border rounded p-3 h-100">
-                            <h6 class="fw-semibold mb-3">Kế hoạch sản xuất</h6>
+                            <h6 class="fw-semibold mb-3">Kế hoạch Aurora</h6>
                             <?php if (!empty($plans)): ?>
                                 <?php foreach ($plans as $plan): ?>
                                     <div class="mb-3">
                                         <div class="fw-semibold">#<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?></div>
-                                        <div class="text-muted small mb-2">Sản phẩm: <?= htmlspecialchars($plan['IdSanPham'] ?? '---') ?> | SL: <?= number_format($plan['SoLuongChiTiet'] ?? 0) ?></div>
+                                        <div class="text-muted small mb-2">Cấu hình Aurora: <?= htmlspecialchars($plan['IdSanPham'] ?? '---') ?> | SL: <?= number_format($plan['SoLuongChiTiet'] ?? 0) ?></div>
                                         <select name="plan_statuses[<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?>]" class="form-select">
                                             <?php foreach ($planStatuses as $status): ?>
                                                 <option value="<?= htmlspecialchars($status) ?>" <?= $status === $plan['TrangThai'] ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
@@ -148,13 +148,13 @@
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <p class="text-muted mb-0">Chưa có kế hoạch sản xuất cho đơn hàng này.</p>
+                                <p class="text-muted mb-0">Chưa có kế hoạch Aurora cho đơn này.</p>
                             <?php endif; ?>
                         </div>
                     </div>
                     <div class="col-lg-4">
                         <div class="border rounded p-3 h-100">
-                            <h6 class="fw-semibold mb-3">Hóa đơn liên quan</h6>
+                            <h6 class="fw-semibold mb-3">Hóa đơn Aurora liên quan</h6>
                             <?php if (!empty($bills)): ?>
                                 <?php foreach ($bills as $bill): ?>
                                     <div class="mb-3">

@@ -2,6 +2,6 @@
 
 class Customer extends BaseModel
 {
-    protected string $table = 'KHACH_HANG';
+    protected string $table = 'khach_hang';
     protected string $primaryKey = 'IdKhachHang';
 }

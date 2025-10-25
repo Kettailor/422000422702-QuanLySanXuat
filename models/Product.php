@@ -2,7 +2,7 @@
 
 class Product extends BaseModel
 {
-    protected string $table = 'SAN_PHAM';
+    protected string $table = 'san_pham';
     protected string $primaryKey = 'IdSanPham';
 
     public function findByName(string $name): ?array
