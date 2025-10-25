@@ -65,6 +65,8 @@ $isEdit = $isEdit ?? false;
                 </select>
             </div>
             <div class="col-md-6">
+                <label class="form-label fw-semibold">Người xác nhận <span class="text-danger">*</span></label>
+                <select class="form-select" name="NguoiXacNhan" required>
                 <label class="form-label fw-semibold">Người xác nhận</label>
                 <select class="form-select" name="NguoiXacNhan">
                     <option value="">-- Chọn nhân viên --</option>

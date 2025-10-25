@@ -54,6 +54,10 @@ class Warehouse_sheetController extends Controller
             $this->redirect('?controller=warehouse_sheet&action=index');
         }
 
+        $inputId = trim((string) ($_POST['IdPhieu'] ?? ''));
+
+        $data = [
+            'IdPhieu' => $inputId !== '' ? $inputId : $this->sheetModel->generateDocumentId($_POST['LoaiPhieu'] ?? null),
         $data = [
             'IdPhieu' => $_POST['IdPhieu'] ?: $this->sheetModel->generateDocumentId($_POST['LoaiPhieu'] ?? null),
             'NgayLP' => $_POST['NgayLP'] ?? null,
@@ -169,6 +173,7 @@ class Warehouse_sheetController extends Controller
 
     private function validateRequired(array $data): bool
     {
+        $required = ['IdPhieu', 'LoaiPhieu', 'IdKho', 'NHAN_VIENIdNhanVien', 'NHAN_VIENIdNhanVien2'];
         $required = ['IdPhieu', 'LoaiPhieu', 'IdKho', 'NHAN_VIENIdNhanVien'];
 
         foreach ($required as $field) {

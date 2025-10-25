@@ -152,6 +152,116 @@ class Warehouse extends BaseModel
         return $summary;
     }
 
+    public function getStatusOptions(): array
+    {
+        return ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
+    }
+
+    public function getFormOptions(): array
+    {
+        $workshops = $this->db->query('SELECT IdXuong, TenXuong FROM XUONG ORDER BY TenXuong')->fetchAll();
+        $managers = $this->db->query('SELECT IdNhanVien, HoTen, ChucVu FROM NHAN_VIEN ORDER BY HoTen')->fetchAll();
+
+        return [
+            'workshops' => $workshops,
+            'managers' => $managers,
+            'statuses' => $this->getStatusOptions(),
+        ];
+    }
+
+    public function createWarehouse(array $data): bool
+    {
+        $payload = $this->sanitizeWarehousePayload($data, true);
+
+        return $this->create($payload);
+    }
+
+    public function updateWarehouse(string $id, array $data): bool
+    {
+        $payload = $this->sanitizeWarehousePayload(array_merge($data, ['IdKho' => $id]));
+
+        return $this->update($id, $payload);
+    }
+
+    public function generateWarehouseId(): string
+    {
+        return 'KHO' . date('YmdHis');
+    }
+
+    private function sanitizeWarehousePayload(array $data, bool $includeId = false): array
+    {
+        $fields = [
+            'IdKho',
+            'TenKho',
+            'TenLoaiKho',
+            'DiaChi',
+            'TongSLLo',
+            'ThanhTien',
+            'TrangThai',
+            'TongSL',
+            'IdXuong',
+            'NHAN_VIEN_KHO_IdNhanVien',
+        ];
+
+        $payload = [];
+
+        foreach ($fields as $field) {
+            if (!$includeId && $field === 'IdKho') {
+                continue;
+            }
+
+            $value = $data[$field] ?? null;
+
+            if ($field === 'IdKho') {
+                $value = $value ?: $this->generateWarehouseId();
+            }
+
+            if (is_string($value)) {
+                $value = trim($value);
+                if ($value === '') {
+                    $value = null;
+                }
+            }
+
+            switch ($field) {
+                case 'TongSLLo':
+                case 'TongSL':
+                    $payload[$field] = $value !== null ? max(0, (int) $value) : 0;
+                    break;
+                case 'ThanhTien':
+                    $payload[$field] = $value !== null ? max(0, (int) $value) : 0;
+                    break;
+                case 'TrangThai':
+                    $payload[$field] = $this->normalizeStatus($value);
+                    break;
+                default:
+                    if ($value !== null) {
+                        $payload[$field] = $value;
+                    }
+                    break;
+            }
+        }
+
+        return $payload;
+    }
+
+    private function normalizeStatus(?string $status): string
+    {
+        $statusOptions = $this->getStatusOptions();
+
+        if ($status === null) {
+            return $statusOptions[0];
+        }
+
+        foreach ($statusOptions as $option) {
+            if ($option === $status) {
+                return $option;
+            }
+        }
+
+        return $statusOptions[0];
+    }
+
     /**
      * Xác định trạng thái hoạt động của kho theo chuỗi mô tả trong cơ sở dữ liệu.
      */
