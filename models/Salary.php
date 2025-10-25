@@ -5,7 +5,7 @@ class Salary extends BaseModel
     public const ACCOUNTANT_COLUMN = '`KETOAN IdNhanVien2`';
     public const EMPLOYEE_COLUMN = 'NHAN_VIENIdNhanVien';
 
-    protected string $table = 'BANG_LUONG';
+    protected string $table = 'bang_luong';
     protected string $primaryKey = 'IdBangLuong';
 
     public static function calculateFigures(float $base, float $allowance, float $deduction, float $tax): array
@@ -21,9 +21,9 @@ class Salary extends BaseModel
 
     public function getPayrolls(int $limit = 50): array
     {
-        $sql = 'SELECT BANG_LUONG.*, NV.HoTen
-                FROM BANG_LUONG
-                JOIN NHAN_VIEN NV ON NV.IdNhanVien = BANG_LUONG.' . self::EMPLOYEE_COLUMN . '
+        $sql = 'SELECT bang_luong.*, nv.HoTen
+                FROM bang_luong
+                JOIN nhan_vien nv ON nv.IdNhanVien = bang_luong.' . self::EMPLOYEE_COLUMN . '
                 ORDER BY NgayLap DESC
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);
@@ -34,10 +34,10 @@ class Salary extends BaseModel
 
     public function getPendingPayrolls(int $limit = 5): array
     {
-        $sql = 'SELECT BANG_LUONG.*, NV.HoTen
-                FROM BANG_LUONG
-                JOIN NHAN_VIEN NV ON NV.IdNhanVien = BANG_LUONG.' . self::EMPLOYEE_COLUMN . '
-                WHERE BANG_LUONG.TrangThai = :status
+        $sql = 'SELECT bang_luong.*, nv.HoTen
+                FROM bang_luong
+                JOIN nhan_vien nv ON nv.IdNhanVien = bang_luong.' . self::EMPLOYEE_COLUMN . '
+                WHERE bang_luong.TrangThai = :status
                 ORDER BY NgayLap DESC
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);
@@ -54,7 +54,7 @@ class Salary extends BaseModel
                        SUM(CASE WHEN TrangThai = "Chờ duyệt" THEN 1 ELSE 0 END) AS pending,
                        SUM(CASE WHEN TrangThai = "Đã duyệt" THEN 1 ELSE 0 END) AS approved,
                        SUM(CASE WHEN TrangThai = "Đã chi" THEN 1 ELSE 0 END) AS paid
-                FROM BANG_LUONG';
+                FROM bang_luong';
         $summary = $this->db->query($sql)->fetch();
 
         return [
@@ -69,7 +69,7 @@ class Salary extends BaseModel
     public function getMonthlyPayoutTrend(int $months = 6): array
     {
         $sql = 'SELECT DATE_FORMAT(NgayLap, "%Y-%m") AS thang, SUM(TongThuNhap) AS tong_chi
-                FROM BANG_LUONG
+                FROM bang_luong
                 GROUP BY DATE_FORMAT(NgayLap, "%Y-%m")
                 ORDER BY thang DESC
                 LIMIT :months';

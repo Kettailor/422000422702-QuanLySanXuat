@@ -1,9 +1,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Kế hoạch xưởng</h3>
-        <p class="text-muted mb-0">Phân bổ kế hoạch sản xuất cho từng xưởng.</p>
+        <h3 class="fw-bold mb-1">Kế hoạch xưởng Aurora</h3>
+        <p class="text-muted mb-0">Phân bổ hạng mục bàn phím Aurora cho từng xưởng chuyên trách.</p>
     </div>
-    <a href="?controller=factory_plan&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kế hoạch xưởng</a>
+    <a href="?controller=factory_plan&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kế hoạch xưởng Aurora</a>
 </div>
 
 <div class="card p-4">
@@ -13,8 +13,8 @@
             <tr>
                 <th>Mã kế hoạch xưởng</th>
                 <th>Xưởng</th>
-                <th>Thành phần</th>
-                <th>Số lượng</th>
+                <th>Hạng mục Aurora</th>
+                <th>Số lượng linh kiện/bàn phím</th>
                 <th>Thời gian</th>
                 <th>Trạng thái</th>
                 <th></th>

@@ -1,9 +1,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Danh sách đơn hàng</h3>
-        <p class="text-muted mb-0">Theo dõi tiến độ và trạng thái các đơn hàng của khách hàng.</p>
+        <h3 class="fw-bold mb-1">Đơn hàng bàn phím Aurora</h3>
+        <p class="text-muted mb-0">Theo dõi tiến độ sản xuất và trạng thái giao hàng cho các đơn Aurora OEM/retail.</p>
     </div>
-    <a href="?controller=order&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm đơn hàng</a>
+    <a href="?controller=order&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm đơn Aurora</a>
 </div>
 
 <div class="card p-4">

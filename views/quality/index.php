@@ -1,26 +1,26 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Kiểm soát chất lượng</h3>
-        <p class="text-muted mb-0">Theo dõi các biên bản đánh giá thành phẩm.</p>
+        <h3 class="fw-bold mb-1">Kiểm soát chất lượng Aurora</h3>
+        <p class="text-muted mb-0">Theo dõi các biên bản đánh giá bàn phím Aurora, PCB và lô thành phẩm.</p>
     </div>
-    <a href="?controller=quality&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Lập biên bản</a>
+    <a href="?controller=quality&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Lập biên bản Aurora</a>
 </div>
 
 <div class="row g-4">
     <div class="col-xl-4">
         <div class="card p-4 h-100">
-            <h5 class="mb-3">Tổng quan</h5>
+            <h5 class="mb-3">Tổng quan QA Aurora</h5>
             <div class="d-flex justify-content-between">
                 <div>
-                    <div class="text-muted">Tổng biên bản</div>
+                    <div class="text-muted">Biên bản kiểm thử</div>
                     <div class="fs-2 fw-bold text-primary"><?= $summary['tong_bien_ban'] ?? 0 ?></div>
                 </div>
                 <div>
-                    <div class="text-muted">Đạt</div>
+                    <div class="text-muted">Đạt Aurora</div>
                     <div class="fs-4 text-success fw-semibold"><?= $summary['so_dat'] ?? 0 ?></div>
                 </div>
                 <div>
-                    <div class="text-muted">Không đạt</div>
+                    <div class="text-muted">Không đạt Aurora</div>
                     <div class="fs-4 text-danger fw-semibold"><?= $summary['so_khong_dat'] ?? 0 ?></div>
                 </div>
             </div>
@@ -30,7 +30,7 @@
     <div class="col-xl-8">
         <div class="card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Biên bản gần đây</h5>
+                <h5 class="mb-0">Biên bản Aurora gần đây</h5>
                 <span class="text-muted small">Danh sách mới nhất</span>
             </div>
             <div class="table-responsive">
@@ -38,7 +38,7 @@
                     <thead>
                     <tr>
                         <th>Mã biên bản</th>
-                        <th>Lô sản xuất</th>
+                        <th>Lô Aurora</th>
                         <th>Kết quả</th>
                         <th>Thời gian</th>
                         <th></th>
