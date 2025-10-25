@@ -1,53 +1,8 @@
 <?php
-$summaryDefaults = [
-    'total_warehouses' => 0,
-    'active_warehouses' => 0,
-    'inactive_warehouses' => 0,
-    'total_capacity' => 0,
-    'total_inventory_value' => 0,
-    'total_lots' => 0,
-    'total_quantity' => 0,
-];
-$summary = array_merge($summaryDefaults, $summary ?? []);
+$summary = $summary ?? [];
 $warehouses = $warehouses ?? [];
-
-$groupPresets = [
-    'all' => [
-        'title' => 'Tất cả phiếu kho',
-        'description' => 'Danh sách phiếu kho trong hệ thống.',
-        'count' => 0,
-        'documents' => [],
-    ],
-    'inbound' => [
-        'title' => 'Phiếu nhập kho',
-        'description' => 'Các phiếu nhập kho gần đây.',
-        'count' => 0,
-        'documents' => [],
-    ],
-    'outbound' => [
-        'title' => 'Phiếu xuất kho',
-        'description' => 'Các phiếu xuất kho đang hoạt động.',
-        'count' => 0,
-        'documents' => [],
-    ],
-    'valuable' => [
-        'title' => 'Phiếu giá trị cao',
-        'description' => 'Danh sách phiếu có giá trị lớn.',
-        'count' => 0,
-        'documents' => [],
-    ],
-];
-
 $documentGroups = $documentGroups ?? [];
-foreach ($groupPresets as $key => $defaults) {
-    $documentGroups[$key] = array_merge($defaults, $documentGroups[$key] ?? []);
-}
-
-$documentGroupsJson = htmlspecialchars(
-    json_encode($documentGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}',
-    ENT_QUOTES,
-    'UTF-8'
-);
+$documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 ?>
 
 <style>
@@ -79,6 +34,8 @@ $documentGroupsJson = htmlspecialchars(
         transform: translateY(-2px);
     }
 </style>
+
+?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -140,6 +97,43 @@ $documentGroupsJson = htmlspecialchars(
                     </div>
                 </div>
             </button>
+            <div class="card metric-card">
+                <div class="icon-wrap bg-primary bg-opacity-10 text-primary"><i class="bi bi-archive"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Tổng số kho</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_warehouses']) ?></div>
+                    <div class="small text-success">Đang sử dụng: <?= number_format($summary['active_warehouses']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-box-seam"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Sức chứa hệ thống</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_capacity']) ?></div>
+                    <div class="small text-muted">Kho tạm ngưng: <?= number_format($summary['inactive_warehouses']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-graph-up"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Giá trị hàng tồn</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_inventory_value'], 0, ',', '.') ?> đ</div>
+                    <div class="small text-muted">Tổng lô: <?= number_format($summary['total_lots']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-success bg-opacity-10 text-success"><i class="bi bi-layers"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Tổng số lượng tồn</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_quantity']) ?></div>
+                </div>
+            </div>
         </div>
     </div>
 <?php endif; ?>

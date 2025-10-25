@@ -53,17 +53,12 @@ $isEdit = $isEdit ?? false;
                 </div>
             </div>
 
-            <?php
-            $selectedCreator = (string) ($document['NHAN_VIENIdNhanVien'] ?? '');
-            $selectedConfirmer = (string) ($document['NHAN_VIENIdNhanVien2'] ?? '');
-            ?>
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Người lập phiếu <span class="text-danger">*</span></label>
                 <select class="form-select" name="NguoiLap" required>
                     <option value="">-- Chọn nhân viên --</option>
                     <?php foreach ($employees as $employee): ?>
-                        <?php $employeeId = (string) ($employee['IdNhanVien'] ?? ''); ?>
-                        <option value="<?= htmlspecialchars($employeeId) ?>" <?= $selectedCreator === $employeeId ? 'selected' : '' ?>>
+                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($employee['HoTen']) ?>
                         </option>
                     <?php endforeach; ?>
@@ -72,10 +67,11 @@ $isEdit = $isEdit ?? false;
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Người xác nhận <span class="text-danger">*</span></label>
                 <select class="form-select" name="NguoiXacNhan" required>
+                <label class="form-label fw-semibold">Người xác nhận</label>
+                <select class="form-select" name="NguoiXacNhan">
                     <option value="">-- Chọn nhân viên --</option>
                     <?php foreach ($employees as $employee): ?>
-                        <?php $employeeId = (string) ($employee['IdNhanVien'] ?? ''); ?>
-                        <option value="<?= htmlspecialchars($employeeId) ?>" <?= $selectedConfirmer === $employeeId ? 'selected' : '' ?>>
+                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien2'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($employee['HoTen']) ?>
                         </option>
                     <?php endforeach; ?>
