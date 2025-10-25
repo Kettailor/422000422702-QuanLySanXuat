@@ -12,16 +12,54 @@ class SalaryController extends Controller
         $this->employeeModel = new Employee();
     }
 
+    private function canManagePayrolls(?string $role): bool
+    {
+        return in_array($role, ['VT_KETOAN', 'VT_ADMIN'], true);
+    }
+
+    private function canApprovePayrolls(?string $role): bool
+    {
+        return in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
+    }
+
+    private function requireManagePermission(): void
+    {
+        $user = $this->currentUser();
+        $role = $user['IdVaiTro'] ?? null;
+
+        if (!$this->canManagePayrolls($role)) {
+            $this->setFlash('danger', 'Chỉ kế toán mới được phép quản lý bảng lương.');
+            $this->redirect('?controller=salary&action=index');
+        }
+    }
+
+    private function requireApprovalPermission(): void
+    {
+        $user = $this->currentUser();
+        $role = $user['IdVaiTro'] ?? null;
+
+        if (!$this->canApprovePayrolls($role)) {
+            $this->setFlash('danger', 'Chỉ ban giám đốc mới được phép phê duyệt bảng lương.');
+            $this->redirect('?controller=salary&action=index');
+        }
+    }
+
     public function index(): void
     {
         $payrolls = $this->salaryModel->getPayrolls();
         $summary = $this->salaryModel->getPayrollSummary();
         $pending = $this->salaryModel->getPendingPayrolls();
+        $user = $this->currentUser();
+        $role = $user['IdVaiTro'] ?? null;
         $this->render('salary/index', [
             'title' => 'Bảng lương',
             'payrolls' => $payrolls,
             'summary' => $summary,
             'pending' => $pending,
+            'permissions' => [
+                'canManage' => $this->canManagePayrolls($role),
+                'canApprove' => $this->canApprovePayrolls($role),
+            ],
         ]);
     }
 
@@ -42,11 +80,21 @@ class SalaryController extends Controller
             'title' => 'Chi tiết bảng lương',
             'payroll' => $payroll,
             'figures' => $figures,
+            'permissions' => (function (): array {
+                $user = $this->currentUser();
+                $role = $user['IdVaiTro'] ?? null;
+
+                return [
+                    'canManage' => $this->canManagePayrolls($role),
+                    'canApprove' => $this->canApprovePayrolls($role),
+                ];
+            })(),
         ]);
     }
 
     public function create(): void
     {
+        $this->requireManagePermission();
         $employees = $this->employeeModel->getActiveEmployees();
         $accountants = array_filter($employees, static function (array $employee): bool {
             $position = mb_strtolower($employee['ChucVu'] ?? '');
@@ -66,6 +114,7 @@ class SalaryController extends Controller
 
     public function store(): void
     {
+        $this->requireManagePermission();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('?controller=salary&action=index');
         }
@@ -85,6 +134,7 @@ class SalaryController extends Controller
 
     public function edit(): void
     {
+        $this->requireManagePermission();
         $id = $_GET['id'] ?? null;
         $payroll = $id ? $this->salaryModel->find($id) : null;
         $employees = $this->employeeModel->getActiveEmployees();
@@ -107,6 +157,7 @@ class SalaryController extends Controller
 
     public function update(): void
     {
+        $this->requireManagePermission();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('?controller=salary&action=index');
         }
@@ -127,21 +178,25 @@ class SalaryController extends Controller
 
     public function approve(): void
     {
+        $this->requireApprovalPermission();
         $this->changeStatus('Đã duyệt');
     }
 
     public function finalize(): void
     {
+        $this->requireApprovalPermission();
         $this->changeStatus('Đã chi');
     }
 
     public function revert(): void
     {
+        $this->requireApprovalPermission();
         $this->changeStatus('Chờ duyệt');
     }
 
     public function recalculate(): void
     {
+        $this->requireManagePermission();
         $id = $_GET['id'] ?? null;
         if (!$id) {
             $this->setFlash('danger', 'Không xác định được bảng lương.');
@@ -171,8 +226,31 @@ class SalaryController extends Controller
         $this->redirect('?controller=salary&action=read&id=' . urlencode($id));
     }
 
+    public function recalculateAll(): void
+    {
+        $this->requireManagePermission();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->setFlash('danger', 'Phương thức không hợp lệ.');
+            $this->redirect('?controller=salary&action=index');
+        }
+
+        try {
+            $updated = $this->salaryModel->recalculateAll();
+            $message = $updated > 0
+                ? sprintf('Đã tính lại lương cho %d bảng lương.', $updated)
+                : 'Không có bảng lương nào cần cập nhật.';
+            $this->setFlash('success', $message);
+        } catch (Throwable $e) {
+            $this->setFlash('danger', 'Không thể tính lại hàng loạt: ' . $e->getMessage());
+        }
+
+        $this->redirect('?controller=salary&action=index');
+    }
+
     public function delete(): void
     {
+        $this->requireManagePermission();
         $id = $_GET['id'] ?? null;
         if ($id) {
             try {
@@ -196,6 +274,12 @@ class SalaryController extends Controller
 
         $status = $input['TrangThai'] ?? 'Chờ duyệt';
         if (!in_array($status, ['Chờ duyệt', 'Đã duyệt', 'Đã chi'], true)) {
+            $status = 'Chờ duyệt';
+        }
+
+        $user = $this->currentUser();
+        $role = $user['IdVaiTro'] ?? null;
+        if (!$this->canApprovePayrolls($role)) {
             $status = 'Chờ duyệt';
         }
 

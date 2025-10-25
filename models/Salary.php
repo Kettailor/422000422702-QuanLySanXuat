@@ -89,4 +89,14 @@ class Salary extends BaseModel
 
         return $this->update($id, $data);
     }
+
+    public function recalculateAll(): int
+    {
+        $sql = 'UPDATE bang_luong
+                SET TongThuNhap = GREATEST(LuongCoBan + PhuCap - KhauTru - ThueTNCN, 0)';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->rowCount();
+    }
 }

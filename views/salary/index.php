@@ -1,6 +1,7 @@
 <?php
 $summary = $summary ?? ['total' => 0, 'pending' => 0, 'approved' => 0, 'paid' => 0, 'total_amount' => 0.0];
 $pending = $pending ?? [];
+$permissions = $permissions ?? ['canManage' => false, 'canApprove' => false];
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -8,7 +9,14 @@ $pending = $pending ?? [];
         <h3 class="fw-bold mb-1">Bảng lương</h3>
         <p class="text-muted mb-0">Theo dõi quá trình tính toán, phê duyệt và chi trả lương cho nhân viên.</p>
     </div>
-    <a href="?controller=salary&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm bảng lương</a>
+    <?php if ($permissions['canManage']): ?>
+        <div class="d-flex gap-2">
+            <a href="?controller=salary&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm bảng lương</a>
+            <form action="?controller=salary&action=recalculateAll" method="post" onsubmit="return confirm('Bạn có chắc muốn tính lại toàn bộ bảng lương?');">
+                <button type="submit" class="btn btn-outline-info"><i class="bi bi-cpu me-2"></i>Tính toàn bộ lương</button>
+            </form>
+        </div>
+    <?php endif; ?>
 </div>
 
 <div class="row g-3 mb-4">
@@ -97,17 +105,21 @@ $pending = $pending ?? [];
                     <td class="text-end">
                         <div class="table-actions">
                             <a class="btn btn-sm btn-outline-secondary" href="?controller=salary&action=read&id=<?= urlencode($payroll['IdBangLuong']) ?>">Chi tiết</a>
-                            <a class="btn btn-sm btn-outline-primary" href="?controller=salary&action=edit&id=<?= urlencode($payroll['IdBangLuong']) ?>">Sửa</a>
-                            <?php if ($status !== 'Đã duyệt' && $status !== 'Đã chi'): ?>
+                            <?php if ($permissions['canManage']): ?>
+                                <a class="btn btn-sm btn-outline-primary" href="?controller=salary&action=edit&id=<?= urlencode($payroll['IdBangLuong']) ?>">Sửa</a>
+                            <?php endif; ?>
+                            <?php if ($permissions['canApprove'] && $status === 'Chờ duyệt'): ?>
                                 <a class="btn btn-sm btn-outline-success" href="?controller=salary&action=approve&id=<?= urlencode($payroll['IdBangLuong']) ?>">Phê duyệt</a>
                             <?php endif; ?>
-                            <?php if ($status === 'Đã duyệt'): ?>
+                            <?php if ($permissions['canApprove'] && $status === 'Đã duyệt'): ?>
                                 <a class="btn btn-sm btn-outline-success" href="?controller=salary&action=finalize&id=<?= urlencode($payroll['IdBangLuong']) ?>">Đã chi</a>
                             <?php endif; ?>
-                            <?php if ($status !== 'Chờ duyệt'): ?>
+                            <?php if ($permissions['canApprove'] && $status !== 'Chờ duyệt'): ?>
                                 <a class="btn btn-sm btn-outline-warning" href="?controller=salary&action=revert&id=<?= urlencode($payroll['IdBangLuong']) ?>">Hoàn trạng thái</a>
                             <?php endif; ?>
-                            <a class="btn btn-sm btn-outline-danger" href="?controller=salary&action=delete&id=<?= urlencode($payroll['IdBangLuong']) ?>" onclick="return confirm('Xác nhận xóa bảng lương này?');">Xóa</a>
+                            <?php if ($permissions['canManage']): ?>
+                                <a class="btn btn-sm btn-outline-danger" href="?controller=salary&action=delete&id=<?= urlencode($payroll['IdBangLuong']) ?>" onclick="return confirm('Xác nhận xóa bảng lương này?');">Xóa</a>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>

@@ -1,3 +1,5 @@
+<?php $permissions = $permissions ?? ['canManage' => false, 'canApprove' => false]; ?>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Chi tiết bảng lương</h3>
@@ -6,7 +8,9 @@
     <div class="d-flex gap-2">
         <a href="?controller=salary&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
         <?php if ($payroll): ?>
-            <a href="?controller=salary&action=recalculate&id=<?= urlencode($payroll['IdBangLuong']) ?>" class="btn btn-outline-info">Tính lại</a>
+            <?php if ($permissions['canManage']): ?>
+                <a href="?controller=salary&action=recalculate&id=<?= urlencode($payroll['IdBangLuong']) ?>" class="btn btn-outline-info">Tính lại</a>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 </div>
@@ -56,13 +60,15 @@
             </div>
         <?php endif; ?>
         <div class="mt-4 d-flex gap-2">
-            <a class="btn btn-outline-primary" href="?controller=salary&action=edit&id=<?= urlencode($payroll['IdBangLuong']) ?>">Chỉnh sửa</a>
-            <?php if ($payroll['TrangThai'] === 'Chờ duyệt'): ?>
+            <?php if ($permissions['canManage']): ?>
+                <a class="btn btn-outline-primary" href="?controller=salary&action=edit&id=<?= urlencode($payroll['IdBangLuong']) ?>">Chỉnh sửa</a>
+            <?php endif; ?>
+            <?php if ($permissions['canApprove'] && $payroll['TrangThai'] === 'Chờ duyệt'): ?>
                 <a class="btn btn-success" href="?controller=salary&action=approve&id=<?= urlencode($payroll['IdBangLuong']) ?>">Phê duyệt</a>
-            <?php elseif ($payroll['TrangThai'] === 'Đã duyệt'): ?>
+            <?php elseif ($permissions['canApprove'] && $payroll['TrangThai'] === 'Đã duyệt'): ?>
                 <a class="btn btn-success" href="?controller=salary&action=finalize&id=<?= urlencode($payroll['IdBangLuong']) ?>">Đánh dấu đã chi</a>
             <?php endif; ?>
-            <?php if ($payroll['TrangThai'] !== 'Chờ duyệt'): ?>
+            <?php if ($permissions['canApprove'] && $payroll['TrangThai'] !== 'Chờ duyệt'): ?>
                 <a class="btn btn-outline-warning" href="?controller=salary&action=revert&id=<?= urlencode($payroll['IdBangLuong']) ?>">Hoàn trạng thái</a>
             <?php endif; ?>
         </div>
