@@ -9,7 +9,7 @@ class Workshop extends BaseModel
     {
         $sql = 'SELECT XUONG.*, NV.HoTen AS TruongXuong
                 FROM XUONG
-                LEFT JOIN NHAN_VIEN NV ON NV.IdNhanVien = XUONG.IdTruongXuong
+                LEFT JOIN NHAN_VIEN NV ON NV.IdXuong = XUONG.IdXuong
                 ORDER BY XUONG.TenXuong
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);

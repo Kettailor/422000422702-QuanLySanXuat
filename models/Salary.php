@@ -37,7 +37,7 @@ class Salary extends BaseModel
         $sql = 'SELECT BANG_LUONG.*, NV.HoTen
                 FROM BANG_LUONG
                 JOIN NHAN_VIEN NV ON NV.IdNhanVien = BANG_LUONG.' . self::EMPLOYEE_COLUMN . '
-                WHERE TrangThai = :status
+                WHERE BANG_LUONG.TrangThai = :status
                 ORDER BY NgayLap DESC
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);
