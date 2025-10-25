@@ -53,7 +53,7 @@
         <div class="col-12">
             <div class="card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-semibold mb-0">Danh sách cấu hình SV5TOT</h5>
+                    <h5 class="fw-semibold mb-0">Danh sách sản phẩm &amp; cấu hình</h5>
                     <span class="badge bg-light text-dark">Tổng số dòng: <?= count($orderDetails) ?></span>
                 </div>
                 <?php if (!empty($orderDetails)): ?>
@@ -61,7 +61,7 @@
                         <table class="table align-middle">
                             <thead>
                             <tr>
-                                <th>Cấu hình SV5TOT</th>
+                                <th>Sản phẩm &amp; cấu hình</th>
                                 <th class="text-center">Số lượng</th>
                                 <th>Đơn giá</th>
                                 <th>VAT</th>
@@ -76,8 +76,11 @@
                                 <?php $totalAmount += (float) $detail['ThanhTien']; ?>
                                 <tr>
                                     <td>
-                                        <div class="fw-semibold"><?= htmlspecialchars($detail['TenSanPham'] ?? $detail['IdSanPham']) ?></div>
-                                        <div class="text-muted small">Mã: <?= htmlspecialchars($detail['IdSanPham']) ?></div>
+                                        <div class="fw-semibold"><?= htmlspecialchars($detail['TenSanPham'] ?? '---') ?></div>
+                                        <div class="text-muted small">Cấu hình: <?= htmlspecialchars($detail['TenCauHinh'] ?? '---') ?></div>
+                                        <?php if (!empty($detail['MoTaCauHinh'])): ?>
+                                            <div class="text-muted small"><?= htmlspecialchars($detail['MoTaCauHinh']) ?></div>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="text-center"><?= number_format($detail['SoLuong']) ?></td>
                                     <td><?= number_format($detail['DonGia'], 0, ',', '.') ?> đ</td>
@@ -139,7 +142,7 @@
                                 <?php foreach ($plans as $plan): ?>
                                     <div class="mb-3">
                                         <div class="fw-semibold">#<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?></div>
-                                        <div class="text-muted small mb-2">Cấu hình SV5TOT: <?= htmlspecialchars($plan['IdSanPham'] ?? '---') ?> | SL: <?= number_format($plan['SoLuongChiTiet'] ?? 0) ?></div>
+                                        <div class="text-muted small mb-2">Sản phẩm: <?= htmlspecialchars($plan['TenSanPham'] ?? $plan['IdSanPham'] ?? '---') ?> | Cấu hình: <?= htmlspecialchars($plan['TenCauHinh'] ?? '---') ?> | SL: <?= number_format($plan['SoLuongChiTiet'] ?? 0) ?></div>
                                         <select name="plan_statuses[<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?>]" class="form-select">
                                             <?php foreach ($planStatuses as $status): ?>
                                                 <option value="<?= htmlspecialchars($status) ?>" <?= $status === $plan['TrangThai'] ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
