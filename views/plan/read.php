@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Chi tiết kế hoạch Aurora</h3>
-        <p class="text-muted mb-0">Thông tin chi tiết kế hoạch sản xuất bàn phím Aurora.</p>
+        <h3 class="fw-bold mb-1">Chi tiết kế hoạch SV5TOT</h3>
+        <p class="text-muted mb-0">Thông tin chi tiết kế hoạch sản xuất bàn phím SV5TOT.</p>
     </div>
     <a href="?controller=plan&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>

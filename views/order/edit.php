@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Chỉnh sửa đơn Aurora</h3>
-        <p class="text-muted mb-0">Điều chỉnh thông tin cấu hình bàn phím Aurora cho đơn này.</p>
+        <h3 class="fw-bold mb-1">Chỉnh sửa đơn SV5TOT</h3>
+        <p class="text-muted mb-0">Điều chỉnh thông tin cấu hình bàn phím SV5TOT cho đơn này.</p>
     </div>
     <a href="?controller=order&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
@@ -25,7 +25,7 @@
                 <input type="date" name="NgayLap" class="form-control" value="<?= $order['NgayLap'] ?>">
             </div>
             <div class="col-md-4">
-                <label class="form-label">Trạng thái đơn Aurora</label>
+                <label class="form-label">Trạng thái đơn SV5TOT</label>
                 <select name="TrangThai" class="form-select">
                     <?php foreach ($orderStatuses as $status): ?>
                         <option value="<?= htmlspecialchars($status) ?>" <?= $status === $order['TrangThai'] ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
@@ -38,7 +38,7 @@
             </div>
             <?php include __DIR__ . '/partials/detail_form.php'; ?>
             <div class="col-12 text-end">
-                <button class="btn btn-primary px-4" type="submit">Cập nhật đơn Aurora</button>
+                <button class="btn btn-primary px-4" type="submit">Cập nhật đơn SV5TOT</button>
             </div>
         </form>
     </div>

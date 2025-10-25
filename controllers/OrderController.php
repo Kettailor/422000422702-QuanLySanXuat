@@ -53,7 +53,7 @@ class OrderController extends Controller
             $this->redirect('?controller=order&action=index');
         }
 
-        $orderId = $_POST['IdDonHang'] ?: uniqid('DH');
+        $orderId = ($_POST['IdDonHang'] ?? '') ?: uniqid('DH');
         $detailsInput = $_POST['details'] ?? [];
 
         try {

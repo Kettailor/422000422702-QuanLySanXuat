@@ -20,6 +20,8 @@ USE `422000422702-quanlysanxuat`;
 -- Cấu trúc bảng cho bảng `bang_luong`
 --
 
+DROP TABLE IF EXISTS `bang_luong`;
+
 CREATE TABLE `bang_luong` (
   `IdBangLuong` varchar(50) NOT NULL,
   `KETOAN IdNhanVien2` varchar(50) NOT NULL,
@@ -50,6 +52,8 @@ INSERT INTO `bang_luong` (`IdBangLuong`, `KETOAN IdNhanVien2`, `NHAN_VIENIdNhanV
 -- Cấu trúc bảng cho bảng `bien_ban_danh_gia_dot_xuat`
 --
 
+DROP TABLE IF EXISTS `bien_ban_danh_gia_dot_xuat`;
+
 CREATE TABLE `bien_ban_danh_gia_dot_xuat` (
   `IdBienBanDanhGiaDX` varchar(50) NOT NULL,
   `ThoiGian` datetime DEFAULT NULL,
@@ -73,6 +77,8 @@ INSERT INTO `bien_ban_danh_gia_dot_xuat` (`IdBienBanDanhGiaDX`, `ThoiGian`, `Ton
 --
 -- Cấu trúc bảng cho bảng `bien_ban_danh_gia_thanh_pham`
 --
+
+DROP TABLE IF EXISTS `bien_ban_danh_gia_thanh_pham`;
 
 CREATE TABLE `bien_ban_danh_gia_thanh_pham` (
   `IdBienBanDanhGiaSP` varchar(50) NOT NULL,
@@ -98,6 +104,8 @@ INSERT INTO `bien_ban_danh_gia_thanh_pham` (`IdBienBanDanhGiaSP`, `ThoiGian`, `T
 -- Cấu trúc bảng cho bảng `ca_lam`
 --
 
+DROP TABLE IF EXISTS `ca_lam`;
+
 CREATE TABLE `ca_lam` (
   `IdCaLamViec` varchar(50) NOT NULL,
   `TenCa` varchar(255) DEFAULT NULL,
@@ -115,16 +123,18 @@ CREATE TABLE `ca_lam` (
 --
 
 INSERT INTO `ca_lam` (`IdCaLamViec`, `TenCa`, `LoaiCa`, `NgayLamViec`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TongSL`, `IdKeHoachSanXuatXuong`, `LOIdLo`) VALUES
-('CA202311S1', 'Ca sáng lắp switch Aurora 87', 'Lắp ráp', '2023-11-11', '2023-11-11 07:30:00', '2023-11-11 15:30:00', 35, 'KHSXX202311A', 'LOSW202309'),
-('CA202311S2', 'Ca tối kiểm tra PCB Aurora', 'Kiểm thử', '2023-11-13', '2023-11-13 14:00:00', '2023-11-13 22:00:00', 28, 'KHSXX202311C', 'LOPCB202310'),
-('CA202311S3', 'Ca đêm hoàn thiện Aurora 87', 'Hoàn thiện', '2023-11-16', '2023-11-16 21:00:00', '2023-11-17 05:00:00', 24, 'KHSXX202311B', 'LOTP202309'),
-('CA202312S1', 'Ca sáng lắp ráp Aurora 108', 'Lắp ráp', '2023-12-12', '2023-12-12 07:30:00', '2023-12-12 15:30:00', 30, 'KHSXX202312A', 'LOTP202310');
+('CA202311S1', 'Ca sáng lắp switch SV5TOT 87', 'Lắp ráp', '2023-11-11', '2023-11-11 07:30:00', '2023-11-11 15:30:00', 35, 'KHSXX202311A', 'LOSW202309'),
+('CA202311S2', 'Ca tối kiểm tra PCB SV5TOT', 'Kiểm thử', '2023-11-13', '2023-11-13 14:00:00', '2023-11-13 22:00:00', 28, 'KHSXX202311C', 'LOPCB202310'),
+('CA202311S3', 'Ca đêm hoàn thiện SV5TOT 87', 'Hoàn thiện', '2023-11-16', '2023-11-16 21:00:00', '2023-11-17 05:00:00', 24, 'KHSXX202311B', 'LOTP202309'),
+('CA202312S1', 'Ca sáng lắp ráp SV5TOT 108', 'Lắp ráp', '2023-12-12', '2023-12-12 07:30:00', '2023-12-12 15:30:00', 30, 'KHSXX202312A', 'LOTP202310');
 
 -- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `cham_cong`
 --
+
+DROP TABLE IF EXISTS `cham_cong`;
 
 CREATE TABLE `cham_cong` (
   `IdChamCong` varchar(50) NOT NULL,
@@ -152,6 +162,8 @@ INSERT INTO `cham_cong` (`IdChamCong`, `NHANVIEN IdNhanVien`, `ThoiGIanRa`, `Tho
 -- Cấu trúc bảng cho bảng `chi_tiet_ke_hoach_san_xuat_xuong`
 --
 
+DROP TABLE IF EXISTS `chi_tiet_ke_hoach_san_xuat_xuong`;
+
 CREATE TABLE `chi_tiet_ke_hoach_san_xuat_xuong` (
   `IdCTKHSXX` varchar(50) NOT NULL,
   `SoLuong` int(10) DEFAULT NULL,
@@ -177,6 +189,8 @@ INSERT INTO `chi_tiet_ke_hoach_san_xuat_xuong` (`IdCTKHSXX`, `SoLuong`, `IdKeHoa
 --
 -- Cấu trúc bảng cho bảng `ct_don_hang`
 --
+
+DROP TABLE IF EXISTS `ct_don_hang`;
 
 CREATE TABLE `ct_don_hang` (
   `IdTTCTDonHang` varchar(50) NOT NULL,
@@ -209,6 +223,8 @@ INSERT INTO `ct_don_hang` (`IdTTCTDonHang`, `SoLuong`, `NgayGiao`, `YeuCau`, `Do
 -- Cấu trúc bảng cho bảng `ct_hoa_don`
 --
 
+DROP TABLE IF EXISTS `ct_hoa_don`;
+
 CREATE TABLE `ct_hoa_don` (
   `IdCTHoaDon` varchar(50) NOT NULL,
   `SoLuong` int(10) DEFAULT NULL,
@@ -237,6 +253,8 @@ INSERT INTO `ct_hoa_don` (`IdCTHoaDon`, `SoLuong`, `ThueVAT`, `TongTien`, `Phuon
 -- Cấu trúc bảng cho bảng `ct_phieu`
 --
 
+DROP TABLE IF EXISTS `ct_phieu`;
+
 CREATE TABLE `ct_phieu` (
   `IdTTCTPhieu` varchar(50) NOT NULL,
   `DonViTinh` varchar(255) DEFAULT NULL,
@@ -264,6 +282,8 @@ INSERT INTO `ct_phieu` (`IdTTCTPhieu`, `DonViTinh`, `SoLuong`, `ThucNhan`, `IdPh
 -- Cấu trúc bảng cho bảng `don_hang`
 --
 
+DROP TABLE IF EXISTS `don_hang`;
+
 CREATE TABLE `don_hang` (
   `IdDonHang` varchar(50) NOT NULL,
   `YeuCau` text DEFAULT NULL,
@@ -278,8 +298,8 @@ CREATE TABLE `don_hang` (
 --
 
 INSERT INTO `don_hang` (`IdDonHang`, `YeuCau`, `TongTien`, `NgayLap`, `TrangThai`, `IdKhachHang`) VALUES
-('DH20231101', 'Lô Aurora 87 & 108 phục vụ mùa lễ hội cuối năm', 762600000, '2023-11-10', 'Đang xử lý', 'KH001'),
-('DH20231105', 'Bổ sung combo Aurora custom cho chương trình Noel', 543000000, '2023-11-15', 'Đang xử lý', 'KH002'),
+('DH20231101', 'Lô SV5TOT 87 & 108 phục vụ mùa lễ hội cuối năm', 762600000, '2023-11-10', 'Đang xử lý', 'KH001'),
+('DH20231105', 'Bổ sung combo SV5TOT custom cho chương trình Noel', 543000000, '2023-11-15', 'Đang xử lý', 'KH002'),
 ('DH20231202', 'Đơn chuẩn bị Tết Dương lịch cho TechHub', 687200000, '2023-12-02', 'Đang xử lý', 'KH003');
 
 -- --------------------------------------------------------
@@ -287,6 +307,8 @@ INSERT INTO `don_hang` (`IdDonHang`, `YeuCau`, `TongTien`, `NgayLap`, `TrangThai
 --
 -- Cấu trúc bảng cho bảng `hoat_dong_he_thong`
 --
+
+DROP TABLE IF EXISTS `hoat_dong_he_thong`;
 
 CREATE TABLE `hoat_dong_he_thong` (
   `IdHoatDong` varchar(50) NOT NULL,
@@ -300,15 +322,17 @@ CREATE TABLE `hoat_dong_he_thong` (
 --
 
 INSERT INTO `hoat_dong_he_thong` (`IdHoatDong`, `HanhDong`, `ThoiGian`, `IdNguoiDung`) VALUES
-('HDHT2023110101', 'Tạo kế hoạch lắp ráp Aurora 87 KHSX20231101', '2023-11-09 08:15:00', 'ND001'),
+('HDHT2023110101', 'Tạo kế hoạch lắp ráp SV5TOT 87 KHSX20231101', '2023-11-09 08:15:00', 'ND001'),
 ('HDHT2023111201', 'Duyệt phiếu xuất switch PX20231102', '2023-11-12 09:45:00', 'ND002'),
-('HDHT2023112001', 'Cập nhật tiến độ kiểm thử Aurora 108 lô LOTP202310', '2023-11-20 16:20:00', 'ND003');
+('HDHT2023112001', 'Cập nhật tiến độ kiểm thử SV5TOT 108 lô LOTP202310', '2023-11-20 16:20:00', 'ND003');
 
 -- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `hoa_don`
 --
+
+DROP TABLE IF EXISTS `hoa_don`;
 
 CREATE TABLE `hoa_don` (
   `IdHoaDon` varchar(50) NOT NULL,
@@ -333,6 +357,8 @@ INSERT INTO `hoa_don` (`IdHoaDon`, `NgayLap`, `TrangThai`, `LoaiHD`, `IdDonHang`
 -- Cấu trúc bảng cho bảng `ke_hoach_san_xuat`
 --
 
+DROP TABLE IF EXISTS `ke_hoach_san_xuat`;
+
 CREATE TABLE `ke_hoach_san_xuat` (
   `IdKeHoachSanXuat` varchar(50) NOT NULL,
   `SoLuong` int(10) DEFAULT NULL,
@@ -348,17 +374,19 @@ CREATE TABLE `ke_hoach_san_xuat` (
 --
 
 INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `BANIAMDOC IdNhanVien`, `IdTTCTDonHang`) VALUES
-('KHSX20231101', 180, '2023-11-19 17:00:00', 'Đang lắp ráp Aurora 87', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
-('KHSX20231102', 120, '2023-11-22 17:30:00', 'Đang kiểm thử Aurora 108', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
+('KHSX20231101', 180, '2023-11-19 17:00:00', 'Đang lắp ráp SV5TOT 87', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
+('KHSX20231102', 120, '2023-11-22 17:30:00', 'Đang kiểm thử SV5TOT 108', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
 ('KHSX20231105', 150, '2023-11-26 16:00:00', 'Đang hoàn thiện đơn custom', '2023-11-18 07:30:00', 'NV001', 'CTDH20231105A'),
 ('KHSX20231202', 160, '2023-12-20 16:30:00', 'Đang chuẩn bị kit TechHub', '2023-12-10 08:00:00', 'NV001', 'CTDH20231202B'),
-('KHSX20231202A', 140, '2023-12-22 17:00:00', 'Chuẩn bị Aurora 108 TechHub', '2023-12-12 07:45:00', 'NV001', 'CTDH20231202A');
+('KHSX20231202A', 140, '2023-12-22 17:00:00', 'Chuẩn bị SV5TOT 108 TechHub', '2023-12-12 07:45:00', 'NV001', 'CTDH20231202A');
 
 -- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `ke_hoach_san_xuat_xuong`
 --
+
+DROP TABLE IF EXISTS `ke_hoach_san_xuat_xuong`;
 
 CREATE TABLE `ke_hoach_san_xuat_xuong` (
   `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
@@ -376,18 +404,20 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
 --
 
 INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPhanSP`, `SoLuong`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TrangThai`, `IdKeHoachSanXuat`, `IdXuong`) VALUES
-('KHSXX202311A', 'Lắp switch Aurora 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'KHSX20231101', 'XU001'),
-('KHSXX202311B', 'Hoàn thiện & đóng gói Aurora 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'KHSX20231101', 'XU002'),
-('KHSXX202311C', 'Kiểm thử PCB Aurora 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'KHSX20231102', 'XU001'),
-('KHSXX202311D', 'Lắp ráp Aurora custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'KHSX20231105', 'XU001'),
+('KHSXX202311A', 'Lắp switch SV5TOT 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'KHSX20231101', 'XU001'),
+('KHSXX202311B', 'Hoàn thiện & đóng gói SV5TOT 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'KHSX20231101', 'XU002'),
+('KHSXX202311C', 'Kiểm thử PCB SV5TOT 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'KHSX20231102', 'XU001'),
+('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'KHSX20231105', 'XU001'),
 ('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'KHSX20231202', 'XU002'),
-('KHSXX202312B', 'Lắp ráp Aurora 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'KHSX20231202A', 'XU001');
+('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'KHSX20231202A', 'XU001');
 
 -- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `khach_hang`
 --
+
+DROP TABLE IF EXISTS `khach_hang`;
 
 CREATE TABLE `khach_hang` (
   `IdKhachHang` varchar(50) NOT NULL,
@@ -415,6 +445,8 @@ INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `GioiTinh`, `DiaChi`, `SoLuong
 -- Cấu trúc bảng cho bảng `kho`
 --
 
+DROP TABLE IF EXISTS `kho`;
+
 CREATE TABLE `kho` (
   `IdKho` varchar(50) NOT NULL,
   `TenKho` varchar(255) DEFAULT NULL,
@@ -434,13 +466,15 @@ CREATE TABLE `kho` (
 
 INSERT INTO `kho` (`IdKho`, `TenKho`, `TenLoaiKho`, `DiaChi`, `TongSLLo`, `ThanhTien`, `TrangThai`, `TongSL`, `IdXuong`, `NHAN_VIEN_KHO_IdNhanVien`) VALUES
 ('KHO01', 'Kho Linh Kiện Bàn Phím', 'Linh kiện', 'Lô A2, KCN Phúc An, Bến Cát', 3, 2150000000, 'Đang sử dụng', 1400, 'XU001', 'NV004'),
-('KHO02', 'Kho Thành Phẩm Aurora', 'Thành phẩm', 'Lô B1, KCN Phúc An, Bến Cát', 3, 3480000000, 'Đang sử dụng', 1150, 'XU002', 'NV005');
+('KHO02', 'Kho Thành Phẩm SV5TOT', 'Thành phẩm', 'Lô B1, KCN Phúc An, Bến Cát', 3, 3480000000, 'Đang sử dụng', 1150, 'XU002', 'NV005');
 
 -- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `lo`
 --
+
+DROP TABLE IF EXISTS `lo`;
 
 CREATE TABLE `lo` (
   `IdLo` varchar(50) NOT NULL,
@@ -458,17 +492,19 @@ CREATE TABLE `lo` (
 
 INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `IdSanPham`, `IdKho`) VALUES
 ('LOSW202309', 'Lô switch Lotus 09/2023', 1000, '2023-09-01 07:45:00', 'Linh kiện', 'SPCOMP01', 'KHO01'),
-('LOPCB202310', 'Lô PCB Aurora R3 10/2023', 800, '2023-10-03 08:15:00', 'Linh kiện', 'SPCOMP02', 'KHO01'),
+('LOPCB202310', 'Lô PCB SV5TOT R3 10/2023', 800, '2023-10-03 08:15:00', 'Linh kiện', 'SPCOMP02', 'KHO01'),
 ('LOKEY202311', 'Lô keycap PBT Glacier 11/2023', 600, '2023-11-04 09:20:00', 'Linh kiện', 'SPCOMP03', 'KHO01'),
-('LOTP202309', 'Lô Aurora 87 hoàn thiện 09/2023', 500, '2023-09-10 08:00:00', 'Thành phẩm', 'SPKB87', 'KHO02'),
-('LOTP202310', 'Lô Aurora 108 hoàn thiện 10/2023', 600, '2023-10-05 09:00:00', 'Thành phẩm', 'SPKB108', 'KHO02'),
-('LOTP202311', 'Lô Aurora DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02');
+('LOTP202309', 'Lô SV5TOT 87 hoàn thiện 09/2023', 500, '2023-09-10 08:00:00', 'Thành phẩm', 'SPKB87', 'KHO02'),
+('LOTP202310', 'Lô SV5TOT 108 hoàn thiện 10/2023', 600, '2023-10-05 09:00:00', 'Thành phẩm', 'SPKB108', 'KHO02'),
+('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02');
 
 -- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `nguoi_dung`
 --
+
+DROP TABLE IF EXISTS `nguoi_dung`;
 
 CREATE TABLE `nguoi_dung` (
   `IdNguoiDung` varchar(50) NOT NULL,
@@ -500,6 +536,8 @@ INSERT INTO `nguoi_dung` (`IdNguoiDung`, `TenDangNhap`, `MatKhau`, `TrangThai`, 
 -- Cấu trúc bảng cho bảng `nguyen_lieu`
 --
 
+DROP TABLE IF EXISTS `nguyen_lieu`;
+
 CREATE TABLE `nguyen_lieu` (
   `IdNguyenLieu` varchar(50) NOT NULL,
   `TenNL` varchar(255) DEFAULT NULL,
@@ -517,7 +555,7 @@ CREATE TABLE `nguyen_lieu` (
 
 INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
 ('NL001', 'Switch Lotus Linear', 400, 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
-('NL002', 'PCB Aurora R3', 300, 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
+('NL002', 'PCB SV5TOT R3', 300, 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
 ('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311');
 
 -- --------------------------------------------------------
@@ -525,6 +563,8 @@ INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `Trang
 --
 -- Cấu trúc bảng cho bảng `nhan_vien`
 --
+
+DROP TABLE IF EXISTS `nhan_vien`;
 
 CREATE TABLE `nhan_vien` (
   `IdNhanVien` varchar(50) NOT NULL,
@@ -562,6 +602,8 @@ INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`
 -- Cấu trúc bảng cho bảng `phieu`
 --
 
+DROP TABLE IF EXISTS `phieu`;
+
 CREATE TABLE `phieu` (
   `IdPhieu` varchar(50) NOT NULL,
   `NgayLP` date DEFAULT NULL,
@@ -580,13 +622,15 @@ CREATE TABLE `phieu` (
 INSERT INTO `phieu` (`IdPhieu`, `NgayLP`, `NgayXN`, `TongTien`, `LoaiPhieu`, `IdKho`, `NHAN_VIENIdNhanVien`, `NHAN_VIENIdNhanVien2`) VALUES
 ('PN20231101', '2023-11-05', '2023-11-05', 284000000, 'Phiếu nhập linh kiện switch & PCB', 'KHO01', 'NV004', 'NV006'),
 ('PX20231102', '2023-11-12', '2023-11-12', 203850000, 'Phiếu xuất linh kiện cho lắp ráp', 'KHO01', 'NV004', 'NV001'),
-('PX20231103', '2023-11-18', '2023-11-18', 916500000, 'Phiếu xuất thành phẩm Aurora', 'KHO02', 'NV005', 'NV002');
+('PX20231103', '2023-11-18', '2023-11-18', 916500000, 'Phiếu xuất thành phẩm SV5TOT', 'KHO02', 'NV005', 'NV002');
 
 -- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `san_pham`
 --
+
+DROP TABLE IF EXISTS `san_pham`;
 
 CREATE TABLE `san_pham` (
   `IdSanPham` varchar(50) NOT NULL,
@@ -601,11 +645,11 @@ CREATE TABLE `san_pham` (
 --
 
 INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VALUES
-('SPKB87', 'Aurora 87 RGB', 'Bộ', 2450000, 'Bàn phím cơ TKL với foam tiêu âm và switch Lotus'),
-('SPKB108', 'Aurora 108 Silent', 'Bộ', 2680000, 'Bàn phím cơ full-size switch Silent bôi trơn sẵn'),
-('SPKBCUSTOM', 'Aurora DIY Kit', 'Bộ', 1950000, 'Bộ kit custom layout 75% với PCB hotswap'),
+('SPKB87', 'SV5TOT 87 RGB', 'Bộ', 2450000, 'Bàn phím cơ TKL với foam tiêu âm và switch Lotus'),
+('SPKB108', 'SV5TOT 108 Silent', 'Bộ', 2680000, 'Bàn phím cơ full-size switch Silent bôi trơn sẵn'),
+('SPKBCUSTOM', 'SV5TOT DIY Kit', 'Bộ', 1950000, 'Bộ kit custom layout 75% với PCB hotswap'),
 ('SPCOMP01', 'Switch Lotus Linear', 'Hộp', 450000, 'Hộp 90 switch linear Lotus được bôi trơn sẵn'),
-('SPCOMP02', 'PCB Aurora R3', 'Tấm', 520000, 'PCB hotswap hỗ trợ layout 87/88 phím'),
+('SPCOMP02', 'PCB SV5TOT R3', 'Tấm', 520000, 'PCB hotswap hỗ trợ layout 87/88 phím'),
 ('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier');
 
 -- --------------------------------------------------------
@@ -613,6 +657,8 @@ INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VA
 --
 -- Cấu trúc bảng cho bảng `thanh_pham`
 --
+
+DROP TABLE IF EXISTS `thanh_pham`;
 
 CREATE TABLE `thanh_pham` (
   `IdThanhPham` varchar(50) NOT NULL,
@@ -628,15 +674,17 @@ CREATE TABLE `thanh_pham` (
 --
 
 INSERT INTO `thanh_pham` (`IdThanhPham`, `TenThanhPham`, `YeuCau`, `DonGia`, `LoaiTP`, `IdLo`) VALUES
-('TP20231101', 'Aurora 87 bản RGB', 'Lắp ráp hoàn thiện kèm foam tiêu âm', 2550000, 'Loại A', 'LOTP202309'),
-('TP20231102', 'Aurora 108 bản Silent', 'Dán tem theo nhận diện GearZone', 2780000, 'Loại A', 'LOTP202310'),
-('TP20231103', 'Aurora DIY kit tùy chỉnh', 'Đóng gói đủ phụ kiện custom theo yêu cầu', 2050000, 'Loại B', 'LOTP202311');
+('TP20231101', 'SV5TOT 87 bản RGB', 'Lắp ráp hoàn thiện kèm foam tiêu âm', 2550000, 'Loại A', 'LOTP202309'),
+('TP20231102', 'SV5TOT 108 bản Silent', 'Dán tem theo nhận diện GearZone', 2780000, 'Loại A', 'LOTP202310'),
+('TP20231103', 'SV5TOT DIY kit tùy chỉnh', 'Đóng gói đủ phụ kiện custom theo yêu cầu', 2050000, 'Loại B', 'LOTP202311');
 
 -- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `ttct_bien_ban_danh_gia_dot_xuat`
 --
+
+DROP TABLE IF EXISTS `ttct_bien_ban_danh_gia_dot_xuat`;
 
 CREATE TABLE `ttct_bien_ban_danh_gia_dot_xuat` (
   `IdTTCTBBDGDX` varchar(50) NOT NULL,
@@ -664,6 +712,8 @@ INSERT INTO `ttct_bien_ban_danh_gia_dot_xuat` (`IdTTCTBBDGDX`, `LoaiTieuChi`, `T
 -- Cấu trúc bảng cho bảng `ttct_bien_ban_danh_gia_thanh_pham`
 --
 
+DROP TABLE IF EXISTS `ttct_bien_ban_danh_gia_thanh_pham`;
+
 CREATE TABLE `ttct_bien_ban_danh_gia_thanh_pham` (
   `IdTTCTBBDGTP` varchar(50) NOT NULL,
   `Tieuchi` varchar(255) DEFAULT NULL,
@@ -690,6 +740,8 @@ INSERT INTO `ttct_bien_ban_danh_gia_thanh_pham` (`IdTTCTBBDGTP`, `Tieuchi`, `Die
 --
 -- Cấu trúc bảng cho bảng `vai_tro`
 --
+
+DROP TABLE IF EXISTS `vai_tro`;
 
 CREATE TABLE `vai_tro` (
   `IdVaiTro` varchar(50) NOT NULL,
@@ -719,6 +771,8 @@ INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
 -- Cấu trúc bảng cho bảng `xuong`
 --
 
+DROP TABLE IF EXISTS `xuong`;
+
 CREATE TABLE `xuong` (
   `IdXuong` varchar(50) NOT NULL,
   `TenXuong` varchar(255) DEFAULT NULL,
@@ -734,7 +788,7 @@ CREATE TABLE `xuong` (
 --
 
 INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `SlThietBi`, `SlNhanVien`, `TenQuyTrinh`, `TrangThai`, `XUONGTRUONG_IdNhanVien`) VALUES
-('XU001', 'Xưởng Lắp Ráp Aurora', 25, 40, 'Lắp ráp & hiệu chỉnh bàn phím', 'Đang hoạt động', 'NV001'),
+('XU001', 'Xưởng Lắp Ráp SV5TOT', 25, 40, 'Lắp ráp & hiệu chỉnh bàn phím', 'Đang hoạt động', 'NV001'),
 ('XU002', 'Xưởng Kiểm Định & Đóng Gói', 18, 28, 'Kiểm thử & đóng gói thành phẩm', 'Đang hoạt động', 'NV002');
 
 --
@@ -1106,448 +1160,7 @@ ALTER TABLE `ttct_bien_ban_danh_gia_thanh_pham`
 --
 ALTER TABLE `xuong`
   ADD CONSTRAINT `Xuong truong` FOREIGN KEY (`XUONGTRUONG_IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
---
--- Cơ sở dữ liệu: `phpmyadmin`
---
-CREATE DATABASE IF NOT EXISTS `phpmyadmin` DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;
-USE `phpmyadmin`;
 
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__bookmark`
---
-
-CREATE TABLE `pma__bookmark` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `dbase` varchar(255) NOT NULL DEFAULT '',
-  `user` varchar(255) NOT NULL DEFAULT '',
-  `label` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `query` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Bookmarks';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__central_columns`
---
-
-CREATE TABLE `pma__central_columns` (
-  `db_name` varchar(64) NOT NULL,
-  `col_name` varchar(64) NOT NULL,
-  `col_type` varchar(64) NOT NULL,
-  `col_length` text DEFAULT NULL,
-  `col_collation` varchar(64) NOT NULL,
-  `col_isNull` tinyint(1) NOT NULL,
-  `col_extra` varchar(255) DEFAULT '',
-  `col_default` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Central list of columns';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__column_info`
---
-
-CREATE TABLE `pma__column_info` (
-  `id` int(5) UNSIGNED NOT NULL,
-  `db_name` varchar(64) NOT NULL DEFAULT '',
-  `table_name` varchar(64) NOT NULL DEFAULT '',
-  `column_name` varchar(64) NOT NULL DEFAULT '',
-  `comment` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `mimetype` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `transformation` varchar(255) NOT NULL DEFAULT '',
-  `transformation_options` varchar(255) NOT NULL DEFAULT '',
-  `input_transformation` varchar(255) NOT NULL DEFAULT '',
-  `input_transformation_options` varchar(255) NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Column information for phpMyAdmin';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__designer_settings`
---
-
-CREATE TABLE `pma__designer_settings` (
-  `username` varchar(64) NOT NULL,
-  `settings_data` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Settings related to Designer';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__export_templates`
---
-
-CREATE TABLE `pma__export_templates` (
-  `id` int(5) UNSIGNED NOT NULL,
-  `username` varchar(64) NOT NULL,
-  `export_type` varchar(10) NOT NULL,
-  `template_name` varchar(64) NOT NULL,
-  `template_data` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Saved export templates';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__favorite`
---
-
-CREATE TABLE `pma__favorite` (
-  `username` varchar(64) NOT NULL,
-  `tables` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Favorite tables';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__history`
---
-
-CREATE TABLE `pma__history` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `db` varchar(64) NOT NULL DEFAULT '',
-  `table` varchar(64) NOT NULL DEFAULT '',
-  `timevalue` timestamp NOT NULL DEFAULT current_timestamp(),
-  `sqlquery` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='SQL history for phpMyAdmin';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__navigationhiding`
---
-
-CREATE TABLE `pma__navigationhiding` (
-  `username` varchar(64) NOT NULL,
-  `item_name` varchar(64) NOT NULL,
-  `item_type` varchar(64) NOT NULL,
-  `db_name` varchar(64) NOT NULL,
-  `table_name` varchar(64) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Hidden items of navigation tree';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__pdf_pages`
---
-
-CREATE TABLE `pma__pdf_pages` (
-  `db_name` varchar(64) NOT NULL DEFAULT '',
-  `page_nr` int(10) UNSIGNED NOT NULL,
-  `page_descr` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='PDF relation pages for phpMyAdmin';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__recent`
---
-
-CREATE TABLE `pma__recent` (
-  `username` varchar(64) NOT NULL,
-  `tables` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Recently accessed tables';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__relation`
---
-
-CREATE TABLE `pma__relation` (
-  `master_db` varchar(64) NOT NULL DEFAULT '',
-  `master_table` varchar(64) NOT NULL DEFAULT '',
-  `master_field` varchar(64) NOT NULL DEFAULT '',
-  `foreign_db` varchar(64) NOT NULL DEFAULT '',
-  `foreign_table` varchar(64) NOT NULL DEFAULT '',
-  `foreign_field` varchar(64) NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Relation table';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__savedsearches`
---
-
-CREATE TABLE `pma__savedsearches` (
-  `id` int(5) UNSIGNED NOT NULL,
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `db_name` varchar(64) NOT NULL DEFAULT '',
-  `search_name` varchar(64) NOT NULL DEFAULT '',
-  `search_data` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Saved searches';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__table_coords`
---
-
-CREATE TABLE `pma__table_coords` (
-  `db_name` varchar(64) NOT NULL DEFAULT '',
-  `table_name` varchar(64) NOT NULL DEFAULT '',
-  `pdf_page_number` int(11) NOT NULL DEFAULT 0,
-  `x` float UNSIGNED NOT NULL DEFAULT 0,
-  `y` float UNSIGNED NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Table coordinates for phpMyAdmin PDF output';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__table_info`
---
-
-CREATE TABLE `pma__table_info` (
-  `db_name` varchar(64) NOT NULL DEFAULT '',
-  `table_name` varchar(64) NOT NULL DEFAULT '',
-  `display_field` varchar(64) NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Table information for phpMyAdmin';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__table_uiprefs`
---
-
-CREATE TABLE `pma__table_uiprefs` (
-  `username` varchar(64) NOT NULL,
-  `db_name` varchar(64) NOT NULL,
-  `table_name` varchar(64) NOT NULL,
-  `prefs` text NOT NULL,
-  `last_update` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Tables'' UI preferences';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__tracking`
---
-
-CREATE TABLE `pma__tracking` (
-  `db_name` varchar(64) NOT NULL,
-  `table_name` varchar(64) NOT NULL,
-  `version` int(10) UNSIGNED NOT NULL,
-  `date_created` datetime NOT NULL,
-  `date_updated` datetime NOT NULL,
-  `schema_snapshot` text NOT NULL,
-  `schema_sql` text DEFAULT NULL,
-  `data_sql` longtext DEFAULT NULL,
-  `tracking` set('UPDATE','REPLACE','INSERT','DELETE','TRUNCATE','CREATE DATABASE','ALTER DATABASE','DROP DATABASE','CREATE TABLE','ALTER TABLE','RENAME TABLE','DROP TABLE','CREATE INDEX','DROP INDEX','CREATE VIEW','ALTER VIEW','DROP VIEW') DEFAULT NULL,
-  `tracking_active` int(1) UNSIGNED NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Database changes tracking for phpMyAdmin';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__userconfig`
---
-
-CREATE TABLE `pma__userconfig` (
-  `username` varchar(64) NOT NULL,
-  `timevalue` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `config_data` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='User preferences storage for phpMyAdmin';
-
---
--- Đang đổ dữ liệu cho bảng `pma__userconfig`
---
-
-INSERT INTO `pma__userconfig` (`username`, `timevalue`, `config_data`) VALUES
-('root', '2019-10-21 13:37:09', '{\"Console\\/Mode\":\"collapse\"}');
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__usergroups`
---
-
-CREATE TABLE `pma__usergroups` (
-  `usergroup` varchar(64) NOT NULL,
-  `tab` varchar(64) NOT NULL,
-  `allowed` enum('Y','N') NOT NULL DEFAULT 'N'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='User groups with configured menu items';
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `pma__users`
---
-
-CREATE TABLE `pma__users` (
-  `username` varchar(64) NOT NULL,
-  `usergroup` varchar(64) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Users and their assignments to user groups';
-
---
--- Chỉ mục cho các bảng đã đổ
---
-
---
--- Chỉ mục cho bảng `pma__bookmark`
---
-ALTER TABLE `pma__bookmark`
-  ADD PRIMARY KEY (`id`);
-
---
--- Chỉ mục cho bảng `pma__central_columns`
---
-ALTER TABLE `pma__central_columns`
-  ADD PRIMARY KEY (`db_name`,`col_name`);
-
---
--- Chỉ mục cho bảng `pma__column_info`
---
-ALTER TABLE `pma__column_info`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `db_name` (`db_name`,`table_name`,`column_name`);
-
---
--- Chỉ mục cho bảng `pma__designer_settings`
---
-ALTER TABLE `pma__designer_settings`
-  ADD PRIMARY KEY (`username`);
-
---
--- Chỉ mục cho bảng `pma__export_templates`
---
-ALTER TABLE `pma__export_templates`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `u_user_type_template` (`username`,`export_type`,`template_name`);
-
---
--- Chỉ mục cho bảng `pma__favorite`
---
-ALTER TABLE `pma__favorite`
-  ADD PRIMARY KEY (`username`);
-
---
--- Chỉ mục cho bảng `pma__history`
---
-ALTER TABLE `pma__history`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `username` (`username`,`db`,`table`,`timevalue`);
-
---
--- Chỉ mục cho bảng `pma__navigationhiding`
---
-ALTER TABLE `pma__navigationhiding`
-  ADD PRIMARY KEY (`username`,`item_name`,`item_type`,`db_name`,`table_name`);
-
---
--- Chỉ mục cho bảng `pma__pdf_pages`
---
-ALTER TABLE `pma__pdf_pages`
-  ADD PRIMARY KEY (`page_nr`),
-  ADD KEY `db_name` (`db_name`);
-
---
--- Chỉ mục cho bảng `pma__recent`
---
-ALTER TABLE `pma__recent`
-  ADD PRIMARY KEY (`username`);
-
---
--- Chỉ mục cho bảng `pma__relation`
---
-ALTER TABLE `pma__relation`
-  ADD PRIMARY KEY (`master_db`,`master_table`,`master_field`),
-  ADD KEY `foreign_field` (`foreign_db`,`foreign_table`);
-
---
--- Chỉ mục cho bảng `pma__savedsearches`
---
-ALTER TABLE `pma__savedsearches`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `u_savedsearches_username_dbname` (`username`,`db_name`,`search_name`);
-
---
--- Chỉ mục cho bảng `pma__table_coords`
---
-ALTER TABLE `pma__table_coords`
-  ADD PRIMARY KEY (`db_name`,`table_name`,`pdf_page_number`);
-
---
--- Chỉ mục cho bảng `pma__table_info`
---
-ALTER TABLE `pma__table_info`
-  ADD PRIMARY KEY (`db_name`,`table_name`);
-
---
--- Chỉ mục cho bảng `pma__table_uiprefs`
---
-ALTER TABLE `pma__table_uiprefs`
-  ADD PRIMARY KEY (`username`,`db_name`,`table_name`);
-
---
--- Chỉ mục cho bảng `pma__tracking`
---
-ALTER TABLE `pma__tracking`
-  ADD PRIMARY KEY (`db_name`,`table_name`,`version`);
-
---
--- Chỉ mục cho bảng `pma__userconfig`
---
-ALTER TABLE `pma__userconfig`
-  ADD PRIMARY KEY (`username`);
-
---
--- Chỉ mục cho bảng `pma__usergroups`
---
-ALTER TABLE `pma__usergroups`
-  ADD PRIMARY KEY (`usergroup`,`tab`,`allowed`);
-
---
--- Chỉ mục cho bảng `pma__users`
---
-ALTER TABLE `pma__users`
-  ADD PRIMARY KEY (`username`,`usergroup`);
-
---
--- AUTO_INCREMENT cho các bảng đã đổ
---
-
---
--- AUTO_INCREMENT cho bảng `pma__bookmark`
---
-ALTER TABLE `pma__bookmark`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT cho bảng `pma__column_info`
---
-ALTER TABLE `pma__column_info`
-  MODIFY `id` int(5) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT cho bảng `pma__export_templates`
---
-ALTER TABLE `pma__export_templates`
-  MODIFY `id` int(5) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT cho bảng `pma__history`
---
-ALTER TABLE `pma__history`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT cho bảng `pma__pdf_pages`
---
-ALTER TABLE `pma__pdf_pages`
-  MODIFY `page_nr` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT cho bảng `pma__savedsearches`
---
-ALTER TABLE `pma__savedsearches`
-  MODIFY `id` int(5) UNSIGNED NOT NULL AUTO_INCREMENT;
---
--- Cơ sở dữ liệu: `test`
---
-CREATE DATABASE IF NOT EXISTS `test` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
-USE `test`;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
