@@ -73,13 +73,18 @@ $canAccess = function (array $roles) use ($role): bool {
             </a>
         <?php endif; ?>
         <?php if ($role === 'VT_ADMIN'): ?>
+            <a class="nav-link" href="?controller=account&action=index">
+                <i class="bi bi-person-circle"></i> Tài khoản
+            </a>
+        <?php endif; ?>
+        <?php if ($role === 'VT_ADMIN'): ?>
             <a class="nav-link" href="#">
                 <i class="bi bi-gear"></i> Cài đặt
             </a>
         <?php endif; ?>
     </div>
 </nav>
-<div>
+<div class="main-wrapper">
     <header class="topbar">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-outline-primary d-lg-none" data-toggle="sidebar"><i class="bi bi-list"></i></button>
