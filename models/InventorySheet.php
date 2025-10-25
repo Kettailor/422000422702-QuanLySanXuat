@@ -2,14 +2,14 @@
 
 class InventorySheet extends BaseModel
 {
-    protected string $table = 'PHIEU';
+    protected string $table = 'phieu';
     protected string $primaryKey = 'IdPhieu';
 
     public function getDocuments(int $limit = 50): array
     {
-        $sql = 'SELECT PHIEU.*, KHO.TenKho
-                FROM PHIEU
-                JOIN KHO ON KHO.IdKho = PHIEU.IdKho
+        $sql = 'SELECT phieu.*, kho.TenKho
+                FROM phieu
+                JOIN kho ON kho.IdKho = phieu.IdKho
                 ORDER BY NgayLP DESC
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);

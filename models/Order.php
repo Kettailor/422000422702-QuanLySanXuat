@@ -2,26 +2,26 @@
 
 class Order extends BaseModel
 {
-    protected string $table = 'DON_HANG';
+    protected string $table = 'don_hang';
     protected string $primaryKey = 'IdDonHang';
 
     public function getOrdersWithCustomer(int $limit = 50): array
     {
-        $sql = 'SELECT DON_HANG.*, KHACH_HANG.HoTen AS TenKhachHang, KHACH_HANG.SoDienThoai,
+        $sql = 'SELECT don_hang.*, khach_hang.HoTen AS TenKhachHang, khach_hang.SoDienThoai,
                        (
-                           SELECT GROUP_CONCAT(DISTINCT HOA_DON.TrangThai ORDER BY HOA_DON.NgayLap DESC SEPARATOR ", ")
-                           FROM HOA_DON
-                           WHERE HOA_DON.IdDonHang = DON_HANG.IdDonHang
+                           SELECT GROUP_CONCAT(DISTINCT hoa_don.TrangThai ORDER BY hoa_don.NgayLap DESC SEPARATOR ", ")
+                           FROM hoa_don
+                           WHERE hoa_don.IdDonHang = don_hang.IdDonHang
                        ) AS TrangThaiHoaDon,
                        (
-                           SELECT GROUP_CONCAT(DISTINCT KE_HOACH_SAN_XUAT.TrangThai ORDER BY KE_HOACH_SAN_XUAT.ThoiGianBD DESC SEPARATOR ", ")
-                           FROM KE_HOACH_SAN_XUAT
-                           JOIN CT_DON_HANG ON CT_DON_HANG.IdTTCTDonHang = KE_HOACH_SAN_XUAT.IdTTCTDonHang
-                           WHERE CT_DON_HANG.IdDonHang = DON_HANG.IdDonHang
+                           SELECT GROUP_CONCAT(DISTINCT ke_hoach_san_xuat.TrangThai ORDER BY ke_hoach_san_xuat.ThoiGianBD DESC SEPARATOR ", ")
+                           FROM ke_hoach_san_xuat
+                           JOIN ct_don_hang ON ct_don_hang.IdTTCTDonHang = ke_hoach_san_xuat.IdTTCTDonHang
+                           WHERE ct_don_hang.IdDonHang = don_hang.IdDonHang
                        ) AS TrangThaiKeHoach
-                FROM DON_HANG
-                JOIN KHACH_HANG ON KHACH_HANG.IdKhachHang = DON_HANG.IdKhachHang
-                ORDER BY DON_HANG.NgayLap DESC
+                FROM don_hang
+                JOIN khach_hang ON khach_hang.IdKhachHang = don_hang.IdKhachHang
+                ORDER BY don_hang.NgayLap DESC
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -32,7 +32,7 @@ class Order extends BaseModel
     public function getMonthlyRevenue(): array
     {
         $sql = 'SELECT DATE_FORMAT(NgayLap, "%Y-%m") AS thang, SUM(TongTien) AS tong_doanh_thu
-                FROM DON_HANG
+                FROM don_hang
                 GROUP BY DATE_FORMAT(NgayLap, "%Y-%m")
                 ORDER BY thang DESC
                 LIMIT 6';
@@ -46,7 +46,7 @@ class Order extends BaseModel
                        SUM(CASE WHEN TrangThai = "Hoàn thành" THEN 1 ELSE 0 END) AS completed_orders,
                        SUM(CASE WHEN TrangThai = "Đang xử lý" THEN 1 ELSE 0 END) AS processing_orders,
                        SUM(CASE WHEN TrangThai = "Chờ duyệt" THEN 1 ELSE 0 END) AS pending_orders
-                FROM DON_HANG';
+                FROM don_hang';
 
         $stats = $this->db->query($sql)->fetch();
 

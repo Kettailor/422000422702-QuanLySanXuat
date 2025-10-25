@@ -65,8 +65,8 @@ CREATE TABLE `bien_ban_danh_gia_dot_xuat` (
 --
 
 INSERT INTO `bien_ban_danh_gia_dot_xuat` (`IdBienBanDanhGiaDX`, `ThoiGian`, `TongTCD`, `TongTCKD`, `KetQua`, `IdXuong`, `IdNhanVien`) VALUES
-('BBDX20231101', '2023-11-14 10:00:00', 92, 8, 'Đạt chuẩn', 'XU001', 'NV001'),
-('BBDX20231102', '2023-11-20 09:00:00', 90, 10, 'Đạt chuẩn', 'XU002', 'NV002');
+('BBDX20231101', '2023-11-14 10:00:00', 92, 8, 'Đạt chuẩn ESD', 'XU001', 'NV001'),
+('BBDX20231102', '2023-11-20 09:00:00', 90, 10, 'Đạt yêu cầu kiểm thử', 'XU002', 'NV002');
 
 -- --------------------------------------------------------
 
@@ -115,10 +115,10 @@ CREATE TABLE `ca_lam` (
 --
 
 INSERT INTO `ca_lam` (`IdCaLamViec`, `TenCa`, `LoaiCa`, `NgayLamViec`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TongSL`, `IdKeHoachSanXuatXuong`, `LOIdLo`) VALUES
-('CA202311S1', 'Ca sáng phối trộn bánh bơ', 'Sản xuất', '2023-11-11', '2023-11-11 07:30:00', '2023-11-11 15:30:00', 35, 'KHSXX202311A', 'LONL202309'),
-('CA202311S2', 'Ca tối đóng gói bánh bơ', 'Đóng gói', '2023-11-13', '2023-11-13 14:00:00', '2023-11-13 22:00:00', 28, 'KHSXX202311B', 'LOTP202309'),
-('CA202311S3', 'Ca đêm đóng gói tăng ca', 'Đóng gói', '2023-11-16', '2023-11-16 21:00:00', '2023-11-17 05:00:00', 24, 'KHSXX202311B', 'LOTP202309'),
-('CA202312S1', 'Ca sáng chuẩn bị cracker', 'Chuẩn bị', '2023-12-12', '2023-12-12 07:30:00', '2023-12-12 15:30:00', 30, 'KHSXX202312A', 'LONL202310');
+('CA202311S1', 'Ca sáng lắp switch Aurora 87', 'Lắp ráp', '2023-11-11', '2023-11-11 07:30:00', '2023-11-11 15:30:00', 35, 'KHSXX202311A', 'LOSW202309'),
+('CA202311S2', 'Ca tối kiểm tra PCB Aurora', 'Kiểm thử', '2023-11-13', '2023-11-13 14:00:00', '2023-11-13 22:00:00', 28, 'KHSXX202311C', 'LOPCB202310'),
+('CA202311S3', 'Ca đêm hoàn thiện Aurora 87', 'Hoàn thiện', '2023-11-16', '2023-11-16 21:00:00', '2023-11-17 05:00:00', 24, 'KHSXX202311B', 'LOTP202309'),
+('CA202312S1', 'Ca sáng lắp ráp Aurora 108', 'Lắp ráp', '2023-12-12', '2023-12-12 07:30:00', '2023-12-12 15:30:00', 30, 'KHSXX202312A', 'LOTP202310');
 
 -- --------------------------------------------------------
 
@@ -164,13 +164,13 @@ CREATE TABLE `chi_tiet_ke_hoach_san_xuat_xuong` (
 --
 
 INSERT INTO `chi_tiet_ke_hoach_san_xuat_xuong` (`IdCTKHSXX`, `SoLuong`, `IdKeHoachSanXuatXuong`, `IdNguyenLieu`) VALUES
-('CTKHSXX202311A', 320, 'KHSXX202311A', 'NL001'),
-('CTKHSXX202311B', 120, 'KHSXX202311A', 'NL002'),
-('CTKHSXX202311C', 90, 'KHSXX202311A', 'NL003'),
-('CTKHSXX202311D', 140, 'KHSXX202311C', 'NL002'),
-('CTKHSXX202311E', 80, 'KHSXX202311D', 'NL001'),
-('CTKHSXX202312A', 110, 'KHSXX202312A', 'NL002'),
-('CTKHSXX202312B', 70, 'KHSXX202312B', 'NL003');
+('CTKHSXX202311A', 15660, 'KHSXX202311A', 'NL001'),
+('CTKHSXX202311B', 180, 'KHSXX202311A', 'NL002'),
+('CTKHSXX202311C', 180, 'KHSXX202311B', 'NL003'),
+('CTKHSXX202311D', 120, 'KHSXX202311C', 'NL002'),
+('CTKHSXX202311E', 13050, 'KHSXX202311D', 'NL001'),
+('CTKHSXX202312A', 160, 'KHSXX202312A', 'NL003'),
+('CTKHSXX202312B', 140, 'KHSXX202312B', 'NL002');
 
 -- --------------------------------------------------------
 
@@ -196,12 +196,12 @@ CREATE TABLE `ct_don_hang` (
 --
 
 INSERT INTO `ct_don_hang` (`IdTTCTDonHang`, `SoLuong`, `NgayGiao`, `YeuCau`, `DonGia`, `ThanhTien`, `GhiChu`, `VAT`, `IdSanPham`, `IdDonHang`) VALUES
-('CTDH20231101A', 250, '2023-11-25 09:00:00', 'Đóng gói thùng carton in logo khách hàng', 450000, 112500000, 'Giao bằng xe lạnh', 0.08, 'SPBANH01', 'DH20231101'),
-('CTDH20231101B', 150, '2023-11-26 13:30:00', 'Kiểm soát chất lượng 100% trước khi xuất kho', 480000, 72000000, 'Ưu tiên date mới', 0.08, 'SPBANH02', 'DH20231101'),
-('CTDH20231105A', 180, '2023-11-28 08:00:00', 'Thêm tem khuyến mãi cuối năm', 450000, 81000000, 'Đóng gói theo pallet', 0.08, 'SPBANH01', 'DH20231105'),
-('CTDH20231105B', 120, '2023-11-29 14:00:00', 'Bọc co nhiệt từng thùng', 420000, 50400000, 'Ghi chú nhiệt độ bảo quản 20°C', 0.08, 'SPBANH03', 'DH20231105'),
-('CTDH20231202A', 140, '2023-12-20 10:00:00', 'In kèm thông điệp mừng năm mới', 480000, 67200000, 'Lịch giao buổi sáng', 0.08, 'SPBANH02', 'DH20231202'),
-('CTDH20231202B', 160, '2023-12-22 15:00:00', 'Gia cố bìa carton hai lớp', 420000, 67200000, 'Yêu cầu xe nâng khi bốc hàng', 0.08, 'SPBANH03', 'DH20231202');
+('CTDH20231101A', 180, '2023-11-25 09:00:00', 'Lắp sẵn switch Lotus và lube stab', 2450000, 441000000, 'Đóng gói pallet chống sốc', 0.08, 'SPKB87', 'DH20231101'),
+('CTDH20231101B', 120, '2023-11-26 13:30:00', 'Thay keycap Glacier theo brand', 2680000, 321600000, 'Ưu tiên kiểm tra RGB 100%', 0.08, 'SPKB108', 'DH20231101'),
+('CTDH20231105A', 150, '2023-11-28 08:00:00', 'Tuỳ chỉnh foam và tape mod', 2450000, 367500000, 'Đóng gói theo từng bộ gear', 0.08, 'SPKB87', 'DH20231105'),
+('CTDH20231105B', 90, '2023-11-29 14:00:00', 'Đóng gói kèm bộ keycap bổ sung', 1950000, 175500000, 'Đính kèm checklist bảo hành', 0.08, 'SPKBCUSTOM', 'DH20231105'),
+('CTDH20231202A', 140, '2023-12-20 10:00:00', 'In logo TechHub lên plate', 2680000, 375200000, 'Giao buổi sáng bằng xe kín', 0.08, 'SPKB108', 'DH20231202'),
+('CTDH20231202B', 160, '2023-12-22 15:00:00', 'Chuẩn bị kit custom phối màu riêng', 1950000, 312000000, 'Yêu cầu kèm hướng dẫn dựng phím', 0.08, 'SPKBCUSTOM', 'DH20231202');
 
 -- --------------------------------------------------------
 
@@ -224,12 +224,12 @@ CREATE TABLE `ct_hoa_don` (
 --
 
 INSERT INTO `ct_hoa_don` (`IdCTHoaDon`, `SoLuong`, `ThueVAT`, `TongTien`, `PhuongThucTT`, `IdHoaDon`, `IdLo`) VALUES
-('CTHD20231101A', 250, 8, 121500000, 'Chuyển khoản', 'HD20231101', 'LOTP202309'),
-('CTHD20231101B', 150, 8, 77760000, 'Chuyển khoản', 'HD20231101', 'LOTP202310'),
-('CTHD20231105A', 180, 8, 87480000, 'Chuyển khoản', 'HD20231105', 'LOTP202309'),
-('CTHD20231105B', 120, 8, 54432000, 'Chuyển khoản', 'HD20231105', 'LOTP202311'),
-('CTHD20231202A', 140, 8, 72576000, 'Chuyển khoản', 'HD20231202', 'LOTP202310'),
-('CTHD20231202B', 160, 8, 72576000, 'Chuyển khoản', 'HD20231202', 'LOTP202311');
+('CTHD20231101A', 180, 8, 476280000, 'Chuyển khoản', 'HD20231101', 'LOTP202309'),
+('CTHD20231101B', 120, 8, 347328000, 'Chuyển khoản', 'HD20231101', 'LOTP202310'),
+('CTHD20231105A', 150, 8, 396900000, 'Chuyển khoản', 'HD20231105', 'LOTP202309'),
+('CTHD20231105B', 90, 8, 189540000, 'Chuyển khoản', 'HD20231105', 'LOTP202311'),
+('CTHD20231202A', 140, 8, 405216000, 'Chuyển khoản', 'HD20231202', 'LOTP202310'),
+('CTHD20231202B', 160, 8, 336960000, 'Chuyển khoản', 'HD20231202', 'LOTP202311');
 
 -- --------------------------------------------------------
 
@@ -251,12 +251,12 @@ CREATE TABLE `ct_phieu` (
 --
 
 INSERT INTO `ct_phieu` (`IdTTCTPhieu`, `DonViTinh`, `SoLuong`, `ThucNhan`, `IdPhieu`, `IdLo`) VALUES
-('CTP20231101A', 'Bao', 200, 200, 'PN20231101', 'LONL202309'),
-('CTP20231101B', 'Bao', 150, 150, 'PN20231101', 'LONL202310'),
-('CTP20231102A', 'Kg', 500, 500, 'PX20231102', 'LONL202309'),
-('CTP20231102B', 'Kg', 350, 340, 'PX20231102', 'LONL202310'),
-('CTP20231103A', 'Thùng', 220, 220, 'PX20231103', 'LOTP202309'),
-('CTP20231103B', 'Thùng', 150, 148, 'PX20231103', 'LOTP202310');
+('CTP20231101A', 'Hộp', 400, 400, 'PN20231101', 'LOSW202309'),
+('CTP20231101B', 'Tấm', 200, 200, 'PN20231101', 'LOPCB202310'),
+('CTP20231102A', 'Hộp', 250, 245, 'PX20231102', 'LOSW202309'),
+('CTP20231102B', 'Tấm', 180, 180, 'PX20231102', 'LOPCB202310'),
+('CTP20231103A', 'Bộ', 210, 210, 'PX20231103', 'LOTP202309'),
+('CTP20231103B', 'Bộ', 150, 148, 'PX20231103', 'LOTP202310');
 
 -- --------------------------------------------------------
 
@@ -278,9 +278,9 @@ CREATE TABLE `don_hang` (
 --
 
 INSERT INTO `don_hang` (`IdDonHang`, `YeuCau`, `TongTien`, `NgayLap`, `TrangThai`, `IdKhachHang`) VALUES
-('DH20231101', 'Giao hàng đợt 1 phục vụ mùa lễ hội cuối năm', 184500000, '2023-11-10', 'Đang xử lý', 'KH001'),
-('DH20231105', 'Bổ sung hàng khuyến mãi Noel cho hệ thống siêu thị', 131400000, '2023-11-15', 'Đang xử lý', 'KH002'),
-('DH20231202', 'Đơn chuẩn bị Tết Dương lịch', 134400000, '2023-12-02', 'Đang xử lý', 'KH003');
+('DH20231101', 'Lô Aurora 87 & 108 phục vụ mùa lễ hội cuối năm', 762600000, '2023-11-10', 'Đang xử lý', 'KH001'),
+('DH20231105', 'Bổ sung combo Aurora custom cho chương trình Noel', 543000000, '2023-11-15', 'Đang xử lý', 'KH002'),
+('DH20231202', 'Đơn chuẩn bị Tết Dương lịch cho TechHub', 687200000, '2023-12-02', 'Đang xử lý', 'KH003');
 
 -- --------------------------------------------------------
 
@@ -300,9 +300,9 @@ CREATE TABLE `hoat_dong_he_thong` (
 --
 
 INSERT INTO `hoat_dong_he_thong` (`IdHoatDong`, `HanhDong`, `ThoiGian`, `IdNguoiDung`) VALUES
-('HDHT2023110101', 'Tạo kế hoạch sản xuất KHSX20231101', '2023-11-09 08:15:00', 'ND001'),
-('HDHT2023111201', 'Duyệt phiếu xuất PX20231102', '2023-11-12 09:45:00', 'ND002'),
-('HDHT2023112001', 'Cập nhật tiến độ đóng gói lô LOTP202309', '2023-11-20 16:20:00', 'ND003');
+('HDHT2023110101', 'Tạo kế hoạch lắp ráp Aurora 87 KHSX20231101', '2023-11-09 08:15:00', 'ND001'),
+('HDHT2023111201', 'Duyệt phiếu xuất switch PX20231102', '2023-11-12 09:45:00', 'ND002'),
+('HDHT2023112001', 'Cập nhật tiến độ kiểm thử Aurora 108 lô LOTP202310', '2023-11-20 16:20:00', 'ND003');
 
 -- --------------------------------------------------------
 
@@ -348,11 +348,11 @@ CREATE TABLE `ke_hoach_san_xuat` (
 --
 
 INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `BANIAMDOC IdNhanVien`, `IdTTCTDonHang`) VALUES
-('KHSX20231101', 260, '2023-11-19 17:00:00', 'Đang triển khai', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
-('KHSX20231102', 170, '2023-11-22 17:30:00', 'Đang chuẩn bị', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
-('KHSX20231105', 195, '2023-11-26 16:00:00', 'Đang triển khai', '2023-11-18 07:30:00', 'NV001', 'CTDH20231105A'),
-('KHSX20231202', 170, '2023-12-20 16:30:00', 'Đang lập kế hoạch', '2023-12-10 08:00:00', 'NV001', 'CTDH20231202B'),
-('KHSX20231202A', 150, '2023-12-22 17:00:00', 'Chuẩn bị nguyên liệu', '2023-12-12 07:45:00', 'NV001', 'CTDH20231202A');
+('KHSX20231101', 180, '2023-11-19 17:00:00', 'Đang lắp ráp Aurora 87', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
+('KHSX20231102', 120, '2023-11-22 17:30:00', 'Đang kiểm thử Aurora 108', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
+('KHSX20231105', 150, '2023-11-26 16:00:00', 'Đang hoàn thiện đơn custom', '2023-11-18 07:30:00', 'NV001', 'CTDH20231105A'),
+('KHSX20231202', 160, '2023-12-20 16:30:00', 'Đang chuẩn bị kit TechHub', '2023-12-10 08:00:00', 'NV001', 'CTDH20231202B'),
+('KHSX20231202A', 140, '2023-12-22 17:00:00', 'Chuẩn bị Aurora 108 TechHub', '2023-12-12 07:45:00', 'NV001', 'CTDH20231202A');
 
 -- --------------------------------------------------------
 
@@ -376,12 +376,12 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
 --
 
 INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPhanSP`, `SoLuong`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TrangThai`, `IdKeHoachSanXuat`, `IdXuong`) VALUES
-('KHSXX202311A', 'Nhào bột và tạo hình bánh bơ', 260, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'KHSX20231101', 'XU001'),
-('KHSXX202311B', 'Đóng gói thành phẩm bánh bơ', 260, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'KHSX20231101', 'XU002'),
-('KHSXX202311C', 'Phối trộn socola chip', 170, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'KHSX20231102', 'XU001'),
-('KHSXX202311D', 'Chuẩn bị bánh bơ khuyến mãi', 195, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'KHSX20231105', 'XU001'),
-('KHSXX202312A', 'Đóng gói cracker mè đen', 170, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'KHSX20231202', 'XU002'),
-('KHSXX202312B', 'Phối trộn socola dịp Tết', 150, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'KHSX20231202A', 'XU001');
+('KHSXX202311A', 'Lắp switch Aurora 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'KHSX20231101', 'XU001'),
+('KHSXX202311B', 'Hoàn thiện & đóng gói Aurora 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'KHSX20231101', 'XU002'),
+('KHSXX202311C', 'Kiểm thử PCB Aurora 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'KHSX20231102', 'XU001'),
+('KHSXX202311D', 'Lắp ráp Aurora custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'KHSX20231105', 'XU001'),
+('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'KHSX20231202', 'XU002'),
+('KHSXX202312B', 'Lắp ráp Aurora 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'KHSX20231202A', 'XU001');
 
 -- --------------------------------------------------------
 
@@ -405,9 +405,9 @@ CREATE TABLE `khach_hang` (
 --
 
 INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `GioiTinh`, `DiaChi`, `SoLuongDonHang`, `SoDienThoai`, `TongTien`, `LoaiKhachHang`) VALUES
-('KH001', 'Công ty Thực phẩm Ánh Dương', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 525000000, 'Bán buôn chiến lược'),
-('KH002', 'Siêu thị Bình Minh', 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 468000000, 'Đối tác siêu thị'),
-('KH003', 'Cửa hàng Tạp hóa Cô Ba', 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 189000000, 'Đại lý khu vực');
+('KH001', 'Công ty GearZone Việt Nam', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 1526000000, 'Đại lý phân phối'),
+('KH002', 'Chuỗi cửa hàng TechHub', 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 1268000000, 'Bán lẻ chiến lược'),
+('KH003', 'Cửa hàng CustomVN', 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 732000000, 'Đại lý custom gear');
 
 -- --------------------------------------------------------
 
@@ -433,8 +433,8 @@ CREATE TABLE `kho` (
 --
 
 INSERT INTO `kho` (`IdKho`, `TenKho`, `TenLoaiKho`, `DiaChi`, `TongSLLo`, `ThanhTien`, `TrangThai`, `TongSL`, `IdXuong`, `NHAN_VIEN_KHO_IdNhanVien`) VALUES
-('KHO01', 'Kho Nguyên Liệu', 'Nguyên liệu', 'Lô A2, KCN Phúc An, Bến Cát', 3, 125600000, 'Đang sử dụng', 1500, 'XU001', 'NV004'),
-('KHO02', 'Kho Thành Phẩm', 'Thành phẩm', 'Lô B1, KCN Phúc An, Bến Cát', 3, 235800000, 'Đang sử dụng', 1550, 'XU002', 'NV005');
+('KHO01', 'Kho Linh Kiện Bàn Phím', 'Linh kiện', 'Lô A2, KCN Phúc An, Bến Cát', 3, 2150000000, 'Đang sử dụng', 1400, 'XU001', 'NV004'),
+('KHO02', 'Kho Thành Phẩm Aurora', 'Thành phẩm', 'Lô B1, KCN Phúc An, Bến Cát', 3, 3480000000, 'Đang sử dụng', 1150, 'XU002', 'NV005');
 
 -- --------------------------------------------------------
 
@@ -457,12 +457,12 @@ CREATE TABLE `lo` (
 --
 
 INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `IdSanPham`, `IdKho`) VALUES
-('LONL202309', 'Lô bột mì số 8 - 09/2023', 1000, '2023-09-01 07:45:00', 'Nguyên liệu', 'SPNL01', 'KHO01'),
-('LONL202310', 'Lô đường tinh luyện - 10/2023', 800, '2023-10-03 08:15:00', 'Nguyên liệu', 'SPNL02', 'KHO01'),
-('LONL202311', 'Lô bơ lạt - 11/2023', 600, '2023-11-04 09:20:00', 'Nguyên liệu', 'SPNL03', 'KHO01'),
-('LOTP202309', 'Lô bánh quy bơ tháng 9', 500, '2023-09-10 08:00:00', 'Thành phẩm', 'SPBANH01', 'KHO02'),
-('LOTP202310', 'Lô bánh quy socola tháng 10', 600, '2023-10-05 09:00:00', 'Thành phẩm', 'SPBANH02', 'KHO02'),
-('LOTP202311', 'Lô bánh cracker mè đen tháng 11', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPBANH03', 'KHO02');
+('LOSW202309', 'Lô switch Lotus 09/2023', 1000, '2023-09-01 07:45:00', 'Linh kiện', 'SPCOMP01', 'KHO01'),
+('LOPCB202310', 'Lô PCB Aurora R3 10/2023', 800, '2023-10-03 08:15:00', 'Linh kiện', 'SPCOMP02', 'KHO01'),
+('LOKEY202311', 'Lô keycap PBT Glacier 11/2023', 600, '2023-11-04 09:20:00', 'Linh kiện', 'SPCOMP03', 'KHO01'),
+('LOTP202309', 'Lô Aurora 87 hoàn thiện 09/2023', 500, '2023-09-10 08:00:00', 'Thành phẩm', 'SPKB87', 'KHO02'),
+('LOTP202310', 'Lô Aurora 108 hoàn thiện 10/2023', 600, '2023-10-05 09:00:00', 'Thành phẩm', 'SPKB108', 'KHO02'),
+('LOTP202311', 'Lô Aurora DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02');
 
 -- --------------------------------------------------------
 
@@ -516,9 +516,9 @@ CREATE TABLE `nguyen_lieu` (
 --
 
 INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
-('NL001', 'Bột mì số 8', 400, 125000, 'Đang sử dụng', '2023-09-01 09:00:00', '2024-03-01 00:00:00', 'LONL202309'),
-('NL002', 'Đường cát trắng', 300, 138000, 'Đang sử dụng', '2023-10-03 09:30:00', '2024-04-03 00:00:00', 'LONL202310'),
-('NL003', 'Bơ lạt nguyên chất', 250, 900000, 'Đang sử dụng', '2023-11-04 10:15:00', '2024-05-04 00:00:00', 'LONL202311');
+('NL001', 'Switch Lotus Linear', 400, 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
+('NL002', 'PCB Aurora R3', 300, 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
+('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311');
 
 -- --------------------------------------------------------
 
@@ -545,16 +545,16 @@ CREATE TABLE `nhan_vien` (
 --
 
 INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`) VALUES
-('NV001', 'Nguyễn Thị Lan', '1985-05-10', 0, 'Quản đốc xưởng', 5, 'Đang làm việc', 'Khu phố 3, phường Phú Lợi, TP.Thủ Dầu Một', '2020-01-15 07:30:00', NULL, 'XU001'),
-('NV002', 'Trần Văn Minh', '1982-11-22', 1, 'Kỹ sư vận hành', 4, 'Đang làm việc', 'Đường N4, KCN VSIP 1, Bình Dương', '2019-07-01 07:30:00', NULL, NULL),
-('NV003', 'Lê Hoàng Anh', '1990-03-18', 1, 'Tổ trưởng chuyền may', 3, 'Đang làm việc', 'Ấp 2, xã Phú An, Bến Cát', '2021-03-10 07:45:00', NULL, 'XU001'),
-('NV004', 'Phạm Thu Trang', '1992-08-05', 0, 'Thủ kho nguyên liệu', 3, 'Đang làm việc', 'Khu phố Đông, phường Hòa Phú, TP.Thủ Dầu Một', '2020-09-01 08:00:00', NULL, NULL),
-('NV005', 'Đặng Quốc Việt', '1988-01-26', 1, 'Tổ trưởng đóng gói', 3, 'Đang làm việc', 'Phường Chánh Nghĩa, TP.Thủ Dầu Một', '2021-06-21 07:20:00', NULL, NULL),
+('NV001', 'Nguyễn Thị Lan', '1985-05-10', 0, 'Quản đốc xưởng lắp ráp', 5, 'Đang làm việc', 'Khu phố 3, phường Phú Lợi, TP.Thủ Dầu Một', '2020-01-15 07:30:00', NULL, 'XU001'),
+('NV002', 'Trần Văn Minh', '1982-11-22', 1, 'Kỹ sư vận hành dây chuyền SMT', 4, 'Đang làm việc', 'Đường N4, KCN VSIP 1, Bình Dương', '2019-07-01 07:30:00', NULL, NULL),
+('NV003', 'Lê Hoàng Anh', '1990-03-18', 1, 'Tổ trưởng lắp ráp switch', 3, 'Đang làm việc', 'Ấp 2, xã Phú An, Bến Cát', '2021-03-10 07:45:00', NULL, 'XU001'),
+('NV004', 'Phạm Thu Trang', '1992-08-05', 0, 'Thủ kho linh kiện', 3, 'Đang làm việc', 'Khu phố Đông, phường Hòa Phú, TP.Thủ Dầu Một', '2020-09-01 08:00:00', NULL, NULL),
+('NV005', 'Đặng Quốc Việt', '1988-01-26', 1, 'Tổ trưởng hoàn thiện & QA', 3, 'Đang làm việc', 'Phường Chánh Nghĩa, TP.Thủ Dầu Một', '2021-06-21 07:20:00', NULL, NULL),
 ('NV006', 'Vũ Hữu Tài', '1983-09-14', 1, 'Kế toán trưởng', 4, 'Đang làm việc', 'Khu phố 5, thị trấn Mỹ Phước, Bến Cát', '2018-04-02 08:05:00', NULL, NULL),
-('NV007', 'Đào Ngọc Hạnh', '1987-04-19', 0, 'Trưởng nhóm kiểm soát chất lượng', 4, 'Đang làm việc', 'Phường Hiệp Thành, TP.Thủ Dầu Một', '2019-02-11 08:00:00', NULL, NULL),
-('NV008', 'Phạm Đức Long', '1989-12-02', 1, 'Chuyên viên kinh doanh', 3, 'Đang làm việc', 'Phường Hưng Định, TP.Thuận An', '2020-05-05 08:15:00', NULL, NULL),
-('NV009', 'Nguyễn Hải Nam', '1991-07-23', 1, 'Điều phối kho vận', 3, 'Đang làm việc', 'Phường Mỹ Phước, TX.Bến Cát', '2021-08-09 07:50:00', NULL, NULL),
-('NV010', 'Võ Thị Mai', '1986-03-30', 0, 'Chuyên viên nhân sự', 4, 'Đang làm việc', 'Phường Phú Tân, TP.Thủ Dầu Một', '2018-09-17 08:10:00', NULL, NULL);
+('NV007', 'Đào Ngọc Hạnh', '1987-04-19', 0, 'Trưởng nhóm QA bàn phím', 4, 'Đang làm việc', 'Phường Hiệp Thành, TP.Thủ Dầu Một', '2019-02-11 08:00:00', NULL, NULL),
+('NV008', 'Phạm Đức Long', '1989-12-02', 1, 'Chuyên viên kinh doanh thiết bị', 3, 'Đang làm việc', 'Phường Hưng Định, TP.Thuận An', '2020-05-05 08:15:00', NULL, NULL),
+('NV009', 'Nguyễn Hải Nam', '1991-07-23', 1, 'Điều phối logistics', 3, 'Đang làm việc', 'Phường Mỹ Phước, TX.Bến Cát', '2021-08-09 07:50:00', NULL, NULL),
+('NV010', 'Võ Thị Mai', '1986-03-30', 0, 'Chuyên viên nhân sự sản xuất', 4, 'Đang làm việc', 'Phường Phú Tân, TP.Thủ Dầu Một', '2018-09-17 08:10:00', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -578,9 +578,9 @@ CREATE TABLE `phieu` (
 --
 
 INSERT INTO `phieu` (`IdPhieu`, `NgayLP`, `NgayXN`, `TongTien`, `LoaiPhieu`, `IdKho`, `NHAN_VIENIdNhanVien`, `NHAN_VIENIdNhanVien2`) VALUES
-('PN20231101', '2023-11-05', '2023-11-05', 35000000, 'Phiếu nhập nguyên liệu', 'KHO01', 'NV004', 'NV006'),
-('PX20231102', '2023-11-12', '2023-11-12', 42000000, 'Phiếu xuất nguyên liệu', 'KHO01', 'NV004', 'NV001'),
-('PX20231103', '2023-11-18', '2023-11-18', 68000000, 'Phiếu xuất thành phẩm', 'KHO02', 'NV005', 'NV002');
+('PN20231101', '2023-11-05', '2023-11-05', 284000000, 'Phiếu nhập linh kiện switch & PCB', 'KHO01', 'NV004', 'NV006'),
+('PX20231102', '2023-11-12', '2023-11-12', 203850000, 'Phiếu xuất linh kiện cho lắp ráp', 'KHO01', 'NV004', 'NV001'),
+('PX20231103', '2023-11-18', '2023-11-18', 916500000, 'Phiếu xuất thành phẩm Aurora', 'KHO02', 'NV005', 'NV002');
 
 -- --------------------------------------------------------
 
@@ -601,12 +601,12 @@ CREATE TABLE `san_pham` (
 --
 
 INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VALUES
-('SPBANH01', 'Bánh quy bơ sữa', 'Thùng', 450000, 'Bánh quy bơ thơm béo, đóng gói 24 gói nhỏ'),
-('SPBANH02', 'Bánh quy socola chip', 'Thùng', 480000, 'Bánh quy socola chip giòn tan, hộp quà tặng'),
-('SPBANH03', 'Bánh cracker mè đen', 'Thùng', 420000, 'Bánh cracker mè đen dinh dưỡng, gói 350g'),
-('SPNL01', 'Bột mì số 8', 'Bao', 120000, 'Nguyên liệu chính cho khâu nhào bột'),
-('SPNL02', 'Đường cát trắng tinh luyện', 'Bao', 135000, 'Đường tinh luyện dành cho thực phẩm cao cấp'),
-('SPNL03', 'Bơ lạt New Zealand', 'Thùng', 890000, 'Bơ lạt nguyên chất dùng cho sản xuất bánh');
+('SPKB87', 'Aurora 87 RGB', 'Bộ', 2450000, 'Bàn phím cơ TKL với foam tiêu âm và switch Lotus'),
+('SPKB108', 'Aurora 108 Silent', 'Bộ', 2680000, 'Bàn phím cơ full-size switch Silent bôi trơn sẵn'),
+('SPKBCUSTOM', 'Aurora DIY Kit', 'Bộ', 1950000, 'Bộ kit custom layout 75% với PCB hotswap'),
+('SPCOMP01', 'Switch Lotus Linear', 'Hộp', 450000, 'Hộp 90 switch linear Lotus được bôi trơn sẵn'),
+('SPCOMP02', 'PCB Aurora R3', 'Tấm', 520000, 'PCB hotswap hỗ trợ layout 87/88 phím'),
+('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier');
 
 -- --------------------------------------------------------
 
@@ -628,9 +628,9 @@ CREATE TABLE `thanh_pham` (
 --
 
 INSERT INTO `thanh_pham` (`IdThanhPham`, `TenThanhPham`, `YeuCau`, `DonGia`, `LoaiTP`, `IdLo`) VALUES
-('TP20231101', 'Bánh quy bơ thùng 24 gói', 'Đảm bảo đóng gói kín, tem chống hàng giả', 470000, 'Loại A', 'LOTP202309'),
-('TP20231102', 'Bánh quy socola hộp quà', 'Bao bì in theo yêu cầu Noel', 520000, 'Loại A+', 'LOTP202310'),
-('TP20231103', 'Bánh cracker mè đen bịch lớn', 'Phân phối thử nghiệm miền Tây', 390000, 'Loại B', 'LOTP202311');
+('TP20231101', 'Aurora 87 bản RGB', 'Lắp ráp hoàn thiện kèm foam tiêu âm', 2550000, 'Loại A', 'LOTP202309'),
+('TP20231102', 'Aurora 108 bản Silent', 'Dán tem theo nhận diện GearZone', 2780000, 'Loại A', 'LOTP202310'),
+('TP20231103', 'Aurora DIY kit tùy chỉnh', 'Đóng gói đủ phụ kiện custom theo yêu cầu', 2050000, 'Loại B', 'LOTP202311');
 
 -- --------------------------------------------------------
 
@@ -653,10 +653,10 @@ CREATE TABLE `ttct_bien_ban_danh_gia_dot_xuat` (
 --
 
 INSERT INTO `ttct_bien_ban_danh_gia_dot_xuat` (`IdTTCTBBDGDX`, `LoaiTieuChi`, `TieuChi`, `DiemDG`, `GhiChu`, `HinhAnh`, `IdBienBanDanhGiaDX`) VALUES
-('CTBBDX20231101A', 'An toàn lao động', 'Trang bị bảo hộ lao động', 92, 'Đủ trang bị bảo hộ theo quy định', 'bao_ho_lao_dong.jpg', 'BBDX20231101'),
-('CTBBDX20231101B', 'Vệ sinh công nghiệp', 'Vệ sinh dây chuyền sản xuất', 90, 'Cần bổ sung vệ sinh khu vực trộn bột cuối ca', 've_sinh_day_chuyen.jpg', 'BBDX20231101'),
-('CTBBDX20231102A', 'Kiểm soát đóng gói', 'Niêm phong thùng thành phẩm', 91, 'Niêm phong chắc chắn, tem còn nguyên', 'dong_goi_chat_luong.jpg', 'BBDX20231102'),
-('CTBBDX20231102B', 'Hồ sơ truy xuất', 'Cập nhật nhật ký sản xuất', 89, 'Đề nghị cập nhật thêm nhật ký giao ca', 'nhat_ky_san_xuat.jpg', 'BBDX20231102');
+('CTBBDX20231101A', 'An toàn điện', 'Kiểm tra tiếp địa workstation', 92, 'Đảm bảo điện trở nối đất < 1Ω', 'kiem_tra_tiep_dia.jpg', 'BBDX20231101'),
+('CTBBDX20231101B', 'Vệ sinh công nghiệp', 'Dọn sạch bàn lắp ráp', 90, 'Cần bổ sung checklist vệ sinh cuối ca', 've_sinh_workbench.jpg', 'BBDX20231101'),
+('CTBBDX20231102A', 'Kiểm soát linh kiện', 'Quản lý số serial PCB', 91, 'Serial được cập nhật đầy đủ trong MES', 'quan_ly_serial.jpg', 'BBDX20231102'),
+('CTBBDX20231102B', 'Hồ sơ truy xuất', 'Nhật ký thay switch lỗi', 89, 'Đề nghị bổ sung ảnh minh chứng switch lỗi', 'nhat_ky_switch.jpg', 'BBDX20231102');
 
 -- --------------------------------------------------------
 
@@ -678,12 +678,12 @@ CREATE TABLE `ttct_bien_ban_danh_gia_thanh_pham` (
 --
 
 INSERT INTO `ttct_bien_ban_danh_gia_thanh_pham` (`IdTTCTBBDGTP`, `Tieuchi`, `DiemD`, `GhiChu`, `HinhAnh`, `IdBienBanDanhGiaSP`) VALUES
-('CTBBTP20231101A', 'Độ giòn của bánh', 95, 'Giòn đều, không cháy xém', 'do_gion_banh.jpg', 'BBTP20231101'),
-('CTBBTP20231101B', 'Bao bì & nhãn mác', 94, 'Tem in sắc nét, không trầy xước', 'bao_bi_banhbo.jpg', 'BBTP20231101'),
-('CTBBTP20231102A', 'Hàm lượng socola', 93, 'Đạt chuẩn 12% socola chip', 'socola_chip.jpg', 'BBTP20231102'),
-('CTBBTP20231102B', 'Kích thước đóng gói', 92, 'Đóng gói đúng quy cách 450g/thùng', 'kich_thuoc_thung.jpg', 'BBTP20231102'),
-('CTBBTP20231103A', 'Hương vị mè đen', 91, 'Mè rang thơm nhưng cần tăng độ béo', 'huong_vi_me.jpg', 'BBTP20231103'),
-('CTBBTP20231103B', 'Độ đồng đều sản phẩm', 90, 'Chênh lệch trọng lượng ±2g', 'dong_deu_sp.jpg', 'BBTP20231103');
+('CTBBTP20231101A', 'Độ đồng đều lực nhấn phím', 95, 'Sai số lực nhấn ±5g', 'force_test.jpg', 'BBTP20231101'),
+('CTBBTP20231101B', 'Chất lượng LED RGB', 94, 'LED sáng đều, không chết điểm', 'led_rgb.jpg', 'BBTP20231101'),
+('CTBBTP20231102A', 'Độ ồn switch Silent', 93, 'Đạt 42dB tại 10cm', 'do_on_silent.jpg', 'BBTP20231102'),
+('CTBBTP20231102B', 'Sai số layout', 92, 'Khoảng cách phím đúng chuẩn ANSI', 'layout_ansi.jpg', 'BBTP20231102'),
+('CTBBTP20231103A', 'Độ hoàn thiện bề mặt', 91, 'Anod nhôm đều màu, không xước', 'be_mat_vo.jpg', 'BBTP20231103'),
+('CTBBTP20231103B', 'Đóng gói phụ kiện', 90, 'Đủ keycap, cable, tool tháo key', 'phu_kien_day_du.jpg', 'BBTP20231103');
 
 -- --------------------------------------------------------
 
@@ -734,8 +734,8 @@ CREATE TABLE `xuong` (
 --
 
 INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `SlThietBi`, `SlNhanVien`, `TenQuyTrinh`, `TrangThai`, `XUONGTRUONG_IdNhanVien`) VALUES
-('XU001', 'Xưởng May Thành Phẩm', 25, 40, 'May & hoàn thiện', 'Đang hoạt động', 'NV001'),
-('XU002', 'Xưởng Đóng Gói & Kiểm Định', 18, 28, 'Đóng gói & kiểm soát chất lượng', 'Đang hoạt động', 'NV002');
+('XU001', 'Xưởng Lắp Ráp Aurora', 25, 40, 'Lắp ráp & hiệu chỉnh bàn phím', 'Đang hoạt động', 'NV001'),
+('XU002', 'Xưởng Kiểm Định & Đóng Gói', 18, 28, 'Kiểm thử & đóng gói thành phẩm', 'Đang hoạt động', 'NV002');
 
 --
 -- Chỉ mục cho các bảng đã đổ

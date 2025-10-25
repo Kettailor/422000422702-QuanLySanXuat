@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Tạo đơn hàng mới</h3>
-        <p class="text-muted mb-0">Nhập thông tin chi tiết cho đơn hàng của khách hàng.</p>
+        <h3 class="fw-bold mb-1">Tạo đơn Aurora mới</h3>
+        <p class="text-muted mb-0">Nhập thông tin đơn hàng bàn phím Aurora cho khách hàng/đối tác.</p>
     </div>
     <a href="?controller=order&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
@@ -15,7 +15,7 @@
         <div class="col-md-4">
             <label class="form-label">Khách hàng</label>
             <select name="IdKhachHang" class="form-select" required>
-                <option value="">-- Chọn khách hàng --</option>
+                <option value="">-- Chọn khách hàng/đối tác --</option>
                 <?php foreach ($customers as $customer): ?>
                     <option value="<?= htmlspecialchars($customer['IdKhachHang']) ?>"><?= htmlspecialchars($customer['HoTen']) ?></option>
                 <?php endforeach; ?>
@@ -26,7 +26,7 @@
             <input type="date" name="NgayLap" class="form-control" value="<?= date('Y-m-d') ?>">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Trạng thái đơn hàng</label>
+            <label class="form-label">Trạng thái đơn Aurora</label>
             <select name="TrangThai" class="form-select">
                 <?php foreach ($orderStatuses as $status): ?>
                     <option value="<?= htmlspecialchars($status) ?>" <?= $status === ($orderStatuses[0] ?? '') ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
@@ -35,11 +35,11 @@
         </div>
         <div class="col-12">
             <label class="form-label">Yêu cầu tổng quan</label>
-            <textarea name="YeuCau" rows="3" class="form-control" placeholder="Mô tả yêu cầu sản xuất của khách hàng..."></textarea>
+            <textarea name="YeuCau" rows="3" class="form-control" placeholder="Ví dụ: phối layout 87%, lube switch, đóng gói kit..."></textarea>
         </div>
         <?php $orderDetails = []; include __DIR__ . '/partials/detail_form.php'; ?>
         <div class="col-12 text-end">
-            <button class="btn btn-primary px-4" type="submit">Lưu đơn hàng</button>
+            <button class="btn btn-primary px-4" type="submit">Lưu đơn Aurora</button>
         </div>
     </form>
 </div>
