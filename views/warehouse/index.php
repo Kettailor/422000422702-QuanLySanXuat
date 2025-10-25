@@ -1,53 +1,8 @@
 <?php
-$summaryDefaults = [
-    'total_warehouses' => 0,
-    'active_warehouses' => 0,
-    'inactive_warehouses' => 0,
-    'total_capacity' => 0,
-    'total_inventory_value' => 0,
-    'total_lots' => 0,
-    'total_quantity' => 0,
-];
-$summary = array_merge($summaryDefaults, $summary ?? []);
+$summary = $summary ?? [];
 $warehouses = $warehouses ?? [];
-
-$groupPresets = [
-    'all' => [
-        'title' => 'Tất cả phiếu kho',
-        'description' => 'Danh sách phiếu kho trong hệ thống.',
-        'count' => 0,
-        'documents' => [],
-    ],
-    'inbound' => [
-        'title' => 'Phiếu nhập kho',
-        'description' => 'Các phiếu nhập kho gần đây.',
-        'count' => 0,
-        'documents' => [],
-    ],
-    'outbound' => [
-        'title' => 'Phiếu xuất kho',
-        'description' => 'Các phiếu xuất kho đang hoạt động.',
-        'count' => 0,
-        'documents' => [],
-    ],
-    'valuable' => [
-        'title' => 'Phiếu giá trị cao',
-        'description' => 'Danh sách phiếu có giá trị lớn.',
-        'count' => 0,
-        'documents' => [],
-    ],
-];
-
 $documentGroups = $documentGroups ?? [];
-foreach ($groupPresets as $key => $defaults) {
-    $documentGroups[$key] = array_merge($defaults, $documentGroups[$key] ?? []);
-}
-
-$documentGroupsJson = htmlspecialchars(
-    json_encode($documentGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}',
-    ENT_QUOTES,
-    'UTF-8'
-);
+$documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 ?>
 
 <style>
@@ -59,35 +14,13 @@ $documentGroupsJson = htmlspecialchars(
         text-align: left;
     }
 
-    .metric-card {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.25rem;
-        border-radius: 1rem;
-        background-color: #fff;
-        box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.08);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        min-height: 100%;
-    }
-
-    .metric-card .icon-wrap {
-        width: 3rem;
-        height: 3rem;
-        border-radius: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-    }
-
-    .metric-card .icon-wrap i {
-        line-height: 1;
-    }
-
     .metric-trigger:focus {
         outline: none;
         box-shadow: none;
+    }
+
+    .metric-trigger .metric-card {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     .metric-trigger:hover .metric-card {
@@ -100,11 +33,9 @@ $documentGroupsJson = htmlspecialchars(
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
         transform: translateY(-2px);
     }
-
-    .table-actions .btn {
-        min-width: 3.25rem;
-    }
 </style>
+
+?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -166,6 +97,43 @@ $documentGroupsJson = htmlspecialchars(
                     </div>
                 </div>
             </button>
+            <div class="card metric-card">
+                <div class="icon-wrap bg-primary bg-opacity-10 text-primary"><i class="bi bi-archive"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Tổng số kho</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_warehouses']) ?></div>
+                    <div class="small text-success">Đang sử dụng: <?= number_format($summary['active_warehouses']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-box-seam"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Sức chứa hệ thống</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_capacity']) ?></div>
+                    <div class="small text-muted">Kho tạm ngưng: <?= number_format($summary['inactive_warehouses']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-graph-up"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Giá trị hàng tồn</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_inventory_value'], 0, ',', '.') ?> đ</div>
+                    <div class="small text-muted">Tổng lô: <?= number_format($summary['total_lots']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-success bg-opacity-10 text-success"><i class="bi bi-layers"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Tổng số lượng tồn</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_quantity']) ?></div>
+                </div>
+            </div>
         </div>
     </div>
 <?php endif; ?>
@@ -194,7 +162,39 @@ $documentGroupsJson = htmlspecialchars(
             <tbody>
             <?php if (empty($warehouses)): ?>
                 <tr>
-                    <td colspan="14" class="text-center text-muted py-4">Chưa có kho nào trong hệ thống.</td>
+                    <td class="fw-semibold"><?= htmlspecialchars($warehouse['IdKho']) ?></td>
+                    <td><?= htmlspecialchars($warehouse['TenKho']) ?></td>
+                    <td><?= htmlspecialchars($warehouse['TenLoaiKho']) ?></td>
+                    <td><?= htmlspecialchars($warehouse['TenXuong'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($warehouse['TenQuanKho'] ?? '') ?></td>
+                    <td><?= number_format($warehouse['SoLoDangQuanLy']) ?></td>
+                    <td><?= number_format($warehouse['TongSoLuongLo']) ?></td>
+                    <td><?= number_format($warehouse['TongSoPhieu']) ?></td>
+                    <td>
+                        <?= $warehouse['LanNhapXuatGanNhat'] ? date('d/m/Y', strtotime($warehouse['LanNhapXuatGanNhat'])) : '-' ?>
+                    </td>
+                    <td class="fw-semibold text-primary">
+                        <?= number_format($warehouse['TongGiaTriPhieu'], 0, ',', '.') ?> đ
+                    </td>
+                    <td class="text-muted">
+                        <?= number_format($warehouse['GiaTriPhieuThang'], 0, ',', '.') ?> đ
+                    </td>
+                    <td>
+                        <span class="badge <?= ($warehouse['TyLeSuDung'] ?? 0) > 85 ? 'badge-soft-danger' : (( $warehouse['TyLeSuDung'] ?? 0) > 60 ? 'badge-soft-warning' : 'badge-soft-success') ?>">
+                            <?= number_format($warehouse['TyLeSuDung'] ?? 0, 1) ?>%
+                        </span>
+                    </td>
+                    <td><span class="badge bg-light text-dark"><?= htmlspecialchars($warehouse['TrangThai']) ?></span></td>
+                    <td class="text-end">
+                        <div class="table-actions d-flex align-items-center gap-2 flex-wrap">
+                            <a class="btn btn-sm btn-outline-secondary" href="?controller=warehouse&action=read&id=<?= urlencode($warehouse['IdKho']) ?>">Chi tiết</a>
+                            <a class="btn btn-sm btn-outline-primary" href="?controller=warehouse&action=edit&id=<?= urlencode($warehouse['IdKho']) ?>">Sửa</a>
+                            <form method="post" action="?controller=warehouse&action=delete" class="d-inline" onsubmit="return confirm('Xác nhận xóa kho này?');">
+                                <input type="hidden" name="IdKho" value="<?= htmlspecialchars($warehouse['IdKho']) ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($warehouses as $warehouse): ?>

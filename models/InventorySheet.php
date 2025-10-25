@@ -32,8 +32,6 @@ class InventorySheet extends BaseModel
                     PHIEU.IdKho,
                     PHIEU.NHAN_VIENIdNhanVien,
                     PHIEU.NHAN_VIENIdNhanVien2,
-                    NV_LAP.IdNhanVien AS NguoiLapId,
-                    NV_XN.IdNhanVien AS NguoiXacNhanId,
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan,
@@ -112,8 +110,6 @@ class InventorySheet extends BaseModel
                     PHIEU.IdKho,
                     PHIEU.NHAN_VIENIdNhanVien,
                     PHIEU.NHAN_VIENIdNhanVien2,
-                    NV_LAP.IdNhanVien AS NguoiLapId,
-                    NV_XN.IdNhanVien AS NguoiXacNhanId,
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan
@@ -136,18 +132,6 @@ class InventorySheet extends BaseModel
     {
         $warehouses = $this->db->query('SELECT IdKho, TenKho FROM KHO ORDER BY TenKho')->fetchAll();
         $employees = $this->db->query('SELECT IdNhanVien, HoTen FROM NHAN_VIEN ORDER BY HoTen')->fetchAll();
-
-        $warehouses = array_map(function (array $warehouse): array {
-            $warehouse['IdKho'] = isset($warehouse['IdKho']) ? trim((string) $warehouse['IdKho']) : null;
-            $warehouse['TenKho'] = isset($warehouse['TenKho']) ? trim((string) $warehouse['TenKho']) : null;
-            return $warehouse;
-        }, $warehouses);
-
-        $employees = array_map(function (array $employee): array {
-            $employee['IdNhanVien'] = isset($employee['IdNhanVien']) ? trim((string) $employee['IdNhanVien']) : null;
-            $employee['HoTen'] = isset($employee['HoTen']) ? trim((string) $employee['HoTen']) : null;
-            return $employee;
-        }, $employees);
         $types = $this->db->query('SELECT DISTINCT LoaiPhieu FROM PHIEU ORDER BY LoaiPhieu')->fetchAll(PDO::FETCH_COLUMN) ?: [];
 
         return [
@@ -242,6 +226,7 @@ class InventorySheet extends BaseModel
 
             if ($field === 'TongTien' && $value !== null) {
                 $value = (int) $value;
+                $value = (float) $value;
             }
 
             $payload[$field] = $value;

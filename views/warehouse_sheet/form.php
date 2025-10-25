@@ -5,61 +5,6 @@ $employees = $employees ?? [];
 $types = $types ?? [];
 $actionUrl = $actionUrl ?? '?controller=warehouse_sheet&action=store';
 $isEdit = $isEdit ?? false;
-
-$normalizeId = static function ($value): string {
-    if ($value === null) {
-        return '';
-    }
-
-    $value = trim((string) $value);
-
-    return $value === '' ? '' : $value;
-};
-
-$normalizeName = static function ($value): string {
-    if ($value === null) {
-        return '';
-    }
-
-    $value = trim((string) $value);
-    if ($value === '') {
-        return '';
-    }
-
-    if (function_exists('mb_strtolower')) {
-        return mb_strtolower($value, 'UTF-8');
-    }
-
-    return strtolower($value);
-};
-
-$employees = array_map(function (array $employee) use ($normalizeId): array {
-    $employee['IdNhanVien'] = $normalizeId($employee['IdNhanVien'] ?? null);
-    $employee['HoTen'] = trim((string) ($employee['HoTen'] ?? ''));
-    return $employee;
-}, $employees);
-
-$selectedCreator = $normalizeId($document['NHAN_VIENIdNhanVien'] ?? ($document['NguoiLapId'] ?? null));
-if ($selectedCreator === '' && !empty($document['NguoiLap'])) {
-    $targetName = $normalizeName($document['NguoiLap']);
-    foreach ($employees as $employee) {
-        if ($normalizeName($employee['HoTen'] ?? '') === $targetName) {
-            $selectedCreator = $employee['IdNhanVien'] ?? '';
-            break;
-        }
-    }
-}
-
-$selectedConfirmer = $normalizeId($document['NHAN_VIENIdNhanVien2'] ?? ($document['NguoiXacNhanId'] ?? null));
-if ($selectedConfirmer === '' && !empty($document['NguoiXacNhan'])) {
-    $targetName = $normalizeName($document['NguoiXacNhan']);
-    foreach ($employees as $employee) {
-        if ($normalizeName($employee['HoTen'] ?? '') === $targetName) {
-            $selectedConfirmer = $employee['IdNhanVien'] ?? '';
-            break;
-        }
-    }
-}
 ?>
 
 <div class="card border-0 shadow-sm">
@@ -113,8 +58,7 @@ if ($selectedConfirmer === '' && !empty($document['NguoiXacNhan'])) {
                 <select class="form-select" name="NguoiLap" required>
                     <option value="">-- Chọn nhân viên --</option>
                     <?php foreach ($employees as $employee): ?>
-                        <?php $employeeId = (string) ($employee['IdNhanVien'] ?? ''); ?>
-                        <option value="<?= htmlspecialchars($employeeId) ?>" <?= $selectedCreator === $employeeId ? 'selected' : '' ?>>
+                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($employee['HoTen']) ?>
                         </option>
                     <?php endforeach; ?>
@@ -123,10 +67,11 @@ if ($selectedConfirmer === '' && !empty($document['NguoiXacNhan'])) {
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Người xác nhận <span class="text-danger">*</span></label>
                 <select class="form-select" name="NguoiXacNhan" required>
+                <label class="form-label fw-semibold">Người xác nhận</label>
+                <select class="form-select" name="NguoiXacNhan">
                     <option value="">-- Chọn nhân viên --</option>
                     <?php foreach ($employees as $employee): ?>
-                        <?php $employeeId = (string) ($employee['IdNhanVien'] ?? ''); ?>
-                        <option value="<?= htmlspecialchars($employeeId) ?>" <?= $selectedConfirmer === $employeeId ? 'selected' : '' ?>>
+                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien2'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($employee['HoTen']) ?>
                         </option>
                     <?php endforeach; ?>

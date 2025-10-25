@@ -58,6 +58,8 @@ class Warehouse_sheetController extends Controller
 
         $data = [
             'IdPhieu' => $inputId !== '' ? $inputId : $this->sheetModel->generateDocumentId($_POST['LoaiPhieu'] ?? null),
+        $data = [
+            'IdPhieu' => $_POST['IdPhieu'] ?: $this->sheetModel->generateDocumentId($_POST['LoaiPhieu'] ?? null),
             'NgayLP' => $_POST['NgayLP'] ?? null,
             'NgayXN' => $_POST['NgayXN'] ?? null,
             'TongTien' => $_POST['TongTien'] ?? 0,
@@ -97,7 +99,6 @@ class Warehouse_sheetController extends Controller
         }
 
         $options = $this->sheetModel->getFormOptions();
-        $document = $this->hydrateDocumentEmployees($document, $options['employees']);
 
         $this->render('warehouse_sheet/edit', [
             'title' => 'Cập nhật phiếu kho',
@@ -173,6 +174,7 @@ class Warehouse_sheetController extends Controller
     private function validateRequired(array $data): bool
     {
         $required = ['IdPhieu', 'LoaiPhieu', 'IdKho', 'NHAN_VIENIdNhanVien', 'NHAN_VIENIdNhanVien2'];
+        $required = ['IdPhieu', 'LoaiPhieu', 'IdKho', 'NHAN_VIENIdNhanVien'];
 
         foreach ($required as $field) {
             if (empty($data[$field])) {
@@ -190,88 +192,5 @@ class Warehouse_sheetController extends Controller
             'outbound' => 'Danh sách phiếu xuất',
             default => 'Tất cả phiếu kho',
         };
-    }
-
-    private function hydrateDocumentEmployees(array $document, array $employees): array
-    {
-        $document['NHAN_VIENIdNhanVien'] = $this->resolveEmployeeId(
-            $document['NHAN_VIENIdNhanVien'] ?? null,
-            $document['NguoiLapId'] ?? null,
-            $document['NguoiLap'] ?? null,
-            $employees
-        );
-
-        $document['NHAN_VIENIdNhanVien2'] = $this->resolveEmployeeId(
-            $document['NHAN_VIENIdNhanVien2'] ?? null,
-            $document['NguoiXacNhanId'] ?? null,
-            $document['NguoiXacNhan'] ?? null,
-            $employees
-        );
-
-        return $document;
-    }
-
-    private function resolveEmployeeId(?string $primaryId, ?string $fallbackId, ?string $name, array $employees): ?string
-    {
-        $normalizedId = $this->normalizeId($primaryId);
-        if ($normalizedId !== null) {
-            return $normalizedId;
-        }
-
-        $fallbackId = $this->normalizeId($fallbackId);
-        if ($fallbackId !== null) {
-            return $fallbackId;
-        }
-
-        $normalizedName = $this->normalizeName($name);
-        if ($normalizedName === null) {
-            return null;
-        }
-
-        foreach ($employees as $employee) {
-            if (!isset($employee['IdNhanVien'])) {
-                continue;
-            }
-
-            $employeeName = $this->normalizeName($employee['HoTen'] ?? null);
-            if ($employeeName === null) {
-                continue;
-            }
-
-            if ($employeeName === $normalizedName) {
-                return $this->normalizeId($employee['IdNhanVien']);
-            }
-        }
-
-        return null;
-    }
-
-    private function normalizeId(?string $value): ?string
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        $value = trim((string) $value);
-
-        return $value === '' ? null : $value;
-    }
-
-    private function normalizeName(?string $value): ?string
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        $value = trim($value);
-        if ($value === '') {
-            return null;
-        }
-
-        if (function_exists('mb_strtolower')) {
-            return mb_strtolower($value, 'UTF-8');
-        }
-
-        return strtolower($value);
     }
 }
