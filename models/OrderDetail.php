@@ -5,6 +5,20 @@ class OrderDetail extends BaseModel
     protected string $table = 'ct_don_hang';
     protected string $primaryKey = 'IdTTCTDonHang';
 
+    public function getAllWithOrderInfo(): array
+    {
+        $sql = 'SELECT ct_don_hang.*, don_hang.IdDonHang, don_hang.YeuCau, don_hang.NgayLap,
+                       san_pham.TenSanPham, san_pham.DonVi,
+                       cau_hinh_san_pham.TenCauHinh
+                FROM ct_don_hang
+                JOIN don_hang ON don_hang.IdDonHang = ct_don_hang.IdDonHang
+                LEFT JOIN san_pham ON san_pham.IdSanPham = ct_don_hang.IdSanPham
+                LEFT JOIN cau_hinh_san_pham ON cau_hinh_san_pham.IdCauHinh = ct_don_hang.IdCauHinh
+                ORDER BY don_hang.NgayLap DESC, ct_don_hang.IdTTCTDonHang';
+
+        return $this->db->query($sql)->fetchAll();
+    }
+
     public function getByOrder(string $orderId): array
     {
         $sql = 'SELECT ct_don_hang.*, san_pham.TenSanPham, san_pham.DonVi, san_pham.GiaBan,

@@ -15,17 +15,31 @@
                 <dl class="row mb-0">
                     <dt class="col-sm-5">Mã kế hoạch xưởng</dt>
                     <dd class="col-sm-7 fw-semibold"><?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?></dd>
-                    <dt class="col-sm-5">Mã kế hoạch tổng</dt>
-                    <dd class="col-sm-7"><?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?></dd>
-                    <dt class="col-sm-5">Mã xưởng SV5TOT</dt>
-                    <dd class="col-sm-7"><?= htmlspecialchars($plan['IdXuong']) ?></dd>
+                    <dt class="col-sm-5">Kế hoạch tổng</dt>
+                    <dd class="col-sm-7">KH <?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?> (<?= htmlspecialchars($plan['TrangThaiTong'] ?? 'Chưa cập nhật') ?>)</dd>
+                    <dt class="col-sm-5">Đơn hàng</dt>
+                    <dd class="col-sm-7">
+                        <div class="fw-semibold">ĐH <?= htmlspecialchars($plan['IdDonHang'] ?? '-') ?></div>
+                        <?php if (!empty($plan['YeuCau'])): ?>
+                            <div class="text-muted small">Yêu cầu: <?= htmlspecialchars($plan['YeuCau']) ?></div>
+                        <?php endif; ?>
+                    </dd>
+                    <dt class="col-sm-5">Xưởng thực hiện</dt>
+                    <dd class="col-sm-7"><?= htmlspecialchars($plan['TenXuong'] ?? $plan['IdXuong']) ?></dd>
                 </dl>
             </div>
             <div class="col-md-6">
                 <dl class="row mb-0">
-                    <dt class="col-sm-5">Hạng mục SV5TOT</dt>
+                    <dt class="col-sm-5">Sản phẩm</dt>
+                    <dd class="col-sm-7">
+                        <div class="fw-semibold"><?= htmlspecialchars($plan['TenSanPham'] ?? '-') ?></div>
+                        <?php if (!empty($plan['TenCauHinh'])): ?>
+                            <div class="text-muted small">Cấu hình: <?= htmlspecialchars($plan['TenCauHinh']) ?></div>
+                        <?php endif; ?>
+                    </dd>
+                    <dt class="col-sm-5">Hạng mục</dt>
                     <dd class="col-sm-7"><?= htmlspecialchars($plan['TenThanhThanhPhanSP']) ?></dd>
-                    <dt class="col-sm-5">Số lượng linh kiện/bàn phím</dt>
+                    <dt class="col-sm-5">Số lượng</dt>
                     <dd class="col-sm-7"><?= htmlspecialchars($plan['SoLuong']) ?></dd>
                     <dt class="col-sm-5">Trạng thái</dt>
                     <dd class="col-sm-7"><span class="badge bg-info bg-opacity-25 text-primary"><?= htmlspecialchars($plan['TrangThai']) ?></span></dd>

@@ -12,10 +12,10 @@
             <thead>
             <tr>
                 <th>Mã kế hoạch</th>
-                <th>Đơn SV5TOT</th>
-                <th>Số lượng bàn phím</th>
-                <th>Bắt đầu</th>
-                <th>Kết thúc</th>
+                <th>Đơn hàng</th>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Tiến độ xưởng</th>
                 <th>Trạng thái</th>
                 <th></th>
             </tr>
@@ -24,10 +24,28 @@
             <?php foreach ($plans as $plan): ?>
                 <tr>
                     <td class="fw-semibold">#<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?></td>
-                    <td><?= htmlspecialchars($plan['YeuCau'] ?? 'N/A') ?></td>
-                    <td><?= htmlspecialchars($plan['SoLuong']) ?></td>
-                    <td><?= $plan['ThoiGianBD'] ? date('d/m/Y', strtotime($plan['ThoiGianBD'])) : '-' ?></td>
-                    <td><?= $plan['ThoiGianKetThuc'] ? date('d/m/Y', strtotime($plan['ThoiGianKetThuc'])) : '-' ?></td>
+                    <td>
+                        <div class="fw-semibold">ĐH <?= htmlspecialchars($plan['IdDonHang']) ?></div>
+                        <div class="text-muted small"><?= htmlspecialchars($plan['YeuCau'] ?? 'Không có ghi chú') ?></div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold"><?= htmlspecialchars($plan['TenSanPham']) ?></div>
+                        <div class="text-muted small"><?= htmlspecialchars($plan['TenCauHinh'] ?? 'Cấu hình chuẩn') ?></div>
+                    </td>
+                    <td>
+                        <div><?= htmlspecialchars($plan['SoLuong']) ?> / <?= htmlspecialchars($plan['SoLuongDonHang']) ?> <?= htmlspecialchars($plan['DonVi'] ?? 'sản phẩm') ?></div>
+                        <div class="text-muted small">Bắt đầu: <?= $plan['ThoiGianBD'] ? date('d/m/Y', strtotime($plan['ThoiGianBD'])) : '-' ?></div>
+                        <div class="text-muted small">Kết thúc: <?= $plan['ThoiGianKetThuc'] ? date('d/m/Y', strtotime($plan['ThoiGianKetThuc'])) : '-' ?></div>
+                    </td>
+                    <td>
+                        <?php
+                        $totalSteps = (int) ($plan['TongCongDoan'] ?? 0);
+                        $doneSteps = (int) ($plan['CongDoanHoanThanh'] ?? 0);
+                        ?>
+                        <span class="badge bg-light text-dark">
+                            <?= $totalSteps ? $doneSteps . ' / ' . $totalSteps . ' công đoạn' : 'Chưa phân xưởng' ?>
+                        </span>
+                    </td>
                     <td>
                         <span class="badge <?= $plan['TrangThai'] === 'Hoàn thành' ? 'badge-soft-success' : 'badge-soft-warning' ?>">
                             <?= htmlspecialchars($plan['TrangThai']) ?>
