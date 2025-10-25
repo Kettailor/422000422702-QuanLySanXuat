@@ -1,4 +1,4 @@
-# Hệ thống quản lý sản xuất bàn phím SV5TOT
+# Hệ thống quản lý sản xuất bàn phím SV5TOT (Comming soon!)
 
 Ứng dụng mô phỏng một hệ thống ERP nội bộ cho doanh nghiệp lắp ráp bàn phím cơ SV5TOT, xây dựng bằng PHP thuần với kiến trúc MVC đơn giản. Mục tiêu là giúp điều hành chuỗi giá trị sản xuất bàn phím từ khâu nhận đơn hàng OEM/ODM, phân rã kế hoạch cho từng xưởng lắp ráp, kiểm soát chất lượng linh kiện và thành phẩm, quản lý kho linh kiện – thành phẩm cho tới theo dõi tài chính.
 
