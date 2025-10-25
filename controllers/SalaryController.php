@@ -3,11 +3,13 @@
 class SalaryController extends Controller
 {
     private Salary $salaryModel;
+    private Employee $employeeModel;
 
     public function __construct()
     {
         $this->authorize(['VT_KETOAN', 'VT_BAN_GIAM_DOC']);
         $this->salaryModel = new Salary();
+        $this->employeeModel = new Employee();
     }
 
     public function index(): void
@@ -45,8 +47,20 @@ class SalaryController extends Controller
 
     public function create(): void
     {
+        $employees = $this->employeeModel->getActiveEmployees();
+        $accountants = array_filter($employees, static function (array $employee): bool {
+            $position = mb_strtolower($employee['ChucVu'] ?? '');
+            return str_contains($position, 'kế toán') || str_contains($position, 'ketoan');
+        });
+
+        if (!$accountants) {
+            $accountants = $employees;
+        }
+
         $this->render('salary/create', [
             'title' => 'Tạo bảng lương',
+            'employees' => $employees,
+            'accountants' => $accountants,
         ]);
     }
 
@@ -73,9 +87,21 @@ class SalaryController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $payroll = $id ? $this->salaryModel->find($id) : null;
+        $employees = $this->employeeModel->getActiveEmployees();
+        $accountants = array_filter($employees, static function (array $employee): bool {
+            $position = mb_strtolower($employee['ChucVu'] ?? '');
+            return str_contains($position, 'kế toán') || str_contains($position, 'ketoan');
+        });
+
+        if (!$accountants) {
+            $accountants = $employees;
+        }
+
         $this->render('salary/edit', [
             'title' => 'Cập nhật bảng lương',
             'payroll' => $payroll,
+            'employees' => $employees,
+            'accountants' => $accountants,
         ]);
     }
 

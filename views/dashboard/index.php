@@ -10,7 +10,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
         <div class="card metric-card">
             <div class="icon-wrap bg-primary bg-opacity-10 text-primary"><i class="bi bi-bag-check"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Đơn hàng Aurora</div>
+                <div class="text-muted text-uppercase small">Đơn hàng SV5TOT</div>
                 <div class="fs-3 fw-bold"><?= number_format($orderStats['total_orders']) ?></div>
                 <div class="small text-muted">Chờ xử lý: <?= number_format($orderStats['pending_orders']) ?> đơn</div>
             </div>
@@ -20,7 +20,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
         <div class="card metric-card">
             <div class="icon-wrap bg-success bg-opacity-10 text-success"><i class="bi bi-currency-exchange"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Doanh thu bàn phím Aurora</div>
+                <div class="text-muted text-uppercase small">Doanh thu bàn phím SV5TOT</div>
                 <div class="fs-3 fw-bold"><?= number_format($orderStats['total_revenue'], 0, ',', '.') ?> đ</div>
                 <div class="small text-muted">Đơn hoàn thành: <?= number_format($orderStats['completed_orders']) ?></div>
             </div>
@@ -30,9 +30,9 @@ $pendingPayrolls = $pendingPayrolls ?? [];
         <div class="card metric-card">
             <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-wallet2"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Quỹ lương dây chuyền Aurora</div>
+                <div class="text-muted text-uppercase small">Quỹ lương dây chuyền SV5TOT</div>
                 <div class="fs-3 fw-bold"><?= number_format($payrollSummary['total_amount'], 0, ',', '.') ?> đ</div>
-                <div class="small text-muted">Bảng Aurora chờ duyệt: <?= number_format($payrollSummary['pending']) ?> bảng</div>
+                <div class="small text-muted">Bảng SV5TOT chờ duyệt: <?= number_format($payrollSummary['pending']) ?> bảng</div>
             </div>
         </div>
     </div>
@@ -40,9 +40,9 @@ $pendingPayrolls = $pendingPayrolls ?? [];
         <div class="card metric-card">
             <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-gear-wide-connected"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Hiệu suất xưởng Aurora</div>
+                <div class="text-muted text-uppercase small">Hiệu suất xưởng SV5TOT</div>
                 <div class="fs-3 fw-bold"><?= $workshopSummary['utilization'] ?>%</div>
-                <div class="small text-muted">Nhân sự Aurora: <?= number_format($workshopSummary['workforce']) ?> người</div>
+                <div class="small text-muted">Nhân sự SV5TOT: <?= number_format($workshopSummary['workforce']) ?> người</div>
             </div>
         </div>
     </div>
@@ -52,15 +52,15 @@ $pendingPayrolls = $pendingPayrolls ?? [];
     <div class="col-xl-8">
         <div class="card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Doanh thu & chi phí lương Aurora theo tháng</h5>
-                <span class="text-muted small">So sánh dòng tiền Aurora 6 tháng gần nhất</span>
+                <h5 class="mb-0">Doanh thu & chi phí lương SV5TOT theo tháng</h5>
+                <span class="text-muted small">So sánh dòng tiền SV5TOT 6 tháng gần nhất</span>
             </div>
             <canvas id="financeChart" height="160"></canvas>
         </div>
     </div>
     <div class="col-xl-4">
         <div class="card p-4 h-100">
-            <h5 class="mb-3">Thông báo vận hành Aurora</h5>
+            <h5 class="mb-3">Thông báo vận hành SV5TOT</h5>
             <div class="timeline">
                 <?php foreach ($activities as $activity): ?>
                     <div class="timeline-item">
@@ -77,7 +77,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
     <div class="col-xl-6">
         <div class="card p-4 h-100">
             <div class="d-flex justify-content-between mb-3">
-                <h5 class="mb-0">Lịch sản xuất bàn phím Aurora</h5>
+                <h5 class="mb-0">Lịch sản xuất bàn phím SV5TOT</h5>
                 <a href="?controller=plan&action=index" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
             </div>
             <div class="table-responsive">
@@ -85,7 +85,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
                     <thead>
                     <tr>
                         <th>Mã kế hoạch</th>
-                        <th>Hạng mục Aurora</th>
+                        <th>Hạng mục SV5TOT</th>
                         <th>Trạng thái</th>
                         <th>Thời hạn</th>
                     </tr>
@@ -111,18 +111,18 @@ $pendingPayrolls = $pendingPayrolls ?? [];
     </div>
     <div class="col-xl-3">
         <div class="card p-4 h-100">
-            <h5 class="mb-3">Năng lực vận hành dây chuyền Aurora</h5>
+            <h5 class="mb-3">Năng lực vận hành dây chuyền SV5TOT</h5>
             <ul class="list-unstyled mb-0">
                 <li class="d-flex justify-content-between py-2 border-bottom">
                     <span>Ngày làm việc chuẩn</span>
                     <span class="fw-semibold"><?= $stats['totalWorkingDays'] ?></span>
                 </li>
                 <li class="d-flex justify-content-between py-2 border-bottom">
-                    <span>Tỷ lệ nhân sự Aurora đang hoạt động</span>
+                    <span>Tỷ lệ nhân sự SV5TOT đang hoạt động</span>
                     <span class="fw-semibold"><?= $stats['participationRate'] ?></span>
                 </li>
                 <li class="d-flex justify-content-between py-2 border-bottom">
-                    <span>Kế hoạch Aurora hoàn thành</span>
+                    <span>Kế hoạch SV5TOT hoàn thành</span>
                     <span class="fw-semibold"><?= $stats['completedPlans'] ?></span>
                 </li>
                 <li class="d-flex justify-content-between py-2">
@@ -158,7 +158,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
 <div class="row g-4 mt-1">
     <div class="col-xl-6">
         <div class="card p-4 h-100">
-            <h5 class="mb-3">Đánh giá chất lượng bàn phím Aurora</h5>
+            <h5 class="mb-3">Đánh giá chất lượng bàn phím SV5TOT</h5>
             <?php if ($qualitySummary): ?>
                 <div class="row text-center">
                     <div class="col">
@@ -167,21 +167,21 @@ $pendingPayrolls = $pendingPayrolls ?? [];
                     </div>
                     <div class="col">
                         <div class="fs-1 fw-bold text-success"><?= $qualitySummary['so_dat'] ?? 0 ?></div>
-                        <div class="text-muted">Đạt Aurora</div>
+                        <div class="text-muted">Đạt SV5TOT</div>
                     </div>
                     <div class="col">
                         <div class="fs-1 fw-bold text-danger"><?= $qualitySummary['so_khong_dat'] ?? 0 ?></div>
-                        <div class="text-muted">Không đạt Aurora</div>
+                        <div class="text-muted">Không đạt SV5TOT</div>
                     </div>
                 </div>
             <?php else: ?>
-                <div class="text-muted">Chưa có dữ liệu đánh giá chất lượng bàn phím Aurora.</div>
+                <div class="text-muted">Chưa có dữ liệu đánh giá chất lượng bàn phím SV5TOT.</div>
             <?php endif; ?>
         </div>
     </div>
     <div class="col-xl-6">
         <div class="card p-4 h-100">
-            <h5 class="mb-3">Đơn hàng Aurora gần đây</h5>
+            <h5 class="mb-3">Đơn hàng SV5TOT gần đây</h5>
             <?php foreach ($orders as $order): ?>
                 <div class="d-flex justify-content-between align-items-center border-bottom py-2">
                     <div>
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
             datasets: [
                 {
                     type: 'line',
-                    label: 'Doanh thu đơn hàng Aurora',
+                    label: 'Doanh thu đơn hàng SV5TOT',
                     data: revenueData,
                     borderColor: '#1976d2',
                     backgroundColor: 'rgba(25,118,210,0.1)',

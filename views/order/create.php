@@ -1,16 +1,22 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Tạo đơn Aurora mới</h3>
-        <p class="text-muted mb-0">Nhập thông tin đơn hàng bàn phím Aurora cho khách hàng/đối tác.</p>
+        <h3 class="fw-bold mb-1">Tạo đơn SV5TOT mới</h3>
+        <p class="text-muted mb-0">Nhập thông tin đơn hàng bàn phím SV5TOT cho khách hàng/đối tác.</p>
     </div>
     <a href="?controller=order&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
 
+<?php
+$customers = $customers ?? [];
+$orderStatuses = $orderStatuses ?? [];
+?>
+
 <div class="card p-4">
     <form action="?controller=order&action=store" method="post" class="row g-4">
+        <input type="hidden" name="IdDonHang" value="">
         <div class="col-md-4">
-            <label class="form-label">Mã đơn hàng</label>
-            <input type="text" name="IdDonHang" class="form-control" placeholder="Tự sinh nếu để trống">
+            <div class="form-floating-label">Mã đơn hàng</div>
+            <div class="form-hint">SV5TOT tự động phát sinh mã đơn khi lưu.</div>
         </div>
         <div class="col-md-4">
             <label class="form-label">Khách hàng</label>
@@ -26,7 +32,7 @@
             <input type="date" name="NgayLap" class="form-control" value="<?= date('Y-m-d') ?>">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Trạng thái đơn Aurora</label>
+            <label class="form-label">Trạng thái đơn SV5TOT</label>
             <select name="TrangThai" class="form-select">
                 <?php foreach ($orderStatuses as $status): ?>
                     <option value="<?= htmlspecialchars($status) ?>" <?= $status === ($orderStatuses[0] ?? '') ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
@@ -39,7 +45,7 @@
         </div>
         <?php $orderDetails = []; include __DIR__ . '/partials/detail_form.php'; ?>
         <div class="col-12 text-end">
-            <button class="btn btn-primary px-4" type="submit">Lưu đơn Aurora</button>
+            <button class="btn btn-primary px-4" type="submit">Lưu đơn SV5TOT</button>
         </div>
     </form>
 </div>

@@ -1,9 +1,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Kế hoạch Aurora</h3>
-        <p class="text-muted mb-0">Theo dõi tiến độ các kế hoạch sản xuất bàn phím Aurora theo đơn hàng.</p>
+        <h3 class="fw-bold mb-1">Kế hoạch SV5TOT</h3>
+        <p class="text-muted mb-0">Theo dõi tiến độ các kế hoạch sản xuất bàn phím SV5TOT theo đơn hàng.</p>
     </div>
-    <a href="?controller=plan&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kế hoạch Aurora</a>
+    <a href="?controller=plan&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kế hoạch SV5TOT</a>
 </div>
 
 <div class="card p-4">
@@ -12,7 +12,7 @@
             <thead>
             <tr>
                 <th>Mã kế hoạch</th>
-                <th>Đơn Aurora</th>
+                <th>Đơn SV5TOT</th>
                 <th>Số lượng bàn phím</th>
                 <th>Bắt đầu</th>
                 <th>Kết thúc</th>

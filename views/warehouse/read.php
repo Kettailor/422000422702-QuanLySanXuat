@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Chi tiết kho Aurora</h3>
-        <p class="text-muted mb-0">Thông tin kho Aurora và các lô switch/PCB/thành phẩm đang quản lý.</p>
+        <h3 class="fw-bold mb-1">Chi tiết kho SV5TOT</h3>
+        <p class="text-muted mb-0">Thông tin kho SV5TOT và các lô switch/PCB/thành phẩm đang quản lý.</p>
     </div>
     <a href="?controller=warehouse&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
@@ -40,7 +40,7 @@
 
     <div class="card p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Danh sách lô Aurora</h5>
+            <h5 class="mb-0">Danh sách lô SV5TOT</h5>
             <span class="text-muted small">Tổng cộng: <?= count($lots) ?> lô</span>
         </div>
         <?php if (empty($lots)): ?>
@@ -53,7 +53,7 @@
                         <th>Mã lô</th>
                         <th>Tên lô</th>
                         <th>Số lượng</th>
-                        <th>Loại lô Aurora</th>
+                        <th>Loại lô SV5TOT</th>
                         <th>Ngày tạo</th>
                     </tr>
                     </thead>

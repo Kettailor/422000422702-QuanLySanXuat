@@ -4,12 +4,16 @@ class WarehouseController extends Controller
 {
     private Warehouse $warehouseModel;
     private InventoryLot $lotModel;
+    private Workshop $workshopModel;
+    private Employee $employeeModel;
 
     public function __construct()
     {
         $this->authorize(['VT_NHANVIEN_KHO', 'VT_QUANLY_XUONG']);
         $this->warehouseModel = new Warehouse();
         $this->lotModel = new InventoryLot();
+        $this->workshopModel = new Workshop();
+        $this->employeeModel = new Employee();
     }
 
     public function index(): void
@@ -37,6 +41,8 @@ class WarehouseController extends Controller
     {
         $this->render('warehouse/create', [
             'title' => 'Thêm kho mới',
+            'workshops' => $this->workshopModel->all(200),
+            'employees' => $this->employeeModel->getActiveEmployees(),
         ]);
     }
 
@@ -47,7 +53,7 @@ class WarehouseController extends Controller
         }
 
         $data = [
-            'IdKho' => $_POST['IdKho'] ?: uniqid('KHO'),
+            'IdKho' => ($_POST['IdKho'] ?? '') ?: uniqid('KHO'),
             'TenKho' => $_POST['TenKho'] ?? null,
             'TenLoaiKho' => $_POST['TenLoaiKho'] ?? null,
             'DiaChi' => $_POST['DiaChi'] ?? null,
@@ -76,6 +82,8 @@ class WarehouseController extends Controller
         $this->render('warehouse/edit', [
             'title' => 'Cập nhật kho',
             'warehouse' => $warehouse,
+            'workshops' => $this->workshopModel->all(200),
+            'employees' => $this->employeeModel->getActiveEmployees(),
         ]);
     }
 
