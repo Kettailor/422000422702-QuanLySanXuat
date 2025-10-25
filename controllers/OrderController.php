@@ -8,6 +8,7 @@ class OrderController extends Controller
     private OrderDetail $orderDetailModel;
     private ProductionPlan $planModel;
     private Bill $billModel;
+    private ProductConfiguration $configurationModel;
 
     private array $orderStatuses = ['Mới tạo', 'Chờ duyệt', 'Đang xử lý', 'Chờ giao', 'Hoàn thành', 'Đã hủy'];
     private array $planStatuses = ['Mới tạo', 'Đang lập kế hoạch', 'Chuẩn bị nguyên liệu', 'Đang triển khai', 'Tạm dừng', 'Hoàn thành'];
@@ -22,6 +23,7 @@ class OrderController extends Controller
         $this->orderDetailModel = new OrderDetail();
         $this->planModel = new ProductionPlan();
         $this->billModel = new Bill();
+        $this->configurationModel = new ProductConfiguration();
     }
 
     public function index(): void
@@ -37,10 +39,12 @@ class OrderController extends Controller
     {
         $customers = $this->customerModel->all(100);
         $products = $this->productModel->all(200);
+        $configurations = $this->configurationModel->all(500);
         $this->render('order/create', [
             'title' => 'Tạo đơn hàng mới',
             'customers' => $customers,
             'products' => $products,
+            'configurations' => $configurations,
             'orderStatuses' => $this->orderStatuses,
             'planStatuses' => $this->planStatuses,
             'billStatuses' => $this->billStatuses,
@@ -57,6 +61,14 @@ class OrderController extends Controller
         $detailsInput = $_POST['details'] ?? [];
 
         try {
+            $customerId = $this->resolveCustomer($_POST);
+        } catch (InvalidArgumentException $exception) {
+            $this->setFlash('danger', $exception->getMessage());
+            $this->redirect('?controller=order&action=create');
+            return;
+        }
+
+        try {
             $db = Database::getInstance()->getConnection();
             $db->beginTransaction();
 
@@ -69,7 +81,7 @@ class OrderController extends Controller
                 'TongTien' => $totalAmount,
                 'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
                 'TrangThai' => $_POST['TrangThai'] ?? $this->orderStatuses[0],
-                'IdKhachHang' => $_POST['IdKhachHang'] ?? '',
+                'IdKhachHang' => $customerId,
             ];
 
             $this->orderModel->create($data);
@@ -100,6 +112,7 @@ class OrderController extends Controller
         $order = $this->orderModel->find($id);
         $customers = $this->customerModel->all(100);
         $products = $this->productModel->all(200);
+        $configurations = $this->configurationModel->all(500);
         $orderDetails = $id ? $this->orderDetailModel->getByOrder($id) : [];
 
         $this->render('order/edit', [
@@ -107,6 +120,7 @@ class OrderController extends Controller
             'order' => $order,
             'customers' => $customers,
             'products' => $products,
+            'configurations' => $configurations,
             'orderDetails' => $orderDetails,
             'orderStatuses' => $this->orderStatuses,
             'planStatuses' => $this->planStatuses,
@@ -124,6 +138,14 @@ class OrderController extends Controller
         $detailsInput = $_POST['details'] ?? [];
 
         try {
+            $customerId = $this->resolveCustomer($_POST);
+        } catch (InvalidArgumentException $exception) {
+            $this->setFlash('danger', $exception->getMessage());
+            $this->redirect('?controller=order&action=edit&id=' . urlencode($id));
+            return;
+        }
+
+        try {
             $db = Database::getInstance()->getConnection();
             $db->beginTransaction();
 
@@ -135,7 +157,7 @@ class OrderController extends Controller
                 'TongTien' => $totalAmount,
                 'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
                 'TrangThai' => $_POST['TrangThai'] ?? $this->orderStatuses[0],
-                'IdKhachHang' => $_POST['IdKhachHang'] ?? '',
+                'IdKhachHang' => $customerId,
             ];
 
             $this->orderModel->update($id, $data);
@@ -256,33 +278,41 @@ class OrderController extends Controller
                 continue;
             }
 
-            $productMode = $detail['product_mode'] ?? 'existing';
             $productId = $detail['product_id'] ?? null;
-
-            if ($productMode === 'new') {
-                $productId = $detail['new_product_id'] ?? uniqid('SP');
-                $productName = trim($detail['new_product_name'] ?? '');
-                $productUnit = trim($detail['new_product_unit'] ?? '');
-                $productPrice = (float) ($detail['new_product_price'] ?? 0);
-
-                if ($productName === '') {
-                    throw new InvalidArgumentException('Tên sản phẩm mới không được để trống.');
-                }
-
-                $existingProduct = $this->productModel->find($productId);
-                if (!$existingProduct) {
-                    $this->productModel->create([
-                        'IdSanPham' => $productId,
-                        'TenSanPham' => $productName,
-                        'DonVi' => $productUnit ?: 'Đơn vị',
-                        'GiaBan' => $productPrice,
-                        'MoTa' => $detail['new_product_description'] ?? null,
-                    ]);
-                }
-            }
-
             if (!$productId) {
                 continue;
+            }
+
+            $configurationMode = $detail['configuration_mode'] ?? 'existing';
+            $configurationId = $detail['configuration_id'] ?? null;
+
+            if ($configurationMode === 'new') {
+                $configurationName = trim($detail['new_configuration_name'] ?? '');
+                if ($configurationName === '') {
+                    throw new InvalidArgumentException('Tên cấu hình mới không được để trống.');
+                }
+
+                $configurationId = uniqid('CFG');
+                $this->configurationModel->create([
+                    'IdCauHinh' => $configurationId,
+                    'TenCauHinh' => $configurationName,
+                    'MoTa' => $detail['new_configuration_description'] ?? null,
+                    'GiaBan' => (float) ($detail['new_configuration_price'] ?? 0),
+                    'IdSanPham' => $productId,
+                ]);
+            } else {
+                if (!$configurationId) {
+                    throw new InvalidArgumentException('Vui lòng chọn cấu hình sản phẩm.');
+                }
+
+                $configuration = $this->configurationModel->find($configurationId);
+                if (!$configuration) {
+                    throw new InvalidArgumentException('Cấu hình sản phẩm không tồn tại.');
+                }
+
+                if (($configuration['IdSanPham'] ?? null) !== $productId) {
+                    throw new InvalidArgumentException('Cấu hình không thuộc sản phẩm đã chọn.');
+                }
             }
 
             $quantity = (int) ($detail['quantity'] ?? 0);
@@ -307,6 +337,7 @@ class OrderController extends Controller
                 'IdTTCTDonHang' => uniqid('CTDH'),
                 'IdDonHang' => $orderId,
                 'IdSanPham' => $productId,
+                'IdCauHinh' => $configurationId,
                 'SoLuong' => $quantity,
                 'NgayGiao' => $delivery,
                 'YeuCau' => $detail['requirement'] ?? null,
@@ -322,5 +353,42 @@ class OrderController extends Controller
         }
 
         return $prepared;
+    }
+
+    private function resolveCustomer(array $input, ?string $fallbackCustomerId = null): string
+    {
+        $mode = $input['customer_mode'] ?? 'existing';
+
+        if ($mode === 'new') {
+            $name = trim($input['customer_name'] ?? '');
+            if ($name === '') {
+                throw new InvalidArgumentException('Vui lòng nhập tên khách hàng mới.');
+            }
+
+            $phone = trim($input['customer_phone'] ?? '');
+            $address = trim($input['customer_address'] ?? '');
+            $type = trim($input['customer_type'] ?? 'Khách hàng mới');
+
+            $customerId = uniqid('KH');
+            $this->customerModel->create([
+                'IdKhachHang' => $customerId,
+                'HoTen' => $name,
+                'GioiTinh' => null,
+                'DiaChi' => $address ?: null,
+                'SoLuongDonHang' => 0,
+                'SoDienThoai' => $phone ?: null,
+                'TongTien' => 0,
+                'LoaiKhachHang' => $type ?: 'Khách hàng mới',
+            ]);
+
+            return $customerId;
+        }
+
+        $existingId = $input['customer_existing_id'] ?? $fallbackCustomerId;
+        if (!$existingId) {
+            throw new InvalidArgumentException('Vui lòng chọn khách hàng từ danh sách.');
+        }
+
+        return $existingId;
     }
 }

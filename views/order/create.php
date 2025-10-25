@@ -14,25 +14,18 @@ $orderStatuses = $orderStatuses ?? [];
 <div class="card p-4">
     <form action="?controller=order&action=store" method="post" class="row g-4">
         <input type="hidden" name="IdDonHang" value="">
-        <div class="col-md-4">
-            <div class="form-floating-label">Mã đơn hàng</div>
-            <div class="form-hint">SV5TOT tự động phát sinh mã đơn khi lưu.</div>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Khách hàng</label>
-            <select name="IdKhachHang" class="form-select" required>
-                <option value="">-- Chọn khách hàng/đối tác --</option>
-                <?php foreach ($customers as $customer): ?>
-                    <option value="<?= htmlspecialchars($customer['IdKhachHang']) ?>"><?= htmlspecialchars($customer['HoTen']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-md-4">
+        <?php
+        $selectedCustomerId = null;
+        $customerMode = 'existing';
+        $customerFormData = ['name' => '', 'phone' => '', 'address' => '', 'type' => ''];
+        include __DIR__ . '/partials/customer_selector.php';
+        ?>
+        <div class="col-lg-3 col-md-6">
             <label class="form-label">Ngày lập</label>
             <input type="date" name="NgayLap" class="form-control" value="<?= date('Y-m-d') ?>">
         </div>
-        <div class="col-md-4">
-            <label class="form-label">Trạng thái đơn SV5TOT</label>
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label">Trạng thái đơn</label>
             <select name="TrangThai" class="form-select">
                 <?php foreach ($orderStatuses as $status): ?>
                     <option value="<?= htmlspecialchars($status) ?>" <?= $status === ($orderStatuses[0] ?? '') ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>

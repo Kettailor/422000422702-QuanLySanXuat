@@ -7,9 +7,11 @@ class OrderDetail extends BaseModel
 
     public function getByOrder(string $orderId): array
     {
-        $sql = 'SELECT ct_don_hang.*, san_pham.TenSanPham, san_pham.DonVi, san_pham.GiaBan
+        $sql = 'SELECT ct_don_hang.*, san_pham.TenSanPham, san_pham.DonVi, san_pham.GiaBan,
+                       cau_hinh_san_pham.TenCauHinh, cau_hinh_san_pham.MoTa AS MoTaCauHinh, cau_hinh_san_pham.GiaBan AS GiaCauHinh
                 FROM ct_don_hang
                 LEFT JOIN san_pham ON san_pham.IdSanPham = ct_don_hang.IdSanPham
+                LEFT JOIN cau_hinh_san_pham ON cau_hinh_san_pham.IdCauHinh = ct_don_hang.IdCauHinh
                 WHERE ct_don_hang.IdDonHang = :orderId
                 ORDER BY ct_don_hang.NgayGiao IS NULL, ct_don_hang.NgayGiao';
         $stmt = $this->db->prepare($sql);
