@@ -34,6 +34,26 @@ class OrderDetail extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getPlanningContext(string $orderDetailId): ?array
+    {
+        $sql = 'SELECT ct.*, don_hang.IdDonHang, don_hang.YeuCau AS YeuCauDonHang,
+                       san_pham.TenSanPham, san_pham.DonVi,
+                       cau_hinh_san_pham.TenCauHinh
+                FROM ct_don_hang ct
+                JOIN don_hang ON don_hang.IdDonHang = ct.IdDonHang
+                LEFT JOIN san_pham ON san_pham.IdSanPham = ct.IdSanPham
+                LEFT JOIN cau_hinh_san_pham ON cau_hinh_san_pham.IdCauHinh = ct.IdCauHinh
+                WHERE ct.IdTTCTDonHang = :orderDetailId
+                LIMIT 1';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':orderDetailId', $orderDetailId);
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
     public function deleteByOrder(string $orderId): bool
     {
         $stmt = $this->db->prepare('DELETE FROM ct_don_hang WHERE IdDonHang = :orderId');
