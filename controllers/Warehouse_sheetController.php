@@ -13,9 +13,11 @@ class Warehouse_sheetController extends Controller
     public function index(): void
     {
         $documents = $this->sheetModel->getDocuments();
+        $summary = $this->sheetModel->getDocumentSummary();
         $this->render('warehouse_sheet/index', [
             'title' => 'Phiếu kho',
             'documents' => $documents,
+            'summary' => $summary,
         ]);
     }
 }

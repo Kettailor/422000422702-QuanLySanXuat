@@ -39,8 +39,9 @@
         <div class="col-md-4">
             <label class="form-label">Trạng thái</label>
             <select name="TrangThai" class="form-select">
-                <option value="Đang hoạt động">Đang hoạt động</option>
+                <option value="Đang sử dụng">Đang sử dụng</option>
                 <option value="Tạm dừng">Tạm dừng</option>
+                <option value="Bảo trì">Bảo trì</option>
             </select>
         </div>
         <div class="col-md-4">
@@ -49,7 +50,7 @@
         </div>
         <div class="col-md-6">
             <label class="form-label">Mã nhân viên quản kho</label>
-            <input type="text" name="IdQuanKho" class="form-control">
+            <input type="text" name="IdQuanKho" class="form-control" placeholder="VD: NV004">
         </div>
         <div class="col-12 text-end">
             <button class="btn btn-primary px-4" type="submit">Lưu kho</button>

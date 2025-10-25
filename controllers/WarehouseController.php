@@ -15,16 +15,18 @@ class WarehouseController extends Controller
     public function index(): void
     {
         $warehouses = $this->warehouseModel->getWithSupervisor();
+        $summary = $this->warehouseModel->getWarehouseSummary($warehouses);
         $this->render('warehouse/index', [
             'title' => 'Kho & tồn kho',
             'warehouses' => $warehouses,
+            'summary' => $summary,
         ]);
     }
 
     public function read(): void
     {
         $id = $_GET['id'] ?? null;
-        $warehouse = $id ? $this->warehouseModel->find($id) : null;
+        $warehouse = $id ? $this->warehouseModel->findWithSupervisor($id) : null;
         $lots = $id ? $this->lotModel->getLotsByWarehouse($id) : [];
         $this->render('warehouse/read', [
             'title' => 'Chi tiết kho',
@@ -47,16 +49,16 @@ class WarehouseController extends Controller
         }
 
         $data = [
-            'IdKho' => $_POST['IdKho'] ?: uniqid('KHO'),
+            'IdKho' => ($_POST['IdKho'] ?? '') ?: uniqid('KHO'),
             'TenKho' => $_POST['TenKho'] ?? null,
             'TenLoaiKho' => $_POST['TenLoaiKho'] ?? null,
             'DiaChi' => $_POST['DiaChi'] ?? null,
             'TongSLLo' => $_POST['TongSLLo'] ?? 0,
             'ThanhTien' => $_POST['ThanhTien'] ?? 0,
-            'TrangThai' => $_POST['TrangThai'] ?? 'Đang hoạt động',
+            'TrangThai' => $_POST['TrangThai'] ?? 'Đang sử dụng',
             'TongSL' => $_POST['TongSL'] ?? 0,
             'IdXuong' => $_POST['IdXuong'] ?? null,
-            '`NHAN_VIEN_KHO_IdNhanVien`' => $_POST['IdQuanKho'] ?? null,
+            'NHAN_VIEN_KHO_IdNhanVien' => $_POST['IdQuanKho'] ?? null,
         ];
 
         try {
@@ -92,10 +94,10 @@ class WarehouseController extends Controller
             'DiaChi' => $_POST['DiaChi'] ?? null,
             'TongSLLo' => $_POST['TongSLLo'] ?? 0,
             'ThanhTien' => $_POST['ThanhTien'] ?? 0,
-            'TrangThai' => $_POST['TrangThai'] ?? 'Đang hoạt động',
+            'TrangThai' => $_POST['TrangThai'] ?? 'Đang sử dụng',
             'TongSL' => $_POST['TongSL'] ?? 0,
             'IdXuong' => $_POST['IdXuong'] ?? null,
-            '`NHAN_VIEN_KHO_IdNhanVien`' => $_POST['IdQuanKho'] ?? null,
+            'NHAN_VIEN_KHO_IdNhanVien' => $_POST['IdQuanKho'] ?? null,
         ];
 
         try {

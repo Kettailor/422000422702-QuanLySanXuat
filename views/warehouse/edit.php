@@ -23,7 +23,7 @@
             <div class="col-md-4">
                 <label class="form-label">Trạng thái</label>
                 <select name="TrangThai" class="form-select">
-                    <?php foreach (['Đang hoạt động', 'Tạm dừng'] as $status): ?>
+                    <?php foreach (['Đang sử dụng', 'Tạm dừng', 'Bảo trì'] as $status): ?>
                         <option value="<?= $status ?>" <?= $status === $warehouse['TrangThai'] ? 'selected' : '' ?>><?= $status ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -50,7 +50,7 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label">Mã quản kho</label>
-                <input type="text" name="IdQuanKho" class="form-control" value="<?= htmlspecialchars($warehouse['`NHAN_VIEN_KHO_IdNhanVien`'] ?? '') ?>">
+                <input type="text" name="IdQuanKho" class="form-control" value="<?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '') ?>">
             </div>
             <div class="col-12 text-end">
                 <button class="btn btn-primary px-4" type="submit">Cập nhật kho</button>
