@@ -12,10 +12,11 @@
             <thead>
             <tr>
                 <th>Mã kế hoạch xưởng</th>
+                <th>Đơn hàng</th>
                 <th>Xưởng</th>
-                <th>Hạng mục SV5TOT</th>
-                <th>Số lượng linh kiện/bàn phím</th>
-                <th>Thời gian</th>
+                <th>Hạng mục</th>
+                <th>Số lượng</th>
+                <th>Tiến độ</th>
                 <th>Trạng thái</th>
                 <th></th>
             </tr>
@@ -24,14 +25,24 @@
             <?php foreach ($plans as $plan): ?>
                 <tr>
                     <td class="fw-semibold"><?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?></td>
+                    <td>
+                        <div class="fw-semibold">ĐH <?= htmlspecialchars($plan['IdDonHang']) ?></div>
+                        <div class="text-muted small"><?= htmlspecialchars($plan['TenSanPham']) ?></div>
+                        <?php if (!empty($plan['TenCauHinh'])): ?>
+                            <div class="text-muted small">Cấu hình: <?= htmlspecialchars($plan['TenCauHinh']) ?></div>
+                        <?php endif; ?>
+                    </td>
                     <td><?= htmlspecialchars($plan['TenXuong'] ?? $plan['IdXuong']) ?></td>
                     <td><?= htmlspecialchars($plan['TenThanhThanhPhanSP']) ?></td>
                     <td><?= htmlspecialchars($plan['SoLuong']) ?></td>
                     <td>
-                        <div class="text-muted small">Bắt đầu: <?= $plan['ThoiGianBatDau'] ? date('d/m H:i', strtotime($plan['ThoiGianBatDau'])) : '-' ?></div>
-                        <div class="text-muted small">Kết thúc: <?= $plan['ThoiGianKetThuc'] ? date('d/m H:i', strtotime($plan['ThoiGianKetThuc'])) : '-' ?></div>
+                        <div class="text-muted small">BĐ: <?= $plan['ThoiGianBatDau'] ? date('d/m H:i', strtotime($plan['ThoiGianBatDau'])) : '-' ?></div>
+                        <div class="text-muted small">KT: <?= $plan['ThoiGianKetThuc'] ? date('d/m H:i', strtotime($plan['ThoiGianKetThuc'])) : '-' ?></div>
                     </td>
-                    <td><span class="badge bg-light text-dark"><?= htmlspecialchars($plan['TrangThai']) ?></span></td>
+                    <td>
+                        <div><span class="badge bg-light text-dark"><?= htmlspecialchars($plan['TrangThai']) ?></span></div>
+                        <div class="text-muted small">Kế hoạch tổng: <?= htmlspecialchars($plan['TrangThaiTong']) ?></div>
+                    </td>
                     <td class="text-end">
                         <div class="table-actions">
                             <a class="btn btn-sm btn-outline-secondary" href="?controller=factory_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>">Chi tiết</a>
