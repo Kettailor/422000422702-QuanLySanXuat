@@ -33,7 +33,7 @@ abstract class BaseModel
     {
         $columns = array_keys($data);
         $columnString = implode(', ', $columns);
-        $placeholders = implode(', ', array_map(fn($col) => ':' . $col, $columns));
+        $placeholders = implode(', ', array_map(fn ($col) => ':' . $col, $columns));
 
         $stmt = $this->db->prepare("INSERT INTO {$this->table} ({$columnString}) VALUES ({$placeholders})");
         foreach ($data as $column => $value) {
@@ -45,7 +45,7 @@ abstract class BaseModel
 
     public function update(string $id, array $data): bool
     {
-        $setClause = implode(', ', array_map(fn($col) => "{$col} = :{$col}", array_keys($data)));
+        $setClause = implode(', ', array_map(fn ($col) => "{$col} = :{$col}", array_keys($data)));
         $stmt = $this->db->prepare("UPDATE {$this->table} SET {$setClause} WHERE {$this->primaryKey} = :id");
         foreach ($data as $column => $value) {
             $stmt->bindValue(':' . $column, $value);
