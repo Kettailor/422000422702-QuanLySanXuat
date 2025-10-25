@@ -160,7 +160,7 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
             </tr>
             </thead>
             <tbody>
-            <?php foreach ($warehouses as $warehouse): ?>
+            <?php if (empty($warehouses)): ?>
                 <tr>
                     <td class="fw-semibold"><?= htmlspecialchars($warehouse['IdKho']) ?></td>
                     <td><?= htmlspecialchars($warehouse['TenKho']) ?></td>
@@ -196,7 +196,46 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                         </div>
                     </td>
                 </tr>
-            <?php endforeach; ?>
+            <?php else: ?>
+                <?php foreach ($warehouses as $warehouse): ?>
+                    <tr>
+                        <td class="fw-semibold"><?= htmlspecialchars($warehouse['IdKho']) ?></td>
+                        <td><?= htmlspecialchars($warehouse['TenKho']) ?></td>
+                        <td><?= htmlspecialchars($warehouse['TenLoaiKho']) ?></td>
+                        <td><?= htmlspecialchars($warehouse['TenXuong'] ?? '-') ?></td>
+                        <td><?= htmlspecialchars($warehouse['TenQuanKho'] ?? '-') ?></td>
+                        <td><?= number_format((int) ($warehouse['SoLoDangQuanLy'] ?? 0)) ?></td>
+                        <td><?= number_format((int) ($warehouse['TongSoLuongLo'] ?? 0)) ?></td>
+                        <td><?= number_format((int) ($warehouse['TongSoPhieu'] ?? 0)) ?></td>
+                        <td>
+                            <?= !empty($warehouse['LanNhapXuatGanNhat']) ? date('d/m/Y', strtotime($warehouse['LanNhapXuatGanNhat'])) : '-' ?>
+                        </td>
+                        <td class="fw-semibold text-primary">
+                            <?= number_format((float) ($warehouse['TongGiaTriPhieu'] ?? 0), 0, ',', '.') ?> đ
+                        </td>
+                        <td class="text-muted">
+                            <?= number_format((float) ($warehouse['GiaTriPhieuThang'] ?? 0), 0, ',', '.') ?> đ
+                        </td>
+                        <td>
+                            <?php $utilization = (float) ($warehouse['TyLeSuDung'] ?? 0); ?>
+                            <span class="badge <?= $utilization > 85 ? 'badge-soft-danger' : ($utilization > 60 ? 'badge-soft-warning' : 'badge-soft-success') ?>">
+                                <?= number_format($utilization, 1) ?>%
+                            </span>
+                        </td>
+                        <td><span class="badge bg-light text-dark"><?= htmlspecialchars($warehouse['TrangThai']) ?></span></td>
+                        <td class="text-end">
+                            <div class="table-actions d-flex align-items-center gap-2 flex-wrap">
+                                <a class="btn btn-sm btn-outline-secondary" href="?controller=warehouse&action=read&id=<?= urlencode($warehouse['IdKho']) ?>">Chi tiết</a>
+                                <a class="btn btn-sm btn-outline-primary" href="?controller=warehouse&action=edit&id=<?= urlencode($warehouse['IdKho']) ?>">Sửa</a>
+                                <form method="post" action="?controller=warehouse&action=delete" class="d-inline" onsubmit="return confirm('Xác nhận xóa kho này?');">
+                                    <input type="hidden" name="IdKho" value="<?= htmlspecialchars($warehouse['IdKho']) ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
             </tbody>
         </table>
     </div>
