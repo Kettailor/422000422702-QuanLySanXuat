@@ -17,4 +17,12 @@ class Bill extends BaseModel
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public function getByOrder(string $orderId): array
+    {
+        $stmt = $this->db->prepare('SELECT * FROM HOA_DON WHERE IdDonHang = :orderId ORDER BY NgayLap DESC');
+        $stmt->bindValue(':orderId', $orderId);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

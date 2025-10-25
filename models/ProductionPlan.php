@@ -18,4 +18,17 @@ class ProductionPlan extends BaseModel
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public function getByOrder(string $orderId): array
+    {
+        $sql = 'SELECT KE_HOACH_SAN_XUAT.*, CT_DON_HANG.IdSanPham, CT_DON_HANG.SoLuong AS SoLuongChiTiet
+                FROM KE_HOACH_SAN_XUAT
+                JOIN CT_DON_HANG ON CT_DON_HANG.IdTTCTDonHang = KE_HOACH_SAN_XUAT.IdTTCTDonHang
+                WHERE CT_DON_HANG.IdDonHang = :orderId
+                ORDER BY KE_HOACH_SAN_XUAT.ThoiGianBD DESC';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':orderId', $orderId);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

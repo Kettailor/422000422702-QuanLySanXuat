@@ -12,7 +12,7 @@
     <div class="card p-4">
         <form action="?controller=order&action=update" method="post" class="row g-4">
             <input type="hidden" name="IdDonHang" value="<?= htmlspecialchars($order['IdDonHang']) ?>">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label class="form-label">Khách hàng</label>
                 <select name="IdKhachHang" class="form-select" required>
                     <?php foreach ($customers as $customer): ?>
@@ -20,26 +20,23 @@
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label class="form-label">Ngày lập</label>
                 <input type="date" name="NgayLap" class="form-control" value="<?= $order['NgayLap'] ?>">
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Trạng thái</label>
+            <div class="col-md-4">
+                <label class="form-label">Trạng thái đơn hàng</label>
                 <select name="TrangThai" class="form-select">
-                    <?php foreach (['Mới tạo', 'Đang xử lý', 'Hoàn thành'] as $status): ?>
-                        <option value="<?= $status ?>" <?= $status === $order['TrangThai'] ? 'selected' : '' ?>><?= $status ?></option>
+                    <?php foreach ($orderStatuses as $status): ?>
+                        <option value="<?= htmlspecialchars($status) ?>" <?= $status === $order['TrangThai'] ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Tổng tiền</label>
-                <input type="number" name="TongTien" class="form-control" value="<?= $order['TongTien'] ?>">
-            </div>
             <div class="col-12">
-                <label class="form-label">Yêu cầu</label>
-                <textarea name="YeuCau" rows="4" class="form-control"><?= htmlspecialchars($order['YeuCau']) ?></textarea>
+                <label class="form-label">Yêu cầu tổng quan</label>
+                <textarea name="YeuCau" rows="3" class="form-control"><?= htmlspecialchars($order['YeuCau']) ?></textarea>
             </div>
+            <?php include __DIR__ . '/partials/detail_form.php'; ?>
             <div class="col-12 text-end">
                 <button class="btn btn-primary px-4" type="submit">Cập nhật</button>
             </div>
