@@ -134,14 +134,25 @@ class WarehouseController extends Controller
 
     public function delete(): void
     {
-        $id = $_GET['id'] ?? null;
-        if ($id) {
-            try {
-                $this->warehouseModel->delete($id);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=warehouse&action=index');
+        }
+
+        $id = $_POST['IdKho'] ?? null;
+
+        if (!$id) {
+            $this->setFlash('danger', 'Không xác định được kho cần xóa.');
+            $this->redirect('?controller=warehouse&action=index');
+        }
+
+        try {
+            if ($this->warehouseModel->delete($id)) {
                 $this->setFlash('success', 'Đã xóa kho.');
-            } catch (Throwable $e) {
-                $this->setFlash('danger', 'Không thể xóa kho: ' . $e->getMessage());
+            } else {
+                $this->setFlash('warning', 'Kho đã được xóa hoặc không tồn tại.');
             }
+        } catch (Throwable $e) {
+            $this->setFlash('danger', 'Không thể xóa kho: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=warehouse&action=index');

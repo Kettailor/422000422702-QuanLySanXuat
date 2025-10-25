@@ -186,10 +186,13 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                     </td>
                     <td><span class="badge bg-light text-dark"><?= htmlspecialchars($warehouse['TrangThai']) ?></span></td>
                     <td class="text-end">
-                        <div class="table-actions">
+                        <div class="table-actions d-flex align-items-center gap-2 flex-wrap">
                             <a class="btn btn-sm btn-outline-secondary" href="?controller=warehouse&action=read&id=<?= urlencode($warehouse['IdKho']) ?>">Chi tiết</a>
                             <a class="btn btn-sm btn-outline-primary" href="?controller=warehouse&action=edit&id=<?= urlencode($warehouse['IdKho']) ?>">Sửa</a>
-                            <a class="btn btn-sm btn-outline-danger" href="?controller=warehouse&action=delete&id=<?= urlencode($warehouse['IdKho']) ?>" onclick="return confirm('Xác nhận xóa kho này?');">Xóa</a>
+                            <form method="post" action="?controller=warehouse&action=delete" class="d-inline" onsubmit="return confirm('Xác nhận xóa kho này?');">
+                                <input type="hidden" name="IdKho" value="<?= htmlspecialchars($warehouse['IdKho']) ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                            </form>
                         </div>
                     </td>
                 </tr>
