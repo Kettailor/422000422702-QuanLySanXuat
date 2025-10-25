@@ -226,6 +226,7 @@ class InventorySheet extends BaseModel
 
             if ($field === 'TongTien' && $value !== null) {
                 $value = (int) $value;
+                $value = (float) $value;
             }
 
             $payload[$field] = $value;

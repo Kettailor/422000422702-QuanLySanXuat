@@ -35,6 +35,8 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
     }
 </style>
 
+?>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Quản lý kho</h3>
@@ -95,6 +97,43 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                     </div>
                 </div>
             </button>
+            <div class="card metric-card">
+                <div class="icon-wrap bg-primary bg-opacity-10 text-primary"><i class="bi bi-archive"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Tổng số kho</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_warehouses']) ?></div>
+                    <div class="small text-success">Đang sử dụng: <?= number_format($summary['active_warehouses']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-box-seam"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Sức chứa hệ thống</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_capacity']) ?></div>
+                    <div class="small text-muted">Kho tạm ngưng: <?= number_format($summary['inactive_warehouses']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-graph-up"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Giá trị hàng tồn</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_inventory_value'], 0, ',', '.') ?> đ</div>
+                    <div class="small text-muted">Tổng lô: <?= number_format($summary['total_lots']) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="icon-wrap bg-success bg-opacity-10 text-success"><i class="bi bi-layers"></i></div>
+                <div>
+                    <div class="text-muted text-uppercase small">Tổng số lượng tồn</div>
+                    <div class="fs-3 fw-bold"><?= number_format($summary['total_quantity']) ?></div>
+                </div>
+            </div>
         </div>
     </div>
 <?php endif; ?>
