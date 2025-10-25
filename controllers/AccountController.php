@@ -4,11 +4,13 @@ class AccountController extends Controller
 {
     private Employee $employeeModel;
     private User $userModel;
+    private Role $roleModel;
 
     public function __construct()
     {
         $this->employeeModel = new Employee();
         $this->userModel = new User();
+        $this->roleModel = new Role();
     }
 
     public function index(): void
@@ -22,7 +24,7 @@ class AccountController extends Controller
 
         $this->render('account/index', [
             'title' => 'Quản lý tài khoản',
-            'header' => ["ID", 'Tên nhân viên', 'Vai trò', 'Chức vụ', 'Trạng thái', 'Hành động'],
+            'header' => ["ID Nguoi dung", "ID nhân viên", 'Tên nhân viên', 'Vai trò', 'Chức vụ', 'Trạng thái', 'Hành động'],
             'users' => $users,
             'numberOfActiveUsers' => $numberOfActiveUsers,
             'numberOfActiveEmployees' => $numberOfActiveEmployees,
@@ -32,14 +34,43 @@ class AccountController extends Controller
     public function create(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            error_log('POST data: ' . print_r($_POST, true));
+            $employeeId = $_POST['employee'] ?? null;
+            $username = $_POST['username'] ?? null;
+            $roleId = $_POST['role'] ?? null;
+
+            $userExists = $this->userModel->findByUsername($username);
+            if ($userExists) {
+                $this->setFlash('danger', 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
+                $this->redirect('?controller=account&action=create');
+            }
+
+            $lastUser = $this->userModel->getLastUserId();
+            if ($lastUser && preg_match('/ND(\d+)/', $lastUser, $matches)) {
+                $nextIdNumber = (int)$matches[1] + 1;
+                $nextUserId = 'ND' . str_pad($nextIdNumber, 3, '0', STR_PAD_LEFT);
+            } else {
+                $nextUserId = 'ND001';
+            }
+
+            $this->userModel->create([
+              'IdNguoiDung' => $nextUserId,
+              'IdNhanVien' => $employeeId,
+              'TenDangNhap' => $username,
+              'IdVaiTro' => $roleId,
+              'MatKhau' => password_hash($_POST['password'], PASSWORD_BCRYPT),
+              'TrangThai' => 'Hoạt động',
+            ]);
+            $this->redirect('?controller=account&action=index');
+            $this->setFlash('success', 'Tạo tài khoản thành công.');
         }
 
         $employees = $this->employeeModel->getUnassignedEmployees();
+        $roles = $this->roleModel->all();
 
         $this->render('account/create', [
             'title' => 'Tạo tài khoản mới',
             'employees' => $employees,
+            'roles' => $roles,
         ]);
     }
 
@@ -57,8 +88,7 @@ class AccountController extends Controller
     {
         $id = $_GET['id'] ?? null;
         if ($id) {
-            // Thực hiện xóa tài khoản
-            // $this->userModel->delete($id);
+            $this->userModel->delete($id);
         }
         header('Location: ?controller=account&action=index');
     }

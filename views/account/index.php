@@ -20,6 +20,7 @@
 
       <?php foreach ($users['data'] as $user): ?>
         <tr>
+          <td><?= htmlspecialchars($user['IdNguoiDung']) ?></td>
           <td><?= htmlspecialchars($user['IdNhanVien']) ?></td>
           <td><?= htmlspecialchars($user['HoTen']) ?></td>
           <td><?= htmlspecialchars($user['TenVaiTro']) ?></td>
@@ -38,7 +39,7 @@
         <td colspan="2">
           Số tài khoản đang hoạt động: <?= htmlspecialchars($numberOfActiveUsers) ?>
         </td>
-        <td colspan="1">
+        <td colspan="2">
           Số nhân viên: <?= htmlspecialchars($numberOfActiveEmployees) ?>
         </td>
         <td colspan="2">
@@ -57,3 +58,5 @@
     </tfoot>
   </table>
 </section>
+
+<?php $this->getFlash(); ?>

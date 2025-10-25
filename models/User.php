@@ -15,6 +15,15 @@ class User extends BaseModel
         return $result ?: null;
     }
 
+    public function getLastUserId(): ?string
+    {
+        $sql = 'SELECT IdNguoiDung FROM NGUOI_DUNG ORDER BY IdNguoiDung DESC LIMIT 1';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        return $result ? $result['IdNguoiDung'] : null;
+    }
+
     public function countActiveUsers(): int
     {
         $sql = 'SELECT COUNT(*) as count FROM NGUOI_DUNG WHERE TrangThai = :status';
