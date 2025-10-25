@@ -31,6 +31,8 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
                 <select name="TrangThai" class="form-select">
                     <?php foreach ($statuses as $status): ?>
                         <option value="<?= htmlspecialchars($status) ?>" <?= $status === ($warehouse['TrangThai'] ?? '') ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
+                    <?php foreach (['Đang sử dụng', 'Tạm dừng', 'Bảo trì'] as $status): ?>
+                        <option value="<?= $status ?>" <?= $status === $warehouse['TrangThai'] ? 'selected' : '' ?>><?= $status ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -69,6 +71,8 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <label class="form-label">Mã quản kho</label>
+                <input type="text" name="IdQuanKho" class="form-control" value="<?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '') ?>">
             </div>
             <div class="col-12 text-end">
                 <button class="btn btn-primary px-4" type="submit">Cập nhật kho</button>

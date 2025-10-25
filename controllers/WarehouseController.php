@@ -61,6 +61,18 @@ class WarehouseController extends Controller
             $this->setFlash('danger', 'Vui lòng nhập đầy đủ tên kho, xưởng phụ trách và nhân viên quản kho.');
             $this->redirect('?controller=warehouse&action=create');
         }
+        $data = [
+            'IdKho' => ($_POST['IdKho'] ?? '') ?: uniqid('KHO'),
+            'TenKho' => $_POST['TenKho'] ?? null,
+            'TenLoaiKho' => $_POST['TenLoaiKho'] ?? null,
+            'DiaChi' => $_POST['DiaChi'] ?? null,
+            'TongSLLo' => $_POST['TongSLLo'] ?? 0,
+            'ThanhTien' => $_POST['ThanhTien'] ?? 0,
+            'TrangThai' => $_POST['TrangThai'] ?? 'Đang sử dụng',
+            'TongSL' => $_POST['TongSL'] ?? 0,
+            'IdXuong' => $_POST['IdXuong'] ?? null,
+            'NHAN_VIEN_KHO_IdNhanVien' => $_POST['IdQuanKho'] ?? null,
+        ];
 
         try {
             $this->warehouseModel->createWarehouse($_POST);
@@ -98,6 +110,17 @@ class WarehouseController extends Controller
             $this->setFlash('danger', 'Vui lòng nhập đầy đủ tên kho, xưởng phụ trách và nhân viên quản kho.');
             $this->redirect('?controller=warehouse&action=edit&id=' . urlencode($id));
         }
+        $data = [
+            'TenKho' => $_POST['TenKho'] ?? null,
+            'TenLoaiKho' => $_POST['TenLoaiKho'] ?? null,
+            'DiaChi' => $_POST['DiaChi'] ?? null,
+            'TongSLLo' => $_POST['TongSLLo'] ?? 0,
+            'ThanhTien' => $_POST['ThanhTien'] ?? 0,
+            'TrangThai' => $_POST['TrangThai'] ?? 'Đang sử dụng',
+            'TongSL' => $_POST['TongSL'] ?? 0,
+            'IdXuong' => $_POST['IdXuong'] ?? null,
+            'NHAN_VIEN_KHO_IdNhanVien' => $_POST['IdQuanKho'] ?? null,
+        ];
 
         try {
             $this->warehouseModel->updateWarehouse($id, $_POST);
