@@ -8,8 +8,21 @@ class InventorySheet extends BaseModel
     /**
      * Lấy danh sách phiếu nhập/xuất kho cùng thông tin bổ sung.
      */
-    public function getDocuments(int $limit = 50): array
+    public function getDocuments(?string $filterType = null, int $limit = 50): array
     {
+        $conditions = [];
+        $params = [];
+
+        if ($filterType === 'inbound') {
+            $conditions[] = 'PHIEU.LoaiPhieu LIKE :inboundType';
+            $params[':inboundType'] = 'Phiếu nhập%';
+        } elseif ($filterType === 'outbound') {
+            $conditions[] = 'PHIEU.LoaiPhieu LIKE :outboundType';
+            $params[':outboundType'] = 'Phiếu xuất%';
+        }
+
+        $whereClause = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
         $sql = 'SELECT
                     PHIEU.IdPhieu,
                     PHIEU.NgayLP,
@@ -38,10 +51,14 @@ class InventorySheet extends BaseModel
                     FROM CT_PHIEU
                     GROUP BY IdPhieu
                 ) AS item_stats ON item_stats.IdPhieu = PHIEU.IdPhieu
+                ' . $whereClause . '
                 ORDER BY PHIEU.NgayLP DESC, PHIEU.IdPhieu DESC
                 LIMIT :limit';
 
         $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -80,5 +97,135 @@ class InventorySheet extends BaseModel
             'total_value' => (float) ($summary['total_value'] ?? 0),
             'monthly_trend' => $trend,
         ];
+    }
+
+    public function findDocument(string $id): ?array
+    {
+        $sql = 'SELECT
+                    PHIEU.IdPhieu,
+                    PHIEU.NgayLP,
+                    PHIEU.NgayXN,
+                    PHIEU.TongTien,
+                    PHIEU.LoaiPhieu,
+                    PHIEU.IdKho,
+                    PHIEU.NHAN_VIENIdNhanVien,
+                    PHIEU.NHAN_VIENIdNhanVien2,
+                    KHO.TenKho,
+                    NV_LAP.HoTen AS NguoiLap,
+                    NV_XN.HoTen AS NguoiXacNhan
+                FROM PHIEU
+                JOIN KHO ON KHO.IdKho = PHIEU.IdKho
+                LEFT JOIN NHAN_VIEN NV_LAP ON NV_LAP.IdNhanVien = PHIEU.NHAN_VIENIdNhanVien
+                LEFT JOIN NHAN_VIEN NV_XN ON NV_XN.IdNhanVien = PHIEU.NHAN_VIENIdNhanVien2
+                WHERE PHIEU.IdPhieu = :id';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $document = $stmt->fetch();
+
+        return $document ?: null;
+    }
+
+    public function getFormOptions(): array
+    {
+        $warehouses = $this->db->query('SELECT IdKho, TenKho FROM KHO ORDER BY TenKho')->fetchAll();
+        $employees = $this->db->query('SELECT IdNhanVien, HoTen FROM NHAN_VIEN ORDER BY HoTen')->fetchAll();
+        $types = $this->db->query('SELECT DISTINCT LoaiPhieu FROM PHIEU ORDER BY LoaiPhieu')->fetchAll(PDO::FETCH_COLUMN) ?: [];
+
+        return [
+            'warehouses' => $warehouses,
+            'employees' => $employees,
+            'types' => array_values(array_filter($types)),
+        ];
+    }
+
+    public function createDocument(array $data): bool
+    {
+        $payload = $this->sanitizeDocumentPayload($data, true);
+        return $this->create($payload);
+    }
+
+    public function updateDocument(string $id, array $data): bool
+    {
+        $payload = $this->sanitizeDocumentPayload($data);
+        return $this->update($id, $payload);
+    }
+
+    public function deleteDocument(string $id): bool
+    {
+        $this->db->beginTransaction();
+
+        try {
+            $detailStmt = $this->db->prepare('DELETE FROM CT_PHIEU WHERE IdPhieu = :id');
+            $detailStmt->bindValue(':id', $id);
+            $detailStmt->execute();
+
+            $headerStmt = $this->db->prepare('DELETE FROM PHIEU WHERE IdPhieu = :id');
+            $headerStmt->bindValue(':id', $id);
+            $headerStmt->execute();
+
+            $this->db->commit();
+
+            return $headerStmt->rowCount() > 0;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    public function generateDocumentId(?string $type = null): string
+    {
+        $prefix = 'PH';
+        if ($type) {
+            $normalized = function_exists('mb_strtolower') ? mb_strtolower($type, 'UTF-8') : strtolower($type);
+            if (str_contains($normalized, 'nhập')) {
+                $prefix = 'PN';
+            } elseif (str_contains($normalized, 'xuất')) {
+                $prefix = 'PX';
+            }
+        }
+
+        return $prefix . date('YmdHis');
+    }
+
+    private function sanitizeDocumentPayload(array $data, bool $includeId = false): array
+    {
+        $fields = [
+            'IdPhieu',
+            'NgayLP',
+            'NgayXN',
+            'TongTien',
+            'LoaiPhieu',
+            'IdKho',
+            'NHAN_VIENIdNhanVien',
+            'NHAN_VIENIdNhanVien2',
+        ];
+
+        $payload = [];
+
+        foreach ($fields as $field) {
+            if (!$includeId && $field === 'IdPhieu') {
+                continue;
+            }
+
+            if (!array_key_exists($field, $data)) {
+                continue;
+            }
+
+            $value = $data[$field];
+            if ($value === '') {
+                $value = null;
+            }
+
+            if ($field === 'TongTien' && $value !== null) {
+                $value = (float) $value;
+            }
+
+            $payload[$field] = $value;
+        }
+
+        return $payload;
     }
 }
