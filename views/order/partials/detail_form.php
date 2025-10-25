@@ -66,7 +66,7 @@ $detailPayload = array_map(static function ($detail) {
             <label class="form-label fw-semibold">Danh sách sản phẩm & cấu hình</label>
             <p class="text-muted small mb-0">Chọn sản phẩm SV5TOT, cấu hình tương ứng và cập nhật yêu cầu chi tiết.</p>
         </div>
-        <button class="btn btn-outline-primary" type="button" id="add-detail-row"><i class="bi bi-plus-lg me-2"></i>Thêm cấu hình</button>
+        <button class="btn btn-outline-primary" type="button" id="add-detail-row"><i class="bi bi-plus-lg me-2"></i>Thêm sản phẩm</button>
     </div>
     <div id="order-detail-container" class="mt-3"></div>
     <div class="d-flex justify-content-end mt-3">
