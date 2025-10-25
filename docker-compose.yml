@@ -1,0 +1,30 @@
+services:
+  db:
+    image: mysql:latest
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --lower_case_table_names=1
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_USER: ""
+      MYSQL_PASSWORD: ""
+      MYSQL_DATABASE: "422000422702-quanlysanxuat"
+      MYSQL_ALLOW_EMPTY_PASSWORD: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./data:/docker-entrypoint-initdb.d
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

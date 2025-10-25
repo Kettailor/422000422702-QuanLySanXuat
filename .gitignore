@@ -21,5 +21,6 @@ Thumbs.db
 .cache/
 .vscode/
 .idea/
+*.cache
 *.swp
 *.swo
