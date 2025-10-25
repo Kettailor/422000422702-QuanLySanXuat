@@ -50,7 +50,7 @@
             <i class="bi bi-chevron-left"></i><span class="sr-only">Trang trước </span>
           </a>
           <span>Trang <?= htmlspecialchars($users['page']) ?> / <?= htmlspecialchars($users['totalPages']) ?></span>
-          <a href="?controller=account&action=index&page=<?= $users['page'] + 1 ?>&limit=<?= $users['limit'] ?>" class="btn btn-outline-secondary btn-sm<?= ($users['page'] >= $users['totalPages']) ? ' disabled' : '' ?>" <?= ($page >= $totalPages) ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
+          <a href="?controller=account&action=index&page=<?= $users['page'] + 1 ?>&limit=<?= $users['limit'] ?>" class="btn btn-outline-secondary btn-sm<?= ($users['page'] >= $users['totalPages']) ? ' disabled' : '' ?>" <?= ($users['page'] >= $users['totalPages']) ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
             <i class="bi bi-chevron-right"></i><span class="sr-only">Trang sau </span>
           </a>
         </td>

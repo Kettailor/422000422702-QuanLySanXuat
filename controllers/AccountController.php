@@ -24,7 +24,7 @@ class AccountController extends Controller
 
         $this->render('account/index', [
             'title' => 'Quản lý tài khoản',
-            'header' => ["ID Nguoi dung", "ID nhân viên", 'Tên nhân viên', 'Vai trò', 'Chức vụ', 'Trạng thái', 'Hành động'],
+            'header' => ["ID Người dùng", "ID nhân viên", 'Tên nhân viên', 'Vai trò', 'Chức vụ', 'Trạng thái', 'Hành động'],
             'users' => $users,
             'numberOfActiveUsers' => $numberOfActiveUsers,
             'numberOfActiveEmployees' => $numberOfActiveEmployees,
@@ -60,8 +60,8 @@ class AccountController extends Controller
               'MatKhau' => password_hash($_POST['password'], PASSWORD_BCRYPT),
               'TrangThai' => 'Hoạt động',
             ]);
-            $this->redirect('?controller=account&action=index');
             $this->setFlash('success', 'Tạo tài khoản thành công.');
+            $this->redirect('?controller=account&action=index');
         }
 
         $employees = $this->employeeModel->getUnassignedEmployees();
@@ -119,6 +119,7 @@ class AccountController extends Controller
         if ($id) {
             $this->userModel->delete($id);
         }
-        header('Location: ?controller=account&action=index');
+        $this->setFlash('success', 'Xóa tài khoản thành công.');
+        $this->redirect('?controller=account&action=index');
     }
 }

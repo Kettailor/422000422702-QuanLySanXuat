@@ -4,7 +4,7 @@
     <input class="form-control" id="username" name="username" placeholder="Enter username" required>
   </div>
   <div class="form-group">
-    <label for="username">Nhân viên</label>
+    <label for="employee">Nhân viên</label>
     <select class="form-select" id="employee" name="employee" aria-label="Employee select">
       <?php foreach ($employees as $employee): ?>
         <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>"><?= htmlspecialchars($employee['HoTen']) ?></option>
