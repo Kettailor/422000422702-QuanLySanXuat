@@ -78,9 +78,38 @@ class AccountController extends Controller
     {
         $id = $_GET['id'] ?? null;
 
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
+            $username = $_POST['username'] ?? null;
+            $roleId = $_POST['role'] ?? null;
+            $password = $_POST['password'] ?? null;
+
+            $existingUser = $this->userModel->findByUsername($username);
+            if ($existingUser && $existingUser['IdNguoiDung'] !== $id) {
+                $this->setFlash('danger', 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
+                $this->redirect("?controller=account&action=edit&id=$id");
+            }
+
+            $userData = [
+                'TenDangNhap' => $username,
+                'IdVaiTro' => $roleId,
+            ];
+
+            if (!empty($password)) {
+                $userData['MatKhau'] = password_hash($password, PASSWORD_BCRYPT);
+            }
+
+            $this->userModel->update($id, $userData);
+            $this->setFlash('success', 'Cập nhật tài khoản thành công.');
+            $this->redirect('?controller=account&action=index');
+        }
+
+        $user = $this->userModel->find($id);
+        $roles = $this->roleModel->all();
+
         $this->render('account/edit', [
             'title' => 'Chỉnh sửa tài khoản',
-            'id' => $id,
+            'user_data' => $user,
+            'roles' => $roles,
         ]);
     }
 
