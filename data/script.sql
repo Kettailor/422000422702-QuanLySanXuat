@@ -404,7 +404,7 @@ CREATE TABLE `ke_hoach_san_xuat` (
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
   `ThoiGianBD` datetime DEFAULT NULL,
-  `BANGIAMDOC IdNhanVien` varchar(50) NOT NULL,
+  `IdNguoiLap` varchar(50) NOT NULL,
   `IdTTCTDonHang` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -412,7 +412,7 @@ CREATE TABLE `ke_hoach_san_xuat` (
 -- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat`
 --
 
-INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `BANGIAMDOC IdNhanVien`, `IdTTCTDonHang`) VALUES
+INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `IdNguoiLap`, `IdTTCTDonHang`) VALUES
 ('KHSX20231101', 180, '2023-11-19 17:00:00', 'Đang lắp ráp SV5TOT 87', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
 ('KHSX20231102', 120, '2023-11-22 17:30:00', 'Đang kiểm thử SV5TOT 108', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
 ('KHSX20231105', 150, '2023-11-26 16:00:00', 'Đang hoàn thiện đơn custom', '2023-11-18 07:30:00', 'NV001', 'CTDH20231105A'),
@@ -445,12 +445,12 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
 --
 
 INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPhanSP`, `SoLuong`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TrangThai`, `TinhTrangVatTu`, `IdCongDoan`, `IdKeHoachSanXuat`, `IdXuong`) VALUES
-('KHSXX202311A', 'Lắp switch SV5TOT 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231101', 'XU001'),
-('KHSXX202311B', 'Hoàn thiện & đóng gói SV5TOT 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231101', 'XU002'),
-('KHSXX202311C', 'Kiểm thử PCB SV5TOT 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'Chưa kiểm tra', NULL, 'KHSX20231102', 'XU001'),
-('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231105', 'XU001'),
-('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'Chưa kiểm tra', NULL, 'KHSX20231202', 'XU002'),
-('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'Chưa kiểm tra', NULL, 'KHSX20231202A', 'XU001');
+('KHSXX202311A', 'Lắp switch SV5TOT 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'Chưa kiểm tra', 'PCFGKB87RGB_ASM', 'KHSX20231101', 'XU001'),
+('KHSXX202311B', 'Hoàn thiện & đóng gói SV5TOT 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'Chưa kiểm tra', 'PCFGKB87RGB_PACK', 'KHSX20231101', 'XU002'),
+('KHSXX202311C', 'Kiểm thử PCB SV5TOT 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'Chưa kiểm tra', 'PCFGKB108SILENT_QC', 'KHSX20231102', 'XU002'),
+('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'Chưa kiểm tra', 'PCFGKITTECH_KIT', 'KHSX20231105', 'XU001'),
+('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'Chưa kiểm tra', 'PCFGKITTECH_PACK', 'KHSX20231202', 'XU002'),
+('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'Chưa kiểm tra', 'PCFGKB108SILENT_ASM', 'KHSX20231202A', 'XU001');
 
 -- --------------------------------------------------------
 
@@ -621,8 +621,8 @@ DROP TABLE IF EXISTS `xuong_cau_hinh_san_pham`;
 
 CREATE TABLE `xuong_cau_hinh_san_pham` (
   `IdPhanCong` varchar(50) NOT NULL,
-  `IdSanPham` varchar(50) NOT NULL,
-  `IdCauHinh` varchar(50) NOT NULL,
+  `IdSanPham` varchar(50) DEFAULT NULL,
+  `IdCauHinh` varchar(50) DEFAULT NULL,
   `IdXuong` varchar(50) NOT NULL,
   `TenPhanCong` varchar(255) DEFAULT NULL,
   `TyLeSoLuong` float DEFAULT 1,
@@ -640,16 +640,23 @@ CREATE TABLE `xuong_cau_hinh_san_pham` (
 --
 
 INSERT INTO `xuong_cau_hinh_san_pham` (`IdPhanCong`, `IdSanPham`, `IdCauHinh`, `IdXuong`, `TenPhanCong`, `TyLeSoLuong`, `DonVi`, `TrangThaiMacDinh`, `LogisticsKey`, `LogisticsLabel`, `IncludeYeuCau`, `ThuTu`) VALUES
-('PCFGKB87RGB', 'SPKB87', 'CFGKB87RGB', 'XU001', 'Lắp ráp cấu hình RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_rgb', 'Cấu hình RGB', 1, 1),
-('PCFGKB87RGBPACK', 'SPKB87', 'CFGKB87RGB', 'XU002', 'Đóng gói cấu hình RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_rgb_pack', 'Đóng gói RGB', 0, 2),
-('PCFGKB87DELUXE', 'SPKB87', 'CFGKB87DELUXE', 'XU001', 'Gia công cấu hình Deluxe', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_deluxe', 'Cấu hình Deluxe', 1, 1),
-('PCFGKB87DELUXEPACK', 'SPKB87', 'CFGKB87DELUXE', 'XU002', 'Đóng gói cấu hình Deluxe', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_deluxe_pack', 'Đóng gói Deluxe', 0, 2),
-('PCFGKB108SILENT', 'SPKB108', 'CFGKB108SILENT', 'XU001', 'Sản xuất cấu hình Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_silent', 'Cấu hình Silent', 1, 1),
-('PCFGKB108SILENTPACK', 'SPKB108', 'CFGKB108SILENT', 'XU002', 'Đóng gói cấu hình Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_silent_pack', 'Đóng gói Silent', 0, 2),
-('PCFGKITRETAIL', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU001', 'Chuẩn bị kit Retail', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail', 'Kit Retail', 1, 1),
-('PCFGKITRETAILPACK', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU002', 'Đóng gói kit Retail', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail_pack', 'Đóng gói Kit Retail', 0, 2),
-('PCFGKITTECH', 'SPKBCUSTOM', 'CFGKITTECH', 'XU001', 'Chuẩn bị kit TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech', 'Kit TechHub', 1, 1),
-('PCFGKITTECHPACK', 'SPKBCUSTOM', 'CFGKITTECH', 'XU002', 'Đóng gói kit TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech_pack', 'Đóng gói Kit TechHub', 0, 2);
+('PCFGKB87RGB_ASM', 'SPKB87', 'CFGKB87RGB', 'XU001', 'Lắp ráp khung & switch SV5TOT 87 RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_rgb_assembly', 'Lắp ráp RGB', 1, 1),
+('PCFGKB87RGB_QC', 'SPKB87', 'CFGKB87RGB', 'XU002', 'Kiểm định hiệu năng SV5TOT 87 RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_rgb_qc', 'QC RGB', 0, 2),
+('PCFGKB87RGB_PACK', 'SPKB87', 'CFGKB87RGB', 'XU002', 'Đóng gói thành phẩm SV5TOT 87 RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_rgb_pack', 'Đóng gói RGB', 0, 3),
+('PCFGKB87DELUXE_ASM', 'SPKB87', 'CFGKB87DELUXE', 'XU001', 'Gia công foam & lắp ráp SV5TOT 87 Deluxe', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_deluxe_assembly', 'Lắp ráp Deluxe', 1, 1),
+('PCFGKB87DELUXE_QC', 'SPKB87', 'CFGKB87DELUXE', 'XU002', 'Kiểm tra tape mod SV5TOT 87 Deluxe', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_deluxe_qc', 'QC Deluxe', 0, 2),
+('PCFGKB87DELUXE_PACK', 'SPKB87', 'CFGKB87DELUXE', 'XU002', 'Đóng gói Deluxe cùng phụ kiện', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_deluxe_pack', 'Đóng gói Deluxe', 0, 3),
+('PCFGKB108SILENT_ASM', 'SPKB108', 'CFGKB108SILENT', 'XU001', 'Lắp ráp SV5TOT 108 Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg108_silent_assembly', 'Lắp ráp Silent', 1, 1),
+('PCFGKB108SILENT_QC', 'SPKB108', 'CFGKB108SILENT', 'XU002', 'Kiểm thử tiếng ồn SV5TOT 108 Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg108_silent_qc', 'QC Silent', 0, 2),
+('PCFGKB108SILENT_PACK', 'SPKB108', 'CFGKB108SILENT', 'XU002', 'Đóng gói thành phẩm SV5TOT 108 Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg108_silent_pack', 'Đóng gói Silent', 0, 3),
+('PCFGKITRETAIL_KIT', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU001', 'Chuẩn bị kit DIY bán lẻ', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail_prepare', 'Chuẩn bị kit Retail', 1, 1),
+('PCFGKITRETAIL_QC', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU002', 'Rà soát phụ kiện kit Retail', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail_qc', 'QC kit Retail', 0, 2),
+('PCFGKITRETAIL_PACK', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU002', 'Đóng gói kit Retail', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail_pack', 'Đóng gói Kit Retail', 0, 3),
+('PCFGKITTECH_KIT', 'SPKBCUSTOM', 'CFGKITTECH', 'XU001', 'Chuẩn bị kit TechHub branding', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech_prepare', 'Chuẩn bị kit TechHub', 1, 1),
+('PCFGKITTECH_QC', 'SPKBCUSTOM', 'CFGKITTECH', 'XU002', 'Kiểm tra badge & keycap TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech_qc', 'QC kit TechHub', 0, 2),
+('PCFGKITTECH_PACK', 'SPKBCUSTOM', 'CFGKITTECH', 'XU002', 'Đóng gói kit TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech_pack', 'Đóng gói Kit TechHub', 0, 3),
+('PDEFAULT_QC', NULL, NULL, 'XU002', 'Kiểm định tiêu chuẩn TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'default_qc', 'QC mặc định', 0, 90),
+('PDEFAULT_PACK', NULL, NULL, 'XU002', 'Đóng gói dự phòng', 1, 'bộ', 'Đang chờ xác nhận', 'default_pack', 'Đóng gói dự phòng', 0, 95);
 
 -- --------------------------------------------------------
 
@@ -1168,7 +1175,7 @@ ALTER TABLE `hoa_don`
 ALTER TABLE `ke_hoach_san_xuat`
   ADD PRIMARY KEY (`IdKeHoachSanXuat`),
   ADD KEY `FKKE_HOACH_S473207` (`IdTTCTDonHang`),
-  ADD KEY `FKKE_HOACH_S691979` (`BANGIAMDOC IdNhanVien`);
+  ADD KEY `FKKE_HOACH_SNGUOILAP` (`IdNguoiLap`);
 
 --
 -- Chỉ mục cho bảng `ke_hoach_san_xuat_xuong`
@@ -1398,7 +1405,7 @@ ALTER TABLE `hoa_don`
 --
 ALTER TABLE `ke_hoach_san_xuat`
   ADD CONSTRAINT `FKKE_HOACH_S473207` FOREIGN KEY (`IdTTCTDonHang`) REFERENCES `ct_don_hang` (`IdTTCTDonHang`),
-  ADD CONSTRAINT `FKKE_HOACH_S691979` FOREIGN KEY (`BANGIAMDOC IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
+  ADD CONSTRAINT `FKKE_HOACH_SNGUOILAP` FOREIGN KEY (`IdNguoiLap`) REFERENCES `nhan_vien` (`IdNhanVien`);
 
 --
 -- Các ràng buộc cho bảng `ke_hoach_san_xuat_xuong`
