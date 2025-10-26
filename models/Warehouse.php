@@ -10,7 +10,6 @@ class Warehouse extends BaseModel
      */
     public function getWithSupervisor(): array
     {
-<<<<<<< HEAD
         $sql = 'SELECT
                     KHO.IdKho,
                     KHO.TenKho,
@@ -54,12 +53,6 @@ class Warehouse extends BaseModel
                 ) AS doc_stats ON doc_stats.IdKho = KHO.IdKho
                 ORDER BY KHO.TenKho';
 
-=======
-        $sql = 'SELECT kho.*, nv.HoTen AS TenQuanKho
-                FROM kho
-                JOIN nhan_vien nv ON nv.IdNhanVien = kho.`NHAN_VIEN_KHO_IdNhanVien`
-                ORDER BY kho.TenKho';
->>>>>>> 65075f83681f452199a37e66bf195847eea6c888
         return $this->db->query($sql)->fetchAll();
     }
 

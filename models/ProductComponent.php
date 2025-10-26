@@ -24,7 +24,7 @@ class ProductComponent extends BaseModel
     {
         $sql = "SELECT pc.*, cfg.TenCauHinh, cfg.IdSanPham
                 FROM {$this->table} pc
-                JOIN cau_hinh_san_pham cfg ON cfg.IdCauHinh = pc.IdCauHinh
+                JOIN cau_hinh_san_pham cfg ON cfg.IdCauHinh = pc.IdSanPham
                 WHERE pc.IdCauHinh = :configurationId
                 ORDER BY pc.ThuTu, pc.TenPhanCong";
 

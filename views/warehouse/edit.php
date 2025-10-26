@@ -8,12 +8,8 @@
 
 <?php
 $workshops = $workshops ?? [];
-<<<<<<< HEAD
 $managers = $managers ?? [];
 $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
-=======
-$employees = $employees ?? [];
->>>>>>> 65075f83681f452199a37e66bf195847eea6c888
 ?>
 
 <?php if (!$warehouse): ?>
@@ -44,7 +40,6 @@ $employees = $employees ?? [];
                 <input type="text" name="DiaChi" class="form-control" value="<?= htmlspecialchars($warehouse['DiaChi']) ?>">
             </div>
             <div class="col-md-3">
-<<<<<<< HEAD
                 <label class="form-label">Tổng số lô</label>
                 <input type="number" name="TongSLLo" class="form-control" value="<?= (int) $warehouse['TongSLLo'] ?>" min="0">
             </div>
@@ -62,32 +57,11 @@ $employees = $employees ?? [];
                     <?php foreach ($workshops as $workshop): ?>
                         <option value="<?= htmlspecialchars($workshop['IdXuong']) ?>" <?= $workshop['IdXuong'] === ($warehouse['IdXuong'] ?? '') ? 'selected' : '' ?>>
                             <?= htmlspecialchars($workshop['TenXuong']) ?> (<?= htmlspecialchars($workshop['IdXuong']) ?>)
-=======
-                <label class="form-label">Tổng lô SV5TOT</label>
-                <input type="number" name="TongSLLo" class="form-control" value="<?= $warehouse['TongSLLo'] ?>">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Tổng SL SV5TOT</label>
-                <input type="number" name="TongSL" class="form-control" value="<?= $warehouse['TongSL'] ?>">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Giá trị hàng tồn (VND)</label>
-                <input type="number" name="ThanhTien" class="form-control" value="<?= $warehouse['ThanhTien'] ?>">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Xưởng SV5TOT liên kết</label>
-                <select name="IdXuong" class="form-select">
-                    <option value="">-- Chọn xưởng --</option>
-                    <?php foreach ($workshops as $workshop): ?>
-                        <option value="<?= htmlspecialchars($workshop['IdXuong']) ?>" <?= $workshop['IdXuong'] === ($warehouse['IdXuong'] ?? '') ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($workshop['TenXuong'] ?? $workshop['IdXuong']) ?>
->>>>>>> 65075f83681f452199a37e66bf195847eea6c888
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div class="col-md-4">
-<<<<<<< HEAD
                 <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
                 <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required>
                     <?php foreach ($managers as $manager): ?>
@@ -98,17 +72,6 @@ $employees = $employees ?? [];
                 </select>
                 <label class="form-label">Mã quản kho</label>
                 <input type="text" name="IdQuanKho" class="form-control" value="<?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '') ?>">
-=======
-                <label class="form-label">Nhân viên quản kho</label>
-                <select name="IdQuanKho" class="form-select">
-                    <option value="">-- Chọn nhân sự --</option>
-                    <?php foreach ($employees as $employee): ?>
-                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= $employee['IdNhanVien'] === ($warehouse['`NHAN_VIEN_KHO_IdNhanVien`'] ?? '') ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
->>>>>>> 65075f83681f452199a37e66bf195847eea6c888
             </div>
             <div class="col-12 text-end">
                 <button class="btn btn-primary px-4" type="submit">Cập nhật kho SV5TOT</button>
