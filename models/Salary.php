@@ -34,10 +34,10 @@ class Salary extends BaseModel
 
     public function getPendingPayrolls(int $limit = 5): array
     {
-        $sql = 'SELECT BANG_LUONG.*, NV.HoTen
-                FROM BANG_LUONG
-                JOIN NHAN_VIEN NV ON NV.IdNhanVien = BANG_LUONG.' . self::EMPLOYEE_COLUMN . '
-                WHERE BANG_LUONG.TrangThai = :status
+        $sql = 'SELECT bang_luong.*, nv.HoTen
+                FROM bang_luong
+                JOIN nhan_vien nv ON nv.IdNhanVien = bang_luong.' . self::EMPLOYEE_COLUMN . '
+                WHERE bang_luong.TrangThai = :status
                 ORDER BY NgayLap DESC
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);

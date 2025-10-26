@@ -1,353 +1,136 @@
-<?php
-$pendingOrders = $pendingOrders ?? [];
-$selectedOrderDetailId = $selectedOrderDetailId ?? null;
-$selectedOrderDetail = $selectedOrderDetail ?? null;
-$componentAssignments = $componentAssignments ?? [];
-$configurationDetails = $configurationDetails ?? [];
-$workshops = $workshops ?? [];
-$currentUser = $currentUser ?? null;
-
-$formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
-    if (!$value) {
-        return '-';
-    }
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return '-';
-    }
-    return date($format, $timestamp);
-};
-
-$toDateTimeInput = static function (?string $value, string $fallback = ''): string {
-    if ($value) {
-        $timestamp = strtotime($value);
-        if ($timestamp !== false) {
-            return date('Y-m-d\TH:i', $timestamp);
-        }
-    }
-    return $fallback;
-};
-
-$defaultStart = date('Y-m-d\TH:i');
-$defaultEnd = $toDateTimeInput($selectedOrderDetail['NgayGiao'] ?? null, date('Y-m-d\TH:i', strtotime('+7 days')));
-$selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
-$configurationHeaders = [
-    'Layout' => 'Layout',
-    'SwitchType' => 'Switch',
-    'CaseType' => 'Case',
-    'Foam' => 'Foam',
-];
-$configurationLookup = [];
-foreach ($configurationDetails as $detail) {
-    $configurationLookup[$detail['key']] = $detail['value'];
-}
-?>
-
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="fw-bold mb-1">Lập kế hoạch sản xuất</h2>
-        <p class="text-muted mb-0">Chọn đơn hàng cần xử lý, xác nhận thông tin và phân công từng xưởng phụ trách cấu hình sản phẩm.</p>
+        <h3 class="fw-bold mb-1">Tạo kế hoạch sản xuất</h3>
+        <p class="text-muted mb-0">Thiết lập kế hoạch mới dựa trên yêu cầu đơn hàng.</p>
     </div>
-    <a href="?controller=plan&action=index" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-2"></i>Quay về tổng quan
-    </a>
+    <a href="?controller=plan&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
 
-<div class="row g-4">
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0">1. Chọn dòng sản phẩm</h5>
-                <span class="text-muted small">Các dòng chưa có kế hoạch sẽ hiển thị tại đây.</span>
-            </div>
-            <div class="card-body p-0">
-                <?php if (empty($pendingOrders)): ?>
-                    <div class="p-4 text-center text-muted">Không còn đơn hàng chờ lập kế hoạch.</div>
-                <?php else: ?>
-                    <div class="list-group list-group-flush">
-                        <?php foreach ($pendingOrders as $order): ?>
-                            <div class="list-group-item py-3">
-                                <div class="fw-semibold mb-1">Đơn <?= htmlspecialchars($order['IdDonHang'] ?? '-') ?></div>
-                                <?php if (!empty($order['TenKhachHang'])): ?>
-                                    <div class="text-muted small">Khách hàng: <?= htmlspecialchars($order['TenKhachHang']) ?></div>
-                                <?php endif; ?>
-                                <?php
-                                $orderEmail = $order['EmailLienHe'] ?? null;
-                                if (!$orderEmail && !empty($order['details'][0]['Email'])) {
-                                    $orderEmail = $order['details'][0]['Email'];
-                                }
-                                ?>
-                                <?php if (!empty($orderEmail)): ?>
-                                    <div class="text-muted small">Email: <?= htmlspecialchars($orderEmail) ?></div>
-                                <?php endif; ?>
-                                <div class="mt-3 vstack gap-2">
-                                    <?php foreach ($order['details'] as $detail): ?>
-                                        <?php $isSelected = ($detail['IdTTCTDonHang'] ?? null) === $selectedOrderDetailId; ?>
-                                        <div class="border rounded-3 p-3 position-relative <?= $isSelected ? 'border-primary shadow-sm' : '' ?>">
-                                            <div class="d-flex justify-content-between align-items-start gap-2">
-                                                <div>
-                                                    <div class="fw-semibold"><?= htmlspecialchars($detail['TenSanPham'] ?? 'Sản phẩm') ?></div>
-                                                    <div class="text-muted small"><?= htmlspecialchars($detail['TenCauHinh'] ?? 'Cấu hình tiêu chuẩn') ?></div>
-                                                </div>
-                                                <div class="text-end">
-                                                    <div class="fw-semibold"><?= htmlspecialchars((string) ($detail['SoLuong'] ?? 0)) ?> <?= htmlspecialchars($detail['DonVi'] ?? 'sp') ?></div>
-                                                    <?php if (!empty($detail['NgayGiao'])): ?>
-                                                        <div class="text-muted small">Giao: <?= $formatDate($detail['NgayGiao']) ?></div>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                            <div class="text-muted small mt-2">
-                                                <?= htmlspecialchars($detail['YeuCauChiTiet'] ?? $detail['YeuCauDonHang'] ?? 'Không có yêu cầu thêm') ?>
-                                            </div>
-                                            <a class="stretched-link" href="?controller=plan&action=create&order_detail_id=<?= urlencode($detail['IdTTCTDonHang'] ?? '') ?>"></a>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
+<div class="card p-4">
+    <form action="?controller=plan&action=store" method="post" class="row g-4">
+        <div class="col-md-4">
+            <label class="form-label">Mã kế hoạch</label>
+            <input type="text" name="IdKeHoachSanXuat" class="form-control" placeholder="Tự sinh nếu để trống">
         </div>
-    </div>
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="mb-0">2. Xác nhận thông tin & phân công xưởng</h5>
-                    <span class="text-muted small">Thông tin đơn hàng được tự động điền từ hệ thống.</span>
-                </div>
-            </div>
-            <?php if (!$selectedOrderDetail): ?>
-                <div class="card-body">
-                    <div class="alert alert-light border">
-                        Vui lòng chọn một dòng sản phẩm ở cột bên trái để bắt đầu lập kế hoạch.
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="card-body">
-                    <form method="post" action="?controller=plan&action=store" class="vstack gap-4">
-                        <input type="hidden" name="IdTTCTDonHang" value="<?= htmlspecialchars($selectedOrderDetail['IdTTCTDonHang'] ?? '') ?>">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Khách hàng</label>
-                                <div class="border rounded-3 p-3 bg-light-subtle">
-                                    <div class="fw-semibold"><?= htmlspecialchars($selectedOrderDetail['TenKhachHang'] ?? 'Chưa có thông tin') ?></div>
-                                    <?php if (!empty($selectedOrderDetail['TenCongTy'])): ?>
-                                        <div class="text-muted small">Công ty: <?= htmlspecialchars($selectedOrderDetail['TenCongTy']) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($selectedOrderDetail['SoDienThoai'])): ?>
-                                        <div class="text-muted small">SĐT: <?= htmlspecialchars($selectedOrderDetail['SoDienThoai']) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($selectedOrderDetail['EmailLienHe']) || !empty($selectedOrderDetail['Email'])): ?>
-                                        <div class="text-muted small">Email: <?= htmlspecialchars($selectedOrderDetail['EmailLienHe'] ?? $selectedOrderDetail['Email'] ?? '') ?></div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Sản phẩm</label>
-                                <div class="border rounded-3 p-3 bg-light-subtle">
-                                    <div class="fw-semibold"><?= htmlspecialchars($selectedOrderDetail['TenSanPham'] ?? 'Sản phẩm') ?></div>
-                                    <div class="text-muted small">Cấu hình: <?= htmlspecialchars($selectedOrderDetail['TenCauHinh'] ?? 'Tiêu chuẩn') ?></div>
-                                    <?php if (!empty($configurationDetails)): ?>
-                                        <div class="d-flex flex-wrap gap-2 mt-2">
-                                            <?php foreach ($configurationDetails as $detail): ?>
-                                                <span class="badge text-bg-light">
-                                                    <?= htmlspecialchars($detail['label']) ?>:
-                                                    <span class="fw-semibold ms-1"><?= htmlspecialchars($detail['value']) ?></span>
-                                                </span>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <?php if (!empty(array_filter($configurationLookup))): ?>
-                                <div class="col-12">
-                                    <label class="form-label fw-semibold">Chi tiết cấu hình sản phẩm</label>
-                                    <div class="table-responsive border rounded-3">
-                                        <table class="table table-sm align-middle mb-0">
-                                            <thead class="table-light">
-                                            <tr>
-                                                <?php foreach ($configurationHeaders as $headerLabel): ?>
-                                                    <th><?= htmlspecialchars($headerLabel) ?></th>
-                                                <?php endforeach; ?>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr>
-                                                <?php foreach ($configurationHeaders as $field => $headerLabel): ?>
-                                                    <td><?= htmlspecialchars($configurationLookup[$field] ?? '-') ?></td>
-                                                <?php endforeach; ?>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Số lượng cần sản xuất</label>
-                                <input type="number" min="1" name="SoLuong" value="<?= htmlspecialchars((string) max(1, $selectedQuantity)) ?>" class="form-control" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Ngày bắt đầu</label>
-                                <input type="datetime-local" name="ThoiGianBD" class="form-control" value="<?= htmlspecialchars($toDateTimeInput($selectedOrderDetail['ThoiGianBD'] ?? null, $defaultStart)) ?>" data-plan-start required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Hạn chót giao hàng</label>
-                                <input type="datetime-local" name="ThoiGianKetThuc" class="form-control" value="<?= htmlspecialchars($defaultEnd) ?>" data-plan-end required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Trạng thái kế hoạch</label>
-                                <select name="TrangThai" class="form-select">
-                                    <?php
-                                    $statuses = ['Đã lập kế hoạch', 'Đang triển khai', 'Chờ phê duyệt'];
-                                    $currentStatus = $selectedOrderDetail['TrangThai'] ?? 'Đã lập kế hoạch';
-                                    foreach ($statuses as $status):
-                                        $selected = ($status === $currentStatus) ? 'selected' : '';
-                                        ?>
-                                        <option value="<?= htmlspecialchars($status) ?>" <?= $selected ?>><?= htmlspecialchars($status) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Người lập kế hoạch</label>
-                                <div class="border rounded-3 p-3 bg-light-subtle">
-                                    <div class="fw-semibold mb-1">
-                                        <?= htmlspecialchars($currentUser['HoTen'] ?? 'Không xác định') ?>
-                                    </div>
-                                    <?php if (!empty($currentUser['ChucVu'])): ?>
-                                        <div class="text-muted small">Chức vụ: <?= htmlspecialchars($currentUser['ChucVu']) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($currentUser['TenDangNhap'])): ?>
-                                        <div class="text-muted small">Tài khoản: <?= htmlspecialchars($currentUser['TenDangNhap']) ?></div>
-                                    <?php endif; ?>
-                                </div>
-                                <input type="hidden" name="BanGiamDoc" value="<?= htmlspecialchars($currentUser['IdNhanVien'] ?? '') ?>">
-                            </div>
-                        </div>
-
-                        <div class="border-top"></div>
-
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <h6 class="fw-semibold mb-1">Phân công xưởng theo cấu hình sản phẩm</h6>
-                                    <span class="text-muted small">Điều chỉnh số lượng, thời gian cho từng hạng mục bên dưới.</span>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table align-middle">
-                                    <thead class="table-light">
-                                    <tr>
-                                        <th>Cấu hình / Hạng mục</th>
-                                        <th style="width: 180px;">Xưởng phụ trách</th>
-                                        <th style="width: 140px;">Số lượng</th>
-                                        <th style="width: 180px;">Bắt đầu</th>
-                                        <th style="width: 180px;">Hạn chót</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php foreach ($componentAssignments as $index => $component): ?>
-                                        <tr data-assignment-row>
-                                            <td>
-                                                <input type="hidden" name="component_assignments[<?= $index ?>][component_id]" value="<?= htmlspecialchars($component['id'] ?? '') ?>">
-                                                <input type="hidden" name="component_assignments[<?= $index ?>][configuration_id]" value="<?= htmlspecialchars($component['configuration_id'] ?? '') ?>">
-                                                <input type="hidden" name="component_assignments[<?= $index ?>][default_status]" value="<?= htmlspecialchars($component['default_status'] ?? '') ?>">
-                                                <input type="text" name="component_assignments[<?= $index ?>][label]" class="form-control" value="<?= htmlspecialchars($component['label'] ?? 'Hạng mục sản xuất') ?>" required>
-                                                <?php if (!empty($component['configuration_label'])): ?>
-                                                    <div class="text-muted small mt-2">Cấu hình: <?= htmlspecialchars($component['configuration_label']) ?></div>
-                                                <?php endif; ?>
-                                                <?php if (!empty($component['detail_key']) && !empty($component['detail_value'])): ?>
-                                                    <div class="text-muted small mt-1">Chi tiết: <?= htmlspecialchars($component['detail_value']) ?></div>
-                                                <?php elseif (!empty($component['configuration_details'])): ?>
-                                                    <div class="d-flex flex-wrap gap-1 mt-2">
-                                                        <?php foreach ($component['configuration_details'] as $detail): ?>
-                                                            <span class="badge rounded-pill text-bg-light"><?= htmlspecialchars($detail['label']) ?>: <?= htmlspecialchars($detail['value']) ?></span>
-                                                        <?php endforeach; ?>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <select name="component_assignments[<?= $index ?>][workshop_id]" class="form-select" required>
-                                                    <option value="">-- Chọn xưởng --</option>
-                                                    <?php foreach ($workshops as $workshop): ?>
-                                                        <?php $selected = ($workshop['IdXuong'] ?? null) === ($component['default_workshop'] ?? null) ? 'selected' : ''; ?>
-                                                        <option value="<?= htmlspecialchars($workshop['IdXuong'] ?? '') ?>" <?= $selected ?>>
-                                                            <?= htmlspecialchars($workshop['TenXuong'] ?? 'Xưởng sản xuất') ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="number" min="1" name="component_assignments[<?= $index ?>][quantity]" class="form-control" value="<?= htmlspecialchars((string) max(1, (int) ($component['default_quantity'] ?? $selectedQuantity))) ?>" required>
-                                                <div class="form-text">
-                                                    <?= htmlspecialchars($component['unit'] ?? 'sp') ?> (tỉ lệ <?= htmlspecialchars(number_format((float) ($component['quantity_ratio'] ?? 1), 2)) ?>)
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <input type="datetime-local" name="component_assignments[<?= $index ?>][start]" class="form-control" value="<?= htmlspecialchars($defaultStart) ?>" data-sync-start>
-                                            </td>
-                                            <td>
-                                                <input type="datetime-local" name="component_assignments[<?= $index ?>][deadline]" class="form-control" value="<?= htmlspecialchars($defaultEnd) ?>" data-sync-end>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="?controller=plan&action=index" class="btn btn-light">Hủy</a>
-                            <button type="submit" class="btn btn-primary">Hoàn tất lập kế hoạch</button>
-                        </div>
-                    </form>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
-
-<?php if ($selectedOrderDetail): ?>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const planStart = document.querySelector('[data-plan-start]');
-            const planEnd = document.querySelector('[data-plan-end]');
-            const startFields = document.querySelectorAll('[data-sync-start]');
-            const endFields = document.querySelectorAll('[data-sync-end]');
-
-            function syncValues(source, targets) {
-                if (!source) return;
-                targets.forEach(function (input) {
-                    if (!input.dataset.userEdited) {
-                        input.value = source.value;
+        <div class="col-md-8">
+            <label class="form-label">Chi tiết đơn hàng</label>
+            <select name="IdTTCTDonHang" id="order-detail-select" class="form-select" required>
+                <option value="">-- Chọn chi tiết đơn hàng cần lập kế hoạch --</option>
+                <?php foreach ($orderDetails as $detail): ?>
+                    <?php
+                    $labelParts = [
+                        'ĐH ' . $detail['IdDonHang'],
+                        $detail['TenSanPham'],
+                    ];
+                    if (!empty($detail['TenCauHinh'])) {
+                        $labelParts[] = $detail['TenCauHinh'];
                     }
-                });
+                    $labelParts[] = 'SL: ' . $detail['SoLuong'];
+                    $label = implode(' • ', array_filter($labelParts));
+                    ?>
+                    <option
+                        value="<?= htmlspecialchars($detail['IdTTCTDonHang']) ?>"
+                        data-order="<?= htmlspecialchars($detail['IdDonHang']) ?>"
+                        data-product="<?= htmlspecialchars($detail['TenSanPham']) ?>"
+                        data-config="<?= htmlspecialchars($detail['TenCauHinh'] ?? '') ?>"
+                        data-quantity="<?= htmlspecialchars($detail['SoLuong']) ?>"
+                        data-unit="<?= htmlspecialchars($detail['DonVi'] ?? 'sản phẩm') ?>"
+                        data-request="<?= htmlspecialchars($detail['YeuCau'] ?? '') ?>"
+                    >
+                        <?= htmlspecialchars($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-12">
+            <div id="order-detail-summary" class="alert alert-secondary mb-0">
+                <strong>Chưa chọn chi tiết đơn hàng.</strong>
+                <div class="small text-muted">Vui lòng chọn chi tiết đơn để xem thông tin sản phẩm và số lượng yêu cầu.</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Ban giám đốc phụ trách</label>
+            <select name="BanGiamDoc" class="form-select">
+                <option value="">-- Chưa phân công --</option>
+                <?php foreach ($managers as $manager): ?>
+                    <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>">
+                        <?= htmlspecialchars($manager['HoTen'] . ' - ' . ($manager['ChucVu'] ?? '')) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Số lượng kế hoạch</label>
+            <input type="number" name="SoLuong" id="plan-quantity" class="form-control" min="0" placeholder="Theo số lượng đơn hàng">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Thời gian bắt đầu</label>
+            <input type="datetime-local" name="ThoiGianBD" class="form-control">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Thời gian kết thúc</label>
+            <input type="datetime-local" name="ThoiGianKetThuc" class="form-control">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Trạng thái</label>
+            <select name="TrangThai" class="form-select">
+                <option value="Mới tạo">Mới tạo</option>
+                <option value="Đang thực hiện">Đang thực hiện</option>
+                <option value="Hoàn thành">Hoàn thành</option>
+            </select>
+        </div>
+        <div class="col-12 text-end">
+            <button class="btn btn-primary px-4" type="submit">Lưu kế hoạch</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function () {
+        const select = document.getElementById('order-detail-select');
+        const summary = document.getElementById('order-detail-summary');
+        const quantityInput = document.getElementById('plan-quantity');
+
+        if (!select || !summary) {
+            return;
+        }
+
+        const updateSummary = () => {
+            const option = select.options[select.selectedIndex];
+            if (!option || !option.value) {
+                summary.innerHTML = '<strong>Chưa chọn chi tiết đơn hàng.</strong>' +
+                    '<div class="small text-muted">Vui lòng chọn chi tiết đơn để xem thông tin sản phẩm và số lượng yêu cầu.</div>';
+                return;
             }
 
-            function markEdited(event) {
-                event.target.dataset.userEdited = 'true';
-            }
+            const {product, config, quantity, unit, order, request} = option.dataset;
+            const requestNote = request ? `<div class="small text-muted">Yêu cầu: ${request}</div>` : '';
+            summary.innerHTML = `
+                <div><strong>${product}${config ? ' - ' + config : ''}</strong></div>
+                <div class="small text-muted">Đơn hàng: ${order} • SL yêu cầu: ${quantity} ${unit}</div>
+                ${requestNote}
+            `;
 
-            startFields.forEach(function (input) {
-                input.addEventListener('change', markEdited);
-                input.addEventListener('input', markEdited);
+            if (quantityInput) {
+                const hasUserInput = quantityInput.dataset.userEdited === '1';
+                if (!hasUserInput) {
+                    quantityInput.value = quantity;
+                }
+            }
+        };
+
+        if (quantityInput) {
+            quantityInput.addEventListener('input', () => {
+                quantityInput.dataset.userEdited = quantityInput.value ? '1' : '0';
             });
-            endFields.forEach(function (input) {
-                input.addEventListener('change', markEdited);
-                input.addEventListener('input', markEdited);
-            });
+        }
 
-            if (planStart) {
-                planStart.addEventListener('change', function () {
-                    syncValues(planStart, startFields);
-                });
+        select.addEventListener('change', () => {
+            if (quantityInput) {
+                quantityInput.dataset.userEdited = '0';
             }
-            if (planEnd) {
-                planEnd.addEventListener('change', function () {
-                    syncValues(planEnd, endFields);
-                });
-            }
+            updateSummary();
         });
-    </script>
-<?php endif; ?>
+        updateSummary();
+    })();
+</script>

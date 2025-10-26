@@ -21,8 +21,6 @@ $config = require __DIR__ . '/config/config.php';
 $controller = $_GET['controller'] ?? 'dashboard';
 $action = $_GET['action'] ?? 'index';
 
-ImpersonationMiddleware::handle();
-
 $publicRoutes = [
     'auth' => ['login'],
 ];

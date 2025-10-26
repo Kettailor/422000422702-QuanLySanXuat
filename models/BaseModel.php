@@ -33,21 +33,11 @@ abstract class BaseModel
     {
         $columns = array_keys($data);
         $columnString = implode(', ', $columns);
+        $placeholders = implode(', ', array_map(fn ($col) => ':' . $col, $columns));
 
-        $placeholders = [];
-        $bindings = [];
-
-        foreach ($columns as $index => $column) {
-            $placeholder = ':p' . $index;
-            $placeholders[] = $placeholder;
-            $bindings[$placeholder] = $data[$column];
-        }
-
-        $placeholderString = implode(', ', $placeholders);
-
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} ({$columnString}) VALUES ({$placeholderString})");
-        foreach ($bindings as $placeholder => $value) {
-            $stmt->bindValue($placeholder, $value);
+        $stmt = $this->db->prepare("INSERT INTO {$this->table} ({$columnString}) VALUES ({$placeholders})");
+        foreach ($data as $column => $value) {
+            $stmt->bindValue(':' . $column, $value);
         }
 
         return $stmt->execute();
@@ -55,21 +45,10 @@ abstract class BaseModel
 
     public function update(string $id, array $data): bool
     {
-        $columns = array_keys($data);
-        $setParts = [];
-        $bindings = [];
-
-        foreach ($columns as $index => $column) {
-            $placeholder = ':p' . $index;
-            $setParts[] = "{$column} = {$placeholder}";
-            $bindings[$placeholder] = $data[$column];
-        }
-
-        $setClause = implode(', ', $setParts);
+        $setClause = implode(', ', array_map(fn ($col) => "{$col} = :{$col}", array_keys($data)));
         $stmt = $this->db->prepare("UPDATE {$this->table} SET {$setClause} WHERE {$this->primaryKey} = :id");
-
-        foreach ($bindings as $placeholder => $value) {
-            $stmt->bindValue($placeholder, $value);
+        foreach ($data as $column => $value) {
+            $stmt->bindValue(':' . $column, $value);
         }
         $stmt->bindValue(':id', $id);
         return $stmt->execute();

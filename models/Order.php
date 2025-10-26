@@ -7,7 +7,18 @@ class Order extends BaseModel
 
     public function getOrdersWithCustomer(int $limit = 50): array
     {
-        $sql = 'SELECT don_hang.*, khach_hang.HoTen AS TenKhachHang, khach_hang.SoDienThoai, khach_hang.Email AS EmailKhachHang
+        $sql = 'SELECT don_hang.*, khach_hang.HoTen AS TenKhachHang, khach_hang.SoDienThoai,
+                       (
+                           SELECT GROUP_CONCAT(DISTINCT hoa_don.TrangThai ORDER BY hoa_don.NgayLap DESC SEPARATOR ", ")
+                           FROM hoa_don
+                           WHERE hoa_don.IdDonHang = don_hang.IdDonHang
+                       ) AS TrangThaiHoaDon,
+                       (
+                           SELECT GROUP_CONCAT(DISTINCT ke_hoach_san_xuat.TrangThai ORDER BY ke_hoach_san_xuat.ThoiGianBD DESC SEPARATOR ", ")
+                           FROM ke_hoach_san_xuat
+                           JOIN ct_don_hang ON ct_don_hang.IdTTCTDonHang = ke_hoach_san_xuat.IdTTCTDonHang
+                           WHERE ct_don_hang.IdDonHang = don_hang.IdDonHang
+                       ) AS TrangThaiKeHoach
                 FROM don_hang
                 JOIN khach_hang ON khach_hang.IdKhachHang = don_hang.IdKhachHang
                 ORDER BY don_hang.NgayLap DESC

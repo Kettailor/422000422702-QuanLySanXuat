@@ -3,38 +3,23 @@
 class Factory_planController extends Controller
 {
     private WorkshopPlan $workshopPlanModel;
+    private ProductionPlan $productionPlanModel;
     private Workshop $workshopModel;
 
     public function __construct()
     {
-        $this->authorize(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT', 'VT_BAN_GIAM_DOC']);
+        $this->authorize(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT']);
         $this->workshopPlanModel = new WorkshopPlan();
+        $this->productionPlanModel = new ProductionPlan();
         $this->workshopModel = new Workshop();
     }
 
     public function index(): void
     {
-        $selectedWorkshop = $_GET['workshop_id'] ?? null;
-        $workshops = $this->workshopModel->getAllWithManagers();
-        $workshopMap = [];
-        foreach ($workshops as $workshop) {
-            $workshopMap[$workshop['IdXuong'] ?? ''] = $workshop;
-        }
-
-        $plans = $this->workshopPlanModel->getDetailedPlans(200);
-        if ($selectedWorkshop) {
-            $plans = array_values(array_filter($plans, static function (array $plan) use ($selectedWorkshop): bool {
-                return ($plan['IdXuong'] ?? null) === $selectedWorkshop;
-            }));
-        }
-
-        $groupedPlans = $this->groupPlansByWorkshop($plans, $workshopMap);
-
+        $plans = $this->workshopPlanModel->getDetailedPlans();
         $this->render('factory_plan/index', [
-            'title' => 'Tiến độ sản xuất xưởng',
-            'groupedPlans' => $groupedPlans,
-            'workshops' => $workshops,
-            'selectedWorkshop' => $selectedWorkshop,
+            'title' => 'Kế hoạch xưởng',
+            'plans' => $plans,
         ]);
     }
 
@@ -42,85 +27,120 @@ class Factory_planController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $plan = $id ? $this->workshopPlanModel->findWithRelations($id) : null;
-
         $this->render('factory_plan/read', [
-            'title' => 'Chi tiết hạng mục xưởng',
+            'title' => 'Chi tiết kế hoạch xưởng',
             'plan' => $plan,
         ]);
     }
 
-    private function groupPlansByWorkshop(array $plans, array $workshopMap): array
+    public function create(): void
     {
-        if (empty($plans)) {
-            return [];
-        }
-
-        $grouped = [];
-        foreach ($plans as $plan) {
-            $workshopId = $plan['IdXuong'] ?? '';
-            if (!isset($grouped[$workshopId])) {
-                $workshopInfo = $workshopMap[$workshopId] ?? [];
-                $grouped[$workshopId] = [
-                    'workshop' => $workshopInfo + [
-                        'IdXuong' => $workshopId,
-                        'TenXuong' => $plan['TenXuong'] ?? ($workshopInfo['TenXuong'] ?? 'Chưa xác định'),
-                    ],
-                    'items' => [],
-                    'stats' => [
-                        'total' => 0,
-                        'in_progress' => 0,
-                        'completed' => 0,
-                        'upcoming_deadline' => null,
-                    ],
-                ];
-            }
-
-            $grouped[$workshopId]['items'][] = $plan;
-            $grouped[$workshopId]['stats']['total']++;
-
-            $status = $this->normalizeStatus($plan['TrangThai'] ?? '');
-            if ($status === 'hoàn thành') {
-                $grouped[$workshopId]['stats']['completed']++;
-            } elseif ($status !== 'đã hủy') {
-                $grouped[$workshopId]['stats']['in_progress']++;
-            }
-
-            $deadline = $plan['ThoiGianKetThuc'] ?? null;
-            if ($deadline) {
-                $timestamp = strtotime($deadline);
-                if ($timestamp !== false) {
-                    $current = $grouped[$workshopId]['stats']['upcoming_deadline'] ?? null;
-                    if (!$current || $timestamp < strtotime($current)) {
-                        $grouped[$workshopId]['stats']['upcoming_deadline'] = date('Y-m-d H:i:s', $timestamp);
-                    }
-                }
-            }
-        }
-
-        return array_values($grouped);
+        $this->render('factory_plan/create', [
+            'title' => 'Thêm kế hoạch xưởng',
+            'productionPlans' => $this->productionPlanModel->getPlansForWorkshopAssignment(),
+            'workshops' => $this->workshopModel->getAllWithManagers(),
+            'selectedPlanId' => $_GET['IdKeHoachSanXuat'] ?? null,
+        ]);
     }
 
-    private function normalizeStatus(string $status): string
+    public function store(): void
     {
-        $status = trim($status);
-        if ($status === '') {
-            return '';
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
         }
 
-        if (function_exists('mb_strtolower')) {
-            $status = mb_strtolower($status, 'UTF-8');
-        } else {
-            $status = strtolower($status);
+        $planId = $_POST['IdKeHoachSanXuat'] ?? null;
+        $workshopId = $_POST['IdXuong'] ?? null;
+
+        if (!$planId || !$workshopId) {
+            $this->setFlash('danger', 'Vui lòng chọn kế hoạch tổng và xưởng sản xuất.');
+            $this->redirect('?controller=factory_plan&action=create');
+            return;
         }
 
-        if (str_contains($status, 'hoàn thành')) {
-            return 'hoàn thành';
+        $data = [
+            'IdKeHoachSanXuatXuong' => $_POST['IdKeHoachSanXuatXuong'] ?: uniqid('KXX'),
+            'TenThanhThanhPhanSP' => $_POST['TenThanhThanhPhanSP'] ?? null,
+            'SoLuong' => $_POST['SoLuong'] ?? 0,
+            'ThoiGianBatDau' => $_POST['ThoiGianBatDau'] ?? null,
+            'ThoiGianKetThuc' => $_POST['ThoiGianKetThuc'] ?? null,
+            'TrangThai' => $_POST['TrangThai'] ?? 'Đang chuẩn bị',
+            'IdKeHoachSanXuat' => $planId,
+            'IdXuong' => $workshopId,
+        ];
+
+        try {
+            $this->workshopPlanModel->create($data);
+            $this->setFlash('success', 'Đã thêm kế hoạch xưởng.');
+        } catch (Throwable $e) {
+            $this->setFlash('danger', 'Không thể thêm kế hoạch xưởng: ' . $e->getMessage());
         }
 
-        if (str_contains($status, 'hủy')) {
-            return 'đã hủy';
+        $this->redirect('?controller=factory_plan&action=index');
+    }
+
+    public function edit(): void
+    {
+        $id = $_GET['id'] ?? null;
+        $plan = $id ? $this->workshopPlanModel->findWithRelations($id) : null;
+        $this->render('factory_plan/edit', [
+            'title' => 'Cập nhật kế hoạch xưởng',
+            'plan' => $plan,
+            'productionPlans' => $this->productionPlanModel->getPlansForWorkshopAssignment(),
+            'workshops' => $this->workshopModel->getAllWithManagers(),
+        ]);
+    }
+
+    public function update(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
         }
 
-        return $status;
+        $id = $_POST['IdKeHoachSanXuatXuong'];
+        $planId = $_POST['IdKeHoachSanXuat'] ?? null;
+        $workshopId = $_POST['IdXuong'] ?? null;
+
+        if (!$planId || !$workshopId) {
+            $this->setFlash('danger', 'Thiếu thông tin kế hoạch tổng hoặc xưởng.');
+            $this->redirect('?controller=factory_plan&action=edit&id=' . urlencode($id));
+            return;
+        }
+
+        $data = [
+            'TenThanhThanhPhanSP' => $_POST['TenThanhThanhPhanSP'] ?? null,
+            'SoLuong' => $_POST['SoLuong'] ?? 0,
+            'ThoiGianBatDau' => $_POST['ThoiGianBatDau'] ?? null,
+            'ThoiGianKetThuc' => $_POST['ThoiGianKetThuc'] ?? null,
+            'TrangThai' => $_POST['TrangThai'] ?? 'Đang chuẩn bị',
+            'IdKeHoachSanXuat' => $planId,
+            'IdXuong' => $workshopId,
+        ];
+
+        try {
+            $this->workshopPlanModel->update($id, $data);
+            $this->setFlash('success', 'Cập nhật kế hoạch xưởng thành công.');
+        } catch (Throwable $e) {
+            $this->setFlash('danger', 'Không thể cập nhật kế hoạch xưởng: ' . $e->getMessage());
+        }
+
+        $this->redirect('?controller=factory_plan&action=index');
+    }
+
+    public function delete(): void
+    {
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            try {
+                $this->workshopPlanModel->delete($id);
+                $this->setFlash('success', 'Đã xóa kế hoạch xưởng.');
+            } catch (Throwable $e) {
+                $this->setFlash('danger', 'Không thể xóa kế hoạch xưởng: ' . $e->getMessage());
+            }
+        }
+
+        $this->redirect('?controller=factory_plan&action=index');
     }
 }

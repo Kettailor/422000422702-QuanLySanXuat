@@ -11,7 +11,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
             <div class="icon-wrap bg-primary bg-opacity-10 text-primary"><i class="bi bi-bag-check"></i></div>
             <div>
                 <div class="text-muted text-uppercase small">Đơn hàng SV5TOT</div>
-                <div class="fs-3 fw-bold text-center"><?= number_format($orderStats['total_orders']) ?></div>
+                <div class="fs-3 fw-bold"><?= number_format($orderStats['total_orders']) ?></div>
                 <div class="small text-muted">Chờ xử lý: <?= number_format($orderStats['pending_orders']) ?> đơn</div>
             </div>
         </div>
@@ -21,7 +21,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
             <div class="icon-wrap bg-success bg-opacity-10 text-success"><i class="bi bi-currency-exchange"></i></div>
             <div>
                 <div class="text-muted text-uppercase small">Doanh thu bàn phím SV5TOT</div>
-                <div class="fs-3 fw-bold text-center"><?= number_format($orderStats['total_revenue'], 0, ',', '.') ?> đ</div>
+                <div class="fs-3 fw-bold"><?= number_format($orderStats['total_revenue'], 0, ',', '.') ?> đ</div>
                 <div class="small text-muted">Đơn hoàn thành: <?= number_format($orderStats['completed_orders']) ?></div>
             </div>
         </div>
@@ -31,7 +31,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
             <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-wallet2"></i></div>
             <div>
                 <div class="text-muted text-uppercase small">Quỹ lương dây chuyền SV5TOT</div>
-                <div class="fs-3 fw-bold text-center"><?= number_format($payrollSummary['total_amount'], 0, ',', '.') ?> đ</div>
+                <div class="fs-3 fw-bold"><?= number_format($payrollSummary['total_amount'], 0, ',', '.') ?> đ</div>
                 <div class="small text-muted">Bảng SV5TOT chờ duyệt: <?= number_format($payrollSummary['pending']) ?> bảng</div>
             </div>
         </div>
@@ -41,7 +41,7 @@ $pendingPayrolls = $pendingPayrolls ?? [];
             <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-gear-wide-connected"></i></div>
             <div>
                 <div class="text-muted text-uppercase small">Hiệu suất xưởng SV5TOT</div>
-                <div class="fs-3 fw-bold text-center"><?= $workshopSummary['utilization'] ?>%</div>
+                <div class="fs-3 fw-bold"><?= $workshopSummary['utilization'] ?>%</div>
                 <div class="small text-muted">Nhân sự SV5TOT: <?= number_format($workshopSummary['workforce']) ?> người</div>
             </div>
         </div>

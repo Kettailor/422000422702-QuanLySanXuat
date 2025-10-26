@@ -1,114 +1,11 @@
-<?php
-$summary = $summary ?? [];
-$documents = $documents ?? [];
-$activeFilter = $activeFilter ?? 'all';
-$filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
-?>
-
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Phiếu xuất nhập kho</h3>
-        <p class="text-muted mb-0">Tổng hợp luồng nhập - xuất và hiệu suất xử lý chứng từ kho.</p>
+        <p class="text-muted mb-0">Theo dõi các phiếu nhập xuất kho gần đây.</p>
     </div>
-    <a href="?controller=warehouse_sheet&action=create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Tạo phiếu mới
-    </a>
 </div>
 
-<?php if (!empty($summary)): ?>
-    <?php
-    $metrics = [
-        'all' => [
-            'label' => 'Tổng số phiếu',
-            'value' => $summary['total_documents'] ?? 0,
-            'icon' => 'bi bi-receipt',
-            'class' => 'primary',
-            'target' => '?controller=warehouse_sheet&action=index&type=all',
-        ],
-        'inbound' => [
-            'label' => 'Phiếu nhập',
-            'value' => $summary['inbound_documents'] ?? 0,
-            'icon' => 'bi bi-box-arrow-in-down',
-            'class' => 'success',
-            'target' => '?controller=warehouse_sheet&action=index&type=inbound',
-        ],
-        'outbound' => [
-            'label' => 'Phiếu xuất',
-            'value' => $summary['outbound_documents'] ?? 0,
-            'icon' => 'bi bi-box-arrow-up',
-            'class' => 'danger',
-            'target' => '?controller=warehouse_sheet&action=index&type=outbound',
-        ],
-    ];
-    ?>
-    <div class="row g-3 mb-4">
-        <?php foreach ($metrics as $key => $metric): ?>
-            <div class="col-xl-3 col-sm-6">
-                <a href="<?= $metric['target'] ?>" class="text-decoration-none text-reset">
-                    <div class="card metric-card border-0 <?= $activeFilter === $key ? 'shadow-sm border border-' . $metric['class'] : '' ?>">
-                        <div class="icon-wrap bg-<?= $metric['class'] ?> bg-opacity-10 text-<?= $metric['class'] ?>">
-                            <i class="<?= $metric['icon'] ?>"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted text-uppercase small"><?= $metric['label'] ?></div>
-                            <div class="fs-3 fw-bold"><?= number_format($metric['value']) ?></div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        <?php endforeach; ?>
-        <div class="col-xl-3 col-sm-6">
-            <div class="card metric-card">
-                <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-cash-stack"></i></div>
-                <div>
-                    <div class="text-muted text-uppercase small">Tổng giá trị</div>
-                    <div class="fs-3 fw-bold"><?= number_format($summary['total_value'] ?? 0, 0, ',', '.') ?> đ</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <?php if (!empty($summary['monthly_trend'])): ?>
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-semibold mb-0">Xu hướng 6 tháng gần nhất</h6>
-                    <span class="text-muted small">Theo tháng lập phiếu</span>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm mb-0">
-                        <thead>
-                        <tr>
-                            <th>Tháng</th>
-                            <th>Số phiếu</th>
-                            <th>Tổng giá trị</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($summary['monthly_trend'] as $trend): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($trend['thang']) ?></td>
-                                <td><?= number_format($trend['so_phieu']) ?></td>
-                                <td><?= number_format($trend['tong_tien'], 0, ',', '.') ?> đ</td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
-<?php endif; ?>
-
 <div class="card p-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 fw-semibold"><?= htmlspecialchars($filterLabel) ?></h5>
-        <?php if ($activeFilter !== 'all'): ?>
-            <a class="btn btn-sm btn-outline-secondary" href="?controller=warehouse_sheet&action=index">
-                <i class="bi bi-x-lg me-1"></i> Bỏ lọc
-            </a>
-        <?php endif; ?>
-    </div>
     <div class="table-responsive">
         <table class="table align-middle">
             <thead>
@@ -119,59 +16,19 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                 <th>Ngày lập</th>
                 <th>Ngày xác nhận</th>
                 <th>Tổng tiền</th>
-                <th>Người lập</th>
-                <th>Người xác nhận</th>
-                <th>Mặt hàng</th>
-                <th>Số lượng</th>
-                <th>Thực nhận</th>
-                <th class="text-end">Thao tác</th>
             </tr>
             </thead>
             <tbody>
-            <?php if (empty($documents)): ?>
+            <?php foreach ($documents as $document): ?>
                 <tr>
-                    <td colspan="12" class="text-center text-muted py-4">Chưa có phiếu nào phù hợp với bộ lọc hiện tại.</td>
+                    <td class="fw-semibold"><?= htmlspecialchars($document['IdPhieu']) ?></td>
+                    <td><?= htmlspecialchars($document['TenKho']) ?></td>
+                    <td><?= htmlspecialchars($document['LoaiPhieu']) ?></td>
+                    <td><?= $document['NgayLP'] ? date('d/m/Y', strtotime($document['NgayLP'])) : '-' ?></td>
+                    <td><?= $document['NgayXN'] ? date('d/m/Y', strtotime($document['NgayXN'])) : '-' ?></td>
+                    <td class="fw-semibold text-primary"><?= number_format($document['TongTien'], 0, ',', '.') ?> đ</td>
                 </tr>
-            <?php else: ?>
-                <?php foreach ($documents as $document): ?>
-                    <?php
-                    $type = $document['LoaiPhieu'] ?? '';
-                    $typeClass = 'bg-secondary bg-opacity-10 text-secondary';
-                    $typeNormalized = function_exists('mb_strtolower') ? mb_strtolower($type, 'UTF-8') : strtolower($type);
-                    if (str_contains($typeNormalized, 'nhập')) {
-                        $typeClass = 'badge-soft-success';
-                    } elseif (str_contains($typeNormalized, 'xuất')) {
-                        $typeClass = 'badge-soft-danger';
-                    }
-                    ?>
-                    <tr>
-                        <td class="fw-semibold"><?= htmlspecialchars($document['IdPhieu']) ?></td>
-                        <td><?= htmlspecialchars($document['TenKho']) ?></td>
-                        <td><span class="badge <?= $typeClass ?>"><?= htmlspecialchars($document['LoaiPhieu']) ?></span></td>
-                        <td><?= $document['NgayLP'] ? date('d/m/Y', strtotime($document['NgayLP'])) : '-' ?></td>
-                        <td><?= $document['NgayXN'] ? date('d/m/Y', strtotime($document['NgayXN'])) : '-' ?></td>
-                        <td class="fw-semibold text-primary"><?= number_format($document['TongTien'], 0, ',', '.') ?> đ</td>
-                        <td><?= htmlspecialchars($document['NguoiLap'] ?? '-') ?></td>
-                        <td><?= htmlspecialchars($document['NguoiXacNhan'] ?? '-') ?></td>
-                        <td><?= number_format($document['TongMatHang']) ?></td>
-                        <td><?= number_format($document['TongSoLuong']) ?></td>
-                        <td><?= number_format($document['TongThucNhan']) ?></td>
-                        <td class="text-end">
-                            <div class="btn-group" role="group">
-                                <a href="?controller=warehouse_sheet&action=edit&id=<?= urlencode($document['IdPhieu']) ?>" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-                                <form method="post" action="?controller=warehouse_sheet&action=delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa phiếu này?');">
-                                    <input type="hidden" name="IdPhieu" value="<?= htmlspecialchars($document['IdPhieu']) ?>">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
+            <?php endforeach; ?>
             </tbody>
         </table>
     </div>

@@ -187,43 +187,6 @@ INSERT INTO `chi_tiet_ke_hoach_san_xuat_xuong` (`IdCTKHSXX`, `SoLuong`, `IdKeHoa
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `yeu_cau_xuat_kho`
---
-
-DROP TABLE IF EXISTS `yeu_cau_xuat_kho`;
-
-CREATE TABLE `yeu_cau_xuat_kho` (
-  `IdYeuCau` varchar(50) NOT NULL,
-  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
-  `NguoiYeuCau` varchar(50) DEFAULT NULL,
-  `TrangThai` varchar(255) DEFAULT NULL,
-  `NoiDung` text DEFAULT NULL,
-  `NgayTao` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `lich_su_ke_hoach_xuong`
---
-
-DROP TABLE IF EXISTS `lich_su_ke_hoach_xuong`;
-
-CREATE TABLE `lich_su_ke_hoach_xuong` (
-  `IdLichSu` varchar(50) NOT NULL,
-  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
-  `TrangThai` varchar(255) DEFAULT NULL,
-  `HanhDong` varchar(255) DEFAULT NULL,
-  `GhiChu` text DEFAULT NULL,
-  `NguoiThucHien` varchar(50) DEFAULT NULL,
-  `NgayThucHien` datetime DEFAULT NULL,
-  `ThongTinChiTiet` longtext DEFAULT NULL,
-  `IdYeuCauKho` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Cấu trúc bảng cho bảng `ct_don_hang`
 --
 
@@ -328,7 +291,6 @@ CREATE TABLE `don_hang` (
   `TongTien` float DEFAULT NULL,
   `NgayLap` date DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
-  `EmailLienHe` varchar(255) DEFAULT NULL,
   `IdKhachHang` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -336,10 +298,10 @@ CREATE TABLE `don_hang` (
 -- Đang đổ dữ liệu cho bảng `don_hang`
 --
 
-INSERT INTO `don_hang` (`IdDonHang`, `YeuCau`, `TongTien`, `NgayLap`, `TrangThai`, `EmailLienHe`, `IdKhachHang`) VALUES
-('DH20231101', 'Lô SV5TOT 87 & 108 phục vụ mùa lễ hội cuối năm', 762600000, '2023-11-10', 'Đang xử lý', 'contact@gearzone.vn', 'KH001'),
-('DH20231105', 'Bổ sung combo SV5TOT custom cho chương trình Noel', 543000000, '2023-11-15', 'Đang xử lý', 'orders@techhub.vn', 'KH002'),
-('DH20231202', 'Đơn chuẩn bị Tết Dương lịch cho TechHub', 687200000, '2023-12-02', 'Đang xử lý', 'sales@customvn.vn', 'KH003');
+INSERT INTO `don_hang` (`IdDonHang`, `YeuCau`, `TongTien`, `NgayLap`, `TrangThai`, `IdKhachHang`) VALUES
+('DH20231101', 'Lô SV5TOT 87 & 108 phục vụ mùa lễ hội cuối năm', 762600000, '2023-11-10', 'Đang xử lý', 'KH001'),
+('DH20231105', 'Bổ sung combo SV5TOT custom cho chương trình Noel', 543000000, '2023-11-15', 'Đang xử lý', 'KH002'),
+('DH20231202', 'Đơn chuẩn bị Tết Dương lịch cho TechHub', 687200000, '2023-12-02', 'Đang xử lý', 'KH003');
 
 -- --------------------------------------------------------
 
@@ -404,7 +366,7 @@ CREATE TABLE `ke_hoach_san_xuat` (
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
   `ThoiGianBD` datetime DEFAULT NULL,
-  `BANGIAMDOC IdNhanVien` varchar(50) NOT NULL,
+  `BANIAMDOC IdNhanVien` varchar(50) NOT NULL,
   `IdTTCTDonHang` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -412,7 +374,7 @@ CREATE TABLE `ke_hoach_san_xuat` (
 -- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat`
 --
 
-INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `BANGIAMDOC IdNhanVien`, `IdTTCTDonHang`) VALUES
+INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `BANIAMDOC IdNhanVien`, `IdTTCTDonHang`) VALUES
 ('KHSX20231101', 180, '2023-11-19 17:00:00', 'Đang lắp ráp SV5TOT 87', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
 ('KHSX20231102', 120, '2023-11-22 17:30:00', 'Đang kiểm thử SV5TOT 108', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
 ('KHSX20231105', 150, '2023-11-26 16:00:00', 'Đang hoàn thiện đơn custom', '2023-11-18 07:30:00', 'NV001', 'CTDH20231105A'),
@@ -434,8 +396,6 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
   `ThoiGianBatDau` datetime DEFAULT NULL,
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
-  `TinhTrangVatTu` varchar(255) DEFAULT 'Chưa kiểm tra',
-  `IdCongDoan` varchar(50) DEFAULT NULL,
   `IdKeHoachSanXuat` varchar(50) NOT NULL,
   `IdXuong` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -444,13 +404,13 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
 -- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat_xuong`
 --
 
-INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPhanSP`, `SoLuong`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TrangThai`, `TinhTrangVatTu`, `IdCongDoan`, `IdKeHoachSanXuat`, `IdXuong`) VALUES
-('KHSXX202311A', 'Lắp switch SV5TOT 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231101', 'XU001'),
-('KHSXX202311B', 'Hoàn thiện & đóng gói SV5TOT 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231101', 'XU002'),
-('KHSXX202311C', 'Kiểm thử PCB SV5TOT 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'Chưa kiểm tra', NULL, 'KHSX20231102', 'XU001'),
-('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231105', 'XU001'),
-('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'Chưa kiểm tra', NULL, 'KHSX20231202', 'XU002'),
-('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'Chưa kiểm tra', NULL, 'KHSX20231202A', 'XU001');
+INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPhanSP`, `SoLuong`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TrangThai`, `IdKeHoachSanXuat`, `IdXuong`) VALUES
+('KHSXX202311A', 'Lắp switch SV5TOT 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'KHSX20231101', 'XU001'),
+('KHSXX202311B', 'Hoàn thiện & đóng gói SV5TOT 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'KHSX20231101', 'XU002'),
+('KHSXX202311C', 'Kiểm thử PCB SV5TOT 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'KHSX20231102', 'XU001'),
+('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'KHSX20231105', 'XU001'),
+('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'KHSX20231202', 'XU002'),
+('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'KHSX20231202A', 'XU001');
 
 -- --------------------------------------------------------
 
@@ -463,12 +423,10 @@ DROP TABLE IF EXISTS `khach_hang`;
 CREATE TABLE `khach_hang` (
   `IdKhachHang` varchar(50) NOT NULL,
   `HoTen` varchar(255) DEFAULT NULL,
-  `TenCongTy` varchar(255) DEFAULT NULL,
   `GioiTinh` tinyint(3) DEFAULT NULL,
   `DiaChi` varchar(255) DEFAULT NULL,
   `SoLuongDonHang` int(10) DEFAULT NULL,
   `SoDienThoai` varchar(12) DEFAULT NULL,
-  `Email` varchar(255) DEFAULT NULL,
   `TongTien` float DEFAULT NULL,
   `LoaiKhachHang` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -477,10 +435,10 @@ CREATE TABLE `khach_hang` (
 -- Đang đổ dữ liệu cho bảng `khach_hang`
 --
 
-INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `GioiTinh`, `DiaChi`, `SoLuongDonHang`, `SoDienThoai`, `Email`, `TongTien`, `LoaiKhachHang`) VALUES
-('KH001', 'Công ty GearZone Việt Nam', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 'contact@gearzone.vn', 1526000000, 'Đại lý phân phối'),
-('KH002', 'Chuỗi cửa hàng TechHub', 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 'orders@techhub.vn', 1268000000, 'Bán lẻ chiến lược'),
-('KH003', 'Cửa hàng CustomVN', 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 'sales@customvn.vn', 732000000, 'Đại lý custom gear');
+INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `GioiTinh`, `DiaChi`, `SoLuongDonHang`, `SoDienThoai`, `TongTien`, `LoaiKhachHang`) VALUES
+('KH001', 'Công ty GearZone Việt Nam', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 1526000000, 'Đại lý phân phối'),
+('KH002', 'Chuỗi cửa hàng TechHub', 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 1268000000, 'Bán lẻ chiến lược'),
+('KH003', 'Cửa hàng CustomVN', 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 732000000, 'Đại lý custom gear');
 
 -- --------------------------------------------------------
 
@@ -539,14 +497,7 @@ INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `IdSanPham`, 
 ('LOKEY202311', 'Lô keycap PBT Glacier 11/2023', 600, '2023-11-04 09:20:00', 'Linh kiện', 'SPCOMP03', 'KHO01'),
 ('LOTP202309', 'Lô SV5TOT 87 hoàn thiện 09/2023', 500, '2023-09-10 08:00:00', 'Thành phẩm', 'SPKB87', 'KHO02'),
 ('LOTP202310', 'Lô SV5TOT 108 hoàn thiện 10/2023', 600, '2023-10-05 09:00:00', 'Thành phẩm', 'SPKB108', 'KHO02'),
-('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02'),
-('LOFOAM202310', 'Lô foam Poron 10/2023', 400, '2023-10-08 09:15:00', 'Linh kiện', 'SPCOMP04', 'KHO01'),
-('LOTAPE202310', 'Lô băng keo 3M 10/2023', 350, '2023-10-08 09:20:00', 'Linh kiện', 'SPCOMP05', 'KHO01'),
-('LOBADGE202311', 'Lô badge TechHub 11/2023', 300, '2023-11-05 09:25:00', 'Linh kiện', 'SPCOMP06', 'KHO01'),
-('LOCASE202309', 'Lô vỏ CNC anodized 09/2023', 420, '2023-09-15 08:10:00', 'Linh kiện', 'SPCOMP07', 'KHO01'),
-('LOFOAM202308', 'Lô foam Poron 08/2023', 520, '2023-08-20 07:40:00', 'Linh kiện', 'SPCOMP04', 'KHO01'),
-('LOSW202307', 'Lô switch Lotus 07/2023', 900, '2023-07-10 09:00:00', 'Linh kiện', 'SPCOMP01', 'KHO01'),
-('LOPACK202311', 'Lô hộp đóng gói premium 11/2023', 550, '2023-11-18 08:45:00', 'Phụ kiện', 'SPCOMP08', 'KHO01');
+('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02');
 
 -- --------------------------------------------------------
 
@@ -606,122 +557,7 @@ CREATE TABLE `nguyen_lieu` (
 INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
 ('NL001', 'Switch Lotus Linear', 400, 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
 ('NL002', 'PCB SV5TOT R3', 300, 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
-('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311'),
-('NL004', 'Bộ vỏ CNC anodized', 150, 820000, 'Đang sử dụng', '2023-09-15 08:20:00', '2026-09-15 00:00:00', 'LOCASE202309'),
-('NL005', 'Foam Poron định hình', 520, 120000, 'Đang sử dụng', '2023-08-20 07:45:00', '2025-08-20 00:00:00', 'LOFOAM202308'),
-('NL006', 'Switch Silent Lavender', 260, 520000, 'Đang sử dụng', '2023-07-10 09:10:00', '2025-07-10 00:00:00', 'LOSW202307'),
-('NL007', 'Bộ hộp đóng gói premium', 320, 90000, 'Đang sử dụng', '2023-11-18 08:50:00', '2024-11-18 00:00:00', 'LOPACK202311');
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `xuong_cau_hinh_san_pham`
-
-DROP TABLE IF EXISTS `xuong_cau_hinh_san_pham`;
-
-CREATE TABLE `xuong_cau_hinh_san_pham` (
-  `IdPhanCong` varchar(50) NOT NULL,
-  `IdSanPham` varchar(50) NOT NULL,
-  `IdCauHinh` varchar(50) NOT NULL,
-  `IdXuong` varchar(50) NOT NULL,
-  `TenPhanCong` varchar(255) DEFAULT NULL,
-  `TyLeSoLuong` float DEFAULT 1,
-  `DonVi` varchar(50) DEFAULT 'sp',
-  `TrangThaiMacDinh` varchar(255) DEFAULT NULL,
-  `LogisticsKey` varchar(50) DEFAULT NULL,
-  `LogisticsLabel` varchar(255) DEFAULT NULL,
-  `IncludeYeuCau` tinyint(1) DEFAULT 0,
-  `ThuTu` int(11) DEFAULT 0,
-  PRIMARY KEY (`IdPhanCong`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `xuong_cau_hinh_san_pham`
---
-
-INSERT INTO `xuong_cau_hinh_san_pham` (`IdPhanCong`, `IdSanPham`, `IdCauHinh`, `IdXuong`, `TenPhanCong`, `TyLeSoLuong`, `DonVi`, `TrangThaiMacDinh`, `LogisticsKey`, `LogisticsLabel`, `IncludeYeuCau`, `ThuTu`) VALUES
-('PCFGKB87RGB', 'SPKB87', 'CFGKB87RGB', 'XU001', 'Lắp ráp cấu hình RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_rgb', 'Cấu hình RGB', 1, 1),
-('PCFGKB87RGBPACK', 'SPKB87', 'CFGKB87RGB', 'XU002', 'Đóng gói cấu hình RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_rgb_pack', 'Đóng gói RGB', 0, 2),
-('PCFGKB87DELUXE', 'SPKB87', 'CFGKB87DELUXE', 'XU001', 'Gia công cấu hình Deluxe', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_deluxe', 'Cấu hình Deluxe', 1, 1),
-('PCFGKB87DELUXEPACK', 'SPKB87', 'CFGKB87DELUXE', 'XU002', 'Đóng gói cấu hình Deluxe', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_deluxe_pack', 'Đóng gói Deluxe', 0, 2),
-('PCFGKB108SILENT', 'SPKB108', 'CFGKB108SILENT', 'XU001', 'Sản xuất cấu hình Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_silent', 'Cấu hình Silent', 1, 1),
-('PCFGKB108SILENTPACK', 'SPKB108', 'CFGKB108SILENT', 'XU002', 'Đóng gói cấu hình Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_silent_pack', 'Đóng gói Silent', 0, 2),
-('PCFGKITRETAIL', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU001', 'Chuẩn bị kit Retail', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail', 'Kit Retail', 1, 1),
-('PCFGKITRETAILPACK', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU002', 'Đóng gói kit Retail', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail_pack', 'Đóng gói Kit Retail', 0, 2),
-('PCFGKITTECH', 'SPKBCUSTOM', 'CFGKITTECH', 'XU001', 'Chuẩn bị kit TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech', 'Kit TechHub', 1, 1),
-('PCFGKITTECHPACK', 'SPKBCUSTOM', 'CFGKITTECH', 'XU002', 'Đóng gói kit TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech_pack', 'Đóng gói Kit TechHub', 0, 2);
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `cau_hinh_nguyen_lieu`
-
-DROP TABLE IF EXISTS `cau_hinh_nguyen_lieu`;
-
-CREATE TABLE `cau_hinh_nguyen_lieu` (
-  `IdCauHinhNguyenLieu` varchar(50) NOT NULL,
-  `IdCauHinh` varchar(50) NOT NULL,
-  `IdNguyenLieu` varchar(50) NOT NULL,
-  `TyLeSoLuong` float DEFAULT 1,
-  `DinhMuc` float DEFAULT NULL,
-  `Nhan` varchar(255) DEFAULT NULL,
-  `DonVi` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`IdCauHinhNguyenLieu`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `cau_hinh_nguyen_lieu`
---
-
-INSERT INTO `cau_hinh_nguyen_lieu` (`IdCauHinhNguyenLieu`, `IdCauHinh`, `IdNguyenLieu`, `TyLeSoLuong`, `DinhMuc`, `Nhan`, `DonVi`) VALUES
-('CFG87RGBSW', 'CFGKB87RGB', 'NL001', 87, 87, 'Switch Lotus Linear', 'switch'),
-('CFG87RGBPCB', 'CFGKB87RGB', 'NL002', 1, 1, 'PCB SV5TOT R3', 'bo mạch'),
-('CFG87RGBCASE', 'CFGKB87RGB', 'NL004', 1, 1, 'Vỏ RGB anodized', 'bộ vỏ'),
-('CFG87RGBKEY', 'CFGKB87RGB', 'NL003', 1, 1, 'Keycap Glacier', 'bộ keycap'),
-('CFG87RGBPACK', 'CFGKB87RGB', 'NL007', 1, 1, 'Đóng gói RGB', 'bộ'),
-('CFG87DLXSW', 'CFGKB87DELUXE', 'NL001', 87, 87, 'Switch Lotus tune', 'switch'),
-('CFG87DLXFOAM', 'CFGKB87DELUXE', 'NL005', 1, 1, 'Foam Poron', 'bộ foam'),
-('CFG87DLXCASE', 'CFGKB87DELUXE', 'NL004', 1, 1, 'Vỏ Deluxe', 'bộ vỏ'),
-('CFG87DLXPACK', 'CFGKB87DELUXE', 'NL007', 1, 1, 'Đóng gói Deluxe', 'bộ'),
-('CFG108SILSW', 'CFGKB108SILENT', 'NL006', 108, 108, 'Switch Silent Lavender', 'switch'),
-('CFG108SILPCB', 'CFGKB108SILENT', 'NL002', 1, 1, 'PCB 108 Silent', 'bo mạch'),
-('CFG108SILCASE', 'CFGKB108SILENT', 'NL004', 1, 1, 'Vỏ Silent', 'bộ vỏ'),
-('CFG108SILPACK', 'CFGKB108SILENT', 'NL007', 1, 1, 'Đóng gói Silent', 'bộ'),
-('CFGKITRETAILPCB', 'CFGKITRETAIL', 'NL002', 1, 1, 'PCB kit Retail', 'bo mạch'),
-('CFGKITRETAILKEY', 'CFGKITRETAIL', 'NL003', 1, 1, 'Keycap kit Retail', 'bộ keycap'),
-('CFGKITRETAILPACK', 'CFGKITRETAIL', 'NL007', 1, 1, 'Đóng gói kit Retail', 'bộ'),
-('CFGKITTECHPCB', 'CFGKITTECH', 'NL002', 1, 1, 'PCB kit TechHub', 'bo mạch'),
-('CFGKITTECHKEY', 'CFGKITTECH', 'NL003', 1, 1, 'Keycap kit TechHub', 'bộ keycap'),
-('CFGKITTECHPACK', 'CFGKITTECH', 'NL007', 1, 1, 'Đóng gói kit TechHub', 'bộ');
-
--- ---------------------------------------------------------- --------------------------------------------------------
-
---
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `cau_hinh_thong_bao`
---
-
-DROP TABLE IF EXISTS `cau_hinh_thong_bao`;
-
-CREATE TABLE `cau_hinh_thong_bao` (
-  `MaCauHinh` varchar(100) NOT NULL,
-  `GiaTri` text DEFAULT NULL,
-  `MoTa` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`MaCauHinh`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `cau_hinh_thong_bao`
---
-
-INSERT INTO `cau_hinh_thong_bao` (`MaCauHinh`, `GiaTri`, `MoTa`) VALUES
-('workshop_channel', 'workshop', 'Kênh thông báo đẩy tới xưởng'),
-('warehouse_channel', 'warehouse', 'Kênh thông báo đẩy tới kho vận'),
-('warehouse_recipients', '["VT_NHANVIEN_KHO","VT_DOI_TAC_VAN_TAI"]', 'Các vai trò nhận thông báo kho vận'),
-('inventory_alert_channel', 'inventory_alert', 'Kênh cảnh báo thiếu hụt vật tư'),
-('inventory_alert_recipients', '["VT_QUANLY_XUONG","VT_NHANVIEN_KHO"]', 'Các vai trò nhận cảnh báo tồn kho');
+('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311');
 
 -- --------------------------------------------------------
 
@@ -815,39 +651,7 @@ INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VA
 ('SPKBCUSTOM', 'SV5TOT DIY Kit', 'Bộ', 1950000, 'Bộ kit custom layout 75% với PCB hotswap'),
 ('SPCOMP01', 'Switch Lotus Linear', 'Hộp', 450000, 'Hộp 90 switch linear Lotus được bôi trơn sẵn'),
 ('SPCOMP02', 'PCB SV5TOT R3', 'Tấm', 520000, 'PCB hotswap hỗ trợ layout 87/88 phím'),
-('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier'),
-('SPCOMP04', 'Foam Poron 87%', 'Bộ', 120000, 'Foam Poron 3 lớp cho layout 87%'),
-('SPCOMP05', 'Băng keo 3M 9495LE', 'Cuộn', 90000, 'Băng keo 3M 9495LE cho tape mod plate'),
-('SPCOMP06', 'Badge TechHub đồng', 'Chiếc', 150000, 'Badge đồng khắc laser logo TechHub'),
-('SPCOMP07', 'Vỏ CNC anodized', 'Bộ', 820000, 'Bộ vỏ nhôm CNC anodized dành cho dòng SV5TOT'),
-('SPCOMP08', 'Hộp đóng gói premium', 'Bộ', 90000, 'Bộ hộp đóng gói premium in thương hiệu TechHub');
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `product_components`
---
-
-DROP TABLE IF EXISTS `product_components`;
-
-CREATE TABLE `product_components` (
-  `IdBOM` varchar(50) NOT NULL,
-  `TenBOM` varchar(255) DEFAULT NULL,
-  `MoTa` text DEFAULT NULL,
-  `IdSanPham` varchar(50) NOT NULL,
-  PRIMARY KEY (`IdBOM`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `product_components`
---
-
-INSERT INTO `product_components` (`IdBOM`, `TenBOM`, `MoTa`, `IdSanPham`) VALUES
-('BOMKB87FULL', 'BOM SV5TOT 87 Full kit', 'BOM chuẩn 87% gồm foam Poron và switch Lotus lube sẵn', 'SPKB87'),
-('BOMKB87DELUXE', 'BOM SV5TOT 87 Tape mod', 'BOM tape mod bổ sung foam PE và băng keo cho plate', 'SPKB87'),
-('BOMKB108SILENT', 'BOM SV5TOT 108 Silent', 'BOM 108 phím sử dụng switch Silent và foam silicone', 'SPKB108'),
-('BOMKITRETAIL', 'BOM kit DIY bán lẻ', 'BOM đóng gói retail đầy đủ phụ kiện custom', 'SPKBCUSTOM'),
-('BOMKITTECH', 'BOM kit TechHub branding', 'BOM in logo TechHub, kèm keycap và plate branding', 'SPKBCUSTOM');
+('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier');
 
 -- --------------------------------------------------------
 
@@ -862,24 +666,19 @@ CREATE TABLE `cau_hinh_san_pham` (
   `TenCauHinh` varchar(255) DEFAULT NULL,
   `MoTa` text DEFAULT NULL,
   `GiaBan` float DEFAULT NULL,
-  `IdSanPham` varchar(50) NOT NULL,
-  `IdBOM` varchar(50) NOT NULL,
-  `Layout` varchar(100) DEFAULT NULL,
-  `SwitchType` varchar(100) DEFAULT NULL,
-  `CaseType` varchar(100) DEFAULT NULL,
-  `Foam` varchar(100) DEFAULT NULL
+  `IdSanPham` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `cau_hinh_san_pham`
 --
 
-INSERT INTO `cau_hinh_san_pham` (`IdCauHinh`, `TenCauHinh`, `MoTa`, `GiaBan`, `IdSanPham`, `IdBOM`, `Layout`, `SwitchType`, `CaseType`, `Foam`) VALUES
-('CFGKB87RGB', 'Layout 87 RGB tiêu chuẩn', 'Foam tiêu âm, switch Lotus lube sẵn', 2450000, 'SPKB87', 'BOMKB87FULL', '87% TKL', 'Lotus Linear', 'Nhôm anod xước hairline', 'Poron 3 lớp'),
-('CFGKB87DELUXE', 'Layout 87 tape mod', 'Tape mod và foam bổ sung cho bản 87', 2480000, 'SPKB87', 'BOMKB87DELUXE', '87% TKL', 'Lotus Linear', 'Nhôm + tape mod', 'Poron + PE film'),
-('CFGKB108SILENT', 'Layout 108 Silent phòng thu', 'Switch Silent và stabilizer bôi trơn', 2680000, 'SPKB108', 'BOMKB108SILENT', 'Fullsize 108', 'Silent tactile', 'ABS foam tiêu âm', 'Silicone đúc khuôn'),
-('CFGKITRETAIL', 'Kit DIY bán lẻ', 'Đóng gói đầy đủ phụ kiện retail', 1950000, 'SPKBCUSTOM', 'BOMKITRETAIL', '75% compact', 'Không kèm switch', 'Nhôm CNC phủ sơn', 'EVA 2 lớp'),
-('CFGKITTECH', 'Kit TechHub branding', 'Keycap và plate in logo TechHub', 1950000, 'SPKBCUSTOM', 'BOMKITTECH', '75% compact', 'Không kèm switch', 'Nhôm CNC in logo TechHub', 'EVA 2 lớp + badge đồng');
+INSERT INTO `cau_hinh_san_pham` (`IdCauHinh`, `TenCauHinh`, `MoTa`, `GiaBan`, `IdSanPham`) VALUES
+('CFGKB87RGB', 'Layout 87 RGB tiêu chuẩn', 'Foam tiêu âm, switch Lotus lube sẵn', 2450000, 'SPKB87'),
+('CFGKB87DELUXE', 'Layout 87 tape mod', 'Tape mod và foam bổ sung cho bản 87', 2480000, 'SPKB87'),
+('CFGKB108SILENT', 'Layout 108 Silent phòng thu', 'Switch Silent và stabilizer bôi trơn', 2680000, 'SPKB108'),
+('CFGKITRETAIL', 'Kit DIY bán lẻ', 'Đóng gói đầy đủ phụ kiện retail', 1950000, 'SPKBCUSTOM'),
+('CFGKITTECH', 'Kit TechHub branding', 'Keycap và plate in logo TechHub', 1950000, 'SPKBCUSTOM');
 
 -- --------------------------------------------------------
 
@@ -1029,31 +828,10 @@ INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `SlThietBi`, `SlNhanVien`, `TenQuyTr
 --
 ALTER TABLE `cau_hinh_san_pham`
   ADD PRIMARY KEY (`IdCauHinh`),
-  ADD KEY `FKCAU_HINH_SANPHAM` (`IdSanPham`),
-  ADD KEY `FKCAU_HINH_BOM` (`IdBOM`);
+  ADD KEY `FKCAU_HINH_SANPHAM` (`IdSanPham`);
 
 --
--- Chỉ mục cho bảng `product_components`
---
-ALTER TABLE `product_components`
-  ADD KEY `FK_BOM_SANPHAM` (`IdSanPham`);
-
---
--- Chỉ mục cho bảng `cau_hinh_nguyen_lieu`
-ALTER TABLE `cau_hinh_nguyen_lieu`
-  ADD KEY `FKCFGNL_CAU_HINH` (`IdCauHinh`),
-  ADD KEY `FKCFGNL_NGUYEN_LIEU` (`IdNguyenLieu`);
-
---
--- Chỉ mục cho bảng `xuong_cau_hinh_san_pham`
---
-ALTER TABLE `xuong_cau_hinh_san_pham`
-  ADD KEY `FKXCHSP_SANPHAM` (`IdSanPham`),
-  ADD KEY `FKXCHSP_CAU_HINH` (`IdCauHinh`),
-  ADD KEY `FKXCHSP_XUONG` (`IdXuong`);
-
---
--- Chỉ mục cho bảng `bang_luong`-- Chỉ mục cho bảng `bang_luong`
+-- Chỉ mục cho bảng `bang_luong`
 --
 ALTER TABLE `bang_luong`
   ADD PRIMARY KEY (`IdBangLuong`),
@@ -1099,22 +877,6 @@ ALTER TABLE `chi_tiet_ke_hoach_san_xuat_xuong`
   ADD PRIMARY KEY (`IdCTKHSXX`),
   ADD KEY `FKCHI_TIET_K933945` (`IdNguyenLieu`),
   ADD KEY `FKCHI_TIET_K954837` (`IdKeHoachSanXuatXuong`);
-
---
--- Chỉ mục cho bảng `yeu_cau_xuat_kho`
---
-ALTER TABLE `yeu_cau_xuat_kho`
-  ADD PRIMARY KEY (`IdYeuCau`),
-  ADD KEY `FKYCK_KeHoachXuong` (`IdKeHoachSanXuatXuong`);
-
---
--- Chỉ mục cho bảng `lich_su_ke_hoach_xuong`
---
-ALTER TABLE `lich_su_ke_hoach_xuong`
-  ADD PRIMARY KEY (`IdLichSu`),
-  ADD KEY `FKLSKHX_KeHoach` (`IdKeHoachSanXuatXuong`),
-  ADD KEY `FKLSKHX_NhanVien` (`NguoiThucHien`),
-  ADD KEY `FKLSKHX_YeuCauKho` (`IdYeuCauKho`);
 
 --
 -- Chỉ mục cho bảng `ct_don_hang`
@@ -1168,7 +930,7 @@ ALTER TABLE `hoa_don`
 ALTER TABLE `ke_hoach_san_xuat`
   ADD PRIMARY KEY (`IdKeHoachSanXuat`),
   ADD KEY `FKKE_HOACH_S473207` (`IdTTCTDonHang`),
-  ADD KEY `FKKE_HOACH_S691979` (`BANGIAMDOC IdNhanVien`);
+  ADD KEY `FKKE_HOACH_S691979` (`BANIAMDOC IdNhanVien`);
 
 --
 -- Chỉ mục cho bảng `ke_hoach_san_xuat_xuong`
@@ -1176,8 +938,7 @@ ALTER TABLE `ke_hoach_san_xuat`
 ALTER TABLE `ke_hoach_san_xuat_xuong`
   ADD PRIMARY KEY (`IdKeHoachSanXuatXuong`),
   ADD KEY `FKKE_HOACH_S948077` (`IdXuong`),
-  ADD KEY `FKKE_HOACH_S948390` (`IdKeHoachSanXuat`),
-  ADD KEY `FKKE_HOACH_CONG_DOAN` (`IdCongDoan`);
+  ADD KEY `FKKE_HOACH_S948390` (`IdKeHoachSanXuat`);
 
 --
 -- Chỉ mục cho bảng `khach_hang`
@@ -1319,42 +1080,13 @@ ALTER TABLE `chi_tiet_ke_hoach_san_xuat_xuong`
   ADD CONSTRAINT `FKCHI_TIET_K954837` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`);
 
 --
--- Các ràng buộc cho bảng `yeu_cau_xuat_kho`
---
-ALTER TABLE `yeu_cau_xuat_kho`
-  ADD CONSTRAINT `FKYCK_KeHoachXuong` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`);
-
---
--- Các ràng buộc cho bảng `lich_su_ke_hoach_xuong`
---
-ALTER TABLE `lich_su_ke_hoach_xuong`
-  ADD CONSTRAINT `FKLSKHX_KeHoach` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
-  ADD CONSTRAINT `FKLSKHX_NhanVien` FOREIGN KEY (`NguoiThucHien`) REFERENCES `nhan_vien` (`IdNhanVien`),
-  ADD CONSTRAINT `FKLSKHX_YeuCauKho` FOREIGN KEY (`IdYeuCauKho`) REFERENCES `yeu_cau_xuat_kho` (`IdYeuCau`);
-
---
 -- Các ràng buộc cho bảng `cau_hinh_san_pham`
 --
 ALTER TABLE `cau_hinh_san_pham`
-  ADD CONSTRAINT `FKCAU_HINH_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`),
-  ADD CONSTRAINT `FKCAU_HINH_BOM` FOREIGN KEY (`IdBOM`) REFERENCES `product_components` (`IdBOM`);
+  ADD CONSTRAINT `FKCAU_HINH_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`);
 
 --
--- Các ràng buộc cho bảng `cau_hinh_nguyen_lieu`
-ALTER TABLE `cau_hinh_nguyen_lieu`
-  ADD CONSTRAINT `FKCFGNL_CAU_HINH` FOREIGN KEY (`IdCauHinh`) REFERENCES `cau_hinh_san_pham` (`IdCauHinh`),
-  ADD CONSTRAINT `FKCFGNL_NGUYEN_LIEU` FOREIGN KEY (`IdNguyenLieu`) REFERENCES `nguyen_lieu` (`IdNguyenLieu`);
-
---
--- Các ràng buộc cho bảng `xuong_cau_hinh_san_pham`
---
-ALTER TABLE `xuong_cau_hinh_san_pham`
-  ADD CONSTRAINT `FKXCHSP_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`),
-  ADD CONSTRAINT `FKXCHSP_CAU_HINH` FOREIGN KEY (`IdCauHinh`) REFERENCES `cau_hinh_san_pham` (`IdCauHinh`),
-  ADD CONSTRAINT `FKXCHSP_XUONG` FOREIGN KEY (`IdXuong`) REFERENCES `xuong` (`IdXuong`);
-
---
--- Các ràng buộc cho bảng `ct_don_hang`-- Các ràng buộc cho bảng `ct_don_hang`
+-- Các ràng buộc cho bảng `ct_don_hang`
 --
 ALTER TABLE `ct_don_hang`
   ADD CONSTRAINT `FKCT_DON_HAN479798` FOREIGN KEY (`IdDonHang`) REFERENCES `don_hang` (`IdDonHang`),
@@ -1398,15 +1130,14 @@ ALTER TABLE `hoa_don`
 --
 ALTER TABLE `ke_hoach_san_xuat`
   ADD CONSTRAINT `FKKE_HOACH_S473207` FOREIGN KEY (`IdTTCTDonHang`) REFERENCES `ct_don_hang` (`IdTTCTDonHang`),
-  ADD CONSTRAINT `FKKE_HOACH_S691979` FOREIGN KEY (`BANGIAMDOC IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
+  ADD CONSTRAINT `FKKE_HOACH_S691979` FOREIGN KEY (`BANIAMDOC IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
 
 --
 -- Các ràng buộc cho bảng `ke_hoach_san_xuat_xuong`
 --
 ALTER TABLE `ke_hoach_san_xuat_xuong`
   ADD CONSTRAINT `FKKE_HOACH_S948077` FOREIGN KEY (`IdXuong`) REFERENCES `xuong` (`IdXuong`),
-  ADD CONSTRAINT `FKKE_HOACH_S948390` FOREIGN KEY (`IdKeHoachSanXuat`) REFERENCES `ke_hoach_san_xuat` (`IdKeHoachSanXuat`),
-  ADD CONSTRAINT `FKKE_HOACH_XCHSP` FOREIGN KEY (`IdCongDoan`) REFERENCES `xuong_cau_hinh_san_pham` (`IdPhanCong`);
+  ADD CONSTRAINT `FKKE_HOACH_S948390` FOREIGN KEY (`IdKeHoachSanXuat`) REFERENCES `ke_hoach_san_xuat` (`IdKeHoachSanXuat`);
 
 --
 -- Các ràng buộc cho bảng `kho`

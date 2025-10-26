@@ -4,13 +4,7 @@ abstract class Controller
 {
     protected function currentUser(): ?array
     {
-        $user = $_SESSION['user'] ?? null;
-
-        if (!$user) {
-            return null;
-        }
-
-        return Impersonation::applyToUser($user);
+        return $_SESSION['user'] ?? null;
     }
 
     protected function authorize(array $allowedRoles): void
@@ -28,26 +22,8 @@ abstract class Controller
             $this->redirect('?controller=dashboard&action=index');
         }
 
-        $actualRole = $user['ActualIdVaiTro'] ?? $role;
-        $isAdmin = $actualRole === 'VT_ADMIN';
-        $isImpersonating = !empty($user['IsImpersonating']);
-
-        if ($isAdmin) {
-            if ($isImpersonating) {
-                $username = $user['TenDangNhap'] ?? 'unknown';
-                error_log(sprintf(
-                    '[Impersonation] Admin %s is impersonating role %s while accessing %s',
-                    $username,
-                    $role,
-                    $_SERVER['REQUEST_URI'] ?? 'cli'
-                ));
-
-                if (in_array('VT_ADMIN', $allowedRoles, true)) {
-                    return;
-                }
-            } else {
-                return;
-            }
+        if ($role === 'VT_ADMIN') {
+            return;
         }
 
         if (!in_array($role, $allowedRoles, true)) {
