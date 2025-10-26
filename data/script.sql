@@ -396,6 +396,8 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
   `ThoiGianBatDau` datetime DEFAULT NULL,
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
+  `TinhTrangVatTu` varchar(255) DEFAULT 'Chưa kiểm tra',
+  `IdCongDoan` varchar(50) DEFAULT NULL,
   `IdKeHoachSanXuat` varchar(50) NOT NULL,
   `IdXuong` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -404,13 +406,13 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
 -- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat_xuong`
 --
 
-INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPhanSP`, `SoLuong`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TrangThai`, `IdKeHoachSanXuat`, `IdXuong`) VALUES
-('KHSXX202311A', 'Lắp switch SV5TOT 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'KHSX20231101', 'XU001'),
-('KHSXX202311B', 'Hoàn thiện & đóng gói SV5TOT 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'KHSX20231101', 'XU002'),
-('KHSXX202311C', 'Kiểm thử PCB SV5TOT 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'KHSX20231102', 'XU001'),
-('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'KHSX20231105', 'XU001'),
-('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'KHSX20231202', 'XU002'),
-('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'KHSX20231202A', 'XU001');
+INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPhanSP`, `SoLuong`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TrangThai`, `TinhTrangVatTu`, `IdCongDoan`, `IdKeHoachSanXuat`, `IdXuong`) VALUES
+('KHSXX202311A', 'Lắp switch SV5TOT 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231101', 'XU001'),
+('KHSXX202311B', 'Hoàn thiện & đóng gói SV5TOT 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231101', 'XU002'),
+('KHSXX202311C', 'Kiểm thử PCB SV5TOT 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'Chưa kiểm tra', NULL, 'KHSX20231102', 'XU001'),
+('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'Chưa kiểm tra', NULL, 'KHSX20231105', 'XU001'),
+('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'Chưa kiểm tra', NULL, 'KHSX20231202', 'XU002'),
+('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'Chưa kiểm tra', NULL, 'KHSX20231202A', 'XU001');
 
 -- --------------------------------------------------------
 
@@ -557,7 +559,11 @@ CREATE TABLE `nguyen_lieu` (
 INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
 ('NL001', 'Switch Lotus Linear', 400, 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
 ('NL002', 'PCB SV5TOT R3', 300, 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
-('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311');
+('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311'),
+('NL004', 'Bộ vỏ CNC anodized', 150, 820000, 'Đang sử dụng', '2023-09-15 08:20:00', '2026-09-15 00:00:00', 'LOCASE202309'),
+('NL005', 'Foam Poron định hình', 520, 120000, 'Đang sử dụng', '2023-08-20 07:45:00', '2025-08-20 00:00:00', 'LOFOAM202308'),
+('NL006', 'Switch Silent Lavender', 260, 520000, 'Đang sử dụng', '2023-07-10 09:10:00', '2025-07-10 00:00:00', 'LOSW202307'),
+('NL007', 'Bộ hộp đóng gói premium', 320, 90000, 'Đang sử dụng', '2023-11-18 08:50:00', '2024-11-18 00:00:00', 'LOPACK202311');
 
 -- --------------------------------------------------------
 
@@ -570,6 +576,7 @@ DROP TABLE IF EXISTS `san_pham_cong_doan`;
 CREATE TABLE `san_pham_cong_doan` (
   `IdCongDoan` varchar(50) NOT NULL,
   `IdSanPham` varchar(50) DEFAULT NULL,
+  `IdCauHinh` varchar(50) DEFAULT NULL,
   `TenCongDoan` varchar(255) DEFAULT NULL,
   `TyLeSoLuong` float DEFAULT 1,
   `DonVi` varchar(50) DEFAULT NULL,
@@ -577,6 +584,7 @@ CREATE TABLE `san_pham_cong_doan` (
   `TrangThaiMacDinh` varchar(255) DEFAULT NULL,
   `LogisticsKey` varchar(50) DEFAULT NULL,
   `LogisticsLabel` varchar(255) DEFAULT NULL,
+  `LoaiCongDoan` varchar(50) DEFAULT NULL,
   `IncludeYeuCau` tinyint(1) DEFAULT 0,
   `ThuTu` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -585,22 +593,45 @@ CREATE TABLE `san_pham_cong_doan` (
 -- Đang đổ dữ liệu cho bảng `san_pham_cong_doan`
 --
 
-INSERT INTO `san_pham_cong_doan` (`IdCongDoan`, `IdSanPham`, `TenCongDoan`, `TyLeSoLuong`, `DonVi`, `IdXuong`, `TrangThaiMacDinh`, `LogisticsKey`, `LogisticsLabel`, `IncludeYeuCau`, `ThuTu`) VALUES
-('CDKB87FILM', 'SPKB87', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
-('CDKB87CASE', 'SPKB87', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
-('CDKB87PCB', 'SPKB87', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
-('CDKB87PACK', 'SPKB87', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
-('CDKB108FILM', 'SPKB108', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
-('CDKB108CASE', 'SPKB108', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
-('CDKB108PCB', 'SPKB108', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
-('CDKB108PACK', 'SPKB108', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
-('CDKBCUSTOMFILM', 'SPKBCUSTOM', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
-('CDKBCUSTOMCASE', 'SPKBCUSTOM', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
-('CDKBCUSTOMPCB', 'SPKBCUSTOM', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
-('CDKBCUSTOMPACK', 'SPKBCUSTOM', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
-('CDKEYCAPMOLD', 'SPCOMP01', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1),
-('CDKEYCAPMOLD02', 'SPCOMP02', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1),
-('CDKEYCAPMOLD03', 'SPCOMP03', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1);
+INSERT INTO `san_pham_cong_doan` (`IdCongDoan`, `IdSanPham`, `IdCauHinh`, `TenCongDoan`, `TyLeSoLuong`, `DonVi`, `IdXuong`, `TrangThaiMacDinh`, `LogisticsKey`, `LogisticsLabel`, `LoaiCongDoan`, `IncludeYeuCau`, `ThuTu`) VALUES
+('CDKB87FILM', 'SPKB87', NULL, 'Dập phim tiêu âm', 1, 'bộ phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm tiêu chuẩn', 'film', 0, 1),
+('CDKB87CASE', 'SPKB87', NULL, 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate tiêu chuẩn', 'case', 0, 2),
+('CDKB87PCB', 'SPKB87', NULL, 'Lắp ráp PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 'pcb', 0, 3),
+('CDKB87PACK', 'SPKB87', NULL, 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói tiêu chuẩn', 'packaging', 1, 6),
+('CDKB87RGBFILM', 'SPKB87', 'CFGKB87RGB', 'Dập film bản RGB', 1, 'bộ phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm RGB', 'film', 0, 1),
+('CDKB87RGBSW', 'SPKB87', 'CFGKB87RGB', 'Lắp ráp switch Lotus', 87, 'switch', 'XU001', 'Đang chờ xưởng xác nhận', 'switch', 'Switch Lotus lube sẵn', 'switch', 0, 2),
+('CDKB87RGBCASE', 'SPKB87', 'CFGKB87RGB', 'Gia công vỏ RGB', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ RGB anodized', 'case', 0, 3),
+('CDKB87RGBKEY', 'SPKB87', 'CFGKB87RGB', 'Lắp keycap Glacier', 1, 'bộ keycap', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Keycap Glacier', 'keycap', 0, 4),
+('CDKB87RGBPACK', 'SPKB87', 'CFGKB87RGB', 'Đóng gói cấu hình RGB', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói RGB', 'packaging', 1, 6),
+('CDKB87DLXFILM', 'SPKB87', 'CFGKB87DELUXE', 'Dán tape & foam bổ sung', 1, 'bộ foam', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Tape mod & foam', 'film', 0, 1),
+('CDKB87DLXSW', 'SPKB87', 'CFGKB87DELUXE', 'Lắp ráp switch Lotus tune', 87, 'switch', 'XU001', 'Đang chờ xưởng xác nhận', 'switch', 'Switch Lotus tune', 'switch', 0, 2),
+('CDKB87DLXCASE', 'SPKB87', 'CFGKB87DELUXE', 'Gia công vỏ deluxe', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ tape mod', 'case', 0, 3),
+('CDKB87DLXKEY', 'SPKB87', 'CFGKB87DELUXE', 'Keycap modded theo yêu cầu', 1, 'bộ keycap', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Keycap modded', 'keycap', 0, 4),
+('CDKB87DLXPACK', 'SPKB87', 'CFGKB87DELUXE', 'Đóng gói bản tape mod', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói tape mod', 'packaging', 1, 6),
+('CDKB108FILM', 'SPKB108', NULL, 'Dập phim tiêu âm 108', 1, 'bộ phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm tiêu chuẩn', 'film', 0, 1),
+('CDKB108CASE', 'SPKB108', NULL, 'Gia công vỏ 108', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate tiêu chuẩn', 'case', 0, 2),
+('CDKB108PCB', 'SPKB108', NULL, 'Lắp ráp PCB 108', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard 108', 'pcb', 0, 3),
+('CDKB108PACK', 'SPKB108', NULL, 'QA & đóng gói 108', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói tiêu chuẩn', 'packaging', 1, 6),
+('CDKB108SILFILM', 'SPKB108', 'CFGKB108SILENT', 'Dập film bản Silent', 1, 'bộ phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim Silent', 'film', 0, 1),
+('CDKB108SILSW', 'SPKB108', 'CFGKB108SILENT', 'Lắp ráp switch Silent', 108, 'switch', 'XU001', 'Đang chờ xưởng xác nhận', 'switch', 'Switch Silent Lavender', 'switch', 0, 2),
+('CDKB108SILCASE', 'SPKB108', 'CFGKB108SILENT', 'Gia công vỏ Silent', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ Silent damping', 'case', 0, 3),
+('CDKB108SILKEY', 'SPKB108', 'CFGKB108SILENT', 'Keycap damping', 1, 'bộ keycap', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Keycap Silent', 'keycap', 0, 4),
+('CDKB108SILPACK', 'SPKB108', 'CFGKB108SILENT', 'Đóng gói bản Silent', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói Silent', 'packaging', 1, 6),
+('CDKBCUSTOMFILM', 'SPKBCUSTOM', NULL, 'Dập phim tiêu âm kit', 1, 'bộ phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim kit', 'film', 0, 1),
+('CDKBCUSTOMCASE', 'SPKBCUSTOM', NULL, 'Gia công vỏ kit', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ kit', 'case', 0, 2),
+('CDKBCUSTOMPCB', 'SPKBCUSTOM', NULL, 'Lắp ráp PCB kit', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard kit', 'pcb', 0, 3),
+('CDKBCUSTOMPACK', 'SPKBCUSTOM', NULL, 'Đóng gói kit', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói kit', 'packaging', 1, 6),
+('CDKITRETAILCASE', 'SPKBCUSTOM', 'CFGKITRETAIL', 'Chuẩn bị vỏ kit retail', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ retail', 'case', 0, 1),
+('CDKITRETAILKEY', 'SPKBCUSTOM', 'CFGKITRETAIL', 'Đóng gói bộ keycap retail', 1, 'bộ keycap', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Keycap retail', 'keycap', 0, 2),
+('CDKITRETAILPCB', 'SPKBCUSTOM', 'CFGKITRETAIL', 'Chuẩn bị PCB kit retail', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'PCB retail', 'pcb', 0, 3),
+('CDKITRETAILPACK', 'SPKBCUSTOM', 'CFGKITRETAIL', 'Đóng gói bộ kit retail', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói retail', 'packaging', 1, 6),
+('CDKITTECHCASE', 'SPKBCUSTOM', 'CFGKITTECH', 'Chuẩn bị vỏ TechHub', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ TechHub', 'case', 0, 1),
+('CDKITTECHKEY', 'SPKBCUSTOM', 'CFGKITTECH', 'In keycap TechHub', 1, 'bộ keycap', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Keycap TechHub', 'keycap', 0, 2),
+('CDKITTECHPCB', 'SPKBCUSTOM', 'CFGKITTECH', 'Chuẩn bị PCB TechHub', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'PCB TechHub', 'pcb', 0, 3),
+('CDKITTECHPACK', 'SPKBCUSTOM', 'CFGKITTECH', 'Đóng gói kit TechHub', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói TechHub', 'packaging', 1, 6),
+('CDKEYCAPMOLD', 'SPCOMP01', NULL, 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 'keycap', 0, 1),
+('CDKEYCAPMOLD02', 'SPCOMP02', NULL, 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 'keycap', 0, 1),
+('CDKEYCAPMOLD03', 'SPCOMP03', NULL, 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 'keycap', 0, 1);
 
 -- --------------------------------------------------------
 
@@ -613,8 +644,10 @@ DROP TABLE IF EXISTS `cong_doan_nguyen_lieu`;
 CREATE TABLE `cong_doan_nguyen_lieu` (
   `IdCongDoanNguyenLieu` varchar(50) NOT NULL,
   `IdCongDoan` varchar(50) NOT NULL,
+  `IdCauHinh` varchar(50) DEFAULT NULL,
   `IdNguyenLieu` varchar(50) NOT NULL,
   `TyLeSoLuong` float DEFAULT 1,
+  `DinhMuc` float DEFAULT NULL,
   `Nhan` varchar(255) DEFAULT NULL,
   `DonVi` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -623,13 +656,45 @@ CREATE TABLE `cong_doan_nguyen_lieu` (
 -- Đang đổ dữ liệu cho bảng `cong_doan_nguyen_lieu`
 --
 
-INSERT INTO `cong_doan_nguyen_lieu` (`IdCongDoanNguyenLieu`, `IdCongDoan`, `IdNguyenLieu`, `TyLeSoLuong`, `Nhan`, `DonVi`) VALUES
-('CDMLKBPCB', 'CDKB87PCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
-('CDMLKBPCB108', 'CDKB108PCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
-('CDMLKBCPCB', 'CDKBCUSTOMPCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
-('CDMLKEYCAP01', 'CDKEYCAPMOLD', 'NL003', 1, 'Keycap PBT Glacier', 'keycap'),
-('CDMLKEYCAP02', 'CDKEYCAPMOLD02', 'NL003', 1, 'Keycap PBT Glacier', 'keycap'),
-('CDMLKEYCAP03', 'CDKEYCAPMOLD03', 'NL003', 1, 'Keycap PBT Glacier', 'keycap');
+INSERT INTO `cong_doan_nguyen_lieu` (`IdCongDoanNguyenLieu`, `IdCongDoan`, `IdCauHinh`, `IdNguyenLieu`, `TyLeSoLuong`, `DinhMuc`, `Nhan`, `DonVi`) VALUES
+('CDNL87FILM', 'CDKB87FILM', NULL, 'NL005', 1, 1, 'Foam tiêu âm 87', 'bộ phim'),
+('CDNL87CASE', 'CDKB87CASE', NULL, 'NL004', 1, 1, 'Bộ vỏ CNC 87', 'bộ vỏ'),
+('CDNL87PCB', 'CDKB87PCB', NULL, 'NL002', 1, 1, 'PCB SV5TOT R3', 'bo mạch'),
+('CDNL87PACK', 'CDKB87PACK', NULL, 'NL007', 1, 1, 'Bộ hộp đóng gói', 'bộ'),
+('CDNL87RGBFILM', 'CDKB87RGBFILM', 'CFGKB87RGB', 'NL005', 1, 1, 'Foam RGB', 'bộ phim'),
+('CDNL87RGBSW', 'CDKB87RGBSW', 'CFGKB87RGB', 'NL001', 87, 87, 'Switch Lotus Linear', 'switch'),
+('CDNL87RGBCASE', 'CDKB87RGBCASE', 'CFGKB87RGB', 'NL004', 1, 1, 'Vỏ RGB anodized', 'bộ vỏ'),
+('CDNL87RGBKEY', 'CDKB87RGBKEY', 'CFGKB87RGB', 'NL003', 1, 1, 'Keycap Glacier set', 'bộ keycap'),
+('CDNL87RGBPACK', 'CDKB87RGBPACK', 'CFGKB87RGB', 'NL007', 1, 1, 'Đóng gói RGB', 'bộ'),
+('CDNL87DLXFILM', 'CDKB87DLXFILM', 'CFGKB87DELUXE', 'NL005', 1, 1, 'Foam & tape mod', 'bộ foam'),
+('CDNL87DLXSW', 'CDKB87DLXSW', 'CFGKB87DELUXE', 'NL001', 87, 87, 'Switch Lotus tune', 'switch'),
+('CDNL87DLXCASE', 'CDKB87DLXCASE', 'CFGKB87DELUXE', 'NL004', 1, 1, 'Vỏ deluxe', 'bộ vỏ'),
+('CDNL87DLXKEY', 'CDKB87DLXKEY', 'CFGKB87DELUXE', 'NL003', 1, 1, 'Keycap modded', 'bộ keycap'),
+('CDNL87DLXPACK', 'CDKB87DLXPACK', 'CFGKB87DELUXE', 'NL007', 1, 1, 'Đóng gói deluxe', 'bộ'),
+('CDNL108FILM', 'CDKB108FILM', NULL, 'NL005', 1, 1, 'Foam tiêu âm 108', 'bộ phim'),
+('CDNL108CASE', 'CDKB108CASE', NULL, 'NL004', 1, 1, 'Bộ vỏ CNC 108', 'bộ vỏ'),
+('CDNL108PCB', 'CDKB108PCB', NULL, 'NL002', 1, 1, 'PCB SV5TOT R3 108', 'bo mạch'),
+('CDNL108PACK', 'CDKB108PACK', NULL, 'NL007', 1, 1, 'Đóng gói 108', 'bộ'),
+('CDNL108SILFILM', 'CDKB108SILFILM', 'CFGKB108SILENT', 'NL005', 1, 1, 'Foam Silent', 'bộ phim'),
+('CDNL108SILSW', 'CDKB108SILSW', 'CFGKB108SILENT', 'NL006', 108, 108, 'Switch Silent Lavender', 'switch'),
+('CDNL108SILCASE', 'CDKB108SILCASE', 'CFGKB108SILENT', 'NL004', 1, 1, 'Vỏ Silent damping', 'bộ vỏ'),
+('CDNL108SILKEY', 'CDKB108SILKEY', 'CFGKB108SILENT', 'NL003', 1, 1, 'Keycap Silent', 'bộ keycap'),
+('CDNL108SILPACK', 'CDKB108SILPACK', 'CFGKB108SILENT', 'NL007', 1, 1, 'Đóng gói Silent', 'bộ'),
+('CDNLCUSTOMFILM', 'CDKBCUSTOMFILM', NULL, 'NL005', 1, 1, 'Foam kit', 'bộ phim'),
+('CDNLCUSTOMCASE', 'CDKBCUSTOMCASE', NULL, 'NL004', 1, 1, 'Vỏ kit', 'bộ vỏ'),
+('CDNLCUSTOMPCB', 'CDKBCUSTOMPCB', NULL, 'NL002', 1, 1, 'PCB kit', 'bo mạch'),
+('CDNLCUSTOMPACK', 'CDKBCUSTOMPACK', NULL, 'NL007', 1, 1, 'Đóng gói kit', 'bộ'),
+('CDNLKITRTLCASE', 'CDKITRETAILCASE', 'CFGKITRETAIL', 'NL004', 1, 1, 'Vỏ retail', 'bộ vỏ'),
+('CDNLKITRTLKEY', 'CDKITRETAILKEY', 'CFGKITRETAIL', 'NL003', 1, 1, 'Keycap retail', 'bộ keycap'),
+('CDNLKITRTLPCB', 'CDKITRETAILPCB', 'CFGKITRETAIL', 'NL002', 1, 1, 'PCB retail', 'bo mạch'),
+('CDNLKITRTLPACK', 'CDKITRETAILPACK', 'CFGKITRETAIL', 'NL007', 1, 1, 'Đóng gói retail', 'bộ'),
+('CDNLKITTECHCASE', 'CDKITTECHCASE', 'CFGKITTECH', 'NL004', 1, 1, 'Vỏ TechHub', 'bộ vỏ'),
+('CDNLKITTECHKEY', 'CDKITTECHKEY', 'CFGKITTECH', 'NL003', 1, 1, 'Keycap TechHub', 'bộ keycap'),
+('CDNLKITTECHPCB', 'CDKITTECHPCB', 'CFGKITTECH', 'NL002', 1, 1, 'PCB TechHub', 'bo mạch'),
+('CDNLKITTECHPACK', 'CDKITTECHPACK', 'CFGKITTECH', 'NL007', 1, 1, 'Đóng gói TechHub', 'bộ'),
+('CDNLKEYCAP01', 'CDKEYCAPMOLD', NULL, 'NL003', 1, 1, 'Keycap PBT Glacier', 'phím'),
+('CDNLKEYCAP02', 'CDKEYCAPMOLD02', NULL, 'NL003', 1, 1, 'Keycap PBT Glacier', 'phím'),
+('CDNLKEYCAP03', 'CDKEYCAPMOLD03', NULL, 'NL003', 1, 1, 'Keycap PBT Glacier', 'phím');
 
 -- --------------------------------------------------------
 
@@ -653,7 +718,9 @@ CREATE TABLE `cau_hinh_thong_bao` (
 INSERT INTO `cau_hinh_thong_bao` (`MaCauHinh`, `GiaTri`, `MoTa`) VALUES
 ('workshop_channel', 'workshop', 'Kênh thông báo đẩy tới xưởng'),
 ('warehouse_channel', 'warehouse', 'Kênh thông báo đẩy tới kho vận'),
-('warehouse_recipients', '["VT_NHANVIEN_KHO","VT_DOI_TAC_VAN_TAI"]', 'Các vai trò nhận thông báo kho vận');
+('warehouse_recipients', '["VT_NHANVIEN_KHO","VT_DOI_TAC_VAN_TAI"]', 'Các vai trò nhận thông báo kho vận'),
+('inventory_alert_channel', 'inventory_alert', 'Kênh cảnh báo thiếu hụt vật tư'),
+('inventory_alert_recipients', '["VT_QUANLY_XUONG","VT_NHANVIEN_KHO"]', 'Các vai trò nhận cảnh báo tồn kho');
 
 -- --------------------------------------------------------
 
@@ -932,14 +999,16 @@ ALTER TABLE `cau_hinh_san_pham`
 ALTER TABLE `cong_doan_nguyen_lieu`
   ADD PRIMARY KEY (`IdCongDoanNguyenLieu`),
   ADD KEY `FKCDNL_CONG_DOAN` (`IdCongDoan`),
-  ADD KEY `FKCDNL_NGUYEN_LIEU` (`IdNguyenLieu`);
+  ADD KEY `FKCDNL_NGUYEN_LIEU` (`IdNguyenLieu`),
+  ADD KEY `FKCDNL_CAU_HINH` (`IdCauHinh`);
 
 --
 -- Chỉ mục cho bảng `san_pham_cong_doan`
 --
 ALTER TABLE `san_pham_cong_doan`
   ADD PRIMARY KEY (`IdCongDoan`),
-  ADD KEY `FKSPCD_SANPHAM` (`IdSanPham`);
+  ADD KEY `FKSPCD_SANPHAM` (`IdSanPham`),
+  ADD KEY `FKSPCD_CAU_HINH` (`IdCauHinh`);
 
 --
 -- Chỉ mục cho bảng `bang_luong`
@@ -1049,7 +1118,8 @@ ALTER TABLE `ke_hoach_san_xuat`
 ALTER TABLE `ke_hoach_san_xuat_xuong`
   ADD PRIMARY KEY (`IdKeHoachSanXuatXuong`),
   ADD KEY `FKKE_HOACH_S948077` (`IdXuong`),
-  ADD KEY `FKKE_HOACH_S948390` (`IdKeHoachSanXuat`);
+  ADD KEY `FKKE_HOACH_S948390` (`IdKeHoachSanXuat`),
+  ADD KEY `FKKE_HOACH_CONG_DOAN` (`IdCongDoan`);
 
 --
 -- Chỉ mục cho bảng `khach_hang`
@@ -1201,13 +1271,15 @@ ALTER TABLE `cau_hinh_san_pham`
 --
 ALTER TABLE `cong_doan_nguyen_lieu`
   ADD CONSTRAINT `FKCDNL_CONG_DOAN` FOREIGN KEY (`IdCongDoan`) REFERENCES `san_pham_cong_doan` (`IdCongDoan`),
-  ADD CONSTRAINT `FKCDNL_NGUYEN_LIEU` FOREIGN KEY (`IdNguyenLieu`) REFERENCES `nguyen_lieu` (`IdNguyenLieu`);
+  ADD CONSTRAINT `FKCDNL_NGUYEN_LIEU` FOREIGN KEY (`IdNguyenLieu`) REFERENCES `nguyen_lieu` (`IdNguyenLieu`),
+  ADD CONSTRAINT `FKCDNL_CAU_HINH` FOREIGN KEY (`IdCauHinh`) REFERENCES `cau_hinh_san_pham` (`IdCauHinh`);
 
 --
 -- Các ràng buộc cho bảng `san_pham_cong_doan`
 --
 ALTER TABLE `san_pham_cong_doan`
-  ADD CONSTRAINT `FKSPCD_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`);
+  ADD CONSTRAINT `FKSPCD_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`),
+  ADD CONSTRAINT `FKSPCD_CAU_HINH` FOREIGN KEY (`IdCauHinh`) REFERENCES `cau_hinh_san_pham` (`IdCauHinh`);
 
 --
 -- Các ràng buộc cho bảng `ct_don_hang`
@@ -1261,7 +1333,8 @@ ALTER TABLE `ke_hoach_san_xuat`
 --
 ALTER TABLE `ke_hoach_san_xuat_xuong`
   ADD CONSTRAINT `FKKE_HOACH_S948077` FOREIGN KEY (`IdXuong`) REFERENCES `xuong` (`IdXuong`),
-  ADD CONSTRAINT `FKKE_HOACH_S948390` FOREIGN KEY (`IdKeHoachSanXuat`) REFERENCES `ke_hoach_san_xuat` (`IdKeHoachSanXuat`);
+  ADD CONSTRAINT `FKKE_HOACH_S948390` FOREIGN KEY (`IdKeHoachSanXuat`) REFERENCES `ke_hoach_san_xuat` (`IdKeHoachSanXuat`),
+  ADD CONSTRAINT `FKKE_HOACH_CONG_DOAN` FOREIGN KEY (`IdCongDoan`) REFERENCES `san_pham_cong_doan` (`IdCongDoan`);
 
 --
 -- Các ràng buộc cho bảng `kho`

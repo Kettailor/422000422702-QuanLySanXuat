@@ -13,6 +13,8 @@ class WorkshopPlan extends BaseModel
                        kx.ThoiGianBatDau,
                        kx.ThoiGianKetThuc,
                        kx.TrangThai,
+                       kx.TinhTrangVatTu,
+                       kx.IdCongDoan,
                        kx.IdKeHoachSanXuat,
                        kx.IdXuong,
                        xuong.TenXuong,
@@ -43,6 +45,8 @@ class WorkshopPlan extends BaseModel
                        kx.ThoiGianBatDau,
                        kx.ThoiGianKetThuc,
                        kx.TrangThai,
+                       kx.TinhTrangVatTu,
+                       kx.IdCongDoan,
                        kx.IdXuong,
                        xuong.TenXuong
                 FROM ke_hoach_san_xuat_xuong kx
@@ -65,6 +69,8 @@ class WorkshopPlan extends BaseModel
                        kx.ThoiGianBatDau,
                        kx.ThoiGianKetThuc,
                        kx.TrangThai,
+                       kx.TinhTrangVatTu,
+                       kx.IdCongDoan,
                        kx.IdKeHoachSanXuat,
                        kx.IdXuong,
                        xuong.TenXuong,
@@ -90,5 +96,60 @@ class WorkshopPlan extends BaseModel
         $plan = $stmt->fetch();
 
         return $plan ?: null;
+    }
+
+    public function getDashboardPlans(?string $workshopId = null): array
+    {
+        $conditions = [];
+        $params = [];
+
+        if ($workshopId) {
+            $conditions[] = 'kx.IdXuong = :workshopId';
+            $params[':workshopId'] = $workshopId;
+        }
+
+        $conditions[] = '(kx.TrangThai IS NULL OR kx.TrangThai NOT IN ("Hoàn thành", "Đã hủy"))';
+
+        $whereClause = '';
+        if (!empty($conditions)) {
+            $whereClause = 'WHERE ' . implode(' AND ', $conditions);
+        }
+
+        $sql = 'SELECT kx.IdKeHoachSanXuatXuong,
+                       kx.TenThanhThanhPhanSP,
+                       kx.SoLuong,
+                       kx.ThoiGianBatDau,
+                       kx.ThoiGianKetThuc,
+                       kx.TrangThai,
+                       kx.TinhTrangVatTu,
+                       kx.IdCongDoan,
+                       kx.IdKeHoachSanXuat,
+                       kx.IdXuong,
+                       xuong.TenXuong,
+                       ksx.SoLuong AS TongSoLuongKeHoach,
+                       san.TenSanPham,
+                       san.DonVi,
+                       cau.IdCauHinh,
+                       cau.TenCauHinh,
+                       don.IdDonHang,
+                       don.YeuCau
+                FROM ke_hoach_san_xuat_xuong kx
+                JOIN xuong ON xuong.IdXuong = kx.IdXuong
+                JOIN ke_hoach_san_xuat ksx ON ksx.IdKeHoachSanXuat = kx.IdKeHoachSanXuat
+                JOIN ct_don_hang ct ON ct.IdTTCTDonHang = ksx.IdTTCTDonHang
+                JOIN don_hang don ON don.IdDonHang = ct.IdDonHang
+                JOIN san_pham san ON san.IdSanPham = ct.IdSanPham
+                LEFT JOIN cau_hinh_san_pham cau ON cau.IdCauHinh = ct.IdCauHinh
+                ' . $whereClause . '
+                ORDER BY kx.ThoiGianBatDau ASC, kx.IdKeHoachSanXuatXuong';
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->execute();
+
+        return $stmt->fetchAll();
     }
 }
