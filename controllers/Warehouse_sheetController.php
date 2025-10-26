@@ -67,7 +67,7 @@ class Warehouse_sheetController extends Controller
             'IdKho' => $_POST['IdKho'] ?? null,
             'NHAN_VIENIdNhanVien' => $_POST['NguoiLap'] ?? null,
             'NHAN_VIENIdNhanVien2' => $_POST['NguoiXacNhan'] ?? null,
-        ];
+        ]];
 
         if (!$this->validateRequired($data)) {
             $this->setFlash('danger', 'Vui lòng điền đầy đủ thông tin bắt buộc của phiếu.');

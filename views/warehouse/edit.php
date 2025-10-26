@@ -31,8 +31,7 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
                 <select name="TrangThai" class="form-select">
                     <?php foreach ($statuses as $status): ?>
                         <option value="<?= htmlspecialchars($status) ?>" <?= $status === ($warehouse['TrangThai'] ?? '') ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
-                    <?php foreach (['Đang sử dụng', 'Tạm dừng', 'Bảo trì'] as $status): ?>
-                        <option value="<?= $status ?>" <?= $status === $warehouse['TrangThai'] ? 'selected' : '' ?>><?= $status ?></option>
+                  
                     <?php endforeach; ?>
                 </select>
             </div>
