@@ -40,6 +40,8 @@
                     <dl class="row mb-0">
                         <dt class="col-sm-5">Họ tên</dt>
                         <dd class="col-sm-7"><?= htmlspecialchars($customer['HoTen'] ?? '---') ?></dd>
+                        <dt class="col-sm-5">Công ty dự án</dt>
+                        <dd class="col-sm-7"><?= htmlspecialchars($customer['TenCongTy'] ?? '---') ?></dd>
                         <dt class="col-sm-5">Loại khách hàng</dt>
                         <dd class="col-sm-7"><?= htmlspecialchars($customer['LoaiKhachHang'] ?? '---') ?></dd>
                         <dt class="col-sm-5">Số điện thoại</dt>

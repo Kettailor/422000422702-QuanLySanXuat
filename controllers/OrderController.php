@@ -515,6 +515,7 @@ class OrderController extends Controller
                 throw new InvalidArgumentException('Vui lòng nhập tên khách hàng mới.');
             }
 
+            $company = trim($input['customer_company'] ?? '');
             $phone = trim($input['customer_phone'] ?? '');
             $email = trim($input['customer_email'] ?? '');
             $address = trim($input['customer_address'] ?? '');
@@ -524,6 +525,7 @@ class OrderController extends Controller
             $this->customerModel->create([
                 'IdKhachHang' => $customerId,
                 'HoTen' => $name,
+                'TenCongTy' => $company !== '' ? $company : $name,
                 'GioiTinh' => null,
                 'DiaChi' => $address ?: null,
                 'SoLuongDonHang' => 0,

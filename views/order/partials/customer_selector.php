@@ -24,7 +24,7 @@ $customerMode = $customerMode ?? 'existing';
             <?php foreach ($customers as $customer): ?>
                 <option value="<?= htmlspecialchars($customer['IdKhachHang']) ?>"
                     <?= $customer['IdKhachHang'] === $selectedCustomerId ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($customer['HoTen']) ?>
+                    <?= htmlspecialchars($customer['HoTen']) ?><?= !empty($customer['TenCongTy']) ? ' - ' . htmlspecialchars($customer['TenCongTy']) : '' ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -37,6 +37,13 @@ $customerMode = $customerMode ?? 'existing';
                        value="<?= htmlspecialchars($customerFormData['name'] ?? '') ?>"
                        <?= $customerMode === 'new' ? 'required' : 'disabled' ?>
                        placeholder="Nhập tên khách hàng hoặc doanh nghiệp">
+            </div>
+            <div class="col-12">
+                <label class="form-label">Tên công ty dự án</label>
+                <input type="text" class="form-control" name="customer_company"
+                       value="<?= htmlspecialchars($customerFormData['company'] ?? '') ?>"
+                       <?= $customerMode === 'new' ? '' : 'disabled' ?>
+                       placeholder="Ví dụ: Công ty TNHH ABC">
             </div>
             <div class="col-md-6">
                 <label class="form-label">Số điện thoại</label>

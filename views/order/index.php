@@ -26,6 +26,9 @@
                     <td class="fw-semibold">#<?= htmlspecialchars($order['IdDonHang']) ?></td>
                     <td>
                         <div class="fw-medium"><?= htmlspecialchars($order['TenKhachHang']) ?></div>
+                        <?php if (!empty($order['TenCongTy'])): ?>
+                            <div class="text-muted small">Công ty: <?= htmlspecialchars($order['TenCongTy']) ?></div>
+                        <?php endif; ?>
                         <div class="text-muted small"><?= htmlspecialchars($order['SoDienThoai'] ?? '') ?></div>
                         <?php if (!empty($order['EmailLienHe'] ?? '')): ?>
                             <div class="text-muted small"><?= htmlspecialchars($order['EmailLienHe']) ?></div>

@@ -463,6 +463,7 @@ DROP TABLE IF EXISTS `khach_hang`;
 CREATE TABLE `khach_hang` (
   `IdKhachHang` varchar(50) NOT NULL,
   `HoTen` varchar(255) DEFAULT NULL,
+  `TenCongTy` varchar(255) DEFAULT NULL,
   `GioiTinh` tinyint(3) DEFAULT NULL,
   `DiaChi` varchar(255) DEFAULT NULL,
   `SoLuongDonHang` int(10) DEFAULT NULL,
