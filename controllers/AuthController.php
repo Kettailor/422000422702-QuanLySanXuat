@@ -39,6 +39,7 @@ class AuthController extends Controller
 
     public function logout(): void
     {
+        Impersonation::clear();
         unset($_SESSION['user']);
         $this->setFlash('success', 'Đã đăng xuất.');
         $this->redirect('?controller=auth&action=login');
@@ -49,6 +50,7 @@ class AuthController extends Controller
         $user = $_SESSION['user'] ?? null;
         $employee = null;
         if ($user) {
+            $user = Impersonation::applyToUser($user);
             $employee = $this->employeeModel->find($user['IdNhanVien']);
         }
 
