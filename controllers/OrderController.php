@@ -59,7 +59,9 @@ class OrderController extends Controller
         try {
             $customerId = $this->resolveCustomer($_POST);
         } catch (InvalidArgumentException $exception) {
-            $this->setFlash('danger', $exception->getMessage());
+            Logger::error('Lỗi khi tạo đơn hàng: ' . $exception->getMessage());
+            /* $this->setFlash('danger', $exception->getMessage()); */
+            $this->setFlash('danger', 'Không thể tạo đơn hàng: Đã xảy ra lỗi, vui lòng kiểm tra log để biết thêm chi tiết.');
             $this->redirect('?controller=order&action=create');
             return;
         }
@@ -69,7 +71,7 @@ class OrderController extends Controller
             $db->beginTransaction();
 
             $preparedDetails = $this->prepareOrderDetails($orderId, $detailsInput);
-            $totalAmount = array_reduce($preparedDetails, static fn($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
+            $totalAmount = array_reduce($preparedDetails, static fn ($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
 
             $data = [
                 'IdDonHang' => $orderId,
@@ -93,7 +95,9 @@ class OrderController extends Controller
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
             }
-            $this->setFlash('danger', 'Không thể tạo đơn hàng: ' . $exception->getMessage());
+            Logger::error('Lỗi khi tạo đơn hàng: ' . $exception->getMessage());
+            /* $this->setFlash('danger', 'Không thể tạo đơn hàng: ' . $exception->getMessage()); */
+            $this->setFlash('danger', 'Không thể tạo đơn hàng, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=order&action=index');
@@ -146,7 +150,9 @@ class OrderController extends Controller
         try {
             $customerId = $this->resolveCustomer($_POST);
         } catch (InvalidArgumentException $exception) {
-            $this->setFlash('danger', $exception->getMessage());
+            Logger::error('Lỗi khi cập nhật đơn hàng: ' . $exception->getMessage());
+            /* $this->setFlash('danger', $exception->getMessage()); */
+            $this->setFlash('danger', 'Không thể cập nhật đơn hàng: Đã xảy ra lỗi, vui lòng kiểm tra log để biết thêm chi tiết.');
             $this->redirect('?controller=order&action=edit&id=' . urlencode($id));
             return;
         }
@@ -156,7 +162,7 @@ class OrderController extends Controller
             $db->beginTransaction();
 
             $preparedDetails = $this->prepareOrderDetails($id, $detailsInput);
-            $totalAmount = array_reduce($preparedDetails, static fn($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
+            $totalAmount = array_reduce($preparedDetails, static fn ($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
 
             $data = [
                 'YeuCau' => $_POST['YeuCau'] ?? null,
@@ -180,7 +186,9 @@ class OrderController extends Controller
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
             }
-            $this->setFlash('danger', 'Không thể cập nhật đơn hàng: ' . $exception->getMessage());
+            Logger::error('Lỗi khi cập nhật đơn hàng: ' . $exception->getMessage());
+            /* $this->setFlash('danger', 'Không thể cập nhật đơn hàng: ' . $exception->getMessage()); */
+            $this->setFlash('danger', 'Không thể cập nhật đơn hàng, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=order&action=index');
@@ -194,7 +202,9 @@ class OrderController extends Controller
                 $this->orderModel->delete($id);
                 $this->setFlash('success', 'Đã xóa đơn hàng.');
             } catch (Throwable $exception) {
-                $this->setFlash('danger', 'Không thể xóa đơn hàng: ' . $exception->getMessage());
+                Logger::error('Lỗi khi xóa đơn hàng ' . $id . ': ' . $exception->getMessage());
+                /* $this->setFlash('danger', 'Không thể xóa đơn hàng: ' . $exception->getMessage()); */
+                $this->setFlash('danger', 'Không thể xóa đơn hàng, vui lòng kiểm tra log để biết thêm chi tiết.');
             }
         }
 

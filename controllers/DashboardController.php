@@ -27,7 +27,7 @@ class DashboardController extends Controller
         $stats = [
             'totalWorkingDays' => 22,
             'participationRate' => count($employees),
-            'completedPlans' => array_reduce($plans, fn($carry, $plan) => $carry + ($plan['TrangThai'] === 'Hoàn thành' ? 1 : 0), 0),
+            'completedPlans' => array_reduce($plans, fn ($carry, $plan) => $carry + ($plan['TrangThai'] === 'Hoàn thành' ? 1 : 0), 0),
             'newNotifications' => count($activities),
         ];
 

@@ -57,7 +57,9 @@ class QualityController extends Controller
             $this->qualityModel->create($data);
             $this->setFlash('success', 'Đã tạo biên bản đánh giá.');
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể tạo biên bản: ' . $e->getMessage());
+            Logger::error('Lỗi khi tạo biên bản đánh giá: ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể tạo biên bản: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể tạo biên bản, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=quality&action=index');
@@ -92,7 +94,9 @@ class QualityController extends Controller
             $this->qualityModel->update($id, $data);
             $this->setFlash('success', 'Cập nhật biên bản thành công.');
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể cập nhật biên bản: ' . $e->getMessage());
+            Logger::error('Lỗi khi cập nhật biên bản ' . $id . ': ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể cập nhật biên bản: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể cập nhật biên bản, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=quality&action=index');
@@ -106,7 +110,9 @@ class QualityController extends Controller
                 $this->qualityModel->delete($id);
                 $this->setFlash('success', 'Đã xóa biên bản.');
             } catch (Throwable $e) {
-                $this->setFlash('danger', 'Không thể xóa biên bản: ' . $e->getMessage());
+                Logger::error('Lỗi khi xóa biên bản ' . $id . ': ' . $e->getMessage());
+                /* $this->setFlash('danger', 'Không thể xóa biên bản: ' . $e->getMessage()); */
+                $this->setFlash('danger', 'Không thể xóa biên bản, vui lòng kiểm tra log để biết thêm chi tiết.');
             }
         }
 

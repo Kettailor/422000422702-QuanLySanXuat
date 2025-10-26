@@ -77,7 +77,9 @@ class SalaryController extends Controller
             $this->salaryModel->create($data);
             $this->setFlash('success', 'Đã tạo bảng lương.');
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể tạo bảng lương: ' . $e->getMessage());
+            Logger::error('Lỗi khi tạo bảng lương: ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể tạo bảng lương: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể tạo bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=salary&action=index');
@@ -119,7 +121,9 @@ class SalaryController extends Controller
             $this->salaryModel->update($id, $data);
             $this->setFlash('success', 'Cập nhật bảng lương thành công.');
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể cập nhật bảng lương: ' . $e->getMessage());
+            Logger::error('Lỗi khi cập nhật bảng lương ' . $id . ': ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể cập nhật bảng lương: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể cập nhật bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=salary&action=index');
@@ -165,7 +169,9 @@ class SalaryController extends Controller
             $this->salaryModel->update($id, ['TongThuNhap' => $figures['net']]);
             $this->setFlash('success', 'Đã tính lại lương thực nhận.');
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể tính lại: ' . $e->getMessage());
+            Logger::error('Lỗi khi tính lại bảng lương ' . $id . ': ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể tính lại: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể tính lại bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=salary&action=read&id=' . urlencode($id));
@@ -179,7 +185,9 @@ class SalaryController extends Controller
                 $this->salaryModel->delete($id);
                 $this->setFlash('success', 'Đã xóa bảng lương.');
             } catch (Throwable $e) {
-                $this->setFlash('danger', 'Không thể xóa bảng lương: ' . $e->getMessage());
+                Logger::error('Lỗi khi xóa bảng lương ' . $id . ': ' . $e->getMessage());
+                /* $this->setFlash('danger', 'Không thể xóa bảng lương: ' . $e->getMessage()); */
+                $this->setFlash('danger', 'Không thể xóa bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
             }
         }
 
@@ -238,7 +246,9 @@ class SalaryController extends Controller
             };
             $this->setFlash('success', $message);
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể cập nhật trạng thái: ' . $e->getMessage());
+            Logger::error('Lỗi khi cập nhật trạng thái bảng lương ' . $id . ': ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể cập nhật trạng thái: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể cập nhật trạng thái bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=salary&action=index');

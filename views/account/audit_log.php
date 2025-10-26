@@ -15,7 +15,17 @@
           <tr>
             <td><?php echo htmlspecialchars($log['date']); ?></td>
             <td>
-              <span class="badge bg-<?php echo $log['level'] === 'INFO' ? 'info' : ($log['level'] === 'ERROR' ? 'danger' : 'secondary'); ?>">
+              <span class="badge bg-<?php
+                  if ($log['level'] === 'INFO') {
+                      echo 'info';
+                  } elseif ($log['level'] === 'ERROR') {
+                      echo 'danger';
+                  } elseif ($log['level'] === 'WARN') {
+                      echo 'warning';
+                  } elseif ($log['level'] === 'DEBUG') {
+                      echo 'secondary';
+                  }
+            ?>">
                   <?php echo htmlspecialchars($log['level']); ?>
               </span>
             </td>

@@ -135,7 +135,9 @@ class PlanController extends Controller
             }
             $this->setFlash('success', 'Đã lập kế hoạch sản xuất và giao nhiệm vụ cho các xưởng.');
         } catch (Throwable $exception) {
-            $this->setFlash('danger', 'Không thể tạo kế hoạch: ' . $exception->getMessage());
+            Logger::error('Lỗi khi tạo kế hoạch sản xuất: ' . $exception->getMessage());
+            /* $this->setFlash('danger', 'Không thể tạo kế hoạch: ' . $exception->getMessage()); */
+            $this->setFlash('danger', 'Không thể tạo kế hoạch, vui lòng kiểm tra log để biết thêm chi tiết.');
             $this->redirect('?controller=plan&action=create&order_detail_id=' . urlencode($orderDetailId));
             return;
         }
@@ -168,7 +170,9 @@ class PlanController extends Controller
             $this->planModel->delete($id);
             $this->setFlash('success', 'Đã xóa kế hoạch sản xuất.');
         } catch (Throwable $exception) {
-            $this->setFlash('danger', 'Không thể xóa kế hoạch: ' . $exception->getMessage());
+            Logger::error('Lỗi khi xóa kế hoạch sản xuất ' . $id . ': ' . $exception->getMessage());
+            /* $this->setFlash('danger', 'Không thể xóa kế hoạch: ' . $exception->getMessage()); */
+            $this->setFlash('danger', 'Không thể xóa kế hoạch, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=plan&action=index');

@@ -67,6 +67,11 @@ class Logger
         self::log($message, 'WARN');
     }
 
+    public static function debug($message): void
+    {
+        self::log($message, 'DEBUG');
+    }
+
     public static function login($username): void
     {
         $date = date('Y-m-d');

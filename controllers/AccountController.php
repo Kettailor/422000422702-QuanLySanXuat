@@ -65,7 +65,7 @@ class AccountController extends Controller
                 $this->redirect('?controller=account&action=index');
             } catch (Exception $e) {
                 Logger::error('Lỗi khi tạo tài khoản: ' . $e->getMessage());
-                $this->setFlash('danger', 'Đã xảy ra lỗi khi tạo tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể tạo tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
                 $this->redirect('?controller=account&action=create');
             }
         }
@@ -110,7 +110,7 @@ class AccountController extends Controller
                 $this->redirect('?controller=account&action=index');
             } catch (Exception $e) {
                 Logger::error('Lỗi khi cập nhật tài khoản ' . $id . ': ' . $e->getMessage());
-                $this->setFlash('danger', 'Đã xảy ra lỗi khi cập nhật tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể cập nhật tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
                 $this->redirect("?controller=account&action=edit&id=$id");
             }
         }
@@ -139,7 +139,7 @@ class AccountController extends Controller
                     $this->setFlash('success', 'Cập nhật trạng thái tài khoản thành công.');
                 } catch (Exception $e) {
                     Logger::error('Lỗi khi cập nhật trạng thái tài khoản ' . $id . ': ' . $e->getMessage());
-                    $this->setFlash('danger', 'Đã xảy ra lỗi khi cập nhật trạng thái tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                    $this->setFlash('danger', 'Không thể cập nhật trạng thái tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
                 }
             }
         }
@@ -171,7 +171,7 @@ class AccountController extends Controller
             $this->redirect('?controller=account&action=index');
         } catch (Exception $e) {
             Logger::error('Lỗi khi xóa tài khoản ' . $id . ': ' . $e->getMessage());
-            $this->setFlash('danger', 'Đã xảy ra lỗi khi xóa tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể xóa tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
             $this->redirect('?controller=account&action=index');
         }
     }
