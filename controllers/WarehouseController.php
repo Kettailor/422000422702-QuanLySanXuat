@@ -29,7 +29,10 @@ class WarehouseController extends Controller
         $warehouseGroups = $this->warehouseModel->groupWarehousesByType($warehouses, $summary['by_type'] ?? []);
         $employees = $this->employeeModel->getActiveEmployees();
         $entryForms = $this->buildWarehouseEntryForms($warehouseGroups);
+<<<<<<< HEAD
         $products = $this->getProductOptionsByType();
+=======
+>>>>>>> eaf2c11 (feat: organize warehouses by type with intake forms)
         $this->render('warehouse/index', [
             'title' => 'Kho & tồn kho',
             'warehouses' => $warehouses,
@@ -38,7 +41,10 @@ class WarehouseController extends Controller
             'warehouseGroups' => $warehouseGroups,
             'warehouseEntryForms' => $entryForms,
             'employees' => $employees,
+<<<<<<< HEAD
             'productOptionsByType' => $products,
+=======
+>>>>>>> eaf2c11 (feat: organize warehouses by type with intake forms)
         ]);
     }
 
@@ -475,6 +481,50 @@ class WarehouseController extends Controller
         }
 
         return trim(preg_replace('/\s+/', ' ', $value));
+    }
+
+    private function buildWarehouseEntryForms(array $warehouseGroups): array
+    {
+        $definitions = [
+            'material' => [
+                'documentType' => 'Phiếu nhập nguyên liệu',
+                'submitLabel' => 'Thêm nguyên liệu',
+                'description' => 'Ghi nhận nguyên vật liệu về kho để phục vụ sản xuất.',
+                'prefix' => 'PNNL',
+            ],
+            'finished' => [
+                'documentType' => 'Phiếu nhập thành phẩm',
+                'submitLabel' => 'Thêm thành phẩm',
+                'description' => 'Bổ sung thành phẩm hoàn thiện vào kho chuẩn bị xuất bán.',
+                'prefix' => 'PNTP',
+            ],
+            'quality' => [
+                'documentType' => 'Phiếu nhập xử lý lỗi',
+                'submitLabel' => 'Nhận hàng lỗi',
+                'description' => 'Tiếp nhận sản phẩm lỗi cần xử lý, phân loại.',
+                'prefix' => 'PNXL',
+            ],
+        ];
+
+        $forms = [];
+
+        foreach ($warehouseGroups as $key => $group) {
+            if (!isset($definitions[$key])) {
+                continue;
+            }
+
+            $definition = $definitions[$key];
+            $forms[$key] = [
+                'document_type' => $definition['documentType'],
+                'document_id' => $this->sheetModel->generateDocumentId($definition['documentType']),
+                'submit_label' => $definition['submitLabel'],
+                'description' => $definition['description'],
+                'modal_title' => $definition['submitLabel'] . ' vào ' . ($group['label'] ?? 'kho'),
+                'prefix' => $definition['prefix'],
+            ];
+        }
+
+        return $forms;
     }
 
     private function buildDocumentGroups(array $documents): array
