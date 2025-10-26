@@ -10,7 +10,6 @@ class InventorySheet extends BaseModel
      */
     public function getDocuments(?string $filterType = null, int $limit = 50): array
     {
-<<<<<<< HEAD
         $conditions = [];
         $params = [];
 
@@ -54,12 +53,6 @@ class InventorySheet extends BaseModel
                 ) AS item_stats ON item_stats.IdPhieu = PHIEU.IdPhieu
                 ' . $whereClause . '
                 ORDER BY PHIEU.NgayLP DESC, PHIEU.IdPhieu DESC
-=======
-        $sql = 'SELECT phieu.*, kho.TenKho
-                FROM phieu
-                JOIN kho ON kho.IdKho = phieu.IdKho
-                ORDER BY NgayLP DESC
->>>>>>> 65075f83681f452199a37e66bf195847eea6c888
                 LIMIT :limit';
 
         $stmt = $this->db->prepare($sql);
