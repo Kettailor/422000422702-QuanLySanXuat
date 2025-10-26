@@ -536,7 +536,10 @@ INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `IdSanPham`, 
 ('LOKEY202311', 'Lô keycap PBT Glacier 11/2023', 600, '2023-11-04 09:20:00', 'Linh kiện', 'SPCOMP03', 'KHO01'),
 ('LOTP202309', 'Lô SV5TOT 87 hoàn thiện 09/2023', 500, '2023-09-10 08:00:00', 'Thành phẩm', 'SPKB87', 'KHO02'),
 ('LOTP202310', 'Lô SV5TOT 108 hoàn thiện 10/2023', 600, '2023-10-05 09:00:00', 'Thành phẩm', 'SPKB108', 'KHO02'),
-('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02');
+('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02'),
+('LOFOAM202310', 'Lô foam Poron 10/2023', 400, '2023-10-08 09:15:00', 'Linh kiện', 'SPCOMP04', 'KHO01'),
+('LOTAPE202310', 'Lô băng keo 3M 10/2023', 350, '2023-10-08 09:20:00', 'Linh kiện', 'SPCOMP05', 'KHO01'),
+('LOBADGE202311', 'Lô badge TechHub 11/2023', 300, '2023-11-05 09:25:00', 'Linh kiện', 'SPCOMP06', 'KHO01');
 
 -- --------------------------------------------------------
 
@@ -612,6 +615,7 @@ DROP TABLE IF EXISTS `san_pham_cong_doan`;
 
 CREATE TABLE `san_pham_cong_doan` (
   `IdCongDoan` varchar(50) NOT NULL,
+  `IdBOM` varchar(50) DEFAULT NULL,
   `IdSanPham` varchar(50) DEFAULT NULL,
   `IdCauHinh` varchar(50) DEFAULT NULL,
   `TenCongDoan` varchar(255) DEFAULT NULL,
@@ -851,7 +855,37 @@ INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VA
 ('SPKBCUSTOM', 'SV5TOT DIY Kit', 'Bộ', 1950000, 'Bộ kit custom layout 75% với PCB hotswap'),
 ('SPCOMP01', 'Switch Lotus Linear', 'Hộp', 450000, 'Hộp 90 switch linear Lotus được bôi trơn sẵn'),
 ('SPCOMP02', 'PCB SV5TOT R3', 'Tấm', 520000, 'PCB hotswap hỗ trợ layout 87/88 phím'),
-('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier');
+('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier'),
+('SPCOMP04', 'Foam Poron 87%', 'Bộ', 120000, 'Foam Poron 3 lớp cho layout 87%'),
+('SPCOMP05', 'Băng keo 3M 9495LE', 'Cuộn', 90000, 'Băng keo 3M 9495LE cho tape mod plate'),
+('SPCOMP06', 'Badge TechHub đồng', 'Chiếc', 150000, 'Badge đồng khắc laser logo TechHub');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `product_components`
+--
+
+DROP TABLE IF EXISTS `product_components`;
+
+CREATE TABLE `product_components` (
+  `IdBOM` varchar(50) NOT NULL,
+  `TenBOM` varchar(255) DEFAULT NULL,
+  `MoTa` text DEFAULT NULL,
+  `IdSanPham` varchar(50) NOT NULL,
+  PRIMARY KEY (`IdBOM`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `product_components`
+--
+
+INSERT INTO `product_components` (`IdBOM`, `TenBOM`, `MoTa`, `IdSanPham`) VALUES
+('BOMKB87FULL', 'BOM SV5TOT 87 Full kit', 'BOM chuẩn 87% gồm foam Poron và switch Lotus lube sẵn', 'SPKB87'),
+('BOMKB87DELUXE', 'BOM SV5TOT 87 Tape mod', 'BOM tape mod bổ sung foam PE và băng keo cho plate', 'SPKB87'),
+('BOMKB108SILENT', 'BOM SV5TOT 108 Silent', 'BOM 108 phím sử dụng switch Silent và foam silicone', 'SPKB108'),
+('BOMKITRETAIL', 'BOM kit DIY bán lẻ', 'BOM đóng gói retail đầy đủ phụ kiện custom', 'SPKBCUSTOM'),
+('BOMKITTECH', 'BOM kit TechHub branding', 'BOM in logo TechHub, kèm keycap và plate branding', 'SPKBCUSTOM');
 
 -- --------------------------------------------------------
 
@@ -866,19 +900,24 @@ CREATE TABLE `cau_hinh_san_pham` (
   `TenCauHinh` varchar(255) DEFAULT NULL,
   `MoTa` text DEFAULT NULL,
   `GiaBan` float DEFAULT NULL,
-  `IdSanPham` varchar(50) NOT NULL
+  `IdSanPham` varchar(50) NOT NULL,
+  `IdBOM` varchar(50) NOT NULL,
+  `Layout` varchar(100) DEFAULT NULL,
+  `SwitchType` varchar(100) DEFAULT NULL,
+  `CaseType` varchar(100) DEFAULT NULL,
+  `Foam` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `cau_hinh_san_pham`
 --
 
-INSERT INTO `cau_hinh_san_pham` (`IdCauHinh`, `TenCauHinh`, `MoTa`, `GiaBan`, `IdSanPham`) VALUES
-('CFGKB87RGB', 'Layout 87 RGB tiêu chuẩn', 'Foam tiêu âm, switch Lotus lube sẵn', 2450000, 'SPKB87'),
-('CFGKB87DELUXE', 'Layout 87 tape mod', 'Tape mod và foam bổ sung cho bản 87', 2480000, 'SPKB87'),
-('CFGKB108SILENT', 'Layout 108 Silent phòng thu', 'Switch Silent và stabilizer bôi trơn', 2680000, 'SPKB108'),
-('CFGKITRETAIL', 'Kit DIY bán lẻ', 'Đóng gói đầy đủ phụ kiện retail', 1950000, 'SPKBCUSTOM'),
-('CFGKITTECH', 'Kit TechHub branding', 'Keycap và plate in logo TechHub', 1950000, 'SPKBCUSTOM');
+INSERT INTO `cau_hinh_san_pham` (`IdCauHinh`, `TenCauHinh`, `MoTa`, `GiaBan`, `IdSanPham`, `IdBOM`, `Layout`, `SwitchType`, `CaseType`, `Foam`) VALUES
+('CFGKB87RGB', 'Layout 87 RGB tiêu chuẩn', 'Foam tiêu âm, switch Lotus lube sẵn', 2450000, 'SPKB87', 'BOMKB87FULL', '87% TKL', 'Lotus Linear', 'Nhôm anod xước hairline', 'Poron 3 lớp'),
+('CFGKB87DELUXE', 'Layout 87 tape mod', 'Tape mod và foam bổ sung cho bản 87', 2480000, 'SPKB87', 'BOMKB87DELUXE', '87% TKL', 'Lotus Linear', 'Nhôm + tape mod', 'Poron + PE film'),
+('CFGKB108SILENT', 'Layout 108 Silent phòng thu', 'Switch Silent và stabilizer bôi trơn', 2680000, 'SPKB108', 'BOMKB108SILENT', 'Fullsize 108', 'Silent tactile', 'ABS foam tiêu âm', 'Silicone đúc khuôn'),
+('CFGKITRETAIL', 'Kit DIY bán lẻ', 'Đóng gói đầy đủ phụ kiện retail', 1950000, 'SPKBCUSTOM', 'BOMKITRETAIL', '75% compact', 'Không kèm switch', 'Nhôm CNC phủ sơn', 'EVA 2 lớp'),
+('CFGKITTECH', 'Kit TechHub branding', 'Keycap và plate in logo TechHub', 1950000, 'SPKBCUSTOM', 'BOMKITTECH', '75% compact', 'Không kèm switch', 'Nhôm CNC in logo TechHub', 'EVA 2 lớp + badge đồng');
 
 -- --------------------------------------------------------
 
@@ -1028,7 +1067,14 @@ INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `SlThietBi`, `SlNhanVien`, `TenQuyTr
 --
 ALTER TABLE `cau_hinh_san_pham`
   ADD PRIMARY KEY (`IdCauHinh`),
-  ADD KEY `FKCAU_HINH_SANPHAM` (`IdSanPham`);
+  ADD KEY `FKCAU_HINH_SANPHAM` (`IdSanPham`),
+  ADD KEY `FKCAU_HINH_BOM` (`IdBOM`);
+
+--
+-- Chỉ mục cho bảng `product_components`
+--
+ALTER TABLE `product_components`
+  ADD KEY `FK_BOM_SANPHAM` (`IdSanPham`);
 
 --
 -- Chỉ mục cho bảng `cong_doan_nguyen_lieu`
@@ -1331,7 +1377,8 @@ ALTER TABLE `lich_su_ke_hoach_xuong`
 -- Các ràng buộc cho bảng `cau_hinh_san_pham`
 --
 ALTER TABLE `cau_hinh_san_pham`
-  ADD CONSTRAINT `FKCAU_HINH_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`);
+  ADD CONSTRAINT `FKCAU_HINH_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`),
+  ADD CONSTRAINT `FKCAU_HINH_BOM` FOREIGN KEY (`IdBOM`) REFERENCES `product_components` (`IdBOM`);
 
 --
 -- Các ràng buộc cho bảng `cong_doan_nguyen_lieu`

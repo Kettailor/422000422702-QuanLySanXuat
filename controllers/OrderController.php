@@ -9,6 +9,9 @@ class OrderController extends Controller
     private ProductionPlan $planModel;
     private Bill $billModel;
     private ProductConfiguration $configurationModel;
+    private ProductBom $bomModel;
+    private ProductComponent $componentModel;
+    private ProductComponentMaterial $componentMaterialModel;
 
     private array $orderStatuses = ['Mới tạo', 'Chờ duyệt', 'Đang xử lý', 'Chờ giao', 'Hoàn thành', 'Đã hủy'];
     private array $planStatuses = ['Mới tạo', 'Đang lập kế hoạch', 'Chuẩn bị nguyên liệu', 'Đang triển khai', 'Tạm dừng', 'Hoàn thành'];
@@ -24,6 +27,9 @@ class OrderController extends Controller
         $this->planModel = new ProductionPlan();
         $this->billModel = new Bill();
         $this->configurationModel = new ProductConfiguration();
+        $this->bomModel = new ProductBom();
+        $this->componentModel = new ProductComponent();
+        $this->componentMaterialModel = new ProductComponentMaterial();
     }
 
     public function index(): void
@@ -40,11 +46,13 @@ class OrderController extends Controller
         $customers = $this->customerModel->all(100);
         $products = $this->productModel->all(200);
         $configurations = $this->configurationModel->all(500);
+        $bomSummaries = $this->buildBomSummaries();
         $this->render('order/create', [
             'title' => 'Tạo đơn hàng mới',
             'customers' => $customers,
             'products' => $products,
             'configurations' => $configurations,
+            'boms' => $bomSummaries,
             'orderStatuses' => $this->orderStatuses,
             'planStatuses' => $this->planStatuses,
             'billStatuses' => $this->billStatuses,
@@ -114,6 +122,7 @@ class OrderController extends Controller
         $products = $this->productModel->all(200);
         $configurations = $this->configurationModel->all(500);
         $orderDetails = $id ? $this->orderDetailModel->getByOrder($id) : [];
+        $bomSummaries = $this->buildBomSummaries();
 
         $this->render('order/edit', [
             'title' => 'Chỉnh sửa đơn hàng',
@@ -122,6 +131,7 @@ class OrderController extends Controller
             'products' => $products,
             'configurations' => $configurations,
             'orderDetails' => $orderDetails,
+            'boms' => $bomSummaries,
             'orderStatuses' => $this->orderStatuses,
             'planStatuses' => $this->planStatuses,
             'billStatuses' => $this->billStatuses,
@@ -269,6 +279,48 @@ class OrderController extends Controller
         $this->redirect('?controller=order&action=read&id=' . urlencode($orderId));
     }
 
+    private function buildBomSummaries(): array
+    {
+        $summaries = [];
+        $boms = $this->bomModel->all(500);
+
+        foreach ($boms as $bom) {
+            $bomId = $bom['IdBOM'] ?? null;
+            if (!$bomId) {
+                continue;
+            }
+
+            $steps = $this->componentModel->getByBom($bomId);
+            $stepSummaries = [];
+
+            foreach ($steps as $step) {
+                $materials = $this->componentMaterialModel->getMaterialsForComponent($step['IdCongDoan']);
+                $stepSummaries[] = [
+                    'id' => $step['IdCongDoan'],
+                    'name' => $step['TenCongDoan'],
+                    'unit' => $step['DonVi'],
+                    'quantity_per_unit' => $step['TyLeSoLuong'],
+                    'workshop' => $step['IdXuong'],
+                    'logistics_key' => $step['LogisticsKey'],
+                    'logistics_label' => $step['LogisticsLabel'],
+                    'include_request' => (bool) ($step['IncludeYeuCau'] ?? false),
+                    'order' => (int) ($step['ThuTu'] ?? 0),
+                    'materials' => $materials,
+                ];
+            }
+
+            $summaries[$bomId] = [
+                'id' => $bomId,
+                'product_id' => $bom['IdSanPham'] ?? null,
+                'name' => $bom['TenBOM'] ?? $bomId,
+                'description' => $bom['MoTa'] ?? null,
+                'steps' => $stepSummaries,
+            ];
+        }
+
+        return $summaries;
+    }
+
     private function prepareOrderDetails(string $orderId, array $detailsInput): array
     {
         $prepared = [];
@@ -292,13 +344,47 @@ class OrderController extends Controller
                     throw new InvalidArgumentException('Tên cấu hình mới không được để trống.');
                 }
 
+                $layout = trim($detail['new_configuration_layout'] ?? '') ?: null;
+                $switchType = trim($detail['new_configuration_switch'] ?? '') ?: null;
+                $caseType = trim($detail['new_configuration_case'] ?? '') ?: null;
+                $foam = trim($detail['new_configuration_foam'] ?? '') ?: null;
+                $bomTemplate = trim($detail['new_configuration_bom_template'] ?? '') ?: null;
+
+                if ($bomTemplate) {
+                    $templateBom = $this->bomModel->find($bomTemplate);
+                    if (!$templateBom) {
+                        throw new InvalidArgumentException('Preset BOM không tồn tại.');
+                    }
+                    if (($templateBom['IdSanPham'] ?? null) !== $productId) {
+                        throw new InvalidArgumentException('Preset BOM không thuộc sản phẩm đã chọn.');
+                    }
+                }
+
                 $configurationId = uniqid('CFG');
+                $bomId = uniqid('BOM');
+                $bomName = sprintf('%s - BOM', $configurationName);
+                $bomDescription = $detail['new_configuration_description'] ?? null;
+
+                $this->bomModel->create([
+                    'IdBOM' => $bomId,
+                    'TenBOM' => $bomName,
+                    'MoTa' => $bomDescription ?: sprintf('BOM tự tạo cho %s', $configurationName),
+                    'IdSanPham' => $productId,
+                ]);
+
+                $this->cloneBomStructure($productId, $bomId, $bomTemplate);
+
                 $this->configurationModel->create([
                     'IdCauHinh' => $configurationId,
                     'TenCauHinh' => $configurationName,
                     'MoTa' => $detail['new_configuration_description'] ?? null,
                     'GiaBan' => (float) ($detail['new_configuration_price'] ?? 0),
                     'IdSanPham' => $productId,
+                    'IdBOM' => $bomId,
+                    'Layout' => $layout,
+                    'SwitchType' => $switchType,
+                    'CaseType' => $caseType,
+                    'Foam' => $foam,
                 ]);
             } else {
                 if (!$configurationId) {
@@ -312,6 +398,15 @@ class OrderController extends Controller
 
                 if (($configuration['IdSanPham'] ?? null) !== $productId) {
                     throw new InvalidArgumentException('Cấu hình không thuộc sản phẩm đã chọn.');
+                }
+
+                $bomId = $configuration['IdBOM'] ?? null;
+                if (!$bomId) {
+                    throw new InvalidArgumentException('Cấu hình chưa được gắn với BOM.');
+                }
+
+                if (!$this->bomModel->find($bomId)) {
+                    throw new InvalidArgumentException('BOM của cấu hình đã chọn không tồn tại.');
                 }
             }
 
@@ -353,6 +448,70 @@ class OrderController extends Controller
         }
 
         return $prepared;
+    }
+
+    private function cloneBomStructure(string $productId, string $targetBomId, ?string $sourceBomId = null): void
+    {
+        $components = [];
+
+        if ($sourceBomId) {
+            $components = $this->componentModel->getByBom($sourceBomId);
+        }
+
+        if (empty($components)) {
+            $components = $this->componentModel->getByProduct($productId);
+        }
+
+        if (empty($components) && $productId) {
+            $existingBoms = $this->bomModel->getByProduct($productId);
+            foreach ($existingBoms as $existingBom) {
+                $existingId = $existingBom['IdBOM'] ?? null;
+                if (!$existingId || $existingId === $targetBomId) {
+                    continue;
+                }
+                $components = $this->componentModel->getByBom($existingId);
+                if (!empty($components)) {
+                    break;
+                }
+            }
+        }
+
+        if (empty($components)) {
+            return;
+        }
+
+        foreach ($components as $component) {
+            $newComponentId = uniqid('CD');
+
+            $componentData = [
+                'IdCongDoan' => $newComponentId,
+                'IdBOM' => $targetBomId,
+                'IdSanPham' => $productId,
+                'TenCongDoan' => $component['TenCongDoan'] ?? null,
+                'TyLeSoLuong' => $component['TyLeSoLuong'] ?? 1,
+                'DonVi' => $component['DonVi'] ?? null,
+                'IdXuong' => $component['IdXuong'] ?? null,
+                'TrangThaiMacDinh' => $component['TrangThaiMacDinh'] ?? null,
+                'LogisticsKey' => $component['LogisticsKey'] ?? null,
+                'LogisticsLabel' => $component['LogisticsLabel'] ?? null,
+                'IncludeYeuCau' => $component['IncludeYeuCau'] ?? 0,
+                'ThuTu' => $component['ThuTu'] ?? 0,
+            ];
+
+            $this->componentModel->create($componentData);
+
+            $materials = $this->componentMaterialModel->getRawByComponent($component['IdCongDoan']);
+            foreach ($materials as $material) {
+                $this->componentMaterialModel->create([
+                    'IdCongDoanNguyenLieu' => uniqid('CDML'),
+                    'IdCongDoan' => $newComponentId,
+                    'IdNguyenLieu' => $material['IdNguyenLieu'],
+                    'TyLeSoLuong' => $material['TyLeSoLuong'] ?? 1,
+                    'Nhan' => $material['Nhan'] ?? null,
+                    'DonVi' => $material['DonVi'] ?? null,
+                ]);
+            }
+        }
     }
 
     private function resolveCustomer(array $input, ?string $fallbackCustomerId = null): string
