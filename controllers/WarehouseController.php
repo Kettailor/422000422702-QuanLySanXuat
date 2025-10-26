@@ -392,6 +392,15 @@ class WarehouseController extends Controller
         return true;
     }
 
+    private function resolveLotPrefix(string $type): string
+    {
+        return match ($type) {
+            'finished' => 'LOTP',
+            'quality' => 'LOXL',
+            default => 'LONL',
+        };
+    }
+
     private function documentTypeStartsWith(?string $type, string $needle): bool
     {
         if ($type === null || $type === '') {
