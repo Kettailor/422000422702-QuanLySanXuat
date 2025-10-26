@@ -1,5 +1,15 @@
 <?php
 $user = $_SESSION['user'] ?? null;
+$actualRole = null;
+$isImpersonating = false;
+
+if ($user) {
+    $user = Impersonation::applyToUser($user);
+    $actualRole = $user['ActualIdVaiTro'] ?? ($user['OriginalIdVaiTro'] ?? ($user['IdVaiTro'] ?? null));
+    $isImpersonating = !empty($user['IsImpersonating']);
+} else {
+    $user = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
