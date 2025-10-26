@@ -63,6 +63,7 @@ class PlanController extends Controller
             'selectedOrderDetailId' => $selectedOrderDetailId,
             'selectedOrderDetail' => $selectedOrderDetail,
             'componentAssignments' => $componentAssignments,
+            'configurationDetails' => $selectedOrderDetail ? $this->buildConfigurationDetails($selectedOrderDetail) : [],
             'workshops' => $this->workshopModel->getAllWithManagers(),
             'currentUser' => $currentUser,
         ]);
@@ -207,6 +208,7 @@ class PlanController extends Controller
 
         $components = $this->componentModel->getComponentsForProductConfiguration($productId, $configurationId);
         $assignments = [];
+        $configurationDetails = $this->buildConfigurationDetails($orderDetail);
 
         foreach ($components as $component) {
             $ratioRaw = $component['TyLeSoLuong'] ?? $component['quantity_per_unit'] ?? 1;
@@ -242,7 +244,79 @@ class PlanController extends Controller
                 'configuration_label' => $orderDetail['TenCauHinh'] ?? null,
                 'unit' => $orderDetail['DonVi'] ?? 'sp',
                 'default_status' => 'Đang chuẩn bị',
+                'configuration_details' => $configurationDetails,
+                'detail_key' => null,
+                'detail_value' => null,
             ];
+        }
+
+        return $this->appendConfigurationDetailAssignments($assignments, $configurationDetails, max(1, $quantity), $orderDetail);
+    }
+
+    private function buildConfigurationDetails(array $orderDetail): array
+    {
+        $mapping = [
+            'Layout' => 'Layout',
+            'SwitchType' => 'Switch',
+            'CaseType' => 'Case',
+            'Foam' => 'Foam',
+        ];
+
+        $details = [];
+
+        foreach ($mapping as $field => $label) {
+            $value = trim((string) ($orderDetail[$field] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $details[] = [
+                'key' => $field,
+                'label' => $label,
+                'value' => $value,
+            ];
+        }
+
+        return $details;
+    }
+
+    private function appendConfigurationDetailAssignments(array $assignments, array $configurationDetails, int $quantity, array $orderDetail): array
+    {
+        if (empty($configurationDetails)) {
+            return $assignments;
+        }
+
+        $normalizer = static function (string $value): string {
+            return function_exists('mb_strtolower') ? mb_strtolower($value) : strtolower($value);
+        };
+
+        $existingLabels = array_map(function (array $assignment) use ($normalizer): string {
+            return $normalizer((string) ($assignment['label'] ?? ''));
+        }, $assignments);
+
+        foreach ($configurationDetails as $detail) {
+            $displayLabel = sprintf('%s: %s', $detail['label'], $detail['value']);
+            if (in_array($normalizer($displayLabel), $existingLabels, true)) {
+                continue;
+            }
+
+            $assignments[] = [
+                'id' => null,
+                'configuration_id' => $orderDetail['IdCauHinh'] ?? null,
+                'label' => $displayLabel,
+                'category' => 'configuration-detail',
+                'default_quantity' => $quantity,
+                'quantity_ratio' => 1.0,
+                'default_workshop' => $orderDetail['IdXuongChinh'] ?? null,
+                'configuration_label' => $orderDetail['TenCauHinh'] ?? null,
+                'unit' => $orderDetail['DonVi'] ?? 'sp',
+                'default_status' => 'Đang chuẩn bị',
+                'configuration_details' => $configurationDetails,
+                'detail_key' => $detail['key'],
+                'detail_value' => $detail['value'],
+            ];
+
+            $existingLabels[] = $normalizer($displayLabel);
         }
 
         return $assignments;
