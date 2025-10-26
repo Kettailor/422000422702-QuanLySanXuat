@@ -3,6 +3,7 @@ $pendingOrders = $pendingOrders ?? [];
 $selectedOrderDetailId = $selectedOrderDetailId ?? null;
 $selectedOrderDetail = $selectedOrderDetail ?? null;
 $componentAssignments = $componentAssignments ?? [];
+$configurationDetails = $configurationDetails ?? [];
 $workshops = $workshops ?? [];
 $currentUser = $currentUser ?? null;
 
@@ -30,6 +31,16 @@ $toDateTimeInput = static function (?string $value, string $fallback = ''): stri
 $defaultStart = date('Y-m-d\TH:i');
 $defaultEnd = $toDateTimeInput($selectedOrderDetail['NgayGiao'] ?? null, date('Y-m-d\TH:i', strtotime('+7 days')));
 $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
+$configurationHeaders = [
+    'Layout' => 'Layout',
+    'SwitchType' => 'Switch',
+    'CaseType' => 'Case',
+    'Foam' => 'Foam',
+];
+$configurationLookup = [];
+foreach ($configurationDetails as $detail) {
+    $configurationLookup[$detail['key']] = $detail['value'];
+}
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
@@ -138,14 +149,41 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                 <div class="border rounded-3 p-3 bg-light-subtle">
                                     <div class="fw-semibold"><?= htmlspecialchars($selectedOrderDetail['TenSanPham'] ?? 'Sản phẩm') ?></div>
                                     <div class="text-muted small">Cấu hình: <?= htmlspecialchars($selectedOrderDetail['TenCauHinh'] ?? 'Tiêu chuẩn') ?></div>
-                                    <?php if (!empty($selectedOrderDetail['Layout']) || !empty($selectedOrderDetail['SwitchType'])): ?>
-                                        <div class="text-muted small mt-1">
-                                            <?= htmlspecialchars($selectedOrderDetail['Layout'] ?? '') ?>
-                                            <?= !empty($selectedOrderDetail['SwitchType']) ? ' | Switch: ' . htmlspecialchars($selectedOrderDetail['SwitchType']) : '' ?>
+                                    <?php if (!empty($configurationDetails)): ?>
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                            <?php foreach ($configurationDetails as $detail): ?>
+                                                <span class="badge text-bg-light">
+                                                    <?= htmlspecialchars($detail['label']) ?>:
+                                                    <span class="fw-semibold ms-1"><?= htmlspecialchars($detail['value']) ?></span>
+                                                </span>
+                                            <?php endforeach; ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             </div>
+                            <?php if (!empty(array_filter($configurationLookup))): ?>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Chi tiết cấu hình sản phẩm</label>
+                                    <div class="table-responsive border rounded-3">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <?php foreach ($configurationHeaders as $headerLabel): ?>
+                                                    <th><?= htmlspecialchars($headerLabel) ?></th>
+                                                <?php endforeach; ?>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <?php foreach ($configurationHeaders as $field => $headerLabel): ?>
+                                                    <td><?= htmlspecialchars($configurationLookup[$field] ?? '-') ?></td>
+                                                <?php endforeach; ?>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Số lượng cần sản xuất</label>
                                 <input type="number" min="1" name="SoLuong" value="<?= htmlspecialchars((string) max(1, $selectedQuantity)) ?>" class="form-control" required>
@@ -218,6 +256,15 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                                 <input type="text" name="component_assignments[<?= $index ?>][label]" class="form-control" value="<?= htmlspecialchars($component['label'] ?? 'Hạng mục sản xuất') ?>" required>
                                                 <?php if (!empty($component['configuration_label'])): ?>
                                                     <div class="text-muted small mt-2">Cấu hình: <?= htmlspecialchars($component['configuration_label']) ?></div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($component['detail_key']) && !empty($component['detail_value'])): ?>
+                                                    <div class="text-muted small mt-1">Chi tiết: <?= htmlspecialchars($component['detail_value']) ?></div>
+                                                <?php elseif (!empty($component['configuration_details'])): ?>
+                                                    <div class="d-flex flex-wrap gap-1 mt-2">
+                                                        <?php foreach ($component['configuration_details'] as $detail): ?>
+                                                            <span class="badge rounded-pill text-bg-light"><?= htmlspecialchars($detail['label']) ?>: <?= htmlspecialchars($detail['value']) ?></span>
+                                                        <?php endforeach; ?>
+                                                    </div>
                                                 <?php endif; ?>
                                             </td>
                                             <td>

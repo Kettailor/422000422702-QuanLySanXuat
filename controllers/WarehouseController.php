@@ -237,7 +237,6 @@ class WarehouseController extends Controller
             }
 
             $definition = $definitions[$key];
-            $lotPrefix = $this->resolveLotPrefix($key);
             $forms[$key] = [
                 'document_type' => $definition['documentType'],
                 'document_id' => $this->sheetModel->generateDocumentId($definition['documentType']),
@@ -245,8 +244,6 @@ class WarehouseController extends Controller
                 'description' => $definition['description'],
                 'modal_title' => $definition['submitLabel'] . ' vào ' . ($group['label'] ?? 'kho'),
                 'prefix' => $definition['prefix'],
-                'lot_prefix' => $lotPrefix,
-                'default_lot_id' => $this->lotModel->generateLotId($lotPrefix),
                 'ui' => $definition['ui'] ?? [],
             ];
         }
@@ -263,7 +260,6 @@ class WarehouseController extends Controller
             'finished' => [],
             'quality' => [],
         ];
-        $allOptions = [];
 
         foreach ($products as $product) {
             $option = [
@@ -272,18 +268,11 @@ class WarehouseController extends Controller
                 'unit' => $product['DonVi'] ?? '',
                 'description' => $product['MoTa'] ?? '',
             ];
-            $allOptions[] = $option;
 
             $assignedTypes = $this->classifyProductForWarehouseTypes($product);
 
             foreach ($assignedTypes as $type) {
                 $grouped[$type][] = $option;
-            }
-        }
-
-        foreach ($grouped as $type => $options) {
-            if (empty($options) && !empty($allOptions)) {
-                $grouped[$type] = $allOptions;
             }
         }
 
