@@ -16,7 +16,7 @@ $configurations = $configurations ?? [];
 
 $selectedCustomerId = $order['IdKhachHang'] ?? null;
 $customerMode = 'existing';
-$customerFormData = ['name' => '', 'phone' => '', 'address' => '', 'type' => ''];
+$customerFormData = ['name' => '', 'company' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
 ?>
 
 <div class="card p-4">
@@ -34,6 +34,10 @@ $customerFormData = ['name' => '', 'phone' => '', 'address' => '', 'type' => '']
                     <option value="<?= htmlspecialchars($status) ?>" <?= ($order['TrangThai'] ?? '') === $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
                 <?php endforeach; ?>
             </select>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label">Email liên hệ</label>
+            <input type="email" name="EmailLienHe" class="form-control" value="<?= htmlspecialchars($order['EmailLienHe'] ?? '') ?>" placeholder="Ví dụ: customer@example.com">
         </div>
         <div class="col-12">
             <label class="form-label">Yêu cầu chung</label>

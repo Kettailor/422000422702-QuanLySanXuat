@@ -26,7 +26,15 @@
                     <td class="fw-semibold">#<?= htmlspecialchars($order['IdDonHang']) ?></td>
                     <td>
                         <div class="fw-medium"><?= htmlspecialchars($order['TenKhachHang']) ?></div>
+                        <?php if (!empty($order['TenCongTy'])): ?>
+                            <div class="text-muted small">Công ty: <?= htmlspecialchars($order['TenCongTy']) ?></div>
+                        <?php endif; ?>
                         <div class="text-muted small"><?= htmlspecialchars($order['SoDienThoai'] ?? '') ?></div>
+                        <?php if (!empty($order['EmailLienHe'] ?? '')): ?>
+                            <div class="text-muted small"><?= htmlspecialchars($order['EmailLienHe']) ?></div>
+                        <?php elseif (!empty($order['EmailKhachHang'] ?? '')): ?>
+                            <div class="text-muted small"><?= htmlspecialchars($order['EmailKhachHang']) ?></div>
+                        <?php endif; ?>
                     </td>
                     <td><?= date('d/m/Y', strtotime($order['NgayLap'])) ?></td>
                     <td><span class="badge bg-light text-dark"><?= htmlspecialchars($order['TrangThai']) ?></span></td>
