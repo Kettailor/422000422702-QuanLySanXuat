@@ -2,32 +2,27 @@
 
 class ProductionAutomation
 {
-    private const DEFAULT_STATUS = 'Đang chờ xưởng xác nhận';
-    private const DEFAULT_WORKSHOP = 'XU001';
-    private const DEFAULT_UNIT = 'thành phẩm';
-    private const DEFAULT_COMPONENT_NAME = 'Công đoạn sản xuất';
-    private const WORKSHOP_CHANNEL = 'workshop';
-    private const WAREHOUSE_CHANNEL = 'warehouse';
-    private const WAREHOUSE_ROLES = ['VT_NHANVIEN_KHO', 'VT_DOI_TAC_VAN_TAI'];
-
     private WorkshopPlan $workshopPlanModel;
     private NotificationStore $notificationStore;
     private Material $materialModel;
     private ProductComponent $componentModel;
     private ProductComponentMaterial $componentMaterialModel;
+    private NotificationSetting $notificationSettingModel;
 
     public function __construct(
         ?WorkshopPlan $workshopPlanModel = null,
         ?NotificationStore $notificationStore = null,
         ?Material $materialModel = null,
         ?ProductComponent $componentModel = null,
-        ?ProductComponentMaterial $componentMaterialModel = null
+        ?ProductComponentMaterial $componentMaterialModel = null,
+        ?NotificationSetting $notificationSettingModel = null
     ) {
         $this->workshopPlanModel = $workshopPlanModel ?? new WorkshopPlan();
         $this->notificationStore = $notificationStore ?? new NotificationStore();
         $this->materialModel = $materialModel ?? new Material();
         $this->componentModel = $componentModel ?? new ProductComponent();
         $this->componentMaterialModel = $componentMaterialModel ?? new ProductComponentMaterial();
+        $this->notificationSettingModel = $notificationSettingModel ?? new NotificationSetting();
     }
 
     public function handleNewPlan(array $plan, array $orderDetail): void
@@ -52,13 +47,24 @@ class ProductionAutomation
         $logistics = [];
         $materialIds = [];
 
+        $workshopChannel = $this->notificationSettingModel->getValue('workshop_channel');
+        $warehouseChannel = $this->notificationSettingModel->getValue('warehouse_channel');
+        $warehouseRecipients = $this->notificationSettingModel->getRecipients('warehouse_recipients');
+
         foreach ($components as $component) {
-            $baseName = $component['TenCongDoan'] ?? $component['name'] ?? self::DEFAULT_COMPONENT_NAME;
+            $baseName = $component['TenCongDoan'] ?? $component['name'] ?? null;
             $componentName = $this->buildComponentName($component, $orderDetail, $baseName);
+            if ($componentName === null) {
+                continue;
+            }
             $componentQuantity = $this->calculateComponentQuantity($component, $planQuantity);
-            $workshopId = $component['IdXuong'] ?? self::DEFAULT_WORKSHOP;
-            $unit = $component['DonVi'] ?? self::DEFAULT_UNIT;
-            $status = $component['TrangThaiMacDinh'] ?? self::DEFAULT_STATUS;
+            $workshopId = $component['IdXuong'] ?? null;
+            $unit = $component['DonVi'] ?? null;
+            $status = $component['TrangThaiMacDinh'] ?? null;
+
+            if (!$workshopId || !$unit) {
+                continue;
+            }
 
             $workshopPlan = [
                 'IdKeHoachSanXuatXuong' => uniqid('KXX'),
@@ -66,39 +72,44 @@ class ProductionAutomation
                 'SoLuong' => $componentQuantity,
                 'ThoiGianBatDau' => $plan['ThoiGianBD'] ?? null,
                 'ThoiGianKetThuc' => $plan['ThoiGianKetThuc'] ?? null,
-                'TrangThai' => $status,
                 'IdKeHoachSanXuat' => $planId,
                 'IdXuong' => $workshopId,
             ];
 
+            if ($status !== null) {
+                $workshopPlan['TrangThai'] = $status;
+            }
+
             $this->workshopPlanModel->create($workshopPlan);
 
-            $notifications[] = [
-                'channel' => self::WORKSHOP_CHANNEL,
-                'recipient' => $workshopId,
-                'message' => sprintf(
-                    'Kế hoạch %s: %s (%d %s).',
-                    $planId,
-                    $componentName,
-                    $componentQuantity,
-                    $unit
-                ),
-                'metadata' => [
-                    'plan_id' => $planId,
-                    'order_id' => $orderDetail['IdDonHang'] ?? null,
-                    'workshop_plan_id' => $workshopPlan['IdKeHoachSanXuatXuong'],
-                    'component' => $component['IdCongDoan'] ?? $baseName,
-                    'component_label' => $componentName,
-                    'required_quantity' => $componentQuantity,
-                    'unit' => $unit,
-                    'order_request' => $orderDetail['YeuCau'] ?? $orderDetail['YeuCauDonHang'] ?? null,
-                ],
-            ];
+            if ($workshopChannel) {
+                $notifications[] = [
+                    'channel' => $workshopChannel,
+                    'recipient' => $workshopId,
+                    'message' => sprintf(
+                        'Kế hoạch %s: %s (%d %s).',
+                        $planId,
+                        $componentName,
+                        $componentQuantity,
+                        $unit
+                    ),
+                    'metadata' => [
+                        'plan_id' => $planId,
+                        'order_id' => $orderDetail['IdDonHang'] ?? null,
+                        'workshop_plan_id' => $workshopPlan['IdKeHoachSanXuatXuong'],
+                        'component' => $component['IdCongDoan'] ?? $baseName,
+                        'component_label' => $componentName,
+                        'required_quantity' => $componentQuantity,
+                        'unit' => $unit,
+                        'order_request' => $orderDetail['YeuCau'] ?? $orderDetail['YeuCauDonHang'] ?? null,
+                    ],
+                ];
+            }
 
-            $logisticsKey = $component['LogisticsKey'] ?? $component['logistics_key'] ?? ($component['IdCongDoan'] ?? $baseName);
+            $logisticsKey = $component['LogisticsKey'] ?? $component['logistics_key'] ?? ($component['IdCongDoan'] ?? md5($componentName));
             if (!isset($logistics[$logisticsKey])) {
                 $logistics[$logisticsKey] = [
-                    'label' => $component['LogisticsLabel'] ?? $component['logistics_label'] ?? $baseName,
+                    'label' => $component['LogisticsLabel'] ?? $component['logistics_label'] ?? $componentName,
                     'unit' => $unit,
                     'required' => 0,
                     'materials' => [],
@@ -114,7 +125,7 @@ class ProductionAutomation
 
                 $materialIds[$materialId] = true;
                 $materialUnit = $material['unit'] ?? $unit;
-                $materialLabel = $material['label'] ?? $baseName;
+                $materialLabel = $material['label'] ?? $componentName;
                 $materialRequired = $this->calculateMaterialQuantity($material, $planQuantity);
 
                 if (!isset($logistics[$logisticsKey]['materials'][$materialId])) {
@@ -134,7 +145,16 @@ class ProductionAutomation
             $this->attachInventorySnapshots($logistics, array_keys($materialIds));
         }
 
-        $notifications = array_merge($notifications, $this->buildWarehouseNotifications($planId, $orderDetail, $logistics));
+        $notifications = array_merge(
+            $notifications,
+            $this->buildWarehouseNotifications(
+                $planId,
+                $orderDetail,
+                $logistics,
+                $warehouseChannel,
+                $warehouseRecipients
+            )
+        );
 
         $this->notificationStore->pushMany($notifications);
     }
@@ -179,9 +199,13 @@ class ProductionAutomation
         return max($quantity, 1);
     }
 
-    private function buildComponentName(array $component, array $orderDetail, string $fallback): string
+    private function buildComponentName(array $component, array $orderDetail, ?string $fallback): ?string
     {
-        $name = $component['TenCongDoan'] ?? $component['name'] ?? $fallback;
+        $name = $component['TenCongDoan'] ?? $component['name'] ?? $fallback ?? '';
+        $name = trim((string) $name);
+        if ($name === '') {
+            return null;
+        }
         $request = trim((string) ($orderDetail['YeuCau'] ?? $orderDetail['YeuCauDonHang'] ?? ''));
         $includeRequest = $component['IncludeYeuCau'] ?? $component['include_request'] ?? false;
 
@@ -235,15 +259,25 @@ class ProductionAutomation
         unset($item);
     }
 
-    private function buildWarehouseNotifications(string $planId, array $orderDetail, array $logistics): array
+    private function buildWarehouseNotifications(
+        string $planId,
+        array $orderDetail,
+        array $logistics,
+        ?string $channel,
+        array $recipients
+    ): array
     {
-        if (empty(self::WAREHOUSE_ROLES) || empty($logistics)) {
+        if (empty($logistics) || !$channel || empty($recipients)) {
             return [];
         }
 
         $summaryParts = [];
 
         foreach ($logistics as $item) {
+            if (empty($item['label']) || empty($item['unit'])) {
+                continue;
+            }
+
             $line = sprintf('%s: %d %s', $item['label'], $item['required'], $item['unit']);
             if (!empty($item['materials'])) {
                 $materials = [];
@@ -261,6 +295,10 @@ class ProductionAutomation
             $summaryParts[] = $line;
         }
 
+        if (empty($summaryParts)) {
+            return [];
+        }
+
         $message = sprintf(
             'Chuẩn bị nguyên liệu cho kế hoạch %s: %s.',
             $planId,
@@ -275,10 +313,10 @@ class ProductionAutomation
         ];
 
         $notifications = [];
-        foreach (self::WAREHOUSE_ROLES as $role) {
+        foreach ($recipients as $recipient) {
             $notifications[] = [
-                'channel' => self::WAREHOUSE_CHANNEL,
-                'recipient' => $role,
+                'channel' => $channel,
+                'recipient' => $recipient,
                 'message' => $message,
                 'metadata' => $metadata,
             ];

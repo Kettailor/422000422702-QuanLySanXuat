@@ -634,6 +634,30 @@ INSERT INTO `cong_doan_nguyen_lieu` (`IdCongDoanNguyenLieu`, `IdCongDoan`, `IdNg
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `cau_hinh_thong_bao`
+--
+
+DROP TABLE IF EXISTS `cau_hinh_thong_bao`;
+
+CREATE TABLE `cau_hinh_thong_bao` (
+  `MaCauHinh` varchar(100) NOT NULL,
+  `GiaTri` text DEFAULT NULL,
+  `MoTa` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`MaCauHinh`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `cau_hinh_thong_bao`
+--
+
+INSERT INTO `cau_hinh_thong_bao` (`MaCauHinh`, `GiaTri`, `MoTa`) VALUES
+('workshop_channel', 'workshop', 'Kênh thông báo đẩy tới xưởng'),
+('warehouse_channel', 'warehouse', 'Kênh thông báo đẩy tới kho vận'),
+('warehouse_recipients', '["VT_NHANVIEN_KHO","VT_DOI_TAC_VAN_TAI"]', 'Các vai trò nhận thông báo kho vận');
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `nhan_vien`
 --
 
