@@ -90,7 +90,9 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             </a>
         <?php endif; ?>
     </div>
+    <button class="btn-close position-absolute top-0 end-0 m-3 text-white d-lg-none" data-toggle="sidebar" aria-label="Đóng menu"></button>
 </nav>
+<div class="sidebar-backdrop d-lg-none" data-toggle="sidebar"></div>
 <div class="main-wrapper">
     <header class="topbar">
         <div class="d-flex align-items-center gap-3">

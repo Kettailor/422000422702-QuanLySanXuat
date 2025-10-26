@@ -11,6 +11,7 @@ require_once __DIR__ . '/../models/Material.php';
 require_once __DIR__ . '/../models/ProductComponent.php';
 require_once __DIR__ . '/../models/ProductComponentMaterial.php';
 require_once __DIR__ . '/../models/NotificationSetting.php';
+require_once __DIR__ . '/../models/InventoryAlertJob.php';
 require_once __DIR__ . '/../models/ProductionAutomation.php';
 
 class WorkshopPlanStub extends WorkshopPlan
@@ -80,48 +81,54 @@ class MaterialStub extends Material
 
 class ProductComponentStub extends ProductComponent
 {
-    private array $bomComponents;
-    private array $productComponents;
-    private array $defaultComponents;
+    private array $configurationAssignments;
+    private array $productAssignments;
+    private array $defaultAssignments;
 
     public function __construct(
-        array $bomComponents = [],
-        array $productComponents = [],
-        array $defaultComponents = []
+        array $configurationAssignments = [],
+        array $productAssignments = [],
+        array $defaultAssignments = []
     ) {
-        $this->bomComponents = $bomComponents;
-        $this->productComponents = $productComponents;
-        $this->defaultComponents = $defaultComponents;
+        $this->configurationAssignments = $configurationAssignments;
+        $this->productAssignments = $productAssignments;
+        $this->defaultAssignments = $defaultAssignments;
     }
 
-    public function getByBom(string $bomId): array
+    public function getByConfiguration(string $configurationId): array
     {
-        return $this->bomComponents[$bomId] ?? [];
+        return $this->configurationAssignments[$configurationId] ?? [];
     }
 
     public function getByProduct(string $productId): array
     {
-        return $this->productComponents[$productId] ?? [];
+        return $this->productAssignments[$productId] ?? [];
     }
 
     public function getDefaultComponents(): array
     {
-        return $this->defaultComponents;
+        return $this->defaultAssignments;
     }
 }
 
 class ProductComponentMaterialStub extends ProductComponentMaterial
 {
-    private array $materialsByComponent;
+    private array $materialsByConfiguration;
 
-    public function __construct(array $materialsByComponent = [])
+    public function __construct(array $materialsByConfiguration = [])
     {
-        $this->materialsByComponent = $materialsByComponent;
+        $this->materialsByConfiguration = $materialsByConfiguration;
     }
 
-    public function getMaterialsForComponent(string $componentId): array
+    public function getMaterialsForComponents(array $configurationIds): array
     {
-        return $this->materialsByComponent[$componentId] ?? [];
+        $result = [];
+        foreach ($configurationIds as $configurationId) {
+            if (isset($this->materialsByConfiguration[$configurationId])) {
+                $result[$configurationId] = $this->materialsByConfiguration[$configurationId];
+            }
+        }
+        return $result;
     }
 }
 
@@ -163,7 +170,7 @@ function createAutomation(array $options = []): array
     $notificationStore = new NotificationStoreStub();
     $material = new MaterialStub($options['materials'] ?? []);
     $componentModel = new ProductComponentStub(
-        $options['bomComponents'] ?? [],
+        $options['configurationAssignments'] ?? [],
         $options['productComponents'] ?? [],
         $options['defaultComponents'] ?? []
     );
@@ -182,13 +189,14 @@ function createAutomation(array $options = []): array
     return [$automation, $workshopPlan, $notificationStore];
 }
 
-// Scenario 1: BOM gắn với cấu hình
+// Scenario 1: cấu hình có phân công cụ thể
 [$automation, $workshopPlan, $notificationStore] = createAutomation([
-    'bomComponents' => [
-        'BOMKB87FULL' => [
+    'configurationAssignments' => [
+        'CFGKB87RGB' => [
             [
-                'IdCongDoan' => 'CDPCB',
-                'TenCongDoan' => 'Hàn PCB',
+                'IdCongDoan' => 'ASSIGN_RGB_PCB',
+                'IdCauHinh' => 'CFGKB87RGB',
+                'TenCongDoan' => 'Hàn PCB RGB',
                 'TyLeSoLuong' => 1,
                 'DonVi' => 'bộ',
                 'IdXuong' => 'XU-PCB',
@@ -198,8 +206,9 @@ function createAutomation(array $options = []): array
                 'ThuTu' => 1,
             ],
             [
-                'IdCongDoan' => 'CDPACK',
-                'TenCongDoan' => 'Đóng gói full kit',
+                'IdCongDoan' => 'ASSIGN_RGB_PACK',
+                'IdCauHinh' => 'CFGKB87RGB',
+                'TenCongDoan' => 'Đóng gói full kit RGB',
                 'TyLeSoLuong' => 1,
                 'DonVi' => 'bộ',
                 'IdXuong' => 'XU-PACK',
@@ -211,10 +220,8 @@ function createAutomation(array $options = []): array
         ],
     ],
     'componentMaterials' => [
-        'CDPCB' => [
+        'CFGKB87RGB' => [
             ['id' => 'NLPCB', 'quantity_per_unit' => 1, 'label' => 'PCB SV5TOT', 'unit' => 'tấm'],
-        ],
-        'CDPACK' => [
             ['id' => 'NLBADGE', 'quantity_per_unit' => 1, 'label' => 'Badge TechHub', 'unit' => 'chiếc'],
         ],
     ],
@@ -238,7 +245,7 @@ $plan = [
 
 $orderDetail = [
     'IdSanPham' => 'SPKB87',
-    'IdBOM' => 'BOMKB87FULL',
+    'IdCauHinh' => 'CFGKB87RGB',
     'IdDonHang' => 'DHTEST',
     'YeuCau' => 'Tape mod thêm',
     'SoLuong' => 10,
@@ -255,11 +262,11 @@ assert(!empty($notificationStore->entries), 'Phải đẩy thông báo kho/xư�
 
 // Scenario 2: Fallback khi không có BOM gắn kèm
 [$automationFallback, $workshopPlanFallback] = createAutomation([
-    'bomComponents' => [],
     'productComponents' => [
         'SPKB87' => [
             [
-                'IdCongDoan' => 'CDFALLBACK',
+                'IdCongDoan' => 'ASSIGN_STD',
+                'IdCauHinh' => 'CFGKB87STD',
                 'TenCongDoan' => 'Gia công fallback',
                 'TyLeSoLuong' => 1,
                 'DonVi' => 'bộ',
@@ -272,7 +279,7 @@ assert(!empty($notificationStore->entries), 'Phải đẩy thông báo kho/xư�
         ],
     ],
     'componentMaterials' => [
-        'CDFALLBACK' => [
+        'CFGKB87STD' => [
             ['id' => 'NLFOAM', 'quantity_per_unit' => 1, 'label' => 'Foam fallback', 'unit' => 'bộ'],
         ],
     ],
@@ -289,7 +296,7 @@ $planFallback = [
 
 $orderDetailFallback = [
     'IdSanPham' => 'SPKB87',
-    'IdBOM' => null,
+    'IdCauHinh' => null,
     'IdDonHang' => 'DHFALLBACK',
     'SoLuong' => 5,
 ];

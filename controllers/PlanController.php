@@ -209,7 +209,8 @@ class PlanController extends Controller
             $componentQuantity = (int) round(max(1, $quantity) * $ratio);
             $assignments[] = [
                 'id' => $component['IdCongDoan'] ?? null,
-                'label' => $component['TenCongDoan'] ?? 'Hạng mục sản xuất',
+                'configuration_id' => $component['IdCauHinh'] ?? null,
+                'label' => $component['TenCongDoan'] ?? $component['TenPhanCong'] ?? 'Hạng mục sản xuất',
                 'category' => $component['LoaiCongDoan'] ?? null,
                 'default_quantity' => max(1, $componentQuantity),
                 'quantity_ratio' => $ratio,
@@ -220,6 +221,7 @@ class PlanController extends Controller
         if (empty($assignments)) {
             $assignments[] = [
                 'id' => null,
+                'configuration_id' => $configurationId,
                 'label' => 'Gia công sản phẩm',
                 'category' => 'production',
                 'default_quantity' => max(1, $quantity),
@@ -245,6 +247,11 @@ class PlanController extends Controller
 
             $workshopId = trim((string) ($row['workshop_id'] ?? ''));
             $label = trim((string) ($row['label'] ?? ''));
+            $configurationId = $row['configuration_id'] ?? null;
+            $componentId = $row['component_id'] ?? null;
+            if ($componentId === null && $configurationId !== null) {
+                $componentId = $configurationId;
+            }
 
             if ($workshopId === '' || $label === '') {
                 continue;
@@ -265,7 +272,7 @@ class PlanController extends Controller
                 'IdKeHoachSanXuatXuong' => uniqid('KXX'),
                 'IdKeHoachSanXuat' => $context['plan_id'],
                 'IdXuong' => $workshopId,
-                'IdCongDoan' => $row['component_id'] ?? null,
+                'IdCongDoan' => $componentId,
                 'TenThanhThanhPhanSP' => $label,
                 'SoLuong' => $quantity,
                 'ThoiGianBatDau' => $start,
