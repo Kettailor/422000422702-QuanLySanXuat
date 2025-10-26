@@ -85,6 +85,9 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             <a class="nav-link" href="?controller=account&action=index">
                 <i class="bi bi-person-circle"></i> Tài khoản
             </a>
+            <a class="nav-link" href="?controller=account&action=auditLog">
+                <i class="bi bi-journal-check"></i> Nhật ký hoạt động
+            </a>
             <a class="nav-link" href="#">
                 <i class="bi bi-gear"></i> Cài đặt
             </a>

@@ -26,6 +26,7 @@ class AuthController extends Controller
                     'TenVaiTro' => $role['TenVaiTro'] ?? null,
                 ]);
                 $this->setFlash('success', 'Đăng nhập thành công.');
+                Logger::login($username);
                 $this->redirect('?controller=dashboard&action=index');
                 return;
             }

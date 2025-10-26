@@ -50,6 +50,7 @@ abstract class BaseModel
             $stmt->bindValue($placeholder, $value);
         }
 
+        Logger::info("Tạo bản ghi mới trong {$this->table} với dữ liệu: " . json_encode($data));
         return $stmt->execute();
     }
 
@@ -72,6 +73,7 @@ abstract class BaseModel
             $stmt->bindValue($placeholder, $value);
         }
         $stmt->bindValue(':id', $id);
+        Logger::info("Cập nhật bản ghi {$id} trong {$this->table} với dữ liệu: " . json_encode($data));
         return $stmt->execute();
     }
 
@@ -79,6 +81,7 @@ abstract class BaseModel
     {
         $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id");
         $stmt->bindValue(':id', $id);
+        Logger::info("Xóa bản ghi {$id} khỏi {$this->table}");
         return $stmt->execute();
     }
 }
