@@ -21,6 +21,7 @@ class PlanController extends Controller
     public function index(): void
     {
         $plans = $this->planModel->getPlansWithOrders();
+
         $this->render('plan/index', [
             'title' => 'Kế hoạch sản xuất',
             'plans' => $plans,

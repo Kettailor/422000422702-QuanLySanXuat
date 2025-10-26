@@ -9,12 +9,19 @@
 <?php if (!$plan): ?>
     <div class="alert alert-warning">Không tìm thấy kế hoạch.</div>
 <?php else: ?>
+    <?php
+    $totalSteps = (int) ($plan['TongCongDoan'] ?? 0);
+    $doneSteps = (int) ($plan['CongDoanHoanThanh'] ?? 0);
+    $progressPercent = $totalSteps > 0 ? round(($doneSteps / $totalSteps) * 100) : 0;
+    ?>
     <div class="card p-4 mb-4">
         <div class="row g-4">
             <div class="col-md-6">
                 <dl class="row mb-0">
                     <dt class="col-sm-5">Mã kế hoạch</dt>
                     <dd class="col-sm-7 fw-semibold">#<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?></dd>
+                    <dt class="col-sm-5">Người phụ trách</dt>
+                    <dd class="col-sm-7"><?= htmlspecialchars($plan['TenQuanLy'] ?? 'Chưa phân công') ?></dd>
                     <dt class="col-sm-5">Đơn hàng</dt>
                     <dd class="col-sm-7">
                         <div class="fw-semibold">ĐH <?= htmlspecialchars($plan['IdDonHang']) ?></div>
@@ -36,20 +43,49 @@
             <div class="col-md-6">
                 <dl class="row mb-0">
                     <dt class="col-sm-5">Trạng thái</dt>
-                    <dd class="col-sm-7"><span class="badge bg-info bg-opacity-25 text-primary"><?= htmlspecialchars($plan['TrangThai']) ?></span></dd>
+                    <?php
+                    $statusClass = 'badge bg-light text-dark';
+                    if (($plan['TrangThai'] ?? '') === 'Hoàn thành') {
+                        $statusClass = 'badge bg-success bg-opacity-25 text-success';
+                    } elseif (($plan['TrangThai'] ?? '') === 'Đang thực hiện') {
+                        $statusClass = 'badge bg-primary bg-opacity-25 text-primary';
+                    } elseif (($plan['TrangThai'] ?? '') === 'Đã hủy') {
+                        $statusClass = 'badge bg-danger bg-opacity-25 text-danger';
+                    } elseif (($plan['TrangThai'] ?? '') === 'Mới tạo') {
+                        $statusClass = 'badge bg-warning bg-opacity-25 text-warning';
+                    }
+                    ?>
+                    <dd class="col-sm-7"><span class="<?= $statusClass ?>"><?= htmlspecialchars($plan['TrangThai']) ?></span></dd>
                     <dt class="col-sm-5">Bắt đầu</dt>
                     <dd class="col-sm-7"><?= $plan['ThoiGianBD'] ? date('d/m/Y H:i', strtotime($plan['ThoiGianBD'])) : '-' ?></dd>
                     <dt class="col-sm-5">Kết thúc</dt>
                     <dd class="col-sm-7"><?= $plan['ThoiGianKetThuc'] ? date('d/m/Y H:i', strtotime($plan['ThoiGianKetThuc'])) : '-' ?></dd>
                     <dt class="col-sm-5">Tiến độ xưởng</dt>
                     <dd class="col-sm-7">
-                        <?php $totalSteps = (int) ($plan['TongCongDoan'] ?? 0); $doneSteps = (int) ($plan['CongDoanHoanThanh'] ?? 0); ?>
                         <span class="badge bg-light text-dark">
                             <?= $totalSteps ? $doneSteps . ' / ' . $totalSteps . ' công đoạn' : 'Chưa phân xưởng' ?>
                         </span>
                     </dd>
                 </dl>
             </div>
+        </div>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <h5 class="fw-semibold mb-1">Tiến độ tổng thể</h5>
+                <div class="text-muted small">Tỉ lệ hoàn thành các công đoạn đã phân xuống xưởng.</div>
+            </div>
+            <span class="fw-semibold"><?= $progressPercent ?>%</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $progressPercent ?>%;"></div>
+        </div>
+        <div class="text-muted small mt-2">
+            <?= $totalSteps
+                ? htmlspecialchars($doneSteps . ' / ' . $totalSteps . ' công đoạn đã hoàn thành.')
+                : 'Chưa phân bổ công đoạn cho xưởng.' ?>
         </div>
     </div>
 
