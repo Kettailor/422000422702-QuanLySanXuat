@@ -1,6 +1,7 @@
 <?php
 $workshops = $workshops ?? [];
 $employees = $employees ?? [];
+$types = $types ?? [];
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -29,8 +30,13 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
             <input type="text" name="TenKho" class="form-control" required>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Loại kho</label>
-            <input type="text" name="TenLoaiKho" class="form-control" placeholder="Ví dụ: Nguyên liệu, Thành phẩm">
+            <label class="form-label">Loại kho <span class="text-danger">*</span></label>
+            <select name="TenLoaiKho" class="form-select" required>
+                <option value="" disabled selected>Chọn loại kho</option>
+                <?php foreach ($types as $typeLabel): ?>
+                    <option value="<?= htmlspecialchars($typeLabel) ?>"><?= htmlspecialchars($typeLabel) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="col-md-6">
             <label class="form-label">Địa chỉ</label>
