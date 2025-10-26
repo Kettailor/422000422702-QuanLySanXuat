@@ -9,6 +9,28 @@
 <?php
 $employees = $employees ?? [];
 $accountants = $accountants ?? [];
+$monthValue = '';
+$taxPercent = 0.0;
+
+if (!empty($payroll)) {
+    $rawMonth = trim((string) ($payroll['ThangNam'] ?? ''));
+    if ($rawMonth !== '') {
+        if (preg_match('/^\d{4}-\d{2}$/', $rawMonth)) {
+            $monthValue = $rawMonth;
+        } elseif (preg_match('/^(\d{4})(\d{2})$/', $rawMonth, $matches)) {
+            $monthValue = sprintf('%s-%s', $matches[1], $matches[2]);
+        } elseif (preg_match('/^(\d{2})\/(\d{4})$/', $rawMonth, $matches)) {
+            $monthValue = sprintf('%s-%s', $matches[2], $matches[1]);
+        } else {
+            $monthValue = $rawMonth;
+        }
+    }
+
+    $gross = (float) ($payroll['LuongCoBan'] ?? 0) + (float) ($payroll['PhuCap'] ?? 0);
+    if ($gross > 0) {
+        $taxPercent = round(((float) ($payroll['ThueTNCN'] ?? 0) / $gross) * 100, 2);
+    }
+}
 ?>
 
 <?php if (!$payroll): ?>
@@ -40,7 +62,7 @@ $accountants = $accountants ?? [];
             </div>
             <div class="col-md-4">
                 <label class="form-label">Tháng/Năm</label>
-                <input type="number" name="ThangNam" class="form-control" value="<?= htmlspecialchars($payroll['ThangNam']) ?>" required>
+                <input type="month" name="ThangNam" class="form-control" value="<?= htmlspecialchars($monthValue ?: date('Y-m')) ?>" required>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Lương cơ bản</label>
@@ -55,8 +77,8 @@ $accountants = $accountants ?? [];
                 <input type="number" name="KhauTru" class="form-control payroll-input" min="0" step="0.01" value="<?= htmlspecialchars($payroll['KhauTru']) ?>">
             </div>
             <div class="col-md-4">
-                <label class="form-label">Thuế TNCN</label>
-                <input type="number" name="ThueTNCN" class="form-control payroll-input" min="0" step="0.01" value="<?= htmlspecialchars($payroll['ThueTNCN']) ?>">
+                <label class="form-label">Thuế TNCN (%)</label>
+                <input type="number" name="ThueTNCN" class="form-control payroll-input" min="0" max="100" step="0.01" value="<?= htmlspecialchars($taxPercent) ?>">
             </div>
             <div class="col-md-4">
                 <label class="form-label">Trạng thái</label>
@@ -78,7 +100,7 @@ $accountants = $accountants ?? [];
                 <div class="alert alert-info d-flex justify-content-between align-items-center">
                     <div>
                         <div class="fw-semibold">Lương thực nhận hiện tại</div>
-                        <div class="small text-muted">Hệ thống tự tính = Lương cơ bản + Phụ cấp - Khấu trừ - Thuế TNCN</div>
+                        <div class="small text-muted">Hệ thống tự tính = (Lương cơ bản + Phụ cấp) - Khấu trừ - Thuế TNCN (%)</div>
                     </div>
                     <div class="fs-3 fw-bold text-primary mb-0" id="net-income"><?= number_format($payroll['TongThuNhap'], 0, ',', '.') ?> đ</div>
                 </div>
@@ -104,8 +126,10 @@ document.addEventListener('DOMContentLoaded', function () {
         let base = parseFloat(form.querySelector('[name="LuongCoBan"]').value || 0);
         let allowance = parseFloat(form.querySelector('[name="PhuCap"]').value || 0);
         let deduction = parseFloat(form.querySelector('[name="KhauTru"]').value || 0);
-        let tax = parseFloat(form.querySelector('[name="ThueTNCN"]').value || 0);
-        const net = Math.max(base + allowance - deduction - tax, 0);
+        let taxRate = parseFloat(form.querySelector('[name="ThueTNCN"]').value || 0);
+        const gross = base + allowance;
+        const tax = Math.max((gross * taxRate) / 100, 0);
+        const net = Math.max(gross - deduction - tax, 0);
         netIncome.textContent = formatCurrency(net);
     };
 

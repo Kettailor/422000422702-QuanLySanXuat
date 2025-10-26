@@ -32,12 +32,28 @@ abstract class BaseModel
     public function create(array $data): bool
     {
         $columns = array_keys($data);
-        $columnString = implode(', ', $columns);
-        $placeholders = implode(', ', array_map(fn($col) => ':' . $col, $columns));
 
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} ({$columnString}) VALUES ({$placeholders})");
-        foreach ($data as $column => $value) {
-            $stmt->bindValue(':' . $column, $value);
+        $quotedColumns = [];
+        $placeholders = [];
+        $bindings = [];
+
+        foreach ($columns as $index => $column) {
+            $quotedColumns[] = $this->quoteIdentifier($column);
+            $placeholder = ':p' . $index;
+            $placeholders[] = $placeholder;
+            $bindings[$placeholder] = $data[$column];
+        }
+
+        $sql = sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            $this->quoteIdentifier($this->table),
+            implode(', ', $quotedColumns),
+            implode(', ', $placeholders)
+        );
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $placeholder => $value) {
+            $stmt->bindValue($placeholder, $value);
         }
 
         return $stmt->execute();
@@ -45,13 +61,48 @@ abstract class BaseModel
 
     public function update(string $id, array $data): bool
     {
-        $setClause = implode(', ', array_map(fn($col) => "{$col} = :{$col}", array_keys($data)));
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET {$setClause} WHERE {$this->primaryKey} = :id");
-        foreach ($data as $column => $value) {
-            $stmt->bindValue(':' . $column, $value);
+        $columns = array_keys($data);
+        $assignments = [];
+        $bindings = [];
+
+        foreach ($columns as $index => $column) {
+            $placeholder = ':p' . $index;
+            $assignments[] = sprintf('%s = %s', $this->quoteIdentifier($column), $placeholder);
+            $bindings[$placeholder] = $data[$column];
         }
-        $stmt->bindValue(':id', $id);
+
+        $sql = sprintf(
+            'UPDATE %s SET %s WHERE %s = :primary_id',
+            $this->quoteIdentifier($this->table),
+            implode(', ', $assignments),
+            $this->quoteIdentifier($this->primaryKey)
+        );
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $placeholder => $value) {
+            $stmt->bindValue($placeholder, $value);
+        }
+        $stmt->bindValue(':primary_id', $id);
+
         return $stmt->execute();
+    }
+
+    protected function quoteIdentifier(string $identifier): string
+    {
+        $identifier = trim($identifier);
+
+        if ($identifier === '*') {
+            return $identifier;
+        }
+
+        $parts = explode('.', $identifier);
+
+        $quotedParts = array_map(static function (string $part): string {
+            $part = trim($part, "` ");
+            return '`' . str_replace('`', '``', $part) . '`';
+        }, $parts);
+
+        return implode('.', $quotedParts);
     }
 
     public function delete(string $id): bool
