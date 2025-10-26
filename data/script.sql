@@ -1041,7 +1041,6 @@ ALTER TABLE `product_components`
 --
 -- Chỉ mục cho bảng `cau_hinh_nguyen_lieu`
 ALTER TABLE `cau_hinh_nguyen_lieu`
-  ADD PRIMARY KEY (`IdCauHinhNguyenLieu`),
   ADD KEY `FKCFGNL_CAU_HINH` (`IdCauHinh`),
   ADD KEY `FKCFGNL_NGUYEN_LIEU` (`IdNguyenLieu`);
 
