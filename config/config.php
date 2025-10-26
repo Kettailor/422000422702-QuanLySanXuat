@@ -1,7 +1,8 @@
 <?php
+
 return [
     'db' => [
-        'host' => 'localhost',
+        'host' => '127.0.0.1',
         'port' => 3306,
         'database' => '422000422702-quanlysanxuat',
         'username' => 'root',

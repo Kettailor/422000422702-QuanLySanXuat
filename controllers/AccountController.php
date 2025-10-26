@@ -1,0 +1,125 @@
+<?php
+
+class AccountController extends Controller
+{
+    private Employee $employeeModel;
+    private User $userModel;
+    private Role $roleModel;
+
+    public function __construct()
+    {
+        $this->employeeModel = new Employee();
+        $this->userModel = new User();
+        $this->roleModel = new Role();
+    }
+
+    public function index(): void
+    {
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+
+        $users = $this->userModel->findAllWithEmployeeAndRole($page, $limit);
+        $numberOfActiveUsers = $this->userModel->countActiveUsers();
+        $numberOfActiveEmployees = $this->employeeModel->countActiveEmployees();
+
+        $this->render('account/index', [
+            'title' => 'Quản lý tài khoản',
+            'header' => ["ID Người dùng", "ID nhân viên", 'Tên nhân viên', 'Vai trò', 'Chức vụ', 'Trạng thái', 'Hành động'],
+            'users' => $users,
+            'numberOfActiveUsers' => $numberOfActiveUsers,
+            'numberOfActiveEmployees' => $numberOfActiveEmployees,
+        ]);
+    }
+
+    public function create(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $employeeId = $_POST['employee'] ?? null;
+            $username = $_POST['username'] ?? null;
+            $roleId = $_POST['role'] ?? null;
+
+            $userExists = $this->userModel->findByUsername($username);
+            if ($userExists) {
+                $this->setFlash('danger', 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
+                $this->redirect('?controller=account&action=create');
+            }
+
+            $lastUser = $this->userModel->getLastUserId();
+            if ($lastUser && preg_match('/ND(\d+)/', $lastUser, $matches)) {
+                $nextIdNumber = (int)$matches[1] + 1;
+                $nextUserId = 'ND' . str_pad($nextIdNumber, 3, '0', STR_PAD_LEFT);
+            } else {
+                $nextUserId = 'ND001';
+            }
+
+            $this->userModel->create([
+              'IdNguoiDung' => $nextUserId,
+              'IdNhanVien' => $employeeId,
+              'TenDangNhap' => $username,
+              'IdVaiTro' => $roleId,
+              'MatKhau' => password_hash($_POST['password'], PASSWORD_BCRYPT),
+              'TrangThai' => 'Hoạt động',
+            ]);
+            $this->setFlash('success', 'Tạo tài khoản thành công.');
+            $this->redirect('?controller=account&action=index');
+        }
+
+        $employees = $this->employeeModel->getUnassignedEmployees();
+        $roles = $this->roleModel->all();
+
+        $this->render('account/create', [
+            'title' => 'Tạo tài khoản mới',
+            'employees' => $employees,
+            'roles' => $roles,
+        ]);
+    }
+
+    public function edit(): void
+    {
+        $id = $_GET['id'] ?? null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
+            $username = $_POST['username'] ?? null;
+            $roleId = $_POST['role'] ?? null;
+            $password = $_POST['password'] ?? null;
+
+            $existingUser = $this->userModel->findByUsername($username);
+            if ($existingUser && $existingUser['IdNguoiDung'] !== $id) {
+                $this->setFlash('danger', 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
+                $this->redirect("?controller=account&action=edit&id=$id");
+            }
+
+            $userData = [
+                'TenDangNhap' => $username,
+                'IdVaiTro' => $roleId,
+            ];
+
+            if (!empty($password)) {
+                $userData['MatKhau'] = password_hash($password, PASSWORD_BCRYPT);
+            }
+
+            $this->userModel->update($id, $userData);
+            $this->setFlash('success', 'Cập nhật tài khoản thành công.');
+            $this->redirect('?controller=account&action=index');
+        }
+
+        $user = $this->userModel->find($id);
+        $roles = $this->roleModel->all();
+
+        $this->render('account/edit', [
+            'title' => 'Chỉnh sửa tài khoản',
+            'user_data' => $user,
+            'roles' => $roles,
+        ]);
+    }
+
+    public function delete(): void
+    {
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            $this->userModel->delete($id);
+        }
+        $this->setFlash('success', 'Xóa tài khoản thành công.');
+        $this->redirect('?controller=account&action=index');
+    }
+}

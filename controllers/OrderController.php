@@ -6,12 +6,10 @@ class OrderController extends Controller
     private Customer $customerModel;
     private Product $productModel;
     private OrderDetail $orderDetailModel;
-    private ProductionPlan $planModel;
-    private Bill $billModel;
+    private ProductConfiguration $configurationModel;
+    private ProductBom $bomModel;
 
-    private array $orderStatuses = ['Mới tạo', 'Chờ duyệt', 'Đang xử lý', 'Chờ giao', 'Hoàn thành', 'Đã hủy'];
-    private array $planStatuses = ['Mới tạo', 'Đang lập kế hoạch', 'Chuẩn bị nguyên liệu', 'Đang triển khai', 'Tạm dừng', 'Hoàn thành'];
-    private array $billStatuses = ['Chưa thanh toán', 'Đang đối soát', 'Đã xuất hóa đơn', 'Đã thanh toán', 'Đã hủy'];
+    private array $orderStatuses = ['Mới tạo', 'Đang xử lý', 'Chờ giao', 'Hoàn thành', 'Đã hủy'];
 
     public function __construct()
     {
@@ -20,8 +18,8 @@ class OrderController extends Controller
         $this->customerModel = new Customer();
         $this->productModel = new Product();
         $this->orderDetailModel = new OrderDetail();
-        $this->planModel = new ProductionPlan();
-        $this->billModel = new Bill();
+        $this->configurationModel = new ProductConfiguration();
+        $this->bomModel = new ProductBom();
     }
 
     public function index(): void
@@ -35,15 +33,16 @@ class OrderController extends Controller
 
     public function create(): void
     {
-        $customers = $this->customerModel->all(100);
-        $products = $this->productModel->all(200);
+        $customers = $this->customerModel->all(200);
+        $products = $this->productModel->all(500);
+        $configurations = $this->configurationModel->all(1000);
+
         $this->render('order/create', [
             'title' => 'Tạo đơn hàng mới',
             'customers' => $customers,
             'products' => $products,
+            'configurations' => $configurations,
             'orderStatuses' => $this->orderStatuses,
-            'planStatuses' => $this->planStatuses,
-            'billStatuses' => $this->billStatuses,
         ]);
     }
 
@@ -53,8 +52,17 @@ class OrderController extends Controller
             $this->redirect('?controller=order&action=index');
         }
 
-        $orderId = $_POST['IdDonHang'] ?: uniqid('DH');
+        $orderId = ($_POST['IdDonHang'] ?? '') ?: uniqid('DH');
         $detailsInput = $_POST['details'] ?? [];
+        $contactEmail = trim($_POST['EmailLienHe'] ?? '');
+
+        try {
+            $customerId = $this->resolveCustomer($_POST);
+        } catch (InvalidArgumentException $exception) {
+            $this->setFlash('danger', $exception->getMessage());
+            $this->redirect('?controller=order&action=create');
+            return;
+        }
 
         try {
             $db = Database::getInstance()->getConnection();
@@ -69,7 +77,8 @@ class OrderController extends Controller
                 'TongTien' => $totalAmount,
                 'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
                 'TrangThai' => $_POST['TrangThai'] ?? $this->orderStatuses[0],
-                'IdKhachHang' => $_POST['IdKhachHang'] ?? '',
+                'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
+                'IdKhachHang' => $customerId,
             ];
 
             $this->orderModel->create($data);
@@ -80,11 +89,11 @@ class OrderController extends Controller
 
             $db->commit();
             $this->setFlash('success', 'Tạo đơn hàng thành công.');
-        } catch (Throwable $e) {
+        } catch (Throwable $exception) {
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
             }
-            $this->setFlash('danger', 'Không thể tạo đơn hàng: ' . $e->getMessage());
+            $this->setFlash('danger', 'Không thể tạo đơn hàng: ' . $exception->getMessage());
         }
 
         $this->redirect('?controller=order&action=index');
@@ -98,19 +107,25 @@ class OrderController extends Controller
         }
 
         $order = $this->orderModel->find($id);
-        $customers = $this->customerModel->all(100);
-        $products = $this->productModel->all(200);
-        $orderDetails = $id ? $this->orderDetailModel->getByOrder($id) : [];
+        if (!$order) {
+            $this->setFlash('warning', 'Không tìm thấy đơn hàng.');
+            $this->redirect('?controller=order&action=index');
+        }
+
+        $customers = $this->customerModel->all(200);
+        $products = $this->productModel->all(500);
+        $configurations = $this->configurationModel->all(1000);
+        $orderDetails = $this->orderDetailModel->getByOrder($id);
+        $detailFormData = $this->prepareDetailsForForm($orderDetails);
 
         $this->render('order/edit', [
             'title' => 'Chỉnh sửa đơn hàng',
             'order' => $order,
             'customers' => $customers,
             'products' => $products,
-            'orderDetails' => $orderDetails,
+            'configurations' => $configurations,
+            'orderDetails' => $detailFormData,
             'orderStatuses' => $this->orderStatuses,
-            'planStatuses' => $this->planStatuses,
-            'billStatuses' => $this->billStatuses,
         ]);
     }
 
@@ -120,8 +135,21 @@ class OrderController extends Controller
             $this->redirect('?controller=order&action=index');
         }
 
-        $id = $_POST['IdDonHang'];
+        $id = $_POST['IdDonHang'] ?? null;
+        if (!$id) {
+            $this->redirect('?controller=order&action=index');
+        }
+
         $detailsInput = $_POST['details'] ?? [];
+        $contactEmail = trim($_POST['EmailLienHe'] ?? '');
+
+        try {
+            $customerId = $this->resolveCustomer($_POST);
+        } catch (InvalidArgumentException $exception) {
+            $this->setFlash('danger', $exception->getMessage());
+            $this->redirect('?controller=order&action=edit&id=' . urlencode($id));
+            return;
+        }
 
         try {
             $db = Database::getInstance()->getConnection();
@@ -135,7 +163,8 @@ class OrderController extends Controller
                 'TongTien' => $totalAmount,
                 'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
                 'TrangThai' => $_POST['TrangThai'] ?? $this->orderStatuses[0],
-                'IdKhachHang' => $_POST['IdKhachHang'] ?? '',
+                'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
+                'IdKhachHang' => $customerId,
             ];
 
             $this->orderModel->update($id, $data);
@@ -147,11 +176,11 @@ class OrderController extends Controller
 
             $db->commit();
             $this->setFlash('success', 'Cập nhật đơn hàng thành công.');
-        } catch (Throwable $e) {
+        } catch (Throwable $exception) {
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
             }
-            $this->setFlash('danger', 'Không thể cập nhật đơn hàng: ' . $e->getMessage());
+            $this->setFlash('danger', 'Không thể cập nhật đơn hàng: ' . $exception->getMessage());
         }
 
         $this->redirect('?controller=order&action=index');
@@ -164,8 +193,8 @@ class OrderController extends Controller
             try {
                 $this->orderModel->delete($id);
                 $this->setFlash('success', 'Đã xóa đơn hàng.');
-            } catch (Throwable $e) {
-                $this->setFlash('danger', 'Không thể xóa đơn hàng: ' . $e->getMessage());
+            } catch (Throwable $exception) {
+                $this->setFlash('danger', 'Không thể xóa đơn hàng: ' . $exception->getMessage());
             }
         }
 
@@ -180,71 +209,22 @@ class OrderController extends Controller
         }
 
         $order = $this->orderModel->find($id);
+        if (!$order) {
+            $this->setFlash('warning', 'Không tìm thấy đơn hàng.');
+            $this->redirect('?controller=order&action=index');
+        }
+
         $customer = $order ? $this->customerModel->find($order['IdKhachHang']) : null;
-        $orderDetails = $id ? $this->orderDetailModel->getByOrder($id) : [];
-        $plans = $id ? $this->planModel->getByOrder($id) : [];
-        $bills = $id ? $this->billModel->getByOrder($id) : [];
+        $orderDetails = $this->orderDetailModel->getByOrder($id);
+        $detailedItems = $this->prepareDetailsForDisplay($orderDetails);
 
         $this->render('order/read', [
             'title' => 'Chi tiết đơn hàng',
             'order' => $order,
             'customer' => $customer,
-            'orderDetails' => $orderDetails,
-            'plans' => $plans,
-            'bills' => $bills,
+            'orderDetails' => $detailedItems,
             'orderStatuses' => $this->orderStatuses,
-            'planStatuses' => $this->planStatuses,
-            'billStatuses' => $this->billStatuses,
         ]);
-    }
-
-    public function updateStatuses(): void
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('?controller=order&action=index');
-        }
-
-        $orderId = $_POST['order_id'] ?? null;
-        if (!$orderId) {
-            $this->redirect('?controller=order&action=index');
-        }
-
-        $orderStatus = $_POST['order_status'] ?? null;
-        $planStatuses = $_POST['plan_statuses'] ?? [];
-        $billStatuses = $_POST['bill_statuses'] ?? [];
-
-        try {
-            $db = Database::getInstance()->getConnection();
-            $db->beginTransaction();
-
-            if ($orderStatus !== null && $orderStatus !== '') {
-                $this->orderModel->update($orderId, ['TrangThai' => $orderStatus]);
-            }
-
-            foreach ($planStatuses as $planId => $status) {
-                if ($status === '' || !$planId) {
-                    continue;
-                }
-                $this->planModel->update($planId, ['TrangThai' => $status]);
-            }
-
-            foreach ($billStatuses as $billId => $status) {
-                if ($status === '' || !$billId) {
-                    continue;
-                }
-                $this->billModel->update($billId, ['TrangThai' => $status]);
-            }
-
-            $db->commit();
-            $this->setFlash('success', 'Cập nhật trạng thái thành công.');
-        } catch (Throwable $e) {
-            if (isset($db) && $db->inTransaction()) {
-                $db->rollBack();
-            }
-            $this->setFlash('danger', 'Không thể cập nhật trạng thái: ' . $e->getMessage());
-        }
-
-        $this->redirect('?controller=order&action=read&id=' . urlencode($orderId));
     }
 
     private function prepareOrderDetails(string $orderId, array $detailsInput): array
@@ -258,61 +238,174 @@ class OrderController extends Controller
 
             $productMode = $detail['product_mode'] ?? 'existing';
             $productId = $detail['product_id'] ?? null;
+            $product = null;
 
             if ($productMode === 'new') {
-                $productId = $detail['new_product_id'] ?? uniqid('SP');
                 $productName = trim($detail['new_product_name'] ?? '');
-                $productUnit = trim($detail['new_product_unit'] ?? '');
-                $productPrice = (float) ($detail['new_product_price'] ?? 0);
-
                 if ($productName === '') {
-                    throw new InvalidArgumentException('Tên sản phẩm mới không được để trống.');
+                    throw new InvalidArgumentException('Vui lòng nhập tên sản phẩm mới.');
                 }
+                $productUnit = trim($detail['new_product_unit'] ?? '');
+                $productDescription = trim($detail['new_product_description'] ?? '');
+                $productPrice = (float)($detail['unit_price'] ?? 0);
 
-                $existingProduct = $this->productModel->find($productId);
-                if (!$existingProduct) {
+                if ($productId && $existingProduct = $this->productModel->find($productId)) {
+                    $this->productModel->update($productId, [
+                        'TenSanPham' => $productName,
+                        'DonVi' => $productUnit ?: ($existingProduct['DonVi'] ?? null),
+                        'MoTa' => $productDescription ?: null,
+                        'GiaBan' => $productPrice,
+                    ]);
+                } else {
+                    $productId = uniqid('SP');
                     $this->productModel->create([
                         'IdSanPham' => $productId,
                         'TenSanPham' => $productName,
-                        'DonVi' => $productUnit ?: 'Đơn vị',
+                        'DonVi' => $productUnit ?: null,
+                        'MoTa' => $productDescription ?: null,
                         'GiaBan' => $productPrice,
-                        'MoTa' => $detail['new_product_description'] ?? null,
                     ]);
+                }
+            } else {
+                if (!$productId) {
+                    throw new InvalidArgumentException('Vui lòng chọn sản phẩm.');
+                }
+                $product = $this->productModel->find($productId);
+                if (!$product) {
+                    throw new InvalidArgumentException('Sản phẩm đã chọn không tồn tại.');
                 }
             }
 
-            if (!$productId) {
-                continue;
+            $configurationMode = $detail['configuration_mode'] ?? 'existing';
+            $configurationId = $detail['configuration_id'] ?? null;
+            $configuration = null;
+
+            $configKeycap = trim($detail['config_keycap'] ?? '');
+            $configSwitch = trim($detail['config_switch'] ?? '');
+            $configCase = trim($detail['config_case'] ?? '');
+            $configMain = trim($detail['config_main'] ?? '');
+            $configOthers = trim($detail['config_others'] ?? '');
+
+            if ($configurationMode === 'new') {
+                $configurationName = trim($detail['new_configuration_name'] ?? '');
+                if ($configurationName === '') {
+                    throw new InvalidArgumentException('Vui lòng nhập tên cấu hình sản phẩm.');
+                }
+
+                $configurationDescription = trim($detail['new_configuration_description'] ?? '');
+                $configurationPrice = (float)($detail['new_configuration_price'] ?? 0);
+
+                if ($configurationId && $existingConfiguration = $this->configurationModel->find($configurationId)) {
+                    $this->configurationModel->update($configurationId, [
+                        'TenCauHinh' => $configurationName,
+                        'MoTa' => $configurationDescription ?: ($configKeycap ?: null),
+                        'GiaBan' => $configurationPrice,
+                        'IdSanPham' => $productId,
+                        'Layout' => $configMain ?: null,
+                        'SwitchType' => $configSwitch ?: null,
+                        'CaseType' => $configCase ?: null,
+                        'Foam' => $configOthers ?: null,
+                    ]);
+                    $bomId = $existingConfiguration['IdBOM'] ?? null;
+                    if ($bomId) {
+                        $this->bomModel->update($bomId, [
+                            'TenBOM' => sprintf('BOM - %s', $configurationName),
+                            'MoTa' => $configurationDescription ?: null,
+                            'IdSanPham' => $productId,
+                        ]);
+                    }
+                    $configuration = $this->configurationModel->find($configurationId);
+                } else {
+                    $configurationId = uniqid('CFG');
+                    $bomId = uniqid('BOM');
+
+                    $this->bomModel->create([
+                        'IdBOM' => $bomId,
+                        'TenBOM' => sprintf('BOM - %s', $configurationName),
+                        'MoTa' => $configurationDescription ?: null,
+                        'IdSanPham' => $productId,
+                    ]);
+
+                    $this->configurationModel->create([
+                        'IdCauHinh' => $configurationId,
+                        'TenCauHinh' => $configurationName,
+                        'MoTa' => $configurationDescription ?: ($configKeycap ?: null),
+                        'GiaBan' => $configurationPrice,
+                        'IdSanPham' => $productId,
+                        'IdBOM' => $bomId,
+                        'Layout' => $configMain ?: null,
+                        'SwitchType' => $configSwitch ?: null,
+                        'CaseType' => $configCase ?: null,
+                        'Foam' => $configOthers ?: null,
+                    ]);
+                    $configuration = $this->configurationModel->find($configurationId);
+                }
+            } else {
+                if (!$configurationId) {
+                    throw new InvalidArgumentException('Vui lòng chọn cấu hình sản phẩm.');
+                }
+                $configuration = $this->configurationModel->find($configurationId);
+                if (!$configuration) {
+                    throw new InvalidArgumentException('Cấu hình sản phẩm không tồn tại.');
+                }
+                if (($configuration['IdSanPham'] ?? null) !== $productId) {
+                    throw new InvalidArgumentException('Cấu hình không thuộc sản phẩm đã chọn.');
+                }
             }
 
-            $quantity = (int) ($detail['quantity'] ?? 0);
+            if ($configuration) {
+                $configSwitch = $configSwitch ?: trim((string)($configuration['SwitchType'] ?? ''));
+                $configCase = $configCase ?: trim((string)($configuration['CaseType'] ?? ''));
+                $configMain = $configMain ?: trim((string)($configuration['Layout'] ?? ''));
+                $configOthers = $configOthers ?: trim((string)($configuration['Foam'] ?? ''));
+                if ($configKeycap === '' && !empty($configuration['MoTa'])) {
+                    $configKeycap = trim((string)$configuration['MoTa']);
+                }
+            }
+
+            $quantity = (int)($detail['quantity'] ?? 0);
             if ($quantity <= 0) {
                 continue;
             }
 
-            $unitPrice = (float) ($detail['unit_price'] ?? 0);
-            $vatInput = (float) ($detail['vat'] ?? 0);
+            $unitPrice = (float)($detail['unit_price'] ?? 0);
+            $vatInput = (float)($detail['vat'] ?? 0);
             $vat = $vatInput > 1 ? $vatInput / 100 : $vatInput;
             $total = $quantity * $unitPrice * (1 + $vat);
 
             $delivery = $detail['delivery_date'] ?? null;
-            if (!empty($delivery)) {
+            if ($delivery) {
                 $timestamp = strtotime($delivery);
                 $delivery = $timestamp ? date('Y-m-d H:i:s', $timestamp) : null;
-            } else {
-                $delivery = null;
             }
+
+            $note = trim($detail['note'] ?? '');
+            $metaPayload = [
+                'note' => $note !== '' ? $note : null,
+                'configuration' => array_filter([
+                    'keycap' => $configKeycap !== '' ? $configKeycap : null,
+                    'switch' => $configSwitch !== '' ? $configSwitch : null,
+                    'case' => $configCase !== '' ? $configCase : null,
+                    'main' => $configMain !== '' ? $configMain : null,
+                    'others' => $configOthers !== '' ? $configOthers : null,
+                ]),
+                'source' => [
+                    'product' => $productMode,
+                    'configuration' => $configurationMode,
+                ],
+            ];
 
             $prepared[] = [
                 'IdTTCTDonHang' => uniqid('CTDH'),
                 'IdDonHang' => $orderId,
                 'IdSanPham' => $productId,
+                'IdCauHinh' => $configurationId,
                 'SoLuong' => $quantity,
                 'NgayGiao' => $delivery,
                 'YeuCau' => $detail['requirement'] ?? null,
                 'DonGia' => $unitPrice,
                 'ThanhTien' => $total,
-                'GhiChu' => $detail['note'] ?? null,
+                'GhiChu' => json_encode($metaPayload, JSON_UNESCAPED_UNICODE),
                 'VAT' => $vat,
             ];
         }
@@ -322,5 +415,134 @@ class OrderController extends Controller
         }
 
         return $prepared;
+    }
+
+    private function parseDetailMeta(array $detail): array
+    {
+        $meta = [
+            'note' => null,
+            'configuration' => [
+                'keycap' => null,
+                'switch' => null,
+                'case' => null,
+                'main' => null,
+                'others' => null,
+            ],
+            'source' => [
+                'product' => 'existing',
+                'configuration' => 'existing',
+            ],
+        ];
+
+        $rawMeta = $detail['GhiChu'] ?? null;
+        if ($rawMeta) {
+            $decoded = json_decode((string)$rawMeta, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                if (isset($decoded['note'])) {
+                    $note = trim((string)$decoded['note']);
+                    $meta['note'] = $note !== '' ? $note : null;
+                }
+                if (isset($decoded['configuration']) && is_array($decoded['configuration'])) {
+                    $meta['configuration'] = array_merge($meta['configuration'], array_intersect_key($decoded['configuration'], $meta['configuration']));
+                }
+                if (isset($decoded['source']) && is_array($decoded['source'])) {
+                    $meta['source'] = array_merge($meta['source'], array_intersect_key($decoded['source'], $meta['source']));
+                }
+            } else {
+                $note = trim((string)$rawMeta);
+                $meta['note'] = $note !== '' ? $note : null;
+            }
+        }
+
+        $detail['meta'] = $meta;
+        return $detail;
+    }
+
+    private function prepareDetailsForForm(array $details): array
+    {
+        return array_map(function (array $detail): array {
+            $detail = $this->parseDetailMeta($detail);
+            $meta = $detail['meta'];
+
+            $delivery = $detail['NgayGiao'] ?? null;
+            if ($delivery) {
+                $timestamp = strtotime($delivery);
+                $delivery = $timestamp ? date('Y-m-d\TH:i', $timestamp) : null;
+            }
+
+            $vatPercent = isset($detail['VAT']) ? ((float)$detail['VAT']) * 100 : 0;
+
+            return [
+                'product_mode' => $meta['source']['product'] ?? 'existing',
+                'product_id' => $detail['IdSanPham'] ?? null,
+                'new_product_name' => $detail['TenSanPham'] ?? '',
+                'new_product_unit' => $detail['DonVi'] ?? '',
+                'new_product_description' => $detail['MoTa'] ?? '',
+                'configuration_mode' => $meta['source']['configuration'] ?? 'existing',
+                'configuration_id' => $detail['IdCauHinh'] ?? null,
+                'new_configuration_name' => $detail['TenCauHinh'] ?? '',
+                'new_configuration_price' => $detail['GiaCauHinh'] ?? '',
+                'new_configuration_description' => $detail['MoTaCauHinh'] ?? '',
+                'quantity' => (int)($detail['SoLuong'] ?? 1),
+                'unit_price' => (float)($detail['DonGia'] ?? 0),
+                'vat' => $vatPercent,
+                'delivery_date' => $delivery,
+                'requirement' => $detail['YeuCau'] ?? '',
+                'note' => $meta['note'] ?? '',
+                'config_keycap' => $meta['configuration']['keycap'] ?? '',
+                'config_switch' => $meta['configuration']['switch'] ?? '',
+                'config_case' => $meta['configuration']['case'] ?? '',
+                'config_main' => $meta['configuration']['main'] ?? '',
+                'config_others' => $meta['configuration']['others'] ?? '',
+            ];
+        }, $details);
+    }
+
+    private function prepareDetailsForDisplay(array $details): array
+    {
+        return array_map(function (array $detail): array {
+            return $this->parseDetailMeta($detail);
+        }, $details);
+    }
+
+    private function resolveCustomer(array $input, ?string $fallbackCustomerId = null): string
+    {
+        $mode = $input['customer_mode'] ?? 'existing';
+
+        if ($mode === 'new') {
+            $name = trim($input['customer_name'] ?? '');
+            if ($name === '') {
+                throw new InvalidArgumentException('Vui lòng nhập tên khách hàng mới.');
+            }
+
+            $company = trim($input['customer_company'] ?? '');
+            $phone = trim($input['customer_phone'] ?? '');
+            $email = trim($input['customer_email'] ?? '');
+            $address = trim($input['customer_address'] ?? '');
+            $type = trim($input['customer_type'] ?? 'Khách hàng mới');
+
+            $customerId = uniqid('KH');
+            $this->customerModel->create([
+                'IdKhachHang' => $customerId,
+                'HoTen' => $name,
+                'TenCongTy' => $company !== '' ? $company : $name,
+                'GioiTinh' => null,
+                'DiaChi' => $address ?: null,
+                'SoLuongDonHang' => 0,
+                'SoDienThoai' => $phone ?: null,
+                'Email' => $email !== '' ? $email : null,
+                'TongTien' => 0,
+                'LoaiKhachHang' => $type ?: 'Khách hàng mới',
+            ]);
+
+            return $customerId;
+        }
+
+        $existingId = $input['customer_existing_id'] ?? $fallbackCustomerId;
+        if (!$existingId) {
+            throw new InvalidArgumentException('Vui lòng chọn khách hàng từ danh sách.');
+        }
+
+        return $existingId;
     }
 }

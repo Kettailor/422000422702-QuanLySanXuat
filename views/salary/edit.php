@@ -6,6 +6,11 @@
     <a href="?controller=salary&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
 
+<?php
+$employees = $employees ?? [];
+$accountants = $accountants ?? [];
+?>
+
 <?php if (!$payroll): ?>
     <div class="alert alert-warning">Không tìm thấy bảng lương.</div>
 <?php else: ?>
@@ -14,11 +19,24 @@
             <input type="hidden" name="IdBangLuong" value="<?= htmlspecialchars($payroll['IdBangLuong']) ?>">
             <div class="col-md-4">
                 <label class="form-label">Nhân viên</label>
-                <input type="text" name="IdNhanVien" class="form-control" value="<?= htmlspecialchars($payroll[Salary::EMPLOYEE_COLUMN]) ?>" required>
+                <select name="IdNhanVien" class="form-select" required>
+                    <?php foreach ($employees as $employee): ?>
+                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= $employee['IdNhanVien'] === $payroll[Salary::EMPLOYEE_COLUMN] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Kế toán phụ trách</label>
-                <input type="text" name="KeToan" class="form-control" value="<?= htmlspecialchars($payroll[Salary::ACCOUNTANT_COLUMN] ?? '') ?>">
+                <select name="KeToan" class="form-select">
+                    <option value="">-- Chọn kế toán --</option>
+                    <?php foreach ($accountants as $accountant): ?>
+                        <option value="<?= htmlspecialchars($accountant['IdNhanVien']) ?>" <?= ($accountant['IdNhanVien'] === ($payroll[Salary::ACCOUNTANT_COLUMN] ?? '')) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($accountant['HoTen']) ?> (<?= htmlspecialchars($accountant['IdNhanVien']) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Tháng/Năm</label>

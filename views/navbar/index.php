@@ -1,12 +1,18 @@
 <?php
 $currentController = $_GET['controller'] ?? 'dashboard';
-$role = $user['IdVaiTro'] ?? null;
-$canAccess = function (array $roles) use ($role): bool {
+$role = is_array($user) ? ($user['IdVaiTro'] ?? null) : null;
+$actualRole = is_array($user) ? ($user['ActualIdVaiTro'] ?? ($user['OriginalIdVaiTro'] ?? $role)) : null;
+$isImpersonating = is_array($user) && !empty($user['IsImpersonating']);
+$canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating): bool {
     if (!$role) {
         return false;
     }
 
-    if ($role === 'VT_ADMIN') {
+    if ($actualRole === 'VT_ADMIN' && !$isImpersonating) {
+        return true;
+    }
+
+    if ($actualRole === 'VT_ADMIN' && in_array('VT_ADMIN', $roles, true)) {
         return true;
     }
 
@@ -16,7 +22,7 @@ $canAccess = function (array $roles) use ($role): bool {
 <nav class="sidebar">
     <div class="logo">
         <span class="bi bi-grid-1x2-fill"></span>
-        <span>Sản xuất ERP</span>
+        <span>SV5TOT Keyboard Ops</span>
     </div>
     <div class="nav flex-column">
         <a class="nav-link <?= $currentController === 'dashboard' ? 'active' : '' ?>" href="?controller=dashboard&action=index">
@@ -72,22 +78,38 @@ $canAccess = function (array $roles) use ($role): bool {
                 <i class="bi bi-cash-stack"></i> Bảng lương
             </a>
         <?php endif; ?>
-        <?php if ($role === 'VT_ADMIN'): ?>
+        <?php if ($actualRole === 'VT_ADMIN'): ?>
+            <a class="nav-link <?= $currentController === 'adminImpersonation' ? 'active' : '' ?>" href="?controller=adminImpersonation&action=index">
+                <i class="bi bi-person-badge"></i> Giả lập vai trò
+            </a>
+            <a class="nav-link" href="?controller=account&action=index">
+                <i class="bi bi-person-circle"></i> Tài khoản
+            </a>
             <a class="nav-link" href="#">
                 <i class="bi bi-gear"></i> Cài đặt
             </a>
         <?php endif; ?>
     </div>
+    <button class="btn-close position-absolute top-0 end-0 m-3 text-white d-lg-none" data-toggle="sidebar" aria-label="Đóng menu"></button>
 </nav>
-<div>
+<div class="sidebar-backdrop d-lg-none" data-toggle="sidebar"></div>
+<div class="main-wrapper">
     <header class="topbar">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-outline-primary d-lg-none" data-toggle="sidebar"><i class="bi bi-list"></i></button>
-            <div class="fw-semibold text-secondary">Sinh viên 5 Tốt ERP</div>
+            <div class="fw-semibold text-secondary">SV5TOT Keyboard Manufacturing Hub</div>
         </div>
         <div class="d-flex align-items-center gap-3">
+            <?php if ($isImpersonating): ?>
+                <span class="badge bg-warning text-dark">
+                    Đang giả lập: <?= htmlspecialchars($user['TenVaiTro'] ?? $role ?? 'Không xác định') ?>
+                </span>
+                <a href="?impersonation=stop" class="btn btn-outline-warning btn-sm">Hủy giả lập</a>
+            <?php elseif ($actualRole === 'VT_ADMIN'): ?>
+                <a href="?controller=adminImpersonation&action=index" class="btn btn-outline-secondary btn-sm">Giả lập vai trò</a>
+            <?php endif; ?>
             <div class="search-bar d-none d-md-block">
-                <input type="search" class="form-control" placeholder="Tìm kiếm nhanh...">
+                <input type="search" class="form-control" placeholder="Tìm nhanh đơn hàng, kế hoạch SV5TOT...">
             </div>
             <a href="?controller=auth&action=profile" class="btn btn-light border d-flex align-items-center gap-2">
                 <i class="bi bi-person-circle"></i>

@@ -1,47 +1,126 @@
 <?php
 $detailItems = $orderDetails ?? [];
+$products = $products ?? [];
+$configurations = $configurations ?? [];
+
 if (empty($detailItems)) {
     $detailItems = [[]];
 }
-$productOptions = array_map(static fn($product) => [
-    'id' => $product['IdSanPham'],
-    'name' => $product['TenSanPham'],
-    'unit' => $product['DonVi'] ?? '',
-    'price' => (float) ($product['GiaBan'] ?? 0),
-], $products ?? []);
-$detailPayload = array_map(static function ($detail) {
-    if (empty($detail)) {
-        return new stdClass();
+
+$preparedProducts = array_map(static function ($product) {
+    return [
+        'id' => $product['IdSanPham'] ?? null,
+        'name' => $product['TenSanPham'] ?? 'Sản phẩm mới',
+        'unit' => $product['DonVi'] ?? '',
+        'price' => isset($product['GiaBan']) ? (float) $product['GiaBan'] : 0.0,
+        'description' => $product['MoTa'] ?? '',
+    ];
+}, $products);
+
+$configByProduct = [];
+foreach ($configurations as $configuration) {
+    $productId = $configuration['IdSanPham'] ?? null;
+    if (!$productId) {
+        continue;
     }
-    $delivery = $detail['NgayGiao'] ?? null;
-    if ($delivery) {
-        try {
-            $deliveryDate = new DateTime($delivery);
-            $delivery = $deliveryDate->format('Y-m-d\\TH:i');
-        } catch (Exception $e) {
-            $delivery = null;
-        }
+    $configByProduct[$productId][] = [
+        'id' => $configuration['IdCauHinh'] ?? null,
+        'product_id' => $productId,
+        'name' => $configuration['TenCauHinh'] ?? 'Cấu hình',
+        'price' => isset($configuration['GiaBan']) ? (float) $configuration['GiaBan'] : 0.0,
+        'description' => $configuration['MoTa'] ?? '',
+        'layout' => $configuration['Layout'] ?? '',
+        'switch' => $configuration['SwitchType'] ?? '',
+        'case' => $configuration['CaseType'] ?? '',
+        'others' => $configuration['Foam'] ?? '',
+    ];
+}
+
+$initialDetails = array_map(static function ($detail) {
+    if (empty($detail)) {
+        return [
+            'product_mode' => 'existing',
+            'product_id' => '',
+            'new_product_name' => '',
+            'new_product_unit' => '',
+            'new_product_description' => '',
+            'configuration_mode' => 'existing',
+            'configuration_id' => '',
+            'new_configuration_name' => '',
+            'new_configuration_price' => '',
+            'new_configuration_description' => '',
+            'config_keycap' => '',
+            'config_switch' => '',
+            'config_case' => '',
+            'config_main' => '',
+            'config_others' => '',
+            'quantity' => 1,
+            'unit_price' => 0,
+            'vat' => 8,
+            'delivery_date' => '',
+            'requirement' => '',
+            'note' => '',
+        ];
     }
 
     return [
-        'product_mode' => 'existing',
-        'product_id' => $detail['IdSanPham'] ?? null,
-        'quantity' => (int) ($detail['SoLuong'] ?? 0),
-        'delivery_date' => $delivery,
-        'requirement' => $detail['YeuCau'] ?? null,
-        'unit_price' => (float) ($detail['DonGia'] ?? 0),
-        'vat' => isset($detail['VAT']) ? ((float) $detail['VAT']) * 100 : 8,
-        'note' => $detail['GhiChu'] ?? null,
+        'product_mode' => $detail['product_mode'] ?? 'existing',
+        'product_id' => $detail['product_id'] ?? '',
+        'new_product_name' => $detail['new_product_name'] ?? '',
+        'new_product_unit' => $detail['new_product_unit'] ?? '',
+        'new_product_description' => $detail['new_product_description'] ?? '',
+        'configuration_mode' => $detail['configuration_mode'] ?? 'existing',
+        'configuration_id' => $detail['configuration_id'] ?? '',
+        'new_configuration_name' => $detail['new_configuration_name'] ?? '',
+        'new_configuration_price' => $detail['new_configuration_price'] ?? '',
+        'new_configuration_description' => $detail['new_configuration_description'] ?? '',
+        'config_keycap' => $detail['config_keycap'] ?? '',
+        'config_switch' => $detail['config_switch'] ?? '',
+        'config_case' => $detail['config_case'] ?? '',
+        'config_main' => $detail['config_main'] ?? '',
+        'config_others' => $detail['config_others'] ?? '',
+        'quantity' => (int) ($detail['quantity'] ?? 1),
+        'unit_price' => (float) ($detail['unit_price'] ?? 0),
+        'vat' => isset($detail['vat']) ? (float) $detail['vat'] : 8,
+        'delivery_date' => $detail['delivery_date'] ?? '',
+        'requirement' => $detail['requirement'] ?? '',
+        'note' => $detail['note'] ?? '',
     ];
 }, $detailItems);
+
+if (empty($initialDetails)) {
+    $initialDetails[] = [
+        'product_mode' => 'existing',
+        'product_id' => '',
+        'new_product_name' => '',
+        'new_product_unit' => '',
+        'new_product_description' => '',
+        'configuration_mode' => 'existing',
+        'configuration_id' => '',
+        'new_configuration_name' => '',
+        'new_configuration_price' => '',
+        'new_configuration_description' => '',
+        'config_keycap' => '',
+        'config_switch' => '',
+        'config_case' => '',
+        'config_main' => '',
+        'config_others' => '',
+        'quantity' => 1,
+        'unit_price' => 0,
+        'vat' => 8,
+        'delivery_date' => '',
+        'requirement' => '',
+        'note' => '',
+    ];
+}
 ?>
 <div class="col-12">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <label class="form-label fw-semibold">Chi tiết sản phẩm</label>
-            <p class="text-muted small mb-0">Thêm các sản phẩm cần sản xuất, số lượng và yêu cầu giao hàng.</p>
+            <label class="form-label fw-semibold">Danh sách sản phẩm & cấu hình</label>
+            <p class="text-muted small mb-0">Chọn sản phẩm có sẵn hoặc nhập mới, sau đó điền các cấu hình chi tiết (keycap, switch, case, main...).</p>
         </div>
-        <button class="btn btn-outline-primary" type="button" id="add-detail-row"><i class="bi bi-plus-lg me-2"></i>Thêm sản phẩm</button>
+        <button class="btn btn-outline-primary" type="button" id="add-detail-row"><i class="bi bi-plus-lg me-2"></i>Thêm dòng</button>
     </div>
     <div id="order-detail-container" class="mt-3"></div>
     <div class="d-flex justify-content-end mt-3">
@@ -53,14 +132,53 @@ $detailPayload = array_map(static function ($detail) {
 </div>
 <script>
 (function () {
-    const productOptions = <?= json_encode($productOptions, JSON_UNESCAPED_UNICODE) ?>;
-    const initialDetails = <?= json_encode($detailPayload, JSON_UNESCAPED_UNICODE) ?>;
+    const products = <?= json_encode(array_values(array_filter($preparedProducts, static fn($product) => !empty($product['id']))), JSON_UNESCAPED_UNICODE) ?>;
+    const configurations = <?= json_encode($configByProduct, JSON_UNESCAPED_UNICODE) ?>;
+    const initialDetails = <?= json_encode($initialDetails, JSON_UNESCAPED_UNICODE) ?>;
     const detailContainer = document.getElementById('order-detail-container');
     const addRowButton = document.getElementById('add-detail-row');
     let detailIndex = 0;
 
-    function formatCurrency(value) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
+    function buildProductOptions(selectedId) {
+        const options = ['<option value="">-- Chọn sản phẩm --</option>'];
+        products.forEach(product => {
+            const selected = selectedId && selectedId === product.id ? 'selected' : '';
+            options.push(`<option value="${product.id}" data-price="${product.price}" data-description="${product.description ? product.description.replace(/"/g, '&quot;') : ''}" ${selected}>${product.name}</option>`);
+        });
+        return options.join('');
+    }
+
+    function buildConfigurationOptions(productId, selectedId) {
+        const configs = configurations[productId] || [];
+        const options = ['<option value="">-- Chọn cấu hình --</option>'];
+        configs.forEach(config => {
+            const selected = selectedId && selectedId === config.id ? 'selected' : '';
+            options.push(`<option value="${config.id}" data-price="${config.price}" data-layout="${config.layout ? config.layout.replace(/"/g, '&quot;') : ''}" data-switch="${config.switch ? config.switch.replace(/"/g, '&quot;') : ''}" data-case="${config.case ? config.case.replace(/"/g, '&quot;') : ''}" data-others="${config.others ? config.others.replace(/"/g, '&quot;') : ''}" data-description="${config.description ? config.description.replace(/"/g, '&quot;') : ''}" ${selected}>${config.name}</option>`);
+        });
+        return options.join('');
+    }
+
+    function getConfiguration(productId, configurationId) {
+        const configs = configurations[productId] || [];
+        return configs.find(config => config.id === configurationId) || null;
+    }
+
+    function updateRowIndexes() {
+        detailContainer.querySelectorAll('.order-detail-row').forEach((row, index) => {
+            const label = row.querySelector('[data-field="row_index"]');
+            if (label) {
+                label.textContent = index + 1;
+            }
+        });
+    }
+
+    function updateProductHint(row, productId) {
+        const hint = row.querySelector('[data-field="product_hint"]');
+        if (!hint) {
+            return;
+        }
+        const product = products.find(item => item.id === productId);
+        hint.textContent = product && product.description ? product.description : '';
     }
 
     function recalcTotals() {
@@ -69,139 +187,355 @@ $detailPayload = array_map(static function ($detail) {
             const quantity = parseFloat(row.querySelector('[data-field="quantity"]').value) || 0;
             const unitPrice = parseFloat(row.querySelector('[data-field="unit_price"]').value) || 0;
             const vat = parseFloat(row.querySelector('[data-field="vat"]').value) || 0;
-            const vatRate = vat > 1 ? vat / 100 : vat;
+            const vatRate = vat / 100;
             const lineTotal = quantity * unitPrice * (1 + vatRate);
             total += lineTotal;
-            row.querySelector('[data-field="line_total"]').textContent = formatCurrency(lineTotal);
+            const display = row.querySelector('[data-field="line_total"]');
+            if (display) {
+                display.textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(lineTotal || 0);
+            }
         });
         const totalDisplay = document.getElementById('order-total-display');
         if (totalDisplay) {
-            totalDisplay.textContent = formatCurrency(total);
+            totalDisplay.textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total || 0);
         }
     }
 
-    function buildProductOptions(selectedId) {
-        const options = ['<option value="">-- Chọn sản phẩm --</option>'];
-        productOptions.forEach(product => {
-            const selected = selectedId === product.id ? 'selected' : '';
-            options.push(`<option value="${product.id}" data-price="${product.price}" data-unit="${product.unit || ''}" ${selected}>${product.name}</option>`);
+    function applyProductMode(row, mode) {
+        const hidden = row.querySelector('[data-field="product_mode"]');
+        const existingSection = row.querySelector('[data-product-section="existing"]');
+        const newSection = row.querySelector('[data-product-section="new"]');
+        const existingSelect = existingSection ? existingSection.querySelector('select') : null;
+        const newInputs = newSection ? newSection.querySelectorAll('input, textarea') : [];
+
+        if (hidden) {
+            hidden.value = mode;
+        }
+
+        row.querySelectorAll('[data-action="toggle-product-mode"]').forEach(button => {
+            button.classList.toggle('active', button.getAttribute('data-mode') === mode);
         });
-        return options.join('');
-    }
 
-    function setProductDefaults(row, productId) {
-        const product = productOptions.find(item => item.id === productId);
-        if (product) {
-            row.querySelector('[data-field="unit_price"]').value = product.price || 0;
+        if (mode === 'new') {
+            if (existingSection && existingSelect) {
+                existingSection.classList.add('d-none');
+                existingSelect.value = '';
+                existingSelect.removeAttribute('required');
+            }
+            if (newSection) {
+                newSection.classList.remove('d-none');
+            }
+            newInputs.forEach(input => {
+                input.removeAttribute('disabled');
+                if (input.hasAttribute('data-required')) {
+                    input.setAttribute('required', 'required');
+                }
+            });
+        } else {
+            if (existingSection) {
+                existingSection.classList.remove('d-none');
+                if (existingSelect) {
+                    existingSelect.setAttribute('required', 'required');
+                }
+            }
+            if (newSection) {
+                newSection.classList.add('d-none');
+            }
+            newInputs.forEach(input => {
+                input.value = input.value;
+                input.setAttribute('disabled', 'disabled');
+                input.removeAttribute('required');
+            });
         }
     }
 
-    function toggleNewProductFields(row, mode) {
-        const newFields = row.querySelector('.new-product-fields');
-        const existingFields = row.querySelector('.existing-product-fields');
+    function applyConfigurationMode(row, mode) {
+        const hidden = row.querySelector('[data-field="configuration_mode"]');
+        const existingSection = row.querySelector('[data-configuration-section="existing"]');
+        const newSection = row.querySelector('[data-configuration-section="new"]');
+        const existingSelect = existingSection ? existingSection.querySelector('select') : null;
+        const newInputs = newSection ? newSection.querySelectorAll('input, textarea') : [];
+
+        if (hidden) {
+            hidden.value = mode;
+        }
+
+        row.querySelectorAll('[data-action="toggle-configuration-mode"]').forEach(button => {
+            button.classList.toggle('active', button.getAttribute('data-mode') === mode);
+        });
+
         if (mode === 'new') {
-            newFields.classList.remove('d-none');
-            existingFields.classList.add('d-none');
+            if (existingSection && existingSelect) {
+                existingSection.classList.add('d-none');
+                existingSelect.value = '';
+                existingSelect.removeAttribute('required');
+            }
+            if (newSection) {
+                newSection.classList.remove('d-none');
+            }
+            newInputs.forEach(input => {
+                input.removeAttribute('disabled');
+                if (input.hasAttribute('data-required')) {
+                    input.setAttribute('required', 'required');
+                }
+            });
         } else {
-            newFields.classList.add('d-none');
-            existingFields.classList.remove('d-none');
+            if (existingSection) {
+                existingSection.classList.remove('d-none');
+                if (existingSelect) {
+                    existingSelect.setAttribute('required', 'required');
+                }
+            }
+            if (newSection) {
+                newSection.classList.add('d-none');
+            }
+            newInputs.forEach(input => {
+                input.setAttribute('disabled', 'disabled');
+                input.removeAttribute('required');
+            });
+        }
+    }
+
+    function fillConfigurationFields(row, productId, configurationId) {
+        const configuration = productId && configurationId ? getConfiguration(productId, configurationId) : null;
+        const layoutInput = row.querySelector('[data-field="config_main"]');
+        const switchInput = row.querySelector('[data-field="config_switch"]');
+        const caseInput = row.querySelector('[data-field="config_case"]');
+        const otherInput = row.querySelector('[data-field="config_others"]');
+        const keycapInput = row.querySelector('[data-field="config_keycap"]');
+        const description = configuration ? configuration.description : '';
+        if (layoutInput && !layoutInput.value) {
+            layoutInput.value = configuration ? (configuration.layout || '') : layoutInput.value;
+        }
+        if (switchInput && !switchInput.value) {
+            switchInput.value = configuration ? (configuration.switch || '') : switchInput.value;
+        }
+        if (caseInput && !caseInput.value) {
+            caseInput.value = configuration ? (configuration.case || '') : caseInput.value;
+        }
+        if (otherInput && !otherInput.value) {
+            otherInput.value = configuration ? (configuration.others || '') : otherInput.value;
+        }
+        if (keycapInput && !keycapInput.value && description) {
+            keycapInput.value = description;
+        }
+
+        const hint = row.querySelector('[data-field="configuration_hint"]');
+        if (hint) {
+            const lines = [];
+            if (configuration) {
+                if (configuration.description) {
+                    lines.push(configuration.description);
+                }
+                const specs = [];
+                if (configuration.layout) {
+                    specs.push(`Main: ${configuration.layout}`);
+                }
+                if (configuration.switch) {
+                    specs.push(`Switch: ${configuration.switch}`);
+                }
+                if (configuration.case) {
+                    specs.push(`Case: ${configuration.case}`);
+                }
+                if (configuration.others) {
+                    specs.push(`Khác: ${configuration.others}`);
+                }
+                if (specs.length) {
+                    lines.push(specs.join(' • '));
+                }
+            }
+            hint.innerHTML = lines.map(text => `<div>${text}</div>`).join('');
         }
     }
 
     function attachEvents(row) {
-        const productMode = row.querySelector('[data-field="product_mode"]');
         const productSelect = row.querySelector('[data-field="product_id"]');
-        const inputsToWatch = row.querySelectorAll('[data-field="quantity"], [data-field="unit_price"], [data-field="vat"]');
-        productMode.addEventListener('change', () => {
-            toggleNewProductFields(row, productMode.value);
-            if (productMode.value === 'existing') {
-                setProductDefaults(row, productSelect.value);
-            }
-            recalcTotals();
-        });
-        productSelect.addEventListener('change', () => {
-            setProductDefaults(row, productSelect.value);
-            recalcTotals();
-        });
-        inputsToWatch.forEach(input => input.addEventListener('input', recalcTotals));
+        const configurationSelect = row.querySelector('[data-field="configuration_id"]');
+        const unitPriceInput = row.querySelector('[data-field="unit_price"]');
+        const quantityInput = row.querySelector('[data-field="quantity"]');
+        const vatInput = row.querySelector('[data-field="vat"]');
+        const productModeButtons = row.querySelectorAll('[data-action="toggle-product-mode"]');
+        const configurationModeButtons = row.querySelectorAll('[data-action="toggle-configuration-mode"]');
         const removeButton = row.querySelector('[data-action="remove"]');
-        removeButton.addEventListener('click', () => {
-            row.remove();
-            recalcTotals();
+
+        if (productSelect) {
+            productSelect.addEventListener('change', () => {
+                const productId = productSelect.value;
+                if (configurationSelect) {
+                    configurationSelect.innerHTML = buildConfigurationOptions(productId, '');
+                }
+                if (productId) {
+                    const selected = products.find(product => product.id === productId);
+                    if (selected && unitPriceInput && !unitPriceInput.dataset.manual) {
+                        unitPriceInput.value = selected.price || 0;
+                    }
+                }
+                updateProductHint(row, productId);
+                fillConfigurationFields(row, productId, configurationSelect ? configurationSelect.value : '');
+                recalcTotals();
+            });
+        }
+
+        if (configurationSelect) {
+            configurationSelect.addEventListener('change', () => {
+                const productId = productSelect ? productSelect.value : '';
+                const configurationId = configurationSelect.value;
+                const configuration = productId ? getConfiguration(productId, configurationId) : null;
+                if (configuration && unitPriceInput && !unitPriceInput.dataset.manual) {
+                    unitPriceInput.value = configuration.price || 0;
+                }
+                fillConfigurationFields(row, productId, configurationId);
+                recalcTotals();
+            });
+        }
+
+        if (unitPriceInput) {
+            unitPriceInput.addEventListener('input', () => {
+                unitPriceInput.dataset.manual = unitPriceInput.value ? 'true' : '';
+                recalcTotals();
+            });
+        }
+
+        [quantityInput, vatInput].forEach(input => {
+            if (!input) {
+                return;
+            }
+            input.addEventListener('input', recalcTotals);
         });
+
+        productModeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                applyProductMode(row, button.getAttribute('data-mode'));
+            });
+        });
+
+        configurationModeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                applyConfigurationMode(row, button.getAttribute('data-mode'));
+            });
+        });
+
+        if (removeButton) {
+            removeButton.addEventListener('click', () => {
+                row.remove();
+                updateRowIndexes();
+                recalcTotals();
+            });
+        }
     }
 
     function addDetailRow(data = {}) {
         const index = detailIndex++;
-        const row = document.createElement('div');
-        row.className = 'order-detail-row border rounded p-3 mb-3';
-        const mode = data.product_mode || 'existing';
+        const productId = data.product_id || '';
+        const configurationId = data.configuration_id || '';
+        const productMode = data.product_mode || 'existing';
+        const configurationMode = data.configuration_mode || 'existing';
         const vatValue = typeof data.vat !== 'undefined' ? data.vat : 8;
+
+        const row = document.createElement('div');
+        row.className = 'order-detail-row border rounded-3 p-3 mb-3';
         row.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-semibold mb-0">Sản phẩm #${index + 1}</h6>
-                <button class="btn btn-sm btn-outline-danger" type="button" data-action="remove"><i class="bi bi-x-lg"></i></button>
+                <h6 class="fw-semibold mb-0">Sản phẩm #<span data-field="row_index"></span></h6>
+                <button class="btn btn-link text-danger p-0" type="button" data-action="remove"><i class="bi bi-x-lg"></i></button>
             </div>
-            <div class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">Loại sản phẩm</label>
-                    <select class="form-select" name="details[${index}][product_mode]" data-field="product_mode">
-                        <option value="existing" ${mode === 'existing' ? 'selected' : ''}>Chọn từ danh mục</option>
-                        <option value="new" ${mode === 'new' ? 'selected' : ''}>Nhập sản phẩm mới</option>
-                    </select>
-                </div>
-                <div class="col-md-4 existing-product-fields">
+            <div class="row g-3">
+                <div class="col-lg-6">
                     <label class="form-label">Sản phẩm</label>
-                    <select class="form-select" name="details[${index}][product_id]" data-field="product_id">
-                        ${buildProductOptions(data.product_id || '')}
-                    </select>
-                </div>
-                <div class="col-md-8 new-product-fields d-none">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Mã sản phẩm</label>
-                            <input class="form-control" name="details[${index}][new_product_id]" value="${data.new_product_id || ''}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Tên sản phẩm</label>
-                            <input class="form-control" name="details[${index}][new_product_name]" value="${data.new_product_name || ''}">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Đơn vị</label>
-                            <input class="form-control" name="details[${index}][new_product_unit]" value="${data.new_product_unit || ''}">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Giá bán</label>
-                            <input class="form-control" type="number" min="0" step="1000" name="details[${index}][new_product_price]" value="${data.new_product_price || ''}">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Mô tả</label>
-                            <input class="form-control" name="details[${index}][new_product_description]" value="${data.new_product_description || ''}">
+                    <div class="btn-group w-100 mb-2" role="group">
+                        <input type="hidden" name="details[${index}][product_mode]" data-field="product_mode" value="${productMode}">
+                        <button type="button" class="btn btn-outline-primary ${productMode === 'existing' ? 'active' : ''}" data-action="toggle-product-mode" data-mode="existing">Chọn sản phẩm có sẵn</button>
+                        <button type="button" class="btn btn-outline-primary ${productMode === 'new' ? 'active' : ''}" data-action="toggle-product-mode" data-mode="new">Nhập sản phẩm mới</button>
+                    </div>
+                    <div data-product-section="existing" class="${productMode === 'existing' ? '' : 'd-none'}">
+                        <select class="form-select" name="details[${index}][product_id]" data-field="product_id" ${productMode === 'existing' ? 'required' : ''}>
+                            ${buildProductOptions(productId)}
+                        </select>
+                        <div class="form-text text-muted" data-field="product_hint"></div>
+                    </div>
+                    <div data-product-section="new" class="${productMode === 'new' ? '' : 'd-none'} border rounded p-3 mt-2">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <input class="form-control" name="details[${index}][new_product_name]" data-field="new_product_name" placeholder="Tên sản phẩm" value="${data.new_product_name || ''}" ${productMode === 'new' ? 'required' : 'disabled'} data-required="true">
+                            </div>
+                            <div class="col-sm-6">
+                                <input class="form-control" name="details[${index}][new_product_unit]" data-field="new_product_unit" placeholder="Đơn vị" value="${data.new_product_unit || ''}" ${productMode === 'new' ? '' : 'disabled'}>
+                            </div>
+                            <div class="col-sm-6">
+                                <textarea class="form-control" rows="1" name="details[${index}][new_product_description]" data-field="new_product_description" placeholder="Mô tả" ${productMode === 'new' ? '' : 'disabled'}>${data.new_product_description || ''}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-lg-6">
+                    <label class="form-label">Cấu hình sản phẩm</label>
+                    <div class="btn-group w-100 mb-2" role="group">
+                        <input type="hidden" name="details[${index}][configuration_mode]" data-field="configuration_mode" value="${configurationMode}">
+                        <button type="button" class="btn btn-outline-primary ${configurationMode === 'existing' ? 'active' : ''}" data-action="toggle-configuration-mode" data-mode="existing">Chọn cấu hình có sẵn</button>
+                        <button type="button" class="btn btn-outline-primary ${configurationMode === 'new' ? 'active' : ''}" data-action="toggle-configuration-mode" data-mode="new">Nhập cấu hình mới</button>
+                    </div>
+                    <div data-configuration-section="existing" class="${configurationMode === 'existing' ? '' : 'd-none'}">
+                        <select class="form-select" name="details[${index}][configuration_id]" data-field="configuration_id" ${configurationMode === 'existing' ? 'required' : ''}>
+                            ${buildConfigurationOptions(productId, configurationId)}
+                        </select>
+                        <div class="form-text text-muted" data-field="configuration_hint"></div>
+                    </div>
+                    <div data-configuration-section="new" class="${configurationMode === 'new' ? '' : 'd-none'} border rounded p-3 mt-2">
+                        <div class="row g-2">
+                            <div class="col-sm-6">
+                                <input class="form-control" name="details[${index}][new_configuration_name]" data-field="new_configuration_name" placeholder="Tên cấu hình" value="${data.new_configuration_name || ''}" ${configurationMode === 'new' ? 'required' : 'disabled'} data-required="true">
+                            </div>
+                            <div class="col-sm-3">
+                                <input class="form-control" type="number" min="0" step="1000" name="details[${index}][new_configuration_price]" data-field="new_configuration_price" placeholder="Giá (đ)" value="${data.new_configuration_price || ''}" ${configurationMode === 'new' ? '' : 'disabled'}>
+                            </div>
+                            <div class="col-sm-3">
+                                <textarea class="form-control" rows="1" name="details[${index}][new_configuration_description]" data-field="new_configuration_description" placeholder="Mô tả" ${configurationMode === 'new' ? '' : 'disabled'}>${data.new_configuration_description || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">Keycap</label>
+                    <input class="form-control" name="details[${index}][config_keycap]" data-field="config_keycap" value="${data.config_keycap || ''}">
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">Switch</label>
+                    <input class="form-control" name="details[${index}][config_switch]" data-field="config_switch" value="${data.config_switch || ''}">
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">Case</label>
+                    <input class="form-control" name="details[${index}][config_case]" data-field="config_case" value="${data.config_case || ''}">
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">Mainboard</label>
+                    <input class="form-control" name="details[${index}][config_main]" data-field="config_main" value="${data.config_main || ''}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Ghi chú cấu hình khác</label>
+                    <textarea class="form-control" rows="2" name="details[${index}][config_others]" data-field="config_others">${data.config_others || ''}</textarea>
+                </div>
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label">Số lượng</label>
                     <input class="form-control" type="number" min="1" name="details[${index}][quantity]" data-field="quantity" value="${data.quantity || 1}">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label">Đơn giá (đ)</label>
-                    <input class="form-control" type="number" min="0" step="1000" name="details[${index}][unit_price]" data-field="unit_price" value="${data.unit_price || 0}">
+                    <input class="form-control" type="number" min="0" step="1000" name="details[${index}][unit_price]" data-field="unit_price" value="${data.unit_price || 0}" data-manual="${data.unit_price ? 'true' : ''}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 col-sm-6">
                     <label class="form-label">VAT (%)</label>
                     <input class="form-control" type="number" min="0" step="0.1" name="details[${index}][vat]" data-field="vat" value="${vatValue}">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Thời gian giao dự kiến</label>
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label">Ngày giao dự kiến</label>
                     <input class="form-control" type="datetime-local" name="details[${index}][delivery_date]" value="${data.delivery_date || ''}">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Yêu cầu riêng</label>
+                    <label class="form-label">Yêu cầu chi tiết</label>
                     <textarea class="form-control" rows="2" name="details[${index}][requirement]">${data.requirement || ''}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Ghi chú</label>
+                    <label class="form-label">Ghi chú thêm</label>
                     <textarea class="form-control" rows="2" name="details[${index}][note]">${data.note || ''}</textarea>
                 </div>
                 <div class="col-12 text-end">
@@ -209,14 +543,25 @@ $detailPayload = array_map(static function ($detail) {
                 </div>
             </div>
         `;
+
         detailContainer.appendChild(row);
-        toggleNewProductFields(row, mode);
-        setProductDefaults(row, row.querySelector('[data-field="product_id"]').value);
+        applyProductMode(row, productMode);
+        applyConfigurationMode(row, configurationMode);
         attachEvents(row);
+        fillConfigurationFields(row, productId, configurationId);
+        updateProductHint(row, productId);
+        updateRowIndexes();
         recalcTotals();
     }
 
-    addRowButton.addEventListener('click', () => addDetailRow({ quantity: 1, vat: 8 }));
-    initialDetails.forEach(detail => addDetailRow(detail));
+    addRowButton.addEventListener('click', () => {
+        addDetailRow({ quantity: 1, vat: 8 });
+    });
+
+    if (initialDetails.length > 0) {
+        initialDetails.forEach(detail => addDetailRow(detail));
+    } else {
+        addDetailRow({ quantity: 1, vat: 8 });
+    }
 })();
 </script>

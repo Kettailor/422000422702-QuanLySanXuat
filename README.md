@@ -1,15 +1,15 @@
-# Hệ thống quản lý sản xuất bánh quy
+# Hệ thống quản lý sản xuất bàn phím SV5TOT (Comming soon!)
 
-Ứng dụng mô phỏng một hệ thống ERP nội bộ cho doanh nghiệp sản xuất bánh quy, xây dựng bằng PHP thuần với kiến trúc MVC đơn giản. Mục tiêu là giúp quản lý chuỗi giá trị sản xuất từ khâu nhận đơn hàng đến điều hành xưởng, kiểm soát chất lượng, kho vận và tài chính.
+Ứng dụng mô phỏng một hệ thống ERP nội bộ cho doanh nghiệp lắp ráp bàn phím cơ SV5TOT, xây dựng bằng PHP thuần với kiến trúc MVC đơn giản. Mục tiêu là giúp điều hành chuỗi giá trị sản xuất bàn phím từ khâu nhận đơn hàng OEM/ODM, phân rã kế hoạch cho từng xưởng lắp ráp, kiểm soát chất lượng linh kiện và thành phẩm, quản lý kho linh kiện – thành phẩm cho tới theo dõi tài chính.
 
 ## Tính năng chính
-- Tổng quan hoạt động với dashboard thống kê nhanh.
-- Quản lý đơn hàng và khách hàng doanh nghiệp.
-- Lập kế hoạch sản xuất tổng thể và cho từng xưởng.
-- Theo dõi nhân sự, chấm công và phân công ca làm.
-- Quản lý kho, phiếu nhập – xuất và các lô nguyên vật liệu/thành phẩm.
-- Kiểm soát chất lượng lô sản xuất và lưu vết biên bản đánh giá.
-- Quản lý hóa đơn, bảng lương và hoạt động hệ thống.
+- Tổng quan hoạt động sản xuất SV5TOT với dashboard thống kê nhanh.
+- Quản lý đơn hàng và khách hàng doanh nghiệp (gear store, nhà phân phối,...).
+- Lập kế hoạch sản xuất tổng thể và kế hoạch chi tiết cho từng xưởng SV5TOT.
+- Theo dõi nhân sự, chấm công và phân công ca lắp ráp/kiểm thử.
+- Quản lý kho linh kiện, phiếu nhập – xuất và các lô switch/PCB/thành phẩm.
+- Kiểm soát chất lượng lô bàn phím SV5TOT và lưu vết biên bản đánh giá.
+- Quản lý hóa đơn OEM, bảng lương và nhật ký hoạt động hệ thống.
 
 ## Vai trò và phân quyền
 Hệ thống hỗ trợ nhiều nhóm người dùng tương ứng với actor trong sơ đồ use case:
@@ -42,10 +42,19 @@ services/       Các lớp xử lý bổ trợ (nếu có)
 views/          Giao diện hiển thị (PHP + HTML)
 ```
 
+## Dữ liệu mẫu SV5TOT
+Script `data/script.sql` tái hiện dây chuyền SV5TOT với:
+- Đơn hàng OEM (`DH20231101`, `DH20231105`,...) yêu cầu bàn phím SV5TOT 87/108 và kit custom.
+- Kế hoạch sản xuất tổng và kế hoạch xưởng cho các hạng mục như lắp switch, kiểm thử PCB, đóng gói thành phẩm.
+- Kho linh kiện (`KHO01`), kho thành phẩm (`KHO02`) với các lô switch Lotus, PCB SV5TOT R3, lô SV5TOT hoàn thiện.
+- Biên bản kiểm tra ESD, đánh giá thành phẩm, phiếu nhập/xuất và lịch ca làm cho đội kỹ thuật.
+
+Có thể điều chỉnh/seed lại dữ liệu bằng cách chạy lại script trên MySQL.
+
 ## Khởi chạy cục bộ
 1. Cài đặt PHP >= 8.1 và một máy chủ web (Apache/Nginx) hoặc sử dụng PHP built-in server.
 2. Cập nhật thông tin kết nối trong `config/config.php` cho phù hợp với môi trường.
-3. Tạo cơ sở dữ liệu MySQL/MariaDB rồi chạy script `data/script.sql` để khởi tạo schema và dữ liệu mẫu.
+3. Tạo cơ sở dữ liệu MySQL/MariaDB rồi chạy script `data/script.sql` để khởi tạo schema và dữ liệu mẫu SV5TOT.
 4. Khởi động ứng dụng bằng lệnh:
    ```bash
    php -S localhost:8000 index.php

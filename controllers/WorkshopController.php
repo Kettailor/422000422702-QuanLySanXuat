@@ -3,11 +3,17 @@
 class WorkshopController extends Controller
 {
     private Workshop $workshopModel;
+    private WorkshopPlan $workshopPlanModel;
+    private ProductComponentMaterial $componentMaterialModel;
+    private Material $materialModel;
 
     public function __construct()
     {
         $this->authorize(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
         $this->workshopModel = new Workshop();
+        $this->workshopPlanModel = new WorkshopPlan();
+        $this->componentMaterialModel = new ProductComponentMaterial();
+        $this->materialModel = new Material();
     }
 
     public function index(): void
@@ -115,6 +121,174 @@ class WorkshopController extends Controller
             'title' => 'Chi tiết xưởng sản xuất',
             'workshop' => $workshop,
         ]);
+    }
+
+    public function dashboard(): void
+    {
+        $workshops = $this->workshopModel->getAllWithManagers();
+        $selectedWorkshop = $_GET['workshop'] ?? null;
+        $selectedWorkshop = $selectedWorkshop !== '' ? $selectedWorkshop : null;
+
+        $plans = $this->workshopPlanModel->getDashboardPlans($selectedWorkshop);
+
+        $configurationIds = array_values(array_filter(array_map(
+            fn ($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
+            $plans
+        )));
+        $materialsByComponent = $this->componentMaterialModel->getMaterialsForComponents($configurationIds);
+
+        $materialIds = [];
+        foreach ($materialsByComponent as $materials) {
+            foreach ($materials as $material) {
+                $materialId = $material['id'] ?? null;
+                if ($materialId) {
+                    $materialIds[$materialId] = true;
+                }
+            }
+        }
+
+        $inventory = [];
+        if (!empty($materialIds)) {
+            try {
+                $inventory = $this->materialModel->findMany(array_keys($materialIds));
+            } catch (Throwable $exception) {
+                $inventory = [];
+            }
+        }
+
+        $grouped = [];
+        $metrics = [
+            'total_plans' => 0,
+            'shortage_plans' => 0,
+            'total_materials' => 0,
+        ];
+
+        foreach ($plans as $plan) {
+            $planId = $plan['IdKeHoachSanXuatXuong'];
+            $workshopId = $plan['IdXuong'];
+            $configurationId = $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null;
+            $planMaterials = [];
+            $hasShortage = false;
+
+            if ($configurationId && isset($materialsByComponent[$configurationId])) {
+                foreach ($materialsByComponent[$configurationId] as $material) {
+                    $materialId = $material['id'];
+                    $ratio = is_numeric($material['quantity_per_unit'] ?? null) ? (float) $material['quantity_per_unit'] : 1.0;
+                    $required = (int) round(((int) ($plan['SoLuong'] ?? 0)) * $ratio);
+                    $stock = (int) ($inventory[$materialId]['SoLuong'] ?? 0);
+                    $deficit = max(0, $required - $stock);
+
+                    $planMaterials[] = [
+                        'id' => $materialId,
+                        'label' => $material['label'] ?? $materialId,
+                        'unit' => $material['unit'] ?? null,
+                        'required' => $required,
+                        'stock' => $stock,
+                        'deficit' => $deficit,
+                    ];
+
+                    if ($deficit > 0) {
+                        $hasShortage = true;
+                    }
+                }
+            }
+
+            $metrics['total_plans']++;
+            $metrics['total_materials'] += count($planMaterials);
+            if ($hasShortage) {
+                $metrics['shortage_plans']++;
+            }
+
+            $status = $plan['TinhTrangVatTu'] ?? null;
+            if (!$status) {
+                $status = $hasShortage ? 'Thiếu vật tư' : (empty($planMaterials) ? 'Không yêu cầu vật tư' : 'Đủ vật tư');
+            }
+
+            if (!isset($grouped[$workshopId])) {
+                $grouped[$workshopId] = [
+                    'info' => [
+                        'IdXuong' => $workshopId,
+                        'TenXuong' => $plan['TenXuong'] ?? 'Không xác định',
+                    ],
+                    'plans' => [],
+                ];
+            }
+
+            $grouped[$workshopId]['plans'][] = [
+                'data' => $plan,
+                'materials' => $planMaterials,
+                'material_status' => $status,
+                'has_shortage' => $hasShortage,
+            ];
+        }
+
+        $this->render('workshop/dashboard', [
+            'title' => 'Dashboard cấp phát vật tư xưởng',
+            'workshops' => $workshops,
+            'selectedWorkshop' => $selectedWorkshop,
+            'groupedPlans' => $grouped,
+            'metrics' => $metrics,
+        ]);
+    }
+
+    public function confirmPlan(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=workshop&action=dashboard');
+        }
+
+        $planId = $_POST['IdKeHoachSanXuatXuong'] ?? null;
+        $redirectWorkshop = $_POST['redirect_workshop'] ?? null;
+        $quantity = isset($_POST['SoLuong']) ? (int) $_POST['SoLuong'] : null;
+        $materialStatus = trim($_POST['TinhTrangVatTu'] ?? '');
+        $progressStatus = trim($_POST['TrangThai'] ?? '');
+
+        if (!$planId) {
+            $this->setFlash('danger', 'Không xác định được kế hoạch xưởng cần cập nhật.');
+            $this->redirect($this->buildDashboardRedirect($redirectWorkshop));
+        }
+
+        $payload = [];
+
+        if ($quantity !== null) {
+            if ($quantity <= 0) {
+                $this->setFlash('danger', 'Số lượng cần lớn hơn 0.');
+                $this->redirect($this->buildDashboardRedirect($redirectWorkshop));
+            }
+            $payload['SoLuong'] = $quantity;
+        }
+
+        if ($materialStatus !== '') {
+            $payload['TinhTrangVatTu'] = $materialStatus;
+        }
+
+        if ($progressStatus !== '') {
+            $payload['TrangThai'] = $progressStatus;
+        }
+
+        if (empty($payload)) {
+            $this->setFlash('info', 'Không có dữ liệu nào được cập nhật.');
+            $this->redirect($this->buildDashboardRedirect($redirectWorkshop));
+        }
+
+        try {
+            $this->workshopPlanModel->update($planId, $payload);
+            $this->setFlash('success', 'Đã cập nhật kế hoạch xưởng.');
+        } catch (Throwable $exception) {
+            $this->setFlash('danger', 'Không thể cập nhật kế hoạch: ' . $exception->getMessage());
+        }
+
+        $this->redirect($this->buildDashboardRedirect($redirectWorkshop));
+    }
+
+    private function buildDashboardRedirect(?string $workshopId): string
+    {
+        $params = ['controller' => 'workshop', 'action' => 'dashboard'];
+        if ($workshopId) {
+            $params['workshop'] = $workshopId;
+        }
+
+        return '?' . http_build_query($params);
     }
 
     private function extractWorkshopData(array $input): array

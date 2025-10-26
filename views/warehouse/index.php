@@ -38,10 +38,15 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
+<<<<<<< HEAD
         <h3 class="fw-bold mb-1">Quản lý kho</h3>
         <p class="text-muted mb-0">Theo dõi hiệu suất vận hành và chi tiết tồn kho theo từng kho.</p>
+=======
+        <h3 class="fw-bold mb-1">Kho SV5TOT</h3>
+        <p class="text-muted mb-0">Theo dõi kho linh kiện, kho thành phẩm SV5TOT và sức chứa hiện tại.</p>
+>>>>>>> 65075f83681f452199a37e66bf195847eea6c888
     </div>
-    <a href="?controller=warehouse&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kho</a>
+    <a href="?controller=warehouse&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kho SV5TOT</a>
 </div>
 
 <?php if (!empty($summary)): ?>
@@ -107,6 +112,7 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
             <tr>
                 <th>Mã kho</th>
                 <th>Tên kho</th>
+<<<<<<< HEAD
                 <th>Loại kho</th>
                 <th>Xưởng phụ trách</th>
                 <th>Quản kho</th>
@@ -117,6 +123,12 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                 <th>Giá trị phiếu</th>
                 <th>Giá trị tháng</th>
                 <th>Tỷ lệ sử dụng</th>
+=======
+                <th>Loại kho SV5TOT</th>
+                <th>Quản kho</th>
+                <th>Tổng lô SV5TOT</th>
+                <th>Tổng SL SV5TOT</th>
+>>>>>>> 65075f83681f452199a37e66bf195847eea6c888
                 <th>Trạng thái</th>
                 <th></th>
             </tr>

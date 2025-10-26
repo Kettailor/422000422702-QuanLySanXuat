@@ -4,14 +4,24 @@ class WarehouseController extends Controller
 {
     private Warehouse $warehouseModel;
     private InventoryLot $lotModel;
+<<<<<<< HEAD
     private InventorySheet $sheetModel;
+=======
+    private Workshop $workshopModel;
+    private Employee $employeeModel;
+>>>>>>> 65075f83681f452199a37e66bf195847eea6c888
 
     public function __construct()
     {
         $this->authorize(['VT_NHANVIEN_KHO', 'VT_QUANLY_XUONG']);
         $this->warehouseModel = new Warehouse();
         $this->lotModel = new InventoryLot();
+<<<<<<< HEAD
         $this->sheetModel = new InventorySheet();
+=======
+        $this->workshopModel = new Workshop();
+        $this->employeeModel = new Employee();
+>>>>>>> 65075f83681f452199a37e66bf195847eea6c888
     }
 
     public function index(): void
@@ -45,9 +55,14 @@ class WarehouseController extends Controller
         $options = $this->warehouseModel->getFormOptions();
         $this->render('warehouse/create', [
             'title' => 'Thêm kho mới',
+<<<<<<< HEAD
             'workshops' => $options['workshops'],
             'managers' => $options['managers'],
             'statuses' => $options['statuses'],
+=======
+            'workshops' => $this->workshopModel->all(200),
+            'employees' => $this->employeeModel->getActiveEmployees(),
+>>>>>>> 65075f83681f452199a37e66bf195847eea6c888
         ]);
     }
 
@@ -92,9 +107,14 @@ class WarehouseController extends Controller
         $this->render('warehouse/edit', [
             'title' => 'Cập nhật kho',
             'warehouse' => $warehouse,
+<<<<<<< HEAD
             'workshops' => $options['workshops'],
             'managers' => $options['managers'],
             'statuses' => $options['statuses'],
+=======
+            'workshops' => $this->workshopModel->all(200),
+            'employees' => $this->employeeModel->getActiveEmployees(),
+>>>>>>> 65075f83681f452199a37e66bf195847eea6c888
         ]);
     }
 

@@ -1,3 +1,8 @@
+<?php
+$employees = $employees ?? [];
+$accountants = $accountants ?? [];
+?>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Tạo bảng lương</h3>
@@ -8,17 +13,32 @@
 
 <div class="card p-4">
     <form action="?controller=salary&action=store" method="post" class="row g-4" id="payroll-form">
+        <input type="hidden" name="IdBangLuong" value="">
         <div class="col-md-4">
-            <label class="form-label">Mã bảng lương</label>
-            <input type="text" name="IdBangLuong" class="form-control" placeholder="Tự sinh nếu để trống">
+            <div class="form-floating-label">Mã bảng lương</div>
+            <div class="form-hint">Hệ thống SV5TOT sẽ tự sinh sau khi lưu.</div>
         </div>
         <div class="col-md-4">
             <label class="form-label">Nhân viên</label>
-            <input type="text" name="IdNhanVien" class="form-control" placeholder="Mã nhân viên" required>
+            <select name="IdNhanVien" class="form-select" required>
+                <option value="">-- Chọn nhân sự --</option>
+                <?php foreach ($employees as $employee): ?>
+                    <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
+                        <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Kế toán phụ trách</label>
-            <input type="text" name="KeToan" class="form-control" placeholder="Mã nhân viên kế toán">
+            <select name="KeToan" class="form-select">
+                <option value="">-- Chọn kế toán --</option>
+                <?php foreach ($accountants as $accountant): ?>
+                    <option value="<?= htmlspecialchars($accountant['IdNhanVien']) ?>">
+                        <?= htmlspecialchars($accountant['HoTen']) ?> (<?= htmlspecialchars($accountant['IdNhanVien']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Tháng/Năm</label>

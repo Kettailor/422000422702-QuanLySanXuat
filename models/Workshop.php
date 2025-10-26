@@ -2,15 +2,15 @@
 
 class Workshop extends BaseModel
 {
-    protected string $table = 'XUONG';
+    protected string $table = 'xuong';
     protected string $primaryKey = 'IdXuong';
 
     public function getAllWithManagers(int $limit = 100): array
     {
-        $sql = 'SELECT XUONG.*, NV.HoTen AS TruongXuong
-                FROM XUONG
-                LEFT JOIN NHAN_VIEN NV ON NV.IdNhanVien = XUONG.IdTruongXuong
-                ORDER BY XUONG.TenXuong
+        $sql = 'SELECT xuong.*, nv.HoTen AS TruongXuong
+                FROM xuong
+                LEFT JOIN nhan_vien nv ON nv.IdXuong = xuong.IdXuong
+                ORDER BY xuong.TenXuong
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -20,7 +20,7 @@ class Workshop extends BaseModel
 
     public function getCapacitySummary(): array
     {
-        $rows = $this->db->query('SELECT * FROM XUONG')->fetchAll();
+        $rows = $this->db->query('SELECT * FROM xuong')->fetchAll();
 
         $summary = [
             'total_workshops' => 0,
@@ -50,7 +50,7 @@ class Workshop extends BaseModel
 
     public function getStatusDistribution(): array
     {
-        $sql = "SELECT TrangThai, COUNT(*) AS total FROM XUONG GROUP BY TrangThai";
+        $sql = "SELECT TrangThai, COUNT(*) AS total FROM xuong GROUP BY TrangThai";
         $rows = $this->db->query($sql)->fetchAll();
 
         $result = [];
