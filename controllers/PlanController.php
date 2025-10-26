@@ -112,7 +112,7 @@ class PlanController extends Controller
             'ThoiGianBD' => $startTime,
             'ThoiGianKetThuc' => $endTime,
             'TrangThai' => $status,
-            'IdNguoiLap' => $actorId,
+            '`BANGIAMDOC IdNhanVien`' => $actorId,
         ];
 
         $assignmentsInput = $_POST['component_assignments'] ?? [];
@@ -229,9 +229,6 @@ class PlanController extends Controller
                 'configuration_label' => $component['TenCauHinh'] ?? null,
                 'unit' => $component['DonVi'] ?? 'sp',
                 'default_status' => $component['TrangThaiMacDinh'] ?? null,
-                'configuration_details' => $configurationDetails,
-                'detail_key' => null,
-                'detail_value' => null,
             ];
         }
 
