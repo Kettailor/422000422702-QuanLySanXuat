@@ -43,7 +43,8 @@ $period = $period ?? date('Y-m');
             <div class="fw-semibold mb-1">Công thức tính</div>
             <div class="small mb-0">Giờ làm = Thời gian ra - Thời gian vào. Số ngày công = Tổng giờ làm / 8.</div>
         </div>
-        <form method="post" action="?controller=salary&action=wizardAttendance" class="text-end mt-3">
+        <form method="post" action="?controller=salary&action=wizardAttendance" class="d-flex justify-content-between align-items-center mt-3">
+            <a href="?controller=salary&action=create" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
             <button type="submit" class="btn btn-primary px-4">Lấy dữ liệu chấm công</button>
         </form>
     <?php endif; ?>

@@ -146,11 +146,26 @@ class SalaryController extends Controller
         $attendance = $this->attendanceModel->getMonthlySummary($period);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $wizard['attendance'] = $attendance;
-            unset($wizard['compensation'], $wizard['insurance']);
-            $this->saveWizardState($wizard);
-            $this->redirect('?controller=salary&action=wizardCompensation');
-            return;
+            $eligibleAttendance = array_values(array_filter(
+                $attendance,
+                static function (array $row): bool {
+                    return ($row['working_days'] ?? 0) > 0;
+                }
+            ));
+
+            if (!$eligibleAttendance) {
+                $this->setFlash('danger', 'Không có nhân viên nào có ngày công trong kỳ này để tính lương.');
+            } else {
+                if (count($eligibleAttendance) < count($attendance)) {
+                    $this->setFlash('warning', 'Nhân viên có số ngày công bằng 0 đã được loại khỏi các bước tiếp theo.');
+                }
+
+                $wizard['attendance'] = $eligibleAttendance;
+                unset($wizard['compensation'], $wizard['insurance']);
+                $this->saveWizardState($wizard);
+                $this->redirect('?controller=salary&action=wizardCompensation');
+                return;
+            }
         }
 
         $this->render('salary/wizard_attendance', [
@@ -166,6 +181,25 @@ class SalaryController extends Controller
         $wizard = $this->getWizardState();
         $period = $wizard['period'] ?? null;
         $attendance = $wizard['attendance'] ?? [];
+
+        $attendance = array_values(array_filter(
+            $attendance,
+            static function (array $row): bool {
+                return ($row['working_days'] ?? 0) > 0;
+            }
+        ));
+
+        if ($attendance !== ($wizard['attendance'] ?? [])) {
+            $wizard['attendance'] = $attendance;
+            if (!empty($wizard['compensation'])) {
+                $allowedIds = array_column($attendance, 'employee_id');
+                $wizard['compensation'] = array_intersect_key(
+                    $wizard['compensation'],
+                    array_fill_keys($allowedIds, true)
+                );
+            }
+            $this->saveWizardState($wizard);
+        }
 
         if (!$period || !$attendance) {
             $this->setFlash('danger', 'Thiếu dữ liệu chấm công. Vui lòng thực hiện lại.');
