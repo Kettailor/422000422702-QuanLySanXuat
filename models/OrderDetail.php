@@ -22,7 +22,7 @@ class OrderDetail extends BaseModel
     public function getPendingForPlanning(): array
     {
         $sql = 'SELECT ct.*, don.IdDonHang, don.YeuCau AS YeuCauDonHang, don.NgayLap,
-                       san.TenSanPham, san.DonVi, san.MaSanPham,
+                       san.TenSanPham, san.DonVi, san.IdSanPham,
                        cau.TenCauHinh, cau.IdBOM, cau.Layout, cau.SwitchType, cau.CaseType, cau.Foam,
                        ct.NgayGiao, ct.YeuCau AS YeuCauChiTiet, ct.GhiChu AS GhiChuChiTiet
                 FROM ct_don_hang ct
