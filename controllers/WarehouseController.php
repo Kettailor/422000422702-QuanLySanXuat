@@ -7,6 +7,7 @@ class WarehouseController extends Controller
     private InventorySheet $sheetModel;
     private Workshop $workshopModel;
     private Employee $employeeModel;
+    private Product $productModel;
 
     public function __construct()
     {
@@ -16,6 +17,7 @@ class WarehouseController extends Controller
         $this->sheetModel = new InventorySheet();
         $this->workshopModel = new Workshop();
         $this->employeeModel = new Employee();
+        $this->productModel = new Product();
     }
 
     public function index(): void
@@ -24,11 +26,19 @@ class WarehouseController extends Controller
         $summary = $this->warehouseModel->getWarehouseSummary($warehouses);
         $documents = $this->sheetModel->getDocuments(null, 200);
         $documentGroups = $this->buildDocumentGroups($documents);
+        $warehouseGroups = $this->warehouseModel->groupWarehousesByType($warehouses, $summary['by_type'] ?? []);
+        $employees = $this->employeeModel->getActiveEmployees();
+        $entryForms = $this->buildWarehouseEntryForms($warehouseGroups);
+        $products = $this->getProductOptionsByType();
         $this->render('warehouse/index', [
             'title' => 'Kho & tồn kho',
             'warehouses' => $warehouses,
             'summary' => $summary,
             'documentGroups' => $documentGroups,
+            'warehouseGroups' => $warehouseGroups,
+            'warehouseEntryForms' => $entryForms,
+            'employees' => $employees,
+            'productOptionsByType' => $products,
         ]);
     }
 
@@ -49,9 +59,9 @@ class WarehouseController extends Controller
         $options = $this->warehouseModel->getFormOptions();
         $this->render('warehouse/create', [
             'title' => 'Thêm kho mới',
-            'workshops' => $options['workshops'],
             'managers' => $options['managers'],
             'statuses' => $options['statuses'],
+            'types' => $options['types'],
             'workshops' => $this->workshopModel->all(200),
             'employees' => $this->employeeModel->getActiveEmployees(),
         ]);
@@ -98,9 +108,9 @@ class WarehouseController extends Controller
         $this->render('warehouse/edit', [
             'title' => 'Cập nhật kho',
             'warehouse' => $warehouse,
-            'workshops' => $options['workshops'],
             'managers' => $options['managers'],
             'statuses' => $options['statuses'],
+            'types' => $options['types'],
             'workshops' => $this->workshopModel->all(200),
             'employees' => $this->employeeModel->getActiveEmployees(),
         ]);
@@ -164,6 +174,166 @@ class WarehouseController extends Controller
         }
 
         $this->redirect('?controller=warehouse&action=index');
+    }
+
+    private function buildWarehouseEntryForms(array $warehouseGroups): array
+    {
+        $definitions = [
+            'material' => [
+                'documentType' => 'Phiếu nhập nguyên liệu',
+                'submitLabel' => 'Thêm nguyên liệu',
+                'description' => 'Ghi nhận nguyên vật liệu về kho để phục vụ sản xuất.',
+                'prefix' => 'PNNL',
+                'ui' => [
+                    'lot_code_label' => 'Mã lô nguyên liệu',
+                    'lot_code_hint' => 'Mã lô được sinh theo định dạng riêng cho nguyên liệu.',
+                    'lot_name_label' => 'Tên lô nguyên liệu',
+                    'product_label' => 'Nguyên liệu/linh kiện',
+                    'product_placeholder' => 'Chọn nguyên liệu cần nhập',
+                    'unit_hint' => 'Đơn vị tính nguyên liệu sẽ tự động hiển thị.',
+                    'quantity_label' => 'Số lượng nguyên liệu dự kiến',
+                    'received_label' => 'Số lượng nguyên liệu thực nhận',
+                ],
+            ],
+            'finished' => [
+                'documentType' => 'Phiếu nhập thành phẩm',
+                'submitLabel' => 'Thêm thành phẩm',
+                'description' => 'Bổ sung thành phẩm hoàn thiện vào kho chuẩn bị xuất bán.',
+                'prefix' => 'PNTP',
+                'ui' => [
+                    'lot_code_label' => 'Mã lô thành phẩm',
+                    'lot_code_hint' => 'Mã lô áp dụng cho thành phẩm xuất kho.',
+                    'lot_name_label' => 'Tên lô thành phẩm',
+                    'product_label' => 'Thành phẩm',
+                    'product_placeholder' => 'Chọn thành phẩm cần nhập kho',
+                    'unit_hint' => 'Đơn vị thành phẩm sẽ tự động cập nhật.',
+                    'quantity_label' => 'Số lượng thành phẩm dự kiến',
+                    'received_label' => 'Số lượng thành phẩm thực nhận',
+                ],
+            ],
+            'quality' => [
+                'documentType' => 'Phiếu nhập xử lý lỗi',
+                'submitLabel' => 'Nhận hàng lỗi',
+                'description' => 'Tiếp nhận sản phẩm lỗi cần xử lý, phân loại.',
+                'prefix' => 'PNXL',
+                'ui' => [
+                    'lot_code_label' => 'Mã lô xử lý lỗi',
+                    'lot_code_hint' => 'Mã lô giúp theo dõi riêng các sản phẩm lỗi.',
+                    'lot_name_label' => 'Tên lô xử lý lỗi',
+                    'product_label' => 'Sản phẩm cần xử lý',
+                    'product_placeholder' => 'Chọn sản phẩm cần xử lý lỗi',
+                    'unit_hint' => 'Đơn vị sẽ tự động lấy theo sản phẩm đã chọn.',
+                    'quantity_label' => 'Số lượng cần xử lý',
+                    'received_label' => 'Số lượng tiếp nhận thực tế',
+                ],
+            ],
+        ];
+
+        $forms = [];
+
+        foreach ($warehouseGroups as $key => $group) {
+            if (!isset($definitions[$key])) {
+                continue;
+            }
+
+            $definition = $definitions[$key];
+            $lotPrefix = $this->resolveLotPrefix($key);
+            $forms[$key] = [
+                'document_type' => $definition['documentType'],
+                'document_id' => $this->sheetModel->generateDocumentId($definition['documentType']),
+                'submit_label' => $definition['submitLabel'],
+                'description' => $definition['description'],
+                'modal_title' => $definition['submitLabel'] . ' vào ' . ($group['label'] ?? 'kho'),
+                'prefix' => $definition['prefix'],
+                'lot_prefix' => $lotPrefix,
+                'default_lot_id' => $this->lotModel->generateLotId($lotPrefix),
+                'ui' => $definition['ui'] ?? [],
+            ];
+        }
+
+        return $forms;
+    }
+
+    private function getProductOptionsByType(): array
+    {
+        $products = $this->productModel->all(300);
+
+        $grouped = [
+            'material' => [],
+            'finished' => [],
+            'quality' => [],
+        ];
+        $allOptions = [];
+
+        foreach ($products as $product) {
+            $option = [
+                'id' => $product['IdSanPham'] ?? '',
+                'name' => $product['TenSanPham'] ?? '',
+                'unit' => $product['DonVi'] ?? '',
+                'description' => $product['MoTa'] ?? '',
+            ];
+            $allOptions[] = $option;
+
+            $assignedTypes = $this->classifyProductForWarehouseTypes($product);
+
+            foreach ($assignedTypes as $type) {
+                $grouped[$type][] = $option;
+            }
+        }
+
+        foreach ($grouped as $type => $options) {
+            if (empty($options) && !empty($allOptions)) {
+                $grouped[$type] = $allOptions;
+            }
+        }
+
+        return $grouped;
+    }
+
+    private function classifyProductForWarehouseTypes(array $product): array
+    {
+        $id = strtoupper((string) ($product['IdSanPham'] ?? ''));
+        $name = $this->normalizeText($product['TenSanPham'] ?? '');
+        $description = $this->normalizeText($product['MoTa'] ?? '');
+
+        $types = [];
+
+        $isComponent = str_starts_with($id, 'SPCOMP')
+            || str_contains($name, 'linh kiện')
+            || str_contains($description, 'linh kiện')
+            || str_contains($name, 'kit')
+            || str_contains($description, 'kit');
+
+        $isFinished = str_starts_with($id, 'SPKB')
+            || str_contains($name, 'thành phẩm')
+            || str_contains($description, 'thành phẩm')
+            || (!$isComponent && !str_contains($name, 'linh kiện'));
+
+        if ($isComponent) {
+            $types[] = 'material';
+        }
+
+        if ($isFinished) {
+            $types[] = 'finished';
+            $types[] = 'quality';
+        }
+
+        if (empty($types)) {
+            $types = ['material', 'finished', 'quality'];
+        }
+
+        return array_values(array_unique($types));
+    }
+
+    private function normalizeText(string $value): string
+    {
+        if (function_exists('mb_strtolower')) {
+            $value = mb_strtolower($value, 'UTF-8');
+        } else {
+            $value = strtolower($value);
+        }
+
+        return trim(preg_replace('/\s+/', ' ', $value));
     }
 
     private function buildDocumentGroups(array $documents): array
@@ -231,6 +401,15 @@ class WarehouseController extends Controller
         }
 
         return true;
+    }
+
+    private function resolveLotPrefix(string $type): string
+    {
+        return match ($type) {
+            'finished' => 'LOTP',
+            'quality' => 'LOXL',
+            default => 'LONL',
+        };
     }
 
     private function documentTypeStartsWith(?string $type, string $needle): bool
