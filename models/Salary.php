@@ -2,15 +2,128 @@
 
 class Salary extends BaseModel
 {
-    public const ACCOUNTANT_COLUMN = '`KETOAN IdNhanVien2`';
+    private static bool $dailyRateColumnChecked = false;
+    /**
+     * Cached list of columns for the bang_luong table.
+     * When set to false the previous attempt to fetch columns failed and we
+     * should skip any filtering to avoid breaking existing behaviour.
+     *
+     * @var array<string>|false|null
+     */
+    private static $availableColumns = null;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->ensureDailyRateColumn();
+    }
+
+    public const ACCOUNTANT_COLUMN = 'KETOAN IdNhanVien2';
     public const EMPLOYEE_COLUMN = 'NHAN_VIENIdNhanVien';
 
     protected string $table = 'bang_luong';
     protected string $primaryKey = 'IdBangLuong';
 
-    public static function calculateFigures(float $base, float $allowance, float $deduction, float $tax): array
+    private function ensureDailyRateColumn(): void
     {
-        $gross = $base + $allowance;
+        if (self::$dailyRateColumnChecked) {
+            return;
+        }
+
+        $columns = $this->getAvailableColumns();
+        $hasDailyRateColumn = $columns === null || in_array('DonGiaNgayCong', $columns, true);
+
+        if (!$hasDailyRateColumn) {
+            try {
+                $this->db->exec("ALTER TABLE `bang_luong` ADD COLUMN `DonGiaNgayCong` FLOAT NULL DEFAULT NULL AFTER `PhuCap`");
+                self::$availableColumns = null; // Refresh cache after altering schema.
+            } catch (Throwable $exception) {
+                // Ignore schema adjustments if the database user does not have permission.
+            }
+        }
+
+        self::$dailyRateColumnChecked = true;
+    }
+
+    private function getAvailableColumns(): ?array
+    {
+        if (self::$availableColumns === false) {
+            return null;
+        }
+
+        if (self::$availableColumns === null) {
+            try {
+                $stmt = $this->db->query('SHOW COLUMNS FROM `bang_luong`');
+                $columns = [];
+                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $column) {
+                    if (isset($column['Field'])) {
+                        $columns[] = $column['Field'];
+                    }
+                }
+                self::$availableColumns = $columns;
+            } catch (Throwable $exception) {
+                self::$availableColumns = false;
+                return null;
+            }
+        }
+
+        return self::$availableColumns;
+    }
+
+    private function filterDataByColumns(array $data): array
+    {
+        $columns = $this->getAvailableColumns();
+        if ($columns === null) {
+            return $data;
+        }
+
+        $allowed = array_fill_keys($columns, true);
+
+        return array_intersect_key($data, $allowed);
+    }
+
+    public function supportsWorkingDays(): bool
+    {
+        $columns = $this->getAvailableColumns();
+        if ($columns === null) {
+            return true;
+        }
+
+        return in_array('SoNgayCong', $columns, true);
+    }
+
+    public function deriveWorkingDays(array $payroll): float
+    {
+        $dailyRate = (float) ($payroll['DonGiaNgayCong'] ?? 0);
+        if ($dailyRate <= 0) {
+            return 0.0;
+        }
+
+        $dayIncome = (float) ($payroll['TongLuongNgayCong'] ?? 0);
+
+        return round($dayIncome / $dailyRate, 2);
+    }
+
+    public function create(array $data): bool
+    {
+        return parent::create($this->filterDataByColumns($data));
+    }
+
+    public function update(string $id, array $data): bool
+    {
+        return parent::update($id, $this->filterDataByColumns($data));
+    }
+
+    public static function calculateFigures(array $payroll): array
+    {
+        $base = (float) ($payroll['LuongCoBan'] ?? 0);
+        $allowance = (float) ($payroll['PhuCap'] ?? 0);
+        $dailyIncome = (float) ($payroll['TongLuongNgayCong'] ?? 0);
+        $bonus = (float) ($payroll['Thuong'] ?? 0);
+        $deduction = (float) ($payroll['KhauTru'] ?? 0);
+        $tax = (float) ($payroll['ThueTNCN'] ?? 0);
+
+        $gross = $base + $allowance + $dailyIncome + $bonus;
         $net = $gross - $deduction - $tax;
 
         return [
@@ -88,5 +201,21 @@ class Salary extends BaseModel
         }
 
         return $this->update($id, $data);
+    }
+
+    public function recalculateAll(): int
+    {
+        $sql = 'UPDATE bang_luong
+                SET TongThuNhap = GREATEST(COALESCE(LuongCoBan, 0)
+                                            + COALESCE(PhuCap, 0)
+                                            + COALESCE(TongLuongNgayCong, 0)
+                                            + COALESCE(Thuong, 0)
+                                            - COALESCE(KhauTru, 0)
+                                            - COALESCE(ThueTNCN, 0), 0),
+                    TongBaoHiem = COALESCE(KhauTru, 0)';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->rowCount();
     }
 }
