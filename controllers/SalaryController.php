@@ -269,7 +269,14 @@ class SalaryController extends Controller
         $baseSalary = (float) ($input['LuongCoBan'] ?? 0);
         $allowance = (float) ($input['PhuCap'] ?? 0);
         $deduction = (float) ($input['KhauTru'] ?? 0);
-        $personalIncomeTax = (float) ($input['ThueTNCN'] ?? 0);
+        $monthValue = $this->normalizeMonthInput((string) ($input['ThangNam'] ?? ''));
+
+        $grossIncome = $baseSalary + $allowance;
+        $personalIncomeTaxRate = max((float) ($input['ThueTNCN'] ?? 0), 0.0);
+        $personalIncomeTax = $grossIncome > 0
+            ? round(($grossIncome * $personalIncomeTaxRate) / 100, 2)
+            : 0.0;
+
         $figures = Salary::calculateFigures($baseSalary, $allowance, $deduction, $personalIncomeTax);
 
         $status = $input['TrangThai'] ?? 'Chờ duyệt';
@@ -287,7 +294,7 @@ class SalaryController extends Controller
             'IdBangLuong' => trim($input['IdBangLuong'] ?? ''),
             Salary::ACCOUNTANT_COLUMN => trim($input['KeToan'] ?? ''),
             Salary::EMPLOYEE_COLUMN => trim($input['IdNhanVien'] ?? ''),
-            'ThangNam' => trim($input['ThangNam'] ?? ''),
+            'ThangNam' => $monthValue,
             'LuongCoBan' => $baseSalary,
             'PhuCap' => $allowance,
             'KhauTru' => $deduction,
@@ -297,6 +304,29 @@ class SalaryController extends Controller
             'NgayLap' => $input['NgayLap'] ?? date('Y-m-d'),
             'ChuKy' => trim((string) ($input['ChuKy'] ?? '')) ?: null,
         ];
+    }
+
+    private function normalizeMonthInput(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        if (preg_match('/^\d{4}-\d{2}$/', $value)) {
+            return $value;
+        }
+
+        if (preg_match('/^(\d{4})(\d{2})$/', $value, $matches)) {
+            return sprintf('%s-%s', $matches[1], $matches[2]);
+        }
+
+        if (preg_match('/^(\d{2})\/(\d{4})$/', $value, $matches)) {
+            return sprintf('%s-%s', $matches[2], $matches[1]);
+        }
+
+        return $value;
     }
 
     private function changeStatus(string $status): void

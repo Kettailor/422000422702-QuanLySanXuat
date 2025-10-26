@@ -71,9 +71,8 @@ $permissions = $permissions ?? ['canManage' => false, 'canApprove' => false];
         <table class="table align-middle">
             <thead>
             <tr>
-                <th>Mã bảng</th>
                 <th>Nhân viên</th>
-                <th>Tháng</th>
+                <th>Tháng/Năm</th>
                 <th>Lương cơ bản</th>
                 <th>Thực nhận</th>
                 <th>Trạng thái</th>
@@ -94,10 +93,19 @@ $permissions = $permissions ?? ['canManage' => false, 'canApprove' => false];
                     $badgeClass = 'badge bg-info text-white';
                 }
                 ?>
+                <?php
+                $monthLabel = $payroll['ThangNam'] ?? '';
+                if (preg_match('/^(\d{4})-(\d{2})$/', (string) $monthLabel, $monthMatches)) {
+                    $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
+                } elseif (preg_match('/^(\d{4})(\d{2})$/', (string) $monthLabel, $monthMatches)) {
+                    $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
+                } elseif (preg_match('/^(\d{2})\/(\d{4})$/', (string) $monthLabel, $monthMatches)) {
+                    $monthLabel = $monthMatches[1] . '/' . $monthMatches[2];
+                }
+                ?>
                 <tr>
-                    <td class="fw-semibold"><?= htmlspecialchars($payroll['IdBangLuong']) ?></td>
                     <td><?= htmlspecialchars($payroll['HoTen']) ?></td>
-                    <td><?= htmlspecialchars($payroll['ThangNam']) ?></td>
+                    <td><?= htmlspecialchars($monthLabel) ?></td>
                     <td><?= number_format($payroll['LuongCoBan'], 0, ',', '.') ?> đ</td>
                     <td class="fw-semibold text-primary"><?= number_format($payroll['TongThuNhap'], 0, ',', '.') ?> đ</td>
                     <td><span class="<?= $badgeClass ?>"><?= htmlspecialchars($status) ?></span></td>

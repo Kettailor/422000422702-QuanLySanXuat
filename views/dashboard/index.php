@@ -141,9 +141,19 @@ $pendingPayrolls = $pendingPayrolls ?? [];
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($pendingPayrolls as $payroll): ?>
                         <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <?php
+                            $monthLabel = $payroll['ThangNam'] ?? '';
+                            if (preg_match('/^(\d{4})-(\d{2})$/', (string) $monthLabel, $monthMatches)) {
+                                $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
+                            } elseif (preg_match('/^(\d{4})(\d{2})$/', (string) $monthLabel, $monthMatches)) {
+                                $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
+                            } elseif (preg_match('/^(\d{2})\/(\d{4})$/', (string) $monthLabel, $monthMatches)) {
+                                $monthLabel = $monthMatches[1] . '/' . $monthMatches[2];
+                            }
+                            ?>
                             <div>
                                 <div class="fw-semibold"><?= htmlspecialchars($payroll['HoTen']) ?></div>
-                                <div class="small text-muted">Tháng <?= htmlspecialchars($payroll['ThangNam']) ?></div>
+                                <div class="small text-muted">Tháng <?= htmlspecialchars($monthLabel) ?></div>
                             </div>
                             <span class="badge bg-light text-dark"><?= number_format($payroll['TongThuNhap'], 0, ',', '.') ?> đ</span>
                         </li>

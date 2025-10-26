@@ -2,7 +2,7 @@
 
 class Salary extends BaseModel
 {
-    public const ACCOUNTANT_COLUMN = '`KETOAN IdNhanVien2`';
+    public const ACCOUNTANT_COLUMN = 'KETOAN IdNhanVien2';
     public const EMPLOYEE_COLUMN = 'NHAN_VIENIdNhanVien';
 
     protected string $table = 'bang_luong';

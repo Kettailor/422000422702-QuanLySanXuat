@@ -15,6 +15,32 @@
     </div>
 </div>
 
+<?php
+$monthLabel = '';
+$taxPercent = 0.0;
+
+if ($payroll) {
+    $rawMonth = trim((string) ($payroll['ThangNam'] ?? ''));
+    if ($rawMonth !== '') {
+        if (preg_match('/^(\d{4})-(\d{2})$/', $rawMonth, $monthMatches)) {
+            $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
+        } elseif (preg_match('/^(\d{4})(\d{2})$/', $rawMonth, $monthMatches)) {
+            $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
+        } elseif (preg_match('/^(\d{2})\/(\d{4})$/', $rawMonth, $monthMatches)) {
+            $monthLabel = $monthMatches[1] . '/' . $monthMatches[2];
+        } else {
+            $monthLabel = $rawMonth;
+        }
+    }
+
+    $gross = (float) ($payroll['LuongCoBan'] ?? 0) + (float) ($payroll['PhuCap'] ?? 0);
+    $taxAmount = (float) ($payroll['ThueTNCN'] ?? 0);
+    if ($gross > 0) {
+        $taxPercent = round(($taxAmount / $gross) * 100, 2);
+    }
+}
+?>
+
 <?php if (!$payroll): ?>
     <div class="alert alert-warning">Không tìm thấy bảng lương.</div>
 <?php else: ?>
@@ -22,12 +48,10 @@
         <div class="row g-4">
             <div class="col-md-6">
                 <dl class="row mb-0">
-                    <dt class="col-sm-4">Mã bảng lương</dt>
-                    <dd class="col-sm-8 fw-semibold"><?= htmlspecialchars($payroll['IdBangLuong']) ?></dd>
                     <dt class="col-sm-4">Mã nhân viên</dt>
                     <dd class="col-sm-8"><?= htmlspecialchars($payroll[Salary::EMPLOYEE_COLUMN]) ?></dd>
                     <dt class="col-sm-4">Tháng/Năm</dt>
-                    <dd class="col-sm-8"><?= htmlspecialchars($payroll['ThangNam']) ?></dd>
+                    <dd class="col-sm-8"><?= htmlspecialchars($monthLabel) ?></dd>
                     <dt class="col-sm-4">Trạng thái</dt>
                     <dd class="col-sm-8"><span class="badge bg-light text-dark"><?= htmlspecialchars($payroll['TrangThai']) ?></span></dd>
                     <dt class="col-sm-4">Ngày lập</dt>
@@ -45,7 +69,12 @@
                     <dt class="col-sm-6">Khấu trừ</dt>
                     <dd class="col-sm-6"><?= number_format($payroll['KhauTru'], 0, ',', '.') ?> đ</dd>
                     <dt class="col-sm-6">Thuế TNCN</dt>
-                    <dd class="col-sm-6"><?= number_format($payroll['ThueTNCN'], 0, ',', '.') ?> đ</dd>
+                    <dd class="col-sm-6">
+                        <?= number_format($taxPercent, 2, ',', '.') ?>%
+                        <?php if ($payroll['ThueTNCN'] ?? 0): ?>
+                            <span class="text-muted">(<?= number_format($payroll['ThueTNCN'], 0, ',', '.') ?> đ)</span>
+                        <?php endif; ?>
+                    </dd>
                     <dt class="col-sm-6">Thu nhập gộp</dt>
                     <dd class="col-sm-6 text-success fw-semibold"><?= number_format(($figures['gross'] ?? 0), 0, ',', '.') ?> đ</dd>
                     <dt class="col-sm-6">Thực nhận</dt>
