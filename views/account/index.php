@@ -37,7 +37,7 @@
                 </a>
               </div>
               <div class="col">
-                <a href="?controller=account&action=delete&id=<?= htmlspecialchars($user['IdNguoiDung']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?');">Xóa</a>
+                <a href="?controller=account&action=delete&id=<?= htmlspecialchars($user['IdNguoiDung']) ?>" class="btn btn-danger btn-sm<?= $user['TrangThai'] === 'Hoạt động' ? ' disabled' : '' ?>" onclick="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?');" <?= $user['TrangThai'] === 'Hoạt động' ? 'tabindex="-1" aria-disabled="true"' : '' ?>>Xóa</a>
               </div>
             </div>
           </td>
