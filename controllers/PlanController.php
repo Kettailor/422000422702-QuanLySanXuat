@@ -6,6 +6,7 @@ class PlanController extends Controller
     private OrderDetail $orderDetailModel;
     private Employee $employeeModel;
     private WorkshopPlan $workshopPlanModel;
+    private ProductionAutomation $automation;
 
     public function __construct()
     {
@@ -14,6 +15,7 @@ class PlanController extends Controller
         $this->orderDetailModel = new OrderDetail();
         $this->employeeModel = new Employee();
         $this->workshopPlanModel = new WorkshopPlan();
+        $this->automation = new ProductionAutomation();
     }
 
     public function index(): void
@@ -42,7 +44,7 @@ class PlanController extends Controller
         }
 
         $orderDetailId = $_POST['IdTTCTDonHang'] ?? null;
-        $orderDetail = $orderDetailId ? $this->orderDetailModel->find($orderDetailId) : null;
+        $orderDetail = $orderDetailId ? $this->orderDetailModel->getPlanningContext($orderDetailId) : null;
 
         if (!$orderDetail) {
             $this->setFlash('danger', 'Vui lòng chọn chi tiết đơn hàng hợp lệ.');
@@ -67,7 +69,19 @@ class PlanController extends Controller
 
         try {
             $this->planModel->create($data);
-            $this->setFlash('success', 'Tạo kế hoạch sản xuất thành công.');
+
+            $flashType = 'success';
+            $message = 'Tạo kế hoạch sản xuất thành công.';
+
+            try {
+                $this->automation->handleNewPlan($data, $orderDetail);
+                $message .= ' Đã tự động phân công cho các xưởng và thông báo kho vận.';
+            } catch (Throwable $automationError) {
+                $flashType = 'warning';
+                $message .= ' Tuy nhiên không thể tự động phân bổ: ' . $automationError->getMessage();
+            }
+
+            $this->setFlash($flashType, $message);
         } catch (Throwable $e) {
             $this->setFlash('danger', 'Không thể tạo kế hoạch: ' . $e->getMessage());
         }
