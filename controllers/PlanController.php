@@ -20,44 +20,7 @@ class PlanController extends Controller
 
     public function index(): void
     {
-        $plans = $this->planModel->getPlansWithOrders(100);
-        $planIds = array_column($plans, 'IdKeHoachSanXuat');
-        $workshopPlans = $this->workshopPlanModel->getByPlanIds($planIds);
-
-        $structuredPlans = [];
-        $orders = [];
-
-        foreach ($plans as $plan) {
-            $planId = $plan['IdKeHoachSanXuat'];
-            $orderId = $plan['IdDonHang'];
-
-            $totalSteps = (int) ($plan['TongCongDoan'] ?? 0);
-            $completedSteps = (int) ($plan['CongDoanHoanThanh'] ?? 0);
-            $progress = $totalSteps > 0 ? (int) round(($completedSteps / $totalSteps) * 100) : null;
-
-            $plan['workshops'] = $workshopPlans[$planId] ?? [];
-            $plan['progressPercent'] = $progress;
-            $plan['completedSteps'] = $completedSteps;
-            $plan['totalSteps'] = $totalSteps;
-
-            $structuredPlans[$planId] = $plan;
-
-            if (!isset($orders[$orderId])) {
-                $orders[$orderId] = [
-                    'IdDonHang' => $orderId,
-                    'YeuCau' => $plan['YeuCau'] ?? null,
-                    'NgayLap' => $plan['NgayLapDonHang'] ?? null,
-                    'plans' => [],
-                ];
-            }
-
-            $orders[$orderId]['plans'][] = [
-                'IdKeHoachSanXuat' => $planId,
-                'TrangThai' => $plan['TrangThai'] ?? null,
-                'TenSanPham' => $plan['TenSanPham'] ?? null,
-                'progressPercent' => $progress,
-            ];
-        }
+        $plans = $this->planModel->getPlansWithOrders();
 
         $this->render('plan/index', [
             'title' => 'Kế hoạch sản xuất',
