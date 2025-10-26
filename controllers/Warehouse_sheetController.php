@@ -55,6 +55,7 @@ class Warehouse_sheetController extends Controller
         }
 
         $inputId = trim((string) ($_POST['IdPhieu'] ?? ''));
+        $documentType = $_POST['LoaiPhieu'] ?? null;
 
         $data = [
             'IdPhieu' => $inputId !== '' ? $inputId : $this->sheetModel->generateDocumentId($_POST['LoaiPhieu'] ?? null),
@@ -63,16 +64,20 @@ class Warehouse_sheetController extends Controller
             'NgayLP' => $_POST['NgayLP'] ?? null,
             'NgayXN' => $_POST['NgayXN'] ?? null,
             'TongTien' => $_POST['TongTien'] ?? 0,
-            'LoaiPhieu' => $_POST['LoaiPhieu'] ?? null,
+            'LoaiPhieu' => $documentType,
             'IdKho' => $_POST['IdKho'] ?? null,
             'NHAN_VIENIdNhanVien' => $_POST['NguoiLap'] ?? null,
             'NHAN_VIENIdNhanVien2' => $_POST['NguoiXacNhan'] ?? null,
-        ]];
+       
+]];
 
+        $redirectTo = trim((string) ($_POST['redirect'] ?? ''));
+        if ($redirectTo === '') {
+            $redirectTo = '?controller=warehouse_sheet&action=index';
+        }
         if (!$this->validateRequired($data)) {
             $this->setFlash('danger', 'Vui lòng điền đầy đủ thông tin bắt buộc của phiếu.');
-            $this->redirect('?controller=warehouse_sheet&action=create');
-        }
+$this->redirect($redirectTo);        }
 
         try {
             $this->sheetModel->createDocument($data);
@@ -81,8 +86,7 @@ class Warehouse_sheetController extends Controller
             $this->setFlash('danger', 'Không thể tạo phiếu: ' . $e->getMessage());
         }
 
-        $this->redirect('?controller=warehouse_sheet&action=index');
-    }
+$this->redirect($redirectTo);    }
 
     public function edit(): void
     {
@@ -173,11 +177,19 @@ class Warehouse_sheetController extends Controller
 
     private function validateRequired(array $data): bool
     {
-        $required = ['IdPhieu', 'LoaiPhieu', 'IdKho', 'NHAN_VIENIdNhanVien', 'NHAN_VIENIdNhanVien2'];
         $required = ['IdPhieu', 'LoaiPhieu', 'IdKho', 'NHAN_VIENIdNhanVien'];
 
         foreach ($required as $field) {
-            if (empty($data[$field])) {
+              if (!array_key_exists($field, $data)) {
+                return false;
+            }
+
+            $value = $data[$field];
+            if (is_string($value)) {
+                $value = trim($value);
+            }
+
+            if ($value === null || $value === '') {
                 return false;
             }
         }

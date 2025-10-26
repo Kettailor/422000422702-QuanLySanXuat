@@ -469,7 +469,6 @@ CREATE TABLE `khach_hang` (
   `SoLuongDonHang` int(10) DEFAULT NULL,
   `SoDienThoai` varchar(12) DEFAULT NULL,
   `Email` varchar(255) DEFAULT NULL,
-  `TenCongTy` varchar(255) DEFAULT NULL,
   `TongTien` float DEFAULT NULL,
   `LoaiKhachHang` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1042,7 +1041,6 @@ ALTER TABLE `product_components`
 --
 -- Chỉ mục cho bảng `cau_hinh_nguyen_lieu`
 ALTER TABLE `cau_hinh_nguyen_lieu`
-  ADD PRIMARY KEY (`IdCauHinhNguyenLieu`),
   ADD KEY `FKCFGNL_CAU_HINH` (`IdCauHinh`),
   ADD KEY `FKCFGNL_NGUYEN_LIEU` (`IdNguyenLieu`);
 
@@ -1050,7 +1048,6 @@ ALTER TABLE `cau_hinh_nguyen_lieu`
 -- Chỉ mục cho bảng `xuong_cau_hinh_san_pham`
 --
 ALTER TABLE `xuong_cau_hinh_san_pham`
-  ADD PRIMARY KEY (`IdPhanCong`),
   ADD KEY `FKXCHSP_SANPHAM` (`IdSanPham`),
   ADD KEY `FKXCHSP_CAU_HINH` (`IdCauHinh`),
   ADD KEY `FKXCHSP_XUONG` (`IdXuong`);

@@ -5,6 +5,8 @@ class WarehouseController extends Controller
     private Warehouse $warehouseModel;
     private InventoryLot $lotModel;
     private InventorySheet $sheetModel;
+    private Workshop $workshopModel;
+    private Employee $employeeModel;
 
     public function __construct()
     {
@@ -12,6 +14,8 @@ class WarehouseController extends Controller
         $this->warehouseModel = new Warehouse();
         $this->lotModel = new InventoryLot();
         $this->sheetModel = new InventorySheet();
+        $this->workshopModel = new Workshop();
+        $this->employeeModel = new Employee();
     }
 
     public function index(): void
@@ -20,11 +24,17 @@ class WarehouseController extends Controller
         $summary = $this->warehouseModel->getWarehouseSummary($warehouses);
         $documents = $this->sheetModel->getDocuments(null, 200);
         $documentGroups = $this->buildDocumentGroups($documents);
+        $warehouseGroups = $this->warehouseModel->groupWarehousesByType($warehouses, $summary['by_type'] ?? []);
+        $employees = $this->employeeModel->getActiveEmployees();
+        $entryForms = $this->buildWarehouseEntryForms($warehouseGroups);
         $this->render('warehouse/index', [
             'title' => 'Kho & tồn kho',
             'warehouses' => $warehouses,
             'summary' => $summary,
             'documentGroups' => $documentGroups,
+            'warehouseGroups' => $warehouseGroups,
+            'warehouseEntryForms' => $entryForms,
+            'employees' => $employees,
         ]);
     }
 
@@ -45,9 +55,11 @@ class WarehouseController extends Controller
         $options = $this->warehouseModel->getFormOptions();
         $this->render('warehouse/create', [
             'title' => 'Thêm kho mới',
-            'workshops' => $options['workshops'],
             'managers' => $options['managers'],
             'statuses' => $options['statuses'],
+            'types' => $options['types'],
+            'workshops' => $this->workshopModel->all(200),
+            'employees' => $this->employeeModel->getActiveEmployees(),
         ]);
     }
 
@@ -92,9 +104,11 @@ class WarehouseController extends Controller
         $this->render('warehouse/edit', [
             'title' => 'Cập nhật kho',
             'warehouse' => $warehouse,
-            'workshops' => $options['workshops'],
             'managers' => $options['managers'],
             'statuses' => $options['statuses'],
+            'types' => $options['types'],
+            'workshops' => $this->workshopModel->all(200),
+            'employees' => $this->employeeModel->getActiveEmployees(),
         ]);
     }
 
@@ -156,6 +170,50 @@ class WarehouseController extends Controller
         }
 
         $this->redirect('?controller=warehouse&action=index');
+    }
+
+    public function buildWarehouseEntryForms(array $warehouseGroups): array
+    {
+        $definitions = [
+            'material' => [
+                'documentType' => 'Phiếu nhập nguyên liệu',
+                'submitLabel' => 'Thêm nguyên liệu',
+                'description' => 'Ghi nhận nguyên vật liệu về kho để phục vụ sản xuất.',
+                'prefix' => 'PNNL',
+            ],
+            'finished' => [
+                'documentType' => 'Phiếu nhập thành phẩm',
+                'submitLabel' => 'Thêm thành phẩm',
+                'description' => 'Bổ sung thành phẩm hoàn thiện vào kho chuẩn bị xuất bán.',
+                'prefix' => 'PNTP',
+            ],
+            'quality' => [
+                'documentType' => 'Phiếu nhập xử lý lỗi',
+                'submitLabel' => 'Nhận hàng lỗi',
+                'description' => 'Tiếp nhận sản phẩm lỗi cần xử lý, phân loại.',
+                'prefix' => 'PNXL',
+            ],
+        ];
+
+        $forms = [];
+
+        foreach ($warehouseGroups as $key => $group) {
+            if (!isset($definitions[$key])) {
+                continue;
+            }
+
+            $definition = $definitions[$key];
+            $forms[$key] = [
+                'document_type' => $definition['documentType'],
+                'document_id' => $this->sheetModel->generateDocumentId($definition['documentType']),
+                'submit_label' => $definition['submitLabel'],
+                'description' => $definition['description'],
+                'modal_title' => $definition['submitLabel'] . ' vào ' . ($group['label'] ?? 'kho'),
+                'prefix' => $definition['prefix'],
+            ];
+        }
+
+        return $forms;
     }
 
     private function buildDocumentGroups(array $documents): array

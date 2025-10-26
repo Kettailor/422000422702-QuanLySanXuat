@@ -10,6 +10,7 @@
 $workshops = $workshops ?? [];
 $managers = $managers ?? [];
 $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
+$types = $types ?? [];
 ?>
 
 <?php if (!$warehouse): ?>
@@ -23,8 +24,19 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
                 <input type="text" name="TenKho" class="form-control" value="<?= htmlspecialchars($warehouse['TenKho']) ?>" required>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Loại kho SV5TOT</label>
-                <input type="text" name="TenLoaiKho" class="form-control" value="<?= htmlspecialchars($warehouse['TenLoaiKho']) ?>">
+                 <label class="form-label">Loại kho <span class="text-danger">*</span></label>
+                <select name="TenLoaiKho" class="form-select" required>
+                    <?php foreach ($types as $typeLabel): ?>
+                        <option value="<?= htmlspecialchars($typeLabel) ?>" <?= ($warehouse['TenLoaiKho'] ?? '') === $typeLabel ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($typeLabel) ?>
+                        </option>
+                    <?php endforeach; ?>
+                    <?php if (!empty($warehouse['TenLoaiKho']) && !in_array($warehouse['TenLoaiKho'], $types, true)): ?>
+                        <option value="<?= htmlspecialchars($warehouse['TenLoaiKho']) ?>" selected>
+                            <?= htmlspecialchars($warehouse['TenLoaiKho']) ?>
+                        </option>
+                    <?php endif; ?>
+                </select>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Trạng thái</label>

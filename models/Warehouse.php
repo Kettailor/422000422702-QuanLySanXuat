@@ -2,6 +2,13 @@
 
 class Warehouse extends BaseModel
 {
+    public const DEFAULT_TYPE_KEY = 'material';
+
+    public const WAREHOUSE_TYPES = [
+        'material' => 'Kho nguyên liệu',
+        'finished' => 'Kho thành phẩm',
+        'quality' => 'Kho xử lý lỗi',
+    ];
     protected string $table = 'kho';
     protected string $primaryKey = 'IdKho';
 
@@ -53,7 +60,13 @@ class Warehouse extends BaseModel
                 ) AS doc_stats ON doc_stats.IdKho = KHO.IdKho
                 ORDER BY KHO.TenKho';
 
-        return $this->db->query($sql)->fetchAll();
+        $warehouses = $this->db->query($sql)->fetchAll();
+
+        return array_map(function (array $warehouse): array {
+            $warehouse['TenLoaiKho'] = $this->normalizeWarehouseType($warehouse['TenLoaiKho'] ?? null);
+
+            return $warehouse;
+        }, $warehouses);
     }
 
     public function findWithSupervisor(string $id): ?array
@@ -108,7 +121,13 @@ class Warehouse extends BaseModel
 
         $result = $stmt->fetch();
 
-        return $result ?: null;
+        if (!$result) {
+            return null;
+        }
+
+        $result['TenLoaiKho'] = $this->normalizeWarehouseType($result['TenLoaiKho'] ?? null);
+
+        return $result;
     }
 
     /**
@@ -126,17 +145,29 @@ class Warehouse extends BaseModel
             'total_inventory_value' => 0.0,
             'total_lots' => 0,
             'total_quantity' => 0,
+            'by_type' => $this->getEmptyTypeSummary(),
         ];
 
         foreach ($warehouses as $warehouse) {
+            $typeKey = $this->resolveWarehouseTypeKey($warehouse['TenLoaiKho'] ?? null);
+            $typeSummary = &$summary['by_type'][$typeKey];
             $summary['total_capacity'] += (int) ($warehouse['TongSL'] ?? 0);
             $summary['total_inventory_value'] += (float) ($warehouse['ThanhTien'] ?? 0);
             $summary['total_lots'] += (int) ($warehouse['SoLoDangQuanLy'] ?? ($warehouse['TongSLLo'] ?? 0));
             $summary['total_quantity'] += (int) ($warehouse['TongSoLuongLo'] ?? 0);
+            $typeSummary['count']++;
+            $typeSummary['total_capacity'] += (int) ($warehouse['TongSL'] ?? 0);
+            $typeSummary['total_inventory_value'] += (float) ($warehouse['ThanhTien'] ?? 0);
+            $typeSummary['total_lots'] += (int) ($warehouse['SoLoDangQuanLy'] ?? ($warehouse['TongSLLo'] ?? 0));
+            $typeSummary['total_quantity'] += (int) ($warehouse['TongSoLuongLo'] ?? 0);
 
             if ($this->isActiveWarehouse($warehouse['TrangThai'] ?? null)) {
                 $summary['active_warehouses']++;
+                $typeSummary['active_warehouses']++;
+
             }
+            unset($typeSummary);
+
         }
 
         $summary['inactive_warehouses'] = max(
@@ -148,6 +179,12 @@ class Warehouse extends BaseModel
         $summary['total_capacity'] = (int) $summary['total_capacity'];
         $summary['total_lots'] = (int) $summary['total_lots'];
         $summary['total_quantity'] = (int) $summary['total_quantity'];
+        foreach ($summary['by_type'] as $key => $typeSummary) {
+            $summary['by_type'][$key]['total_inventory_value'] = round($typeSummary['total_inventory_value'], 2);
+            $summary['by_type'][$key]['total_capacity'] = (int) $typeSummary['total_capacity'];
+            $summary['by_type'][$key]['total_lots'] = (int) $typeSummary['total_lots'];
+            $summary['by_type'][$key]['total_quantity'] = (int) $typeSummary['total_quantity'];
+        }
 
         return $summary;
     }
@@ -166,7 +203,35 @@ class Warehouse extends BaseModel
             'workshops' => $workshops,
             'managers' => $managers,
             'statuses' => $this->getStatusOptions(),
+            'types' => $this->getWarehouseTypeOptions(),
+
         ];
+    }
+public function getWarehouseTypeOptions(): array
+    {
+        return self::WAREHOUSE_TYPES;
+    }
+
+    public function groupWarehousesByType(array $warehouses, ?array $typeSummary = null): array
+    {
+        $emptyTypeSummary = $this->getEmptyTypeSummary();
+        $groups = [];
+        foreach (self::WAREHOUSE_TYPES as $key => $label) {
+            $groups[$key] = [
+                'key' => $key,
+                'label' => $label,
+                'description' => $this->getWarehouseTypeDescription($key),
+                'warehouses' => [],
+                'statistics' => $typeSummary[$key] ?? $emptyTypeSummary[$key],
+            ];
+        }
+
+        foreach ($warehouses as $warehouse) {
+            $typeKey = $this->resolveWarehouseTypeKey($warehouse['TenLoaiKho'] ?? null);
+            $groups[$typeKey]['warehouses'][] = $warehouse;
+        }
+
+        return $groups;
     }
 
     public function createWarehouse(array $data): bool
@@ -188,7 +253,7 @@ class Warehouse extends BaseModel
         return 'KHO' . date('YmdHis');
     }
 
-    private function sanitizeWarehousePayload(array $data, bool $includeId = false): array
+    public function sanitizeWarehousePayload(array $data, bool $includeId = false): array
     {
         $fields = [
             'IdKho',
@@ -231,6 +296,9 @@ class Warehouse extends BaseModel
                 case 'ThanhTien':
                     $payload[$field] = $value !== null ? max(0, (int) $value) : 0;
                     break;
+                case 'TenLoaiKho':
+                    $payload[$field] = $this->normalizeWarehouseType($value);
+                    break;
                 case 'TrangThai':
                     $payload[$field] = $this->normalizeStatus($value);
                     break;
@@ -244,8 +312,96 @@ class Warehouse extends BaseModel
 
         return $payload;
     }
+public function getEmptyTypeSummary(): array
+    {
+        $summary = [];
+        foreach (self::WAREHOUSE_TYPES as $key => $label) {
+            $summary[$key] = [
+                'label' => $label,
+                'count' => 0,
+                'active_warehouses' => 0,
+                'total_capacity' => 0,
+                'total_inventory_value' => 0.0,
+                'total_lots' => 0,
+                'total_quantity' => 0,
+            ];
+        }
 
-    private function normalizeStatus(?string $status): string
+        return $summary;
+    }
+
+    public function getWarehouseTypeDescription(string $key): string
+    {
+        return match ($key) {
+            'material' => 'Quản lý nhập kho nguyên vật liệu đầu vào cho sản xuất.',
+            'finished' => 'Lưu trữ thành phẩm đã hoàn thiện chờ xuất bán.',
+            'quality' => 'Tiếp nhận sản phẩm lỗi cần xử lý và phân loại.',
+            default => 'Kho tổng hợp theo loại hàng hóa.',
+        };
+    }
+
+    public function resolveWarehouseTypeKey(?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return self::DEFAULT_TYPE_KEY;
+        }
+
+        $normalized = $this->normalizeString($value);
+
+        if (isset(self::WAREHOUSE_TYPES[$normalized])) {
+            return $normalized;
+        }
+
+        foreach (self::WAREHOUSE_TYPES as $key => $label) {
+            if ($normalized === $this->normalizeString($label)) {
+                return $key;
+            }
+        }
+
+        if (
+            str_contains($normalized, 'nguyên') ||
+            str_contains($normalized, 'nguyen') ||
+            str_contains($normalized, 'liệu') ||
+            str_contains($normalized, 'lieu')
+        ) {
+            return 'material';
+        }
+
+        if (
+            (str_contains($normalized, 'thành') || str_contains($normalized, 'thanh')) &&
+            (str_contains($normalized, 'phẩm') || str_contains($normalized, 'pham'))
+        ) {
+            return 'finished';
+        }
+
+        if (
+            str_contains($normalized, 'lỗi') ||
+            str_contains($normalized, 'loi') ||
+            str_contains($normalized, 'xử lý') ||
+            str_contains($normalized, 'xu ly')
+        ) {
+            return 'quality';
+        }
+
+        return self::DEFAULT_TYPE_KEY;
+    }
+
+    public function normalizeWarehouseType(?string $type): string
+    {
+        $typeKey = $this->resolveWarehouseTypeKey($type);
+
+        return self::WAREHOUSE_TYPES[$typeKey];
+    }
+
+    public function normalizeString(string $value): string
+    {
+        $normalized = function_exists('mb_strtolower')
+            ? mb_strtolower($value, 'UTF-8')
+            : strtolower($value);
+
+        return trim(preg_replace('/\s+/', ' ', $normalized));
+    }
+    public function normalizeStatus(?string $status): string
     {
         $statusOptions = $this->getStatusOptions();
 
@@ -265,7 +421,7 @@ class Warehouse extends BaseModel
     /**
      * Xác định trạng thái hoạt động của kho theo chuỗi mô tả trong cơ sở dữ liệu.
      */
-    private function isActiveWarehouse(?string $status): bool
+    public function isActiveWarehouse(?string $status): bool
     {
         if ($status === null || $status === '') {
             return false;

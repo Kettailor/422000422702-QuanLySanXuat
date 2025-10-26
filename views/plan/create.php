@@ -3,8 +3,8 @@ $pendingOrders = $pendingOrders ?? [];
 $selectedOrderDetailId = $selectedOrderDetailId ?? null;
 $selectedOrderDetail = $selectedOrderDetail ?? null;
 $componentAssignments = $componentAssignments ?? [];
-$managers = $managers ?? [];
 $workshops = $workshops ?? [];
+$currentUser = $currentUser ?? null;
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -172,15 +172,19 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Ban giám đốc phụ trách</label>
-                                <select name="BanGiamDoc" class="form-select">
-                                    <option value="">-- Chọn người phụ trách --</option>
-                                    <?php foreach ($managers as $manager): ?>
-                                        <option value="<?= htmlspecialchars($manager['IdNhanVien'] ?? '') ?>">
-                                            <?= htmlspecialchars($manager['HoTen'] ?? 'Giám đốc') ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <label class="form-label fw-semibold">Người lập kế hoạch</label>
+                                <div class="border rounded-3 p-3 bg-light-subtle">
+                                    <div class="fw-semibold mb-1">
+                                        <?= htmlspecialchars($currentUser['HoTen'] ?? 'Không xác định') ?>
+                                    </div>
+                                    <?php if (!empty($currentUser['ChucVu'])): ?>
+                                        <div class="text-muted small">Chức vụ: <?= htmlspecialchars($currentUser['ChucVu']) ?></div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($currentUser['TenDangNhap'])): ?>
+                                        <div class="text-muted small">Tài khoản: <?= htmlspecialchars($currentUser['TenDangNhap']) ?></div>
+                                    <?php endif; ?>
+                                </div>
+                                <input type="hidden" name="BanGiamDoc" value="<?= htmlspecialchars($currentUser['IdNhanVien'] ?? '') ?>">
                             </div>
                         </div>
 
@@ -210,7 +214,11 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                             <td>
                                                 <input type="hidden" name="component_assignments[<?= $index ?>][component_id]" value="<?= htmlspecialchars($component['id'] ?? '') ?>">
                                                 <input type="hidden" name="component_assignments[<?= $index ?>][configuration_id]" value="<?= htmlspecialchars($component['configuration_id'] ?? '') ?>">
+                                                <input type="hidden" name="component_assignments[<?= $index ?>][default_status]" value="<?= htmlspecialchars($component['default_status'] ?? '') ?>">
                                                 <input type="text" name="component_assignments[<?= $index ?>][label]" class="form-control" value="<?= htmlspecialchars($component['label'] ?? 'Hạng mục sản xuất') ?>" required>
+                                                <?php if (!empty($component['configuration_label'])): ?>
+                                                    <div class="text-muted small mt-2">Cấu hình: <?= htmlspecialchars($component['configuration_label']) ?></div>
+                                                <?php endif; ?>
                                             </td>
                                             <td>
                                                 <select name="component_assignments[<?= $index ?>][workshop_id]" class="form-select" required>
@@ -225,6 +233,9 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                             </td>
                                             <td>
                                                 <input type="number" min="1" name="component_assignments[<?= $index ?>][quantity]" class="form-control" value="<?= htmlspecialchars((string) max(1, (int) ($component['default_quantity'] ?? $selectedQuantity))) ?>" required>
+                                                <div class="form-text">
+                                                    <?= htmlspecialchars($component['unit'] ?? 'sp') ?> (tỉ lệ <?= htmlspecialchars(number_format((float) ($component['quantity_ratio'] ?? 1), 2)) ?>)
+                                                </div>
                                             </td>
                                             <td>
                                                 <input type="datetime-local" name="component_assignments[<?= $index ?>][start]" class="form-control" value="<?= htmlspecialchars($defaultStart) ?>" data-sync-start>
