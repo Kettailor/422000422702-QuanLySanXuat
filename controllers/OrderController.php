@@ -54,6 +54,7 @@ class OrderController extends Controller
 
         $orderId = ($_POST['IdDonHang'] ?? '') ?: uniqid('DH');
         $detailsInput = $_POST['details'] ?? [];
+        $contactEmail = trim($_POST['EmailLienHe'] ?? '');
 
         try {
             $customerId = $this->resolveCustomer($_POST);
@@ -76,6 +77,7 @@ class OrderController extends Controller
                 'TongTien' => $totalAmount,
                 'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
                 'TrangThai' => $_POST['TrangThai'] ?? $this->orderStatuses[0],
+                'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
                 'IdKhachHang' => $customerId,
             ];
 
@@ -139,6 +141,7 @@ class OrderController extends Controller
         }
 
         $detailsInput = $_POST['details'] ?? [];
+        $contactEmail = trim($_POST['EmailLienHe'] ?? '');
 
         try {
             $customerId = $this->resolveCustomer($_POST);
@@ -160,6 +163,7 @@ class OrderController extends Controller
                 'TongTien' => $totalAmount,
                 'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
                 'TrangThai' => $_POST['TrangThai'] ?? $this->orderStatuses[0],
+                'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
                 'IdKhachHang' => $customerId,
             ];
 
@@ -512,6 +516,7 @@ class OrderController extends Controller
             }
 
             $phone = trim($input['customer_phone'] ?? '');
+            $email = trim($input['customer_email'] ?? '');
             $address = trim($input['customer_address'] ?? '');
             $type = trim($input['customer_type'] ?? 'Khách hàng mới');
 
@@ -523,6 +528,7 @@ class OrderController extends Controller
                 'DiaChi' => $address ?: null,
                 'SoLuongDonHang' => 0,
                 'SoDienThoai' => $phone ?: null,
+                'Email' => $email !== '' ? $email : null,
                 'TongTien' => 0,
                 'LoaiKhachHang' => $type ?: 'Khách hàng mới',
             ]);

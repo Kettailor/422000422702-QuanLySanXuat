@@ -20,7 +20,7 @@ $configurations = $configurations ?? [];
         <?php
         $selectedCustomerId = null;
         $customerMode = 'existing';
-        $customerFormData = ['name' => '', 'phone' => '', 'address' => '', 'type' => ''];
+$customerFormData = ['name' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
         include __DIR__ . '/partials/customer_selector.php';
         ?>
         <div class="col-lg-3 col-md-6">
@@ -34,6 +34,10 @@ $configurations = $configurations ?? [];
                     <option value="<?= htmlspecialchars($status) ?>" <?= $status === ($orderStatuses[0] ?? '') ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
                 <?php endforeach; ?>
             </select>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label">Email liên hệ</label>
+            <input type="email" name="EmailLienHe" class="form-control" value="<?= htmlspecialchars($_POST['EmailLienHe'] ?? '') ?>" placeholder="Ví dụ: customer@example.com">
         </div>
         <div class="col-12">
             <label class="form-label">Yêu cầu chung</label>

@@ -1,6 +1,6 @@
 <?php
 $selectedCustomerId = $selectedCustomerId ?? null;
-$customerFormData = $customerFormData ?? ['name' => '', 'phone' => '', 'address' => '', 'type' => ''];
+$customerFormData = $customerFormData ?? ['name' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
 $customerMode = $customerMode ?? 'existing';
 ?>
 <div class="col-lg-6" data-customer-selector>
@@ -44,6 +44,13 @@ $customerMode = $customerMode ?? 'existing';
                        value="<?= htmlspecialchars($customerFormData['phone'] ?? '') ?>"
                        <?= $customerMode === 'new' ? '' : 'disabled' ?>
                        placeholder="Ví dụ: 0901234567">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="customer_email"
+                       value="<?= htmlspecialchars($customerFormData['email'] ?? '') ?>"
+                       <?= $customerMode === 'new' ? '' : 'disabled' ?>
+                       placeholder="Ví dụ: customer@example.com">
             </div>
             <div class="col-md-6">
                 <label class="form-label">Nhóm khách hàng</label>
