@@ -12,7 +12,7 @@ class ProductionPlan extends BaseModel
                        k.ThoiGianBD,
                        k.ThoiGianKetThuc,
                        k.TrangThai,
-                       k.`BANIAMDOC IdNhanVien` AS BanGiamDocId,
+                       k.`BANGIAMDOC IdNhanVien` AS BanGiamDocId,
                        ct.IdTTCTDonHang,
                        ct.IdDonHang,
                        ct.IdSanPham,
@@ -31,7 +31,7 @@ class ProductionPlan extends BaseModel
                 JOIN san_pham san ON san.IdSanPham = ct.IdSanPham
                 LEFT JOIN cau_hinh_san_pham cau ON cau.IdCauHinh = ct.IdCauHinh
                 JOIN don_hang don ON don.IdDonHang = ct.IdDonHang
-                LEFT JOIN nhan_vien ql ON ql.IdNhanVien = k.`BANIAMDOC IdNhanVien`
+                LEFT JOIN nhan_vien ql ON ql.IdNhanVien = k.`BANGIAMDOC IdNhanVien`
                 LEFT JOIN (
                     SELECT IdKeHoachSanXuat,
                            COUNT(*) AS TongCongDoan,
@@ -71,7 +71,7 @@ class ProductionPlan extends BaseModel
                        k.ThoiGianBD,
                        k.ThoiGianKetThuc,
                        k.TrangThai,
-                       k.`BANIAMDOC IdNhanVien` AS BanGiamDocId,
+                       k.`BANGIAMDOC IdNhanVien` AS BanGiamDocId,
                        ct.IdTTCTDonHang,
                        ct.IdDonHang,
                        ct.IdSanPham,
@@ -90,7 +90,7 @@ class ProductionPlan extends BaseModel
                 JOIN don_hang don ON don.IdDonHang = ct.IdDonHang
                 JOIN san_pham san ON san.IdSanPham = ct.IdSanPham
                 LEFT JOIN cau_hinh_san_pham cau ON cau.IdCauHinh = ct.IdCauHinh
-                LEFT JOIN nhan_vien ql ON ql.IdNhanVien = k.`BANIAMDOC IdNhanVien`
+                LEFT JOIN nhan_vien ql ON ql.IdNhanVien = k.`BANGIAMDOC IdNhanVien`
                 LEFT JOIN (
                     SELECT IdKeHoachSanXuat,
                            COUNT(*) AS TongCongDoan,

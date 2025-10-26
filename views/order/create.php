@@ -20,7 +20,7 @@ $configurations = $configurations ?? [];
         <?php
         $selectedCustomerId = null;
         $customerMode = 'existing';
-$customerFormData = ['name' => '', 'company' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
+$customerFormData = ['name' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
         include __DIR__ . '/partials/customer_selector.php';
         ?>
         <div class="col-lg-3 col-md-6">

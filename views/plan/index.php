@@ -123,9 +123,6 @@ $badgeForStatus = static function (string $status): string {
                                         <?php if (!empty($order['TenKhachHang'])): ?>
                                             <div class="text-muted small">Khách hàng: <?= htmlspecialchars($order['TenKhachHang']) ?></div>
                                         <?php endif; ?>
-                                        <?php if (!empty($order['TenCongTy'])): ?>
-                                            <div class="text-muted small">Công ty: <?= htmlspecialchars($order['TenCongTy']) ?></div>
-                                        <?php endif; ?>
                                         <?php
                                         $orderEmail = $order['EmailLienHe'] ?? null;
                                         if (!$orderEmail && !empty($order['details'][0]['Email'])) {

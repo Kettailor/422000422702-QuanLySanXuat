@@ -404,7 +404,7 @@ CREATE TABLE `ke_hoach_san_xuat` (
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
   `ThoiGianBD` datetime DEFAULT NULL,
-  `BANIAMDOC IdNhanVien` varchar(50) NOT NULL,
+  `BANGIAMDOC IdNhanVien` varchar(50) NOT NULL,
   `IdTTCTDonHang` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -412,7 +412,7 @@ CREATE TABLE `ke_hoach_san_xuat` (
 -- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat`
 --
 
-INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `BANIAMDOC IdNhanVien`, `IdTTCTDonHang`) VALUES
+INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `BANGIAMDOC IdNhanVien`, `IdTTCTDonHang`) VALUES
 ('KHSX20231101', 180, '2023-11-19 17:00:00', 'Đang lắp ráp SV5TOT 87', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
 ('KHSX20231102', 120, '2023-11-22 17:30:00', 'Đang kiểm thử SV5TOT 108', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
 ('KHSX20231105', 150, '2023-11-26 16:00:00', 'Đang hoàn thiện đơn custom', '2023-11-18 07:30:00', 'NV001', 'CTDH20231105A'),
@@ -469,6 +469,7 @@ CREATE TABLE `khach_hang` (
   `SoLuongDonHang` int(10) DEFAULT NULL,
   `SoDienThoai` varchar(12) DEFAULT NULL,
   `Email` varchar(255) DEFAULT NULL,
+  `TenCongTy` varchar(255) DEFAULT NULL,
   `TongTien` float DEFAULT NULL,
   `LoaiKhachHang` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -477,10 +478,10 @@ CREATE TABLE `khach_hang` (
 -- Đang đổ dữ liệu cho bảng `khach_hang`
 --
 
-INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `TenCongTy`, `GioiTinh`, `DiaChi`, `SoLuongDonHang`, `SoDienThoai`, `Email`, `TongTien`, `LoaiKhachHang`) VALUES
-('KH001', 'Nguyễn Văn Thái', 'Công ty GearZone Việt Nam', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 'contact@gearzone.vn', 1526000000, 'Đại lý phân phối'),
-('KH002', 'Trần Mỹ Linh', 'Chuỗi cửa hàng TechHub', 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 'orders@techhub.vn', 1268000000, 'Bán lẻ chiến lược'),
-('KH003', 'Phạm Quốc Huy', 'Cửa hàng CustomVN', 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 'sales@customvn.vn', 732000000, 'Đại lý custom gear');
+INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `GioiTinh`, `DiaChi`, `SoLuongDonHang`, `SoDienThoai`, `Email`, `TongTien`, `LoaiKhachHang`) VALUES
+('KH001', 'Công ty GearZone Việt Nam', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 'contact@gearzone.vn', 1526000000, 'Đại lý phân phối'),
+('KH002', 'Chuỗi cửa hàng TechHub', 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 'orders@techhub.vn', 1268000000, 'Bán lẻ chiến lược'),
+('KH003', 'Cửa hàng CustomVN', 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 'sales@customvn.vn', 732000000, 'Đại lý custom gear');
 
 -- --------------------------------------------------------
 
@@ -1218,7 +1219,7 @@ ALTER TABLE `hoa_don`
 ALTER TABLE `ke_hoach_san_xuat`
   ADD PRIMARY KEY (`IdKeHoachSanXuat`),
   ADD KEY `FKKE_HOACH_S473207` (`IdTTCTDonHang`),
-  ADD KEY `FKKE_HOACH_S691979` (`BANIAMDOC IdNhanVien`);
+  ADD KEY `FKKE_HOACH_S691979` (`BANGIAMDOC IdNhanVien`);
 
 --
 -- Chỉ mục cho bảng `ke_hoach_san_xuat_xuong`
@@ -1449,7 +1450,7 @@ ALTER TABLE `hoa_don`
 --
 ALTER TABLE `ke_hoach_san_xuat`
   ADD CONSTRAINT `FKKE_HOACH_S473207` FOREIGN KEY (`IdTTCTDonHang`) REFERENCES `ct_don_hang` (`IdTTCTDonHang`),
-  ADD CONSTRAINT `FKKE_HOACH_S691979` FOREIGN KEY (`BANIAMDOC IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
+  ADD CONSTRAINT `FKKE_HOACH_S691979` FOREIGN KEY (`BANGIAMDOC IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
 
 --
 -- Các ràng buộc cho bảng `ke_hoach_san_xuat_xuong`

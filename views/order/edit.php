@@ -16,7 +16,7 @@ $configurations = $configurations ?? [];
 
 $selectedCustomerId = $order['IdKhachHang'] ?? null;
 $customerMode = 'existing';
-$customerFormData = ['name' => '', 'company' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
+$customerFormData = ['name' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
 ?>
 
 <div class="card p-4">

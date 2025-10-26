@@ -1,6 +1,6 @@
 <?php
 $selectedCustomerId = $selectedCustomerId ?? null;
-$customerFormData = $customerFormData ?? ['name' => '', 'company' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
+$customerFormData = $customerFormData ?? ['name' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
 $customerMode = $customerMode ?? 'existing';
 ?>
 <div class="col-lg-6" data-customer-selector>
