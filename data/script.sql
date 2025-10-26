@@ -187,6 +187,43 @@ INSERT INTO `chi_tiet_ke_hoach_san_xuat_xuong` (`IdCTKHSXX`, `SoLuong`, `IdKeHoa
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `yeu_cau_xuat_kho`
+--
+
+DROP TABLE IF EXISTS `yeu_cau_xuat_kho`;
+
+CREATE TABLE `yeu_cau_xuat_kho` (
+  `IdYeuCau` varchar(50) NOT NULL,
+  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
+  `NguoiYeuCau` varchar(50) DEFAULT NULL,
+  `TrangThai` varchar(255) DEFAULT NULL,
+  `NoiDung` text DEFAULT NULL,
+  `NgayTao` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `lich_su_ke_hoach_xuong`
+--
+
+DROP TABLE IF EXISTS `lich_su_ke_hoach_xuong`;
+
+CREATE TABLE `lich_su_ke_hoach_xuong` (
+  `IdLichSu` varchar(50) NOT NULL,
+  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
+  `TrangThai` varchar(255) DEFAULT NULL,
+  `HanhDong` varchar(255) DEFAULT NULL,
+  `GhiChu` text DEFAULT NULL,
+  `NguoiThucHien` varchar(50) DEFAULT NULL,
+  `NgayThucHien` datetime DEFAULT NULL,
+  `ThongTinChiTiet` longtext DEFAULT NULL,
+  `IdYeuCauKho` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `ct_don_hang`
 --
 
@@ -990,6 +1027,22 @@ ALTER TABLE `chi_tiet_ke_hoach_san_xuat_xuong`
   ADD KEY `FKCHI_TIET_K954837` (`IdKeHoachSanXuatXuong`);
 
 --
+-- Chỉ mục cho bảng `yeu_cau_xuat_kho`
+--
+ALTER TABLE `yeu_cau_xuat_kho`
+  ADD PRIMARY KEY (`IdYeuCau`),
+  ADD KEY `FKYCK_KeHoachXuong` (`IdKeHoachSanXuatXuong`);
+
+--
+-- Chỉ mục cho bảng `lich_su_ke_hoach_xuong`
+--
+ALTER TABLE `lich_su_ke_hoach_xuong`
+  ADD PRIMARY KEY (`IdLichSu`),
+  ADD KEY `FKLSKHX_KeHoach` (`IdKeHoachSanXuatXuong`),
+  ADD KEY `FKLSKHX_NhanVien` (`NguoiThucHien`),
+  ADD KEY `FKLSKHX_YeuCauKho` (`IdYeuCauKho`);
+
+--
 -- Chỉ mục cho bảng `ct_don_hang`
 --
 ALTER TABLE `ct_don_hang`
@@ -1189,6 +1242,20 @@ ALTER TABLE `cham_cong`
 ALTER TABLE `chi_tiet_ke_hoach_san_xuat_xuong`
   ADD CONSTRAINT `FKCHI_TIET_K933945` FOREIGN KEY (`IdNguyenLieu`) REFERENCES `nguyen_lieu` (`IdNguyenLieu`),
   ADD CONSTRAINT `FKCHI_TIET_K954837` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`);
+
+--
+-- Các ràng buộc cho bảng `yeu_cau_xuat_kho`
+--
+ALTER TABLE `yeu_cau_xuat_kho`
+  ADD CONSTRAINT `FKYCK_KeHoachXuong` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`);
+
+--
+-- Các ràng buộc cho bảng `lich_su_ke_hoach_xuong`
+--
+ALTER TABLE `lich_su_ke_hoach_xuong`
+  ADD CONSTRAINT `FKLSKHX_KeHoach` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
+  ADD CONSTRAINT `FKLSKHX_NhanVien` FOREIGN KEY (`NguoiThucHien`) REFERENCES `nhan_vien` (`IdNhanVien`),
+  ADD CONSTRAINT `FKLSKHX_YeuCauKho` FOREIGN KEY (`IdYeuCauKho`) REFERENCES `yeu_cau_xuat_kho` (`IdYeuCau`);
 
 --
 -- Các ràng buộc cho bảng `cau_hinh_san_pham`
