@@ -33,7 +33,8 @@ if ($payroll) {
         }
     }
 
-    $gross = (float) ($payroll['LuongCoBan'] ?? 0) + (float) ($payroll['PhuCap'] ?? 0);
+    $figures = Salary::calculateFigures($payroll);
+    $gross = $figures['gross'];
     $taxAmount = (float) ($payroll['ThueTNCN'] ?? 0);
     if ($gross > 0) {
         $taxPercent = round(($taxAmount / $gross) * 100, 2);
@@ -65,22 +66,53 @@ if ($payroll) {
                     <dt class="col-sm-6">Lương cơ bản</dt>
                     <dd class="col-sm-6"><?= number_format($payroll['LuongCoBan'], 0, ',', '.') ?> đ</dd>
                     <dt class="col-sm-6">Phụ cấp</dt>
-                    <dd class="col-sm-6"><?= number_format($payroll['PhuCap'], 0, ',', '.') ?> đ</dd>
-                    <dt class="col-sm-6">Khấu trừ</dt>
-                    <dd class="col-sm-6"><?= number_format($payroll['KhauTru'], 0, ',', '.') ?> đ</dd>
+                    <dd class="col-sm-6"><?= number_format($payroll['PhuCap'] ?? 0, 0, ',', '.') ?> đ</dd>
+                    <dt class="col-sm-6">Thưởng</dt>
+                    <dd class="col-sm-6"><?= number_format($payroll['Thuong'] ?? 0, 0, ',', '.') ?> đ</dd>
+                    <dt class="col-sm-6">Khấu trừ (BHXH)</dt>
+                    <dd class="col-sm-6">-<?= number_format($payroll['KhauTru'] ?? 0, 0, ',', '.') ?> đ</dd>
                     <dt class="col-sm-6">Thuế TNCN</dt>
-                    <dd class="col-sm-6">
-                        <?= number_format($taxPercent, 2, ',', '.') ?>%
-                        <?php if ($payroll['ThueTNCN'] ?? 0): ?>
-                            <span class="text-muted">(<?= number_format($payroll['ThueTNCN'], 0, ',', '.') ?> đ)</span>
-                        <?php endif; ?>
-                    </dd>
+                    <dd class="col-sm-6">-<?= number_format($payroll['ThueTNCN'] ?? 0, 0, ',', '.') ?> đ (<?= number_format($taxPercent, 2, ',', '.') ?>%)</dd>
                     <dt class="col-sm-6">Thu nhập gộp</dt>
-                    <dd class="col-sm-6 text-success fw-semibold"><?= number_format(($figures['gross'] ?? 0), 0, ',', '.') ?> đ</dd>
+                    <dd class="col-sm-6 text-success fw-semibold"><?= number_format($figures['gross'], 0, ',', '.') ?> đ</dd>
                     <dt class="col-sm-6">Thực nhận</dt>
                     <dd class="col-sm-6 text-primary fw-bold"><?= number_format($payroll['TongThuNhap'], 0, ',', '.') ?> đ</dd>
                 </dl>
             </div>
+        </div>
+        <div class="table-responsive mt-4">
+            <table class="table table-bordered align-middle">
+                <thead>
+                <tr class="table-light">
+                    <th>Mã NV</th>
+                    <th>Tên nhân viên</th>
+                    <th class="text-center">Số ngày công</th>
+                    <th class="text-end">Lương cơ bản</th>
+                    <th class="text-end">Đơn giá ngày công</th>
+                    <th class="text-end">Tổng lương ngày công</th>
+                    <th class="text-end">Phụ cấp</th>
+                    <th class="text-end">Thưởng</th>
+                    <th class="text-end">Tổng bảo hiểm</th>
+                    <th class="text-end">Thuế TNCN</th>
+                    <th class="text-end">Thực nhận</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><?= htmlspecialchars($payroll[Salary::EMPLOYEE_COLUMN]) ?></td>
+                    <td><?= htmlspecialchars($payroll['HoTen'] ?? '') ?></td>
+                    <td class="text-center fw-semibold"><?= number_format($payroll['SoNgayCong'] ?? 0, 2) ?></td>
+                    <td class="text-end"><?= number_format($payroll['LuongCoBan'] ?? 0, 0, ',', '.') ?></td>
+                    <td class="text-end"><?= number_format($payroll['DonGiaNgayCong'] ?? 0, 0, ',', '.') ?></td>
+                    <td class="text-end"><?= number_format($payroll['TongLuongNgayCong'] ?? 0, 0, ',', '.') ?></td>
+                    <td class="text-end"><?= number_format($payroll['PhuCap'] ?? 0, 0, ',', '.') ?></td>
+                    <td class="text-end"><?= number_format($payroll['Thuong'] ?? 0, 0, ',', '.') ?></td>
+                    <td class="text-end text-danger">-<?= number_format($payroll['TongBaoHiem'] ?? ($payroll['KhauTru'] ?? 0), 0, ',', '.') ?></td>
+                    <td class="text-end text-danger">-<?= number_format($payroll['ThueTNCN'] ?? 0, 0, ',', '.') ?></td>
+                    <td class="text-end fw-semibold text-primary"><?= number_format($payroll['TongThuNhap'] ?? 0, 0, ',', '.') ?></td>
+                </tr>
+                </tbody>
+            </table>
         </div>
         <?php if (!empty($payroll['ChuKy'])): ?>
             <div class="mt-4">

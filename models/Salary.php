@@ -8,9 +8,16 @@ class Salary extends BaseModel
     protected string $table = 'bang_luong';
     protected string $primaryKey = 'IdBangLuong';
 
-    public static function calculateFigures(float $base, float $allowance, float $deduction, float $tax): array
+    public static function calculateFigures(array $payroll): array
     {
-        $gross = $base + $allowance;
+        $base = (float) ($payroll['LuongCoBan'] ?? 0);
+        $allowance = (float) ($payroll['PhuCap'] ?? 0);
+        $dailyIncome = (float) ($payroll['TongLuongNgayCong'] ?? 0);
+        $bonus = (float) ($payroll['Thuong'] ?? 0);
+        $deduction = (float) ($payroll['KhauTru'] ?? 0);
+        $tax = (float) ($payroll['ThueTNCN'] ?? 0);
+
+        $gross = $base + $allowance + $dailyIncome + $bonus;
         $net = $gross - $deduction - $tax;
 
         return [
@@ -93,7 +100,13 @@ class Salary extends BaseModel
     public function recalculateAll(): int
     {
         $sql = 'UPDATE bang_luong
-                SET TongThuNhap = GREATEST(LuongCoBan + PhuCap - KhauTru - ThueTNCN, 0)';
+                SET TongThuNhap = GREATEST(COALESCE(LuongCoBan, 0)
+                                            + COALESCE(PhuCap, 0)
+                                            + COALESCE(TongLuongNgayCong, 0)
+                                            + COALESCE(Thuong, 0)
+                                            - COALESCE(KhauTru, 0)
+                                            - COALESCE(ThueTNCN, 0), 0),
+                    TongBaoHiem = COALESCE(KhauTru, 0)';
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
 
