@@ -328,6 +328,7 @@ CREATE TABLE `don_hang` (
   `TongTien` float DEFAULT NULL,
   `NgayLap` date DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
+  `EmailLienHe` varchar(255) DEFAULT NULL,
   `IdKhachHang` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -335,10 +336,10 @@ CREATE TABLE `don_hang` (
 -- Đang đổ dữ liệu cho bảng `don_hang`
 --
 
-INSERT INTO `don_hang` (`IdDonHang`, `YeuCau`, `TongTien`, `NgayLap`, `TrangThai`, `IdKhachHang`) VALUES
-('DH20231101', 'Lô SV5TOT 87 & 108 phục vụ mùa lễ hội cuối năm', 762600000, '2023-11-10', 'Đang xử lý', 'KH001'),
-('DH20231105', 'Bổ sung combo SV5TOT custom cho chương trình Noel', 543000000, '2023-11-15', 'Đang xử lý', 'KH002'),
-('DH20231202', 'Đơn chuẩn bị Tết Dương lịch cho TechHub', 687200000, '2023-12-02', 'Đang xử lý', 'KH003');
+INSERT INTO `don_hang` (`IdDonHang`, `YeuCau`, `TongTien`, `NgayLap`, `TrangThai`, `EmailLienHe`, `IdKhachHang`) VALUES
+('DH20231101', 'Lô SV5TOT 87 & 108 phục vụ mùa lễ hội cuối năm', 762600000, '2023-11-10', 'Đang xử lý', 'contact@gearzone.vn', 'KH001'),
+('DH20231105', 'Bổ sung combo SV5TOT custom cho chương trình Noel', 543000000, '2023-11-15', 'Đang xử lý', 'orders@techhub.vn', 'KH002'),
+('DH20231202', 'Đơn chuẩn bị Tết Dương lịch cho TechHub', 687200000, '2023-12-02', 'Đang xử lý', 'sales@customvn.vn', 'KH003');
 
 -- --------------------------------------------------------
 
@@ -466,6 +467,7 @@ CREATE TABLE `khach_hang` (
   `DiaChi` varchar(255) DEFAULT NULL,
   `SoLuongDonHang` int(10) DEFAULT NULL,
   `SoDienThoai` varchar(12) DEFAULT NULL,
+  `Email` varchar(255) DEFAULT NULL,
   `TongTien` float DEFAULT NULL,
   `LoaiKhachHang` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -474,10 +476,10 @@ CREATE TABLE `khach_hang` (
 -- Đang đổ dữ liệu cho bảng `khach_hang`
 --
 
-INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `GioiTinh`, `DiaChi`, `SoLuongDonHang`, `SoDienThoai`, `TongTien`, `LoaiKhachHang`) VALUES
-('KH001', 'Công ty GearZone Việt Nam', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 1526000000, 'Đại lý phân phối'),
-('KH002', 'Chuỗi cửa hàng TechHub', 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 1268000000, 'Bán lẻ chiến lược'),
-('KH003', 'Cửa hàng CustomVN', 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 732000000, 'Đại lý custom gear');
+INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `GioiTinh`, `DiaChi`, `SoLuongDonHang`, `SoDienThoai`, `Email`, `TongTien`, `LoaiKhachHang`) VALUES
+('KH001', 'Công ty GearZone Việt Nam', 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 'contact@gearzone.vn', 1526000000, 'Đại lý phân phối'),
+('KH002', 'Chuỗi cửa hàng TechHub', 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 'orders@techhub.vn', 1268000000, 'Bán lẻ chiến lược'),
+('KH003', 'Cửa hàng CustomVN', 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 'sales@customvn.vn', 732000000, 'Đại lý custom gear');
 
 -- --------------------------------------------------------
 

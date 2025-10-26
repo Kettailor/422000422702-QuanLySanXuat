@@ -180,6 +180,7 @@ class PlanController extends Controller
                     'TenKhachHang' => $detail['TenKhachHang'] ?? null,
                     'TenCongTy' => $detail['TenCongTy'] ?? null,
                     'SoDienThoai' => $detail['SoDienThoai'] ?? null,
+                    'EmailLienHe' => $detail['EmailLienHe'] ?? null,
                     'details' => [],
                 ];
             }

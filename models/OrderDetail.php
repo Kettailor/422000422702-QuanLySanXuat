@@ -21,7 +21,7 @@ class OrderDetail extends BaseModel
 
     public function getPendingForPlanning(): array
     {
-        $sql = 'SELECT ct.*, don.IdDonHang, don.YeuCau AS YeuCauDonHang, don.NgayLap,
+        $sql = 'SELECT ct.*, don.IdDonHang, don.YeuCau AS YeuCauDonHang, don.NgayLap, don.EmailLienHe,
                        san.TenSanPham, san.DonVi, san.IdSanPham,
                        cau.TenCauHinh, cau.IdBOM, cau.Layout, cau.SwitchType, cau.CaseType, cau.Foam,
                        kh.HoTen AS TenKhachHang, kh.SoDienThoai, kh.Email, kh.TenCongTy,
@@ -57,7 +57,7 @@ class OrderDetail extends BaseModel
 
     public function getPlanningContext(string $orderDetailId): ?array
     {
-        $sql = 'SELECT ct.*, don_hang.IdDonHang, don_hang.YeuCau AS YeuCauDonHang,
+        $sql = 'SELECT ct.*, don_hang.IdDonHang, don_hang.YeuCau AS YeuCauDonHang, don_hang.EmailLienHe,
                        san_pham.TenSanPham, san_pham.DonVi,
                        cau_hinh_san_pham.TenCauHinh, cau_hinh_san_pham.IdBOM,
                        cau_hinh_san_pham.Layout, cau_hinh_san_pham.SwitchType,

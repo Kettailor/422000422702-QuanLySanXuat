@@ -60,6 +60,15 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                 <?php if (!empty($order['TenKhachHang'])): ?>
                                     <div class="text-muted small">Khách hàng: <?= htmlspecialchars($order['TenKhachHang']) ?></div>
                                 <?php endif; ?>
+                                <?php
+                                $orderEmail = $order['EmailLienHe'] ?? null;
+                                if (!$orderEmail && !empty($order['details'][0]['Email'])) {
+                                    $orderEmail = $order['details'][0]['Email'];
+                                }
+                                ?>
+                                <?php if (!empty($orderEmail)): ?>
+                                    <div class="text-muted small">Email: <?= htmlspecialchars($orderEmail) ?></div>
+                                <?php endif; ?>
                                 <div class="mt-3 vstack gap-2">
                                     <?php foreach ($order['details'] as $detail): ?>
                                         <?php $isSelected = ($detail['IdTTCTDonHang'] ?? null) === $selectedOrderDetailId; ?>
@@ -118,6 +127,9 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                     <?php endif; ?>
                                     <?php if (!empty($selectedOrderDetail['SoDienThoai'])): ?>
                                         <div class="text-muted small">SĐT: <?= htmlspecialchars($selectedOrderDetail['SoDienThoai']) ?></div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($selectedOrderDetail['EmailLienHe']) || !empty($selectedOrderDetail['Email'])): ?>
+                                        <div class="text-muted small">Email: <?= htmlspecialchars($selectedOrderDetail['EmailLienHe'] ?? $selectedOrderDetail['Email'] ?? '') ?></div>
                                     <?php endif; ?>
                                 </div>
                             </div>

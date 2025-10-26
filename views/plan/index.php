@@ -123,6 +123,15 @@ $badgeForStatus = static function (string $status): string {
                                         <?php if (!empty($order['TenKhachHang'])): ?>
                                             <div class="text-muted small">Khách hàng: <?= htmlspecialchars($order['TenKhachHang']) ?></div>
                                         <?php endif; ?>
+                                        <?php
+                                        $orderEmail = $order['EmailLienHe'] ?? null;
+                                        if (!$orderEmail && !empty($order['details'][0]['Email'])) {
+                                            $orderEmail = $order['details'][0]['Email'];
+                                        }
+                                        ?>
+                                        <?php if (!empty($orderEmail)): ?>
+                                            <div class="text-muted small">Email: <?= htmlspecialchars($orderEmail) ?></div>
+                                        <?php endif; ?>
                                         <?php if (!empty($order['NgayLap'])): ?>
                                             <div class="text-muted small">Ngày lập: <?= $formatDate($order['NgayLap'], 'd/m/Y') ?></div>
                                         <?php endif; ?>
