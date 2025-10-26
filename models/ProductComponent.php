@@ -4,9 +4,14 @@ class ProductComponent extends BaseModel
 {
     protected string $table = 'xuong_cau_hinh_san_pham';
     protected string $primaryKey = 'IdPhanCong';
+    private ?bool $componentTableExists = null;
 
     public function getByProduct(string $productId): array
     {
+        if (!$this->componentTableExists()) {
+            return [];
+        }
+
         $sql = "SELECT pc.*, cfg.TenCauHinh, cfg.IdSanPham
                 FROM {$this->table} pc
                 JOIN cau_hinh_san_pham cfg ON cfg.IdCauHinh = pc.IdCauHinh
@@ -22,6 +27,10 @@ class ProductComponent extends BaseModel
 
     public function getByConfiguration(string $configurationId): array
     {
+        if (!$this->componentTableExists()) {
+            return [];
+        }
+
         $sql = "SELECT pc.*, cfg.TenCauHinh, cfg.IdSanPham
                 FROM {$this->table} pc
                 JOIN cau_hinh_san_pham cfg ON cfg.IdCauHinh = pc.IdCauHinh
@@ -37,6 +46,10 @@ class ProductComponent extends BaseModel
 
     public function getDefaultComponents(): array
     {
+        if (!$this->componentTableExists()) {
+            return [];
+        }
+
         $sql = "SELECT pc.*, NULL AS TenCauHinh, NULL AS IdSanPham
                 FROM {$this->table} pc
                 WHERE pc.IdSanPham IS NULL
@@ -45,6 +58,21 @@ class ProductComponent extends BaseModel
         $stmt = $this->db->query($sql);
 
         return $this->mapAssignments($stmt->fetchAll());
+    }
+
+    private function componentTableExists(): bool
+    {
+        if ($this->componentTableExists !== null) {
+            return $this->componentTableExists;
+        }
+
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :table');
+        $stmt->bindValue(':table', $this->table);
+        $stmt->execute();
+
+        $this->componentTableExists = (bool) $stmt->fetchColumn();
+
+        return $this->componentTableExists;
     }
 
     public function getComponentsForProductConfiguration(?string $productId, ?string $configurationId): array
