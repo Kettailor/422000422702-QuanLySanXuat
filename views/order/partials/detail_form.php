@@ -6,21 +6,99 @@ if (empty($detailItems)) {
 
 $products = $products ?? [];
 $configurations = $configurations ?? [];
+$boms = $boms ?? [];
+
+$formatBomStep = static function (array $step): string {
+    $name = trim((string) ($step['name'] ?? $step['TenCongDoan'] ?? ''));
+    if ($name === '') {
+        return '';
+    }
+
+    $materials = [];
+    foreach ($step['materials'] ?? [] as $material) {
+        $label = $material['label'] ?? $material['Nhan'] ?? '';
+        $unit = $material['unit'] ?? $material['DonVi'] ?? '';
+        if ($label === '') {
+            continue;
+        }
+        $materials[] = trim($label . ($unit ? " ($unit)" : ''));
+    }
+
+    if (!empty($materials)) {
+        $name .= ' [' . implode(', ', $materials) . ']';
+    }
+
+    return $name;
+};
+
+$buildBomSummary = static function (array $bom) use ($formatBomStep): string {
+    $steps = $bom['steps'] ?? [];
+    if (empty($steps)) {
+        return '';
+    }
+
+    $summaries = [];
+    foreach ($steps as $step) {
+        $summaries[] = $formatBomStep($step);
+    }
+
+    $summaries = array_filter($summaries);
+    return implode('; ', $summaries);
+};
+
+$processedBoms = [];
+$bomsByProduct = [];
+foreach ($boms as $bomId => $bom) {
+    $id = is_string($bomId) ? $bomId : ($bom['id'] ?? null);
+    if (!$id) {
+        $id = $bom['IdBOM'] ?? null;
+    }
+    if (!$id) {
+        continue;
+    }
+
+    $productId = $bom['product_id'] ?? ($bom['IdSanPham'] ?? null);
+    $summary = $buildBomSummary($bom);
+    $preparedBom = [
+        'id' => $id,
+        'product_id' => $productId,
+        'name' => $bom['name'] ?? ($bom['TenBOM'] ?? $id),
+        'description' => $bom['description'] ?? ($bom['MoTa'] ?? ''),
+        'steps' => $bom['steps'] ?? [],
+        'summary' => $summary,
+    ];
+
+    $processedBoms[$id] = $preparedBom;
+    if ($productId) {
+        $bomsByProduct[$productId][] = $preparedBom;
+    }
+}
+
+$boms = $processedBoms;
 $configsByProduct = [];
 foreach ($configurations as $configuration) {
     $productId = $configuration['IdSanPham'] ?? null;
     if (!$productId) {
         continue;
     }
+    $bomId = $configuration['IdBOM'] ?? null;
+    $bomData = $bomId && isset($boms[$bomId]) ? $boms[$bomId] : null;
     $configsByProduct[$productId][] = [
         'id' => $configuration['IdCauHinh'],
         'name' => $configuration['TenCauHinh'] ?? 'Cấu hình mới',
         'price' => (float) ($configuration['GiaBan'] ?? 0),
         'description' => $configuration['MoTa'] ?? '',
+        'layout' => $configuration['Layout'] ?? '',
+        'switch' => $configuration['SwitchType'] ?? '',
+        'case' => $configuration['CaseType'] ?? '',
+        'foam' => $configuration['Foam'] ?? '',
+        'bom_id' => $bomId,
+        'bom' => $bomData,
+        'bom_summary' => $bomData['summary'] ?? '',
     ];
 }
 
-$productOptions = array_map(static function ($product) use ($configsByProduct) {
+$productOptions = array_map(static function ($product) use ($configsByProduct, $bomsByProduct) {
     $productId = $product['IdSanPham'];
     return [
         'id' => $productId,
@@ -29,6 +107,7 @@ $productOptions = array_map(static function ($product) use ($configsByProduct) {
         'price' => (float) ($product['GiaBan'] ?? 0),
         'description' => $product['MoTa'] ?? '',
         'configurations' => $configsByProduct[$productId] ?? [],
+        'bom_presets' => array_values($bomsByProduct[$productId] ?? []),
     ];
 }, $products);
 
@@ -51,6 +130,14 @@ $detailPayload = array_map(static function ($detail) {
         'product_id' => $detail['IdSanPham'] ?? null,
         'configuration_mode' => 'existing',
         'configuration_id' => $detail['IdCauHinh'] ?? null,
+        'new_configuration_name' => '',
+        'new_configuration_price' => '',
+        'new_configuration_description' => '',
+        'new_configuration_layout' => '',
+        'new_configuration_switch' => '',
+        'new_configuration_case' => '',
+        'new_configuration_foam' => '',
+        'new_configuration_bom_template' => '',
         'quantity' => (int) ($detail['SoLuong'] ?? 1),
         'delivery_date' => $delivery,
         'requirement' => $detail['YeuCau'] ?? null,
@@ -88,8 +175,43 @@ $detailPayload = array_map(static function ($detail) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
     }
 
+    function escapeHtml(value) {
+        if (value === null || typeof value === 'undefined') {
+            return '';
+        }
+        return value.toString().replace(/[&<>"']/g, function (char) {
+            switch (char) {
+                case '&':
+                    return '&amp;';
+                case '<':
+                    return '&lt;';
+                case '>':
+                    return '&gt;';
+                case '"':
+                    return '&quot;';
+                case '\'':
+                    return '&#039;';
+                default:
+                    return char;
+            }
+        });
+    }
+
     function getProduct(productId) {
         return productOptions.find(product => product.id === productId) || null;
+    }
+
+    function getConfigurationDetail(productId, configurationId) {
+        const product = getProduct(productId);
+        if (!product) {
+            return null;
+        }
+        return product.configurations.find(item => item.id === configurationId) || null;
+    }
+
+    function getBomPresets(productId) {
+        const product = getProduct(productId);
+        return product ? product.bom_presets : [];
     }
 
     function buildProductOptions(selectedId) {
@@ -97,6 +219,16 @@ $detailPayload = array_map(static function ($detail) {
         productOptions.forEach(product => {
             const selected = selectedId === product.id ? 'selected' : '';
             options.push(`<option value="${product.id}" ${selected}>${product.name}</option>`);
+        });
+        return options.join('');
+    }
+
+    function buildBomPresetOptions(productId, selectedId) {
+        const presets = getBomPresets(productId);
+        const options = ['<option value="">-- Chọn preset BOM --</option>'];
+        presets.forEach(preset => {
+            const selected = preset.id === selectedId ? 'selected' : '';
+            options.push(`<option value="${preset.id}" ${selected}>${preset.name}</option>`);
         });
         return options.join('');
     }
@@ -122,8 +254,56 @@ $detailPayload = array_map(static function ($detail) {
         if (!hint) {
             return;
         }
-        const configuration = product && product.configurations.find(item => item.id === configurationId);
-        hint.textContent = configuration && configuration.description ? configuration.description : '';
+        const configuration = getConfigurationDetail(productId, configurationId);
+        if (!configuration) {
+            hint.textContent = '';
+            return;
+        }
+        const lines = [];
+        if (configuration.description) {
+            lines.push(`<div>${escapeHtml(configuration.description)}</div>`);
+        }
+        const specs = [];
+        if (configuration.layout) {
+            specs.push(`Layout: ${escapeHtml(configuration.layout)}`);
+        }
+        if (configuration.switch) {
+            specs.push(`Switch: ${escapeHtml(configuration.switch)}`);
+        }
+        if (configuration.case) {
+            specs.push(`Case: ${escapeHtml(configuration.case)}`);
+        }
+        if (configuration.foam) {
+            specs.push(`Foam: ${escapeHtml(configuration.foam)}`);
+        }
+        if (specs.length) {
+            lines.push(`<div>${specs.join(' • ')}</div>`);
+        }
+        if (configuration.bom_summary) {
+            lines.push(`<div>BOM: ${escapeHtml(configuration.bom_summary)}</div>`);
+        }
+        hint.innerHTML = lines.join('');
+    }
+
+    function updateBomPresetHint(row, productId, bomId) {
+        const hint = row.querySelector('[data-field="bom_preset_hint"]');
+        if (!hint) {
+            return;
+        }
+        const presets = productId ? getBomPresets(productId) : [];
+        const preset = presets.find(item => item.id === bomId);
+        if (!preset) {
+            hint.innerHTML = '';
+            return;
+        }
+        const lines = [];
+        if (preset.description) {
+            lines.push(`<div>${escapeHtml(preset.description)}</div>`);
+        }
+        if (preset.summary) {
+            lines.push(`<div>${escapeHtml(preset.summary)}</div>`);
+        }
+        hint.innerHTML = lines.join('');
     }
 
     function setConfigurationDefaults(row, productId, configurationId, force = false) {
@@ -173,9 +353,10 @@ $detailPayload = array_map(static function ($detail) {
         const modeButtons = row.querySelectorAll('[data-action="toggle-mode"]');
         const configurationSelect = row.querySelector('[data-field="configuration_id"]');
         const newFields = row.querySelector('.new-configuration-fields');
-        const newInputs = newFields ? newFields.querySelectorAll('input, textarea') : [];
+        const newInputs = newFields ? newFields.querySelectorAll('input, textarea, select') : [];
         const unitPriceInput = row.querySelector('[data-field="unit_price"]');
         const productSelect = row.querySelector('[data-field="product_id"]');
+        const bomSelect = row.querySelector('[data-field="new_configuration_bom_template"]');
 
         if (modeInput) {
             modeInput.value = mode;
@@ -200,6 +381,17 @@ $detailPayload = array_map(static function ($detail) {
                     input.setAttribute('required', 'required');
                 }
             });
+            if (bomSelect) {
+                const productId = productSelect ? productSelect.value : null;
+                const previousValue = bomSelect.value || '';
+                bomSelect.innerHTML = buildBomPresetOptions(productId, previousValue);
+                bomSelect.removeAttribute('disabled');
+                if (!bomSelect.value && productId) {
+                    const presets = getBomPresets(productId);
+                    bomSelect.value = presets.length ? presets[0].id : '';
+                }
+                updateBomPresetHint(row, productId, bomSelect.value);
+            }
             if (unitPriceInput) {
                 unitPriceInput.dataset.manual = 'true';
             }
@@ -215,6 +407,11 @@ $detailPayload = array_map(static function ($detail) {
                 input.setAttribute('disabled', 'disabled');
                 input.removeAttribute('required');
             });
+            if (bomSelect) {
+                bomSelect.value = '';
+                bomSelect.setAttribute('disabled', 'disabled');
+                updateBomPresetHint(row, null, null);
+            }
             const productId = productSelect ? productSelect.value : null;
             const configurationId = configurationSelect ? configurationSelect.value : null;
             setConfigurationDefaults(row, productId, configurationId, true);
@@ -232,6 +429,7 @@ $detailPayload = array_map(static function ($detail) {
         const removeButton = row.querySelector('[data-action="remove"]');
         const modeButtons = row.querySelectorAll('[data-action="toggle-mode"]');
         const newConfigurationPrice = row.querySelector('[data-field="new_configuration_price"]');
+        const bomSelect = row.querySelector('[data-field="new_configuration_bom_template"]');
 
         const modeInput = row.querySelector('[data-field="configuration_mode"]');
 
@@ -244,6 +442,18 @@ $detailPayload = array_map(static function ($detail) {
                 updateConfigurationHint(row, productId, configurationSelect ? configurationSelect.value : null);
                 if ((modeInput ? modeInput.value : 'existing') === 'existing') {
                     setConfigurationDefaults(row, productId, configurationSelect ? configurationSelect.value : null, true);
+                    if (bomSelect) {
+                        bomSelect.value = '';
+                        bomSelect.setAttribute('disabled', 'disabled');
+                        updateBomPresetHint(row, null, null);
+                    }
+                } else if (bomSelect) {
+                    bomSelect.innerHTML = buildBomPresetOptions(productId, '');
+                    const presets = getBomPresets(productId);
+                    const defaultPreset = presets.length ? presets[0].id : '';
+                    bomSelect.value = defaultPreset;
+                    bomSelect.removeAttribute('disabled');
+                    updateBomPresetHint(row, productId, bomSelect.value);
                 }
                 recalcTotals();
             });
@@ -278,6 +488,13 @@ $detailPayload = array_map(static function ($detail) {
                     unitPriceInput.dataset.manual = newConfigurationPrice.value ? 'false' : unitPriceInput.dataset.manual;
                 }
                 recalcTotals();
+            });
+        }
+
+        if (bomSelect) {
+            bomSelect.addEventListener('change', () => {
+                const productId = productSelect ? productSelect.value : null;
+                updateBomPresetHint(row, productId, bomSelect.value);
             });
         }
 
@@ -345,6 +562,33 @@ $detailPayload = array_map(static function ($detail) {
                         <div class="col-lg-5 col-md-12">
                             <label class="form-label">Mô tả cấu hình</label>
                             <textarea class="form-control" rows="2" name="details[${index}][new_configuration_description]" data-field="new_configuration_description" disabled>${data.new_configuration_description || ''}</textarea>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Layout</label>
+                            <input class="form-control" name="details[${index}][new_configuration_layout]" data-field="new_configuration_layout" value="${data.new_configuration_layout || ''}" disabled>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Switch</label>
+                            <input class="form-control" name="details[${index}][new_configuration_switch]" data-field="new_configuration_switch" value="${data.new_configuration_switch || ''}" disabled>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Case/Vỏ</label>
+                            <input class="form-control" name="details[${index}][new_configuration_case]" data-field="new_configuration_case" value="${data.new_configuration_case || ''}" disabled>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Foam/đệm</label>
+                            <input class="form-control" name="details[${index}][new_configuration_foam]" data-field="new_configuration_foam" value="${data.new_configuration_foam || ''}" disabled>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Preset BOM</label>
+                            <select class="form-select" name="details[${index}][new_configuration_bom_template]" data-field="new_configuration_bom_template" disabled>
+                                ${buildBomPresetOptions(productId, data.new_configuration_bom_template || '')}
+                            </select>
+                            <div class="form-text text-muted" data-field="bom_preset_hint"></div>
                         </div>
                     </div>
                 </div>

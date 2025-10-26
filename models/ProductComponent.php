@@ -7,9 +7,18 @@ class ProductComponent extends BaseModel
 
     public function getByProduct(string $productId): array
     {
-        $sql = "SELECT * FROM {$this->table} WHERE IdSanPham = :productId ORDER BY ThuTu, TenCongDoan";
+        $sql = "SELECT * FROM {$this->table} WHERE IdSanPham = :productId AND (IdBOM IS NULL OR IdBOM = '') ORDER BY ThuTu, TenCongDoan";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':productId', $productId);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getByBom(string $bomId): array
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE IdBOM = :bomId ORDER BY ThuTu, TenCongDoan";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':bomId', $bomId);
         $stmt->execute();
         return $stmt->fetchAll();
     }

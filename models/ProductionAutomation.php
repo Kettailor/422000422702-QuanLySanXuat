@@ -36,7 +36,7 @@ class ProductionAutomation
             return;
         }
 
-        $components = $this->loadComponentsForProduct($orderDetail['IdSanPham'] ?? null);
+        $components = $this->loadComponentsForOrderDetail($orderDetail);
         if (empty($components)) {
             return;
         }
@@ -165,11 +165,17 @@ class ProductionAutomation
         return !empty($existing);
     }
 
-    private function loadComponentsForProduct(?string $productId): array
+    private function loadComponentsForOrderDetail(array $orderDetail): array
     {
         $components = [];
+        $bomId = $orderDetail['IdBOM'] ?? null;
+        $productId = $orderDetail['IdSanPham'] ?? null;
 
-        if ($productId) {
+        if ($bomId) {
+            $components = $this->componentModel->getByBom($bomId);
+        }
+
+        if (empty($components) && $productId) {
             $components = $this->componentModel->getByProduct($productId);
         }
 

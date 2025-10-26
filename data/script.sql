@@ -497,7 +497,10 @@ INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `IdSanPham`, 
 ('LOKEY202311', 'Lô keycap PBT Glacier 11/2023', 600, '2023-11-04 09:20:00', 'Linh kiện', 'SPCOMP03', 'KHO01'),
 ('LOTP202309', 'Lô SV5TOT 87 hoàn thiện 09/2023', 500, '2023-09-10 08:00:00', 'Thành phẩm', 'SPKB87', 'KHO02'),
 ('LOTP202310', 'Lô SV5TOT 108 hoàn thiện 10/2023', 600, '2023-10-05 09:00:00', 'Thành phẩm', 'SPKB108', 'KHO02'),
-('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02');
+('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02'),
+('LOFOAM202310', 'Lô foam Poron 10/2023', 400, '2023-10-08 09:15:00', 'Linh kiện', 'SPCOMP04', 'KHO01'),
+('LOTAPE202310', 'Lô băng keo 3M 10/2023', 350, '2023-10-08 09:20:00', 'Linh kiện', 'SPCOMP05', 'KHO01'),
+('LOBADGE202311', 'Lô badge TechHub 11/2023', 300, '2023-11-05 09:25:00', 'Linh kiện', 'SPCOMP06', 'KHO01');
 
 -- --------------------------------------------------------
 
@@ -557,7 +560,10 @@ CREATE TABLE `nguyen_lieu` (
 INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
 ('NL001', 'Switch Lotus Linear', 400, 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
 ('NL002', 'PCB SV5TOT R3', 300, 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
-('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311');
+('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311'),
+('NL004', 'Foam Poron 87%', 220, 120000, 'Đang sử dụng', '2023-10-08 09:00:00', '2025-10-08 00:00:00', 'LOFOAM202310'),
+('NL005', 'Băng keo 3M 9495LE', 180, 90000, 'Đang sử dụng', '2023-10-08 09:20:00', '2025-10-08 00:00:00', 'LOTAPE202310'),
+('NL006', 'Badge TechHub đồng', 150, 150000, 'Đang sử dụng', '2023-11-05 10:00:00', '2026-11-05 00:00:00', 'LOBADGE202311');
 
 -- --------------------------------------------------------
 
@@ -569,6 +575,7 @@ DROP TABLE IF EXISTS `san_pham_cong_doan`;
 
 CREATE TABLE `san_pham_cong_doan` (
   `IdCongDoan` varchar(50) NOT NULL,
+  `IdBOM` varchar(50) DEFAULT NULL,
   `IdSanPham` varchar(50) DEFAULT NULL,
   `TenCongDoan` varchar(255) DEFAULT NULL,
   `TyLeSoLuong` float DEFAULT 1,
@@ -585,22 +592,30 @@ CREATE TABLE `san_pham_cong_doan` (
 -- Đang đổ dữ liệu cho bảng `san_pham_cong_doan`
 --
 
-INSERT INTO `san_pham_cong_doan` (`IdCongDoan`, `IdSanPham`, `TenCongDoan`, `TyLeSoLuong`, `DonVi`, `IdXuong`, `TrangThaiMacDinh`, `LogisticsKey`, `LogisticsLabel`, `IncludeYeuCau`, `ThuTu`) VALUES
-('CDKB87FILM', 'SPKB87', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
-('CDKB87CASE', 'SPKB87', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
-('CDKB87PCB', 'SPKB87', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
-('CDKB87PACK', 'SPKB87', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
-('CDKB108FILM', 'SPKB108', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
-('CDKB108CASE', 'SPKB108', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
-('CDKB108PCB', 'SPKB108', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
-('CDKB108PACK', 'SPKB108', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
-('CDKBCUSTOMFILM', 'SPKBCUSTOM', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
-('CDKBCUSTOMCASE', 'SPKBCUSTOM', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
-('CDKBCUSTOMPCB', 'SPKBCUSTOM', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
-('CDKBCUSTOMPACK', 'SPKBCUSTOM', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
-('CDKEYCAPMOLD', 'SPCOMP01', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1),
-('CDKEYCAPMOLD02', 'SPCOMP02', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1),
-('CDKEYCAPMOLD03', 'SPCOMP03', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1);
+INSERT INTO `san_pham_cong_doan` (`IdCongDoan`, `IdBOM`, `IdSanPham`, `TenCongDoan`, `TyLeSoLuong`, `DonVi`, `IdXuong`, `TrangThaiMacDinh`, `LogisticsKey`, `LogisticsLabel`, `IncludeYeuCau`, `ThuTu`) VALUES
+('CDKB87FILM', 'BOMKB87FULL', 'SPKB87', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
+('CDKB87CASE', 'BOMKB87FULL', 'SPKB87', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
+('CDKB87PCB', 'BOMKB87FULL', 'SPKB87', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
+('CDKB87PACK', 'BOMKB87FULL', 'SPKB87', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
+('CDKB87DLXFOAM', 'BOMKB87DELUXE', 'SPKB87', 'Bổ sung foam & tape mod', 1, 'bộ foam', 'XU001', 'Đang chờ xưởng xác nhận', 'foam', 'Foam & tape mod', 0, 1),
+('CDKB87DLXCASE', 'BOMKB87DELUXE', 'SPKB87', 'Gia công vỏ phủ tape', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ tape mod', 0, 2),
+('CDKB87DLXPCB', 'BOMKB87DELUXE', 'SPKB87', 'Lắp ráp PCB & film switch', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'PCB & film switch', 0, 3),
+('CDKB87DLXPACK', 'BOMKB87DELUXE', 'SPKB87', 'QA & đóng gói deluxe', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói deluxe', 1, 4),
+('CDKB108FILM', 'BOMKB108SILENT', 'SPKB108', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
+('CDKB108CASE', 'BOMKB108SILENT', 'SPKB108', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
+('CDKB108PCB', 'BOMKB108SILENT', 'SPKB108', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
+('CDKB108PACK', 'BOMKB108SILENT', 'SPKB108', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
+('CDKBCUSTOMFILM', 'BOMKITRETAIL', 'SPKBCUSTOM', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
+('CDKBCUSTOMCASE', 'BOMKITRETAIL', 'SPKBCUSTOM', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
+('CDKBCUSTOMPCB', 'BOMKITRETAIL', 'SPKBCUSTOM', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
+('CDKBCUSTOMPACK', 'BOMKITRETAIL', 'SPKBCUSTOM', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
+('CDKITTECHBRAND', 'BOMKITTECH', 'SPKBCUSTOM', 'Lắp ráp plate in logo', 1, 'bộ', 'XU001', 'Đang chờ xưởng xác nhận', 'branding', 'Plate in logo', 0, 1),
+('CDKITTECHPCB', 'BOMKITTECH', 'SPKBCUSTOM', 'Lắp ráp PCB branding', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'PCB branding', 0, 2),
+('CDKITTECHQC', 'BOMKITTECH', 'SPKBCUSTOM', 'QA bộ kit TechHub', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'QA & đóng gói', 1, 3),
+('CDKITTECHACCESS', 'BOMKITTECH', 'SPKBCUSTOM', 'Chuẩn bị phụ kiện branding', 1, 'bộ phụ kiện', 'XU002', 'Đang chờ xưởng xác nhận', 'accessory', 'Phụ kiện branding', 0, 4),
+('CDKEYCAPMOLD', NULL, 'SPCOMP01', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1),
+('CDKEYCAPMOLD02', NULL, 'SPCOMP02', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1),
+('CDKEYCAPMOLD03', NULL, 'SPCOMP03', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1);
 
 -- --------------------------------------------------------
 
@@ -625,8 +640,14 @@ CREATE TABLE `cong_doan_nguyen_lieu` (
 
 INSERT INTO `cong_doan_nguyen_lieu` (`IdCongDoanNguyenLieu`, `IdCongDoan`, `IdNguyenLieu`, `TyLeSoLuong`, `Nhan`, `DonVi`) VALUES
 ('CDMLKBPCB', 'CDKB87PCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
+('CDMLKB87DLXFOAM', 'CDKB87DLXFOAM', 'NL004', 1, 'Foam Poron + tape mod', 'bộ foam'),
+('CDMLKB87DLXCASE', 'CDKB87DLXCASE', 'NL005', 1, 'Băng keo 3M 9495LE', 'cuộn'),
+('CDMLKB87DLXPCB', 'CDKB87DLXPCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
 ('CDMLKBPCB108', 'CDKB108PCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
 ('CDMLKBCPCB', 'CDKBCUSTOMPCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
+('CDMLKITTECHBRAND', 'CDKITTECHBRAND', 'NL006', 1, 'Badge TechHub đồng', 'badge'),
+('CDMLKITTECHPCB', 'CDKITTECHPCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
+('CDMLKITTECHACCESS', 'CDKITTECHACCESS', 'NL003', 1, 'Keycap PBT Glacier', 'keycap'),
 ('CDMLKEYCAP01', 'CDKEYCAPMOLD', 'NL003', 1, 'Keycap PBT Glacier', 'keycap'),
 ('CDMLKEYCAP02', 'CDKEYCAPMOLD02', 'NL003', 1, 'Keycap PBT Glacier', 'keycap'),
 ('CDMLKEYCAP03', 'CDKEYCAPMOLD03', 'NL003', 1, 'Keycap PBT Glacier', 'keycap');
@@ -747,7 +768,37 @@ INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VA
 ('SPKBCUSTOM', 'SV5TOT DIY Kit', 'Bộ', 1950000, 'Bộ kit custom layout 75% với PCB hotswap'),
 ('SPCOMP01', 'Switch Lotus Linear', 'Hộp', 450000, 'Hộp 90 switch linear Lotus được bôi trơn sẵn'),
 ('SPCOMP02', 'PCB SV5TOT R3', 'Tấm', 520000, 'PCB hotswap hỗ trợ layout 87/88 phím'),
-('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier');
+('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier'),
+('SPCOMP04', 'Foam Poron 87%', 'Bộ', 120000, 'Foam Poron 3 lớp cho layout 87%'),
+('SPCOMP05', 'Băng keo 3M 9495LE', 'Cuộn', 90000, 'Băng keo 3M 9495LE cho tape mod plate'),
+('SPCOMP06', 'Badge TechHub đồng', 'Chiếc', 150000, 'Badge đồng khắc laser logo TechHub');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `product_components`
+--
+
+DROP TABLE IF EXISTS `product_components`;
+
+CREATE TABLE `product_components` (
+  `IdBOM` varchar(50) NOT NULL,
+  `TenBOM` varchar(255) DEFAULT NULL,
+  `MoTa` text DEFAULT NULL,
+  `IdSanPham` varchar(50) NOT NULL,
+  PRIMARY KEY (`IdBOM`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `product_components`
+--
+
+INSERT INTO `product_components` (`IdBOM`, `TenBOM`, `MoTa`, `IdSanPham`) VALUES
+('BOMKB87FULL', 'BOM SV5TOT 87 Full kit', 'BOM chuẩn 87% gồm foam Poron và switch Lotus lube sẵn', 'SPKB87'),
+('BOMKB87DELUXE', 'BOM SV5TOT 87 Tape mod', 'BOM tape mod bổ sung foam PE và băng keo cho plate', 'SPKB87'),
+('BOMKB108SILENT', 'BOM SV5TOT 108 Silent', 'BOM 108 phím sử dụng switch Silent và foam silicone', 'SPKB108'),
+('BOMKITRETAIL', 'BOM kit DIY bán lẻ', 'BOM đóng gói retail đầy đủ phụ kiện custom', 'SPKBCUSTOM'),
+('BOMKITTECH', 'BOM kit TechHub branding', 'BOM in logo TechHub, kèm keycap và plate branding', 'SPKBCUSTOM');
 
 -- --------------------------------------------------------
 
@@ -762,19 +813,24 @@ CREATE TABLE `cau_hinh_san_pham` (
   `TenCauHinh` varchar(255) DEFAULT NULL,
   `MoTa` text DEFAULT NULL,
   `GiaBan` float DEFAULT NULL,
-  `IdSanPham` varchar(50) NOT NULL
+  `IdSanPham` varchar(50) NOT NULL,
+  `IdBOM` varchar(50) NOT NULL,
+  `Layout` varchar(100) DEFAULT NULL,
+  `SwitchType` varchar(100) DEFAULT NULL,
+  `CaseType` varchar(100) DEFAULT NULL,
+  `Foam` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `cau_hinh_san_pham`
 --
 
-INSERT INTO `cau_hinh_san_pham` (`IdCauHinh`, `TenCauHinh`, `MoTa`, `GiaBan`, `IdSanPham`) VALUES
-('CFGKB87RGB', 'Layout 87 RGB tiêu chuẩn', 'Foam tiêu âm, switch Lotus lube sẵn', 2450000, 'SPKB87'),
-('CFGKB87DELUXE', 'Layout 87 tape mod', 'Tape mod và foam bổ sung cho bản 87', 2480000, 'SPKB87'),
-('CFGKB108SILENT', 'Layout 108 Silent phòng thu', 'Switch Silent và stabilizer bôi trơn', 2680000, 'SPKB108'),
-('CFGKITRETAIL', 'Kit DIY bán lẻ', 'Đóng gói đầy đủ phụ kiện retail', 1950000, 'SPKBCUSTOM'),
-('CFGKITTECH', 'Kit TechHub branding', 'Keycap và plate in logo TechHub', 1950000, 'SPKBCUSTOM');
+INSERT INTO `cau_hinh_san_pham` (`IdCauHinh`, `TenCauHinh`, `MoTa`, `GiaBan`, `IdSanPham`, `IdBOM`, `Layout`, `SwitchType`, `CaseType`, `Foam`) VALUES
+('CFGKB87RGB', 'Layout 87 RGB tiêu chuẩn', 'Foam tiêu âm, switch Lotus lube sẵn', 2450000, 'SPKB87', 'BOMKB87FULL', '87% TKL', 'Lotus Linear', 'Nhôm anod xước hairline', 'Poron 3 lớp'),
+('CFGKB87DELUXE', 'Layout 87 tape mod', 'Tape mod và foam bổ sung cho bản 87', 2480000, 'SPKB87', 'BOMKB87DELUXE', '87% TKL', 'Lotus Linear', 'Nhôm + tape mod', 'Poron + PE film'),
+('CFGKB108SILENT', 'Layout 108 Silent phòng thu', 'Switch Silent và stabilizer bôi trơn', 2680000, 'SPKB108', 'BOMKB108SILENT', 'Fullsize 108', 'Silent tactile', 'ABS foam tiêu âm', 'Silicone đúc khuôn'),
+('CFGKITRETAIL', 'Kit DIY bán lẻ', 'Đóng gói đầy đủ phụ kiện retail', 1950000, 'SPKBCUSTOM', 'BOMKITRETAIL', '75% compact', 'Không kèm switch', 'Nhôm CNC phủ sơn', 'EVA 2 lớp'),
+('CFGKITTECH', 'Kit TechHub branding', 'Keycap và plate in logo TechHub', 1950000, 'SPKBCUSTOM', 'BOMKITTECH', '75% compact', 'Không kèm switch', 'Nhôm CNC in logo TechHub', 'EVA 2 lớp + badge đồng');
 
 -- --------------------------------------------------------
 
@@ -924,7 +980,14 @@ INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `SlThietBi`, `SlNhanVien`, `TenQuyTr
 --
 ALTER TABLE `cau_hinh_san_pham`
   ADD PRIMARY KEY (`IdCauHinh`),
-  ADD KEY `FKCAU_HINH_SANPHAM` (`IdSanPham`);
+  ADD KEY `FKCAU_HINH_SANPHAM` (`IdSanPham`),
+  ADD KEY `FKCAU_HINH_BOM` (`IdBOM`);
+
+--
+-- Chỉ mục cho bảng `product_components`
+--
+ALTER TABLE `product_components`
+  ADD KEY `FK_BOM_SANPHAM` (`IdSanPham`);
 
 --
 -- Chỉ mục cho bảng `cong_doan_nguyen_lieu`
@@ -939,7 +1002,8 @@ ALTER TABLE `cong_doan_nguyen_lieu`
 --
 ALTER TABLE `san_pham_cong_doan`
   ADD PRIMARY KEY (`IdCongDoan`),
-  ADD KEY `FKSPCD_SANPHAM` (`IdSanPham`);
+  ADD KEY `FKSPCD_SANPHAM` (`IdSanPham`),
+  ADD KEY `FKSPCD_BOM` (`IdBOM`);
 
 --
 -- Chỉ mục cho bảng `bang_luong`
@@ -1194,7 +1258,8 @@ ALTER TABLE `chi_tiet_ke_hoach_san_xuat_xuong`
 -- Các ràng buộc cho bảng `cau_hinh_san_pham`
 --
 ALTER TABLE `cau_hinh_san_pham`
-  ADD CONSTRAINT `FKCAU_HINH_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`);
+  ADD CONSTRAINT `FKCAU_HINH_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`),
+  ADD CONSTRAINT `FKCAU_HINH_BOM` FOREIGN KEY (`IdBOM`) REFERENCES `product_components` (`IdBOM`);
 
 --
 -- Các ràng buộc cho bảng `cong_doan_nguyen_lieu`
@@ -1207,7 +1272,14 @@ ALTER TABLE `cong_doan_nguyen_lieu`
 -- Các ràng buộc cho bảng `san_pham_cong_doan`
 --
 ALTER TABLE `san_pham_cong_doan`
-  ADD CONSTRAINT `FKSPCD_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`);
+  ADD CONSTRAINT `FKSPCD_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`),
+  ADD CONSTRAINT `FKSPCD_BOM` FOREIGN KEY (`IdBOM`) REFERENCES `product_components` (`IdBOM`);
+
+--
+-- Các ràng buộc cho bảng `product_components`
+--
+ALTER TABLE `product_components`
+  ADD CONSTRAINT `FK_BOM_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`);
 
 --
 -- Các ràng buộc cho bảng `ct_don_hang`
