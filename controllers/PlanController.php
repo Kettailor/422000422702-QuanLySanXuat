@@ -24,7 +24,9 @@ class PlanController extends Controller
 
         $this->render('plan/index', [
             'title' => 'Kế hoạch sản xuất',
-            'plans' => $plans,
+            'orders' => array_values($orders),
+            'plans' => $structuredPlans,
+            'initialPlanId' => $planIds[0] ?? null,
         ]);
     }
 

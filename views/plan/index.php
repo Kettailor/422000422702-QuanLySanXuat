@@ -1,9 +1,50 @@
-<div class="d-flex justify-content-between align-items-center mb-4">
+<?php
+$orders = $orders ?? [];
+$plans = $plans ?? [];
+$hasPlans = !empty($plans);
+$initialPlan = null;
+$initialOrderId = null;
+
+if ($hasPlans) {
+    if (!empty($initialPlanId) && isset($plans[$initialPlanId])) {
+        $initialPlan = $plans[$initialPlanId];
+    } else {
+        $initialPlan = reset($plans) ?: null;
+    }
+
+    $initialOrderId = $initialPlan['IdDonHang'] ?? ($orders[0]['IdDonHang'] ?? null);
+}
+
+$initialOrderPlans = [];
+if ($initialOrderId) {
+    foreach ($orders as $order) {
+        if (($order['IdDonHang'] ?? null) === $initialOrderId) {
+            $initialOrderPlans = $order['plans'] ?? [];
+            break;
+        }
+    }
+}
+
+$planningData = [
+    'orders' => $orders,
+    'plans' => $plans,
+    'initialPlanId' => $initialPlan['IdKeHoachSanXuat'] ?? null,
+];
+?>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
-        <h3 class="fw-bold mb-1">Kế hoạch SV5TOT</h3>
-        <p class="text-muted mb-0">Theo dõi tiến độ các kế hoạch sản xuất bàn phím SV5TOT theo đơn hàng.</p>
+        <h3 class="fw-bold mb-1">Kế hoạch sản xuất SV5TOT</h3>
+        <p class="text-muted mb-0">Theo dõi toàn bộ kế hoạch tổng và phân bổ cho từng xưởng.</p>
     </div>
-    <a href="?controller=plan&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kế hoạch SV5TOT</a>
+    <div class="d-flex gap-2">
+        <a href="?controller=plan&action=create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Tạo kế hoạch mới
+        </a>
+        <a href="?controller=factory_plan&action=index" class="btn btn-outline-primary">
+            <i class="bi bi-diagram-3 me-2"></i>Kế hoạch xưởng
+        </a>
+    </div>
 </div>
 
 <div class="card p-4">
