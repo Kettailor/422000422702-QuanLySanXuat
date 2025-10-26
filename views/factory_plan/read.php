@@ -3,7 +3,14 @@
         <h3 class="fw-bold mb-1">Chi tiết kế hoạch xưởng SV5TOT</h3>
         <p class="text-muted mb-0">Thông tin phân công hạng mục bàn phím SV5TOT tại xưởng.</p>
     </div>
-    <a href="?controller=factory_plan&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    <div class="d-flex gap-2">
+        <a href="?controller=factory_plan&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+        <?php if (!empty($plan['IdKeHoachSanXuatXuong'])): ?>
+            <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+                <i class="bi bi-box-seam"></i> Kiểm tra nguyên liệu
+            </a>
+        <?php endif; ?>
+    </div>
 </div>
 
 <?php if (!$plan): ?>
