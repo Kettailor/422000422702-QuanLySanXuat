@@ -61,6 +61,44 @@ class WorkshopPlan extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getByPlanIds(array $planIds): array
+    {
+        $planIds = array_values(array_filter($planIds));
+        if (empty($planIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($planIds), '?'));
+        $sql = 'SELECT kx.IdKeHoachSanXuat,
+                       kx.IdKeHoachSanXuatXuong,
+                       kx.TenThanhThanhPhanSP,
+                       kx.SoLuong,
+                       kx.ThoiGianBatDau,
+                       kx.ThoiGianKetThuc,
+                       kx.TrangThai,
+                       kx.TinhTrangVatTu,
+                       kx.IdXuong,
+                       xuong.TenXuong
+                FROM ke_hoach_san_xuat_xuong kx
+                LEFT JOIN xuong ON xuong.IdXuong = kx.IdXuong
+                WHERE kx.IdKeHoachSanXuat IN (' . $placeholders . ')
+                ORDER BY kx.ThoiGianBatDau ASC, kx.IdKeHoachSanXuatXuong';
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($planIds as $index => $planId) {
+            $stmt->bindValue($index + 1, $planId);
+        }
+
+        $stmt->execute();
+
+        $grouped = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $grouped[$row['IdKeHoachSanXuat']][] = $row;
+        }
+
+        return $grouped;
+    }
+
     public function findWithRelations(string $id): ?array
     {
         $sql = 'SELECT kx.IdKeHoachSanXuatXuong,
