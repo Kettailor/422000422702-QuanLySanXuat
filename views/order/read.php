@@ -22,6 +22,8 @@
                     <dd class="col-sm-7"><span class="badge bg-info bg-opacity-25 text-primary"><?= htmlspecialchars($order['TrangThai'] ?? '---') ?></span></dd>
                     <dt class="col-sm-5">Tổng tiền</dt>
                     <dd class="col-sm-7 fw-semibold text-primary"><?= number_format((float) ($order['TongTien'] ?? 0), 0, ',', '.') ?> đ</dd>
+                    <dt class="col-sm-5">Email liên hệ</dt>
+                    <dd class="col-sm-7"><?= htmlspecialchars($order['EmailLienHe'] ?? '---') ?></dd>
                 </dl>
                 <?php if (!empty($order['YeuCau'])): ?>
                     <div class="mt-3">
@@ -38,10 +40,14 @@
                     <dl class="row mb-0">
                         <dt class="col-sm-5">Họ tên</dt>
                         <dd class="col-sm-7"><?= htmlspecialchars($customer['HoTen'] ?? '---') ?></dd>
+                        <dt class="col-sm-5">Công ty dự án</dt>
+                        <dd class="col-sm-7"><?= htmlspecialchars($customer['TenCongTy'] ?? '---') ?></dd>
                         <dt class="col-sm-5">Loại khách hàng</dt>
                         <dd class="col-sm-7"><?= htmlspecialchars($customer['LoaiKhachHang'] ?? '---') ?></dd>
                         <dt class="col-sm-5">Số điện thoại</dt>
                         <dd class="col-sm-7"><?= htmlspecialchars($customer['SoDienThoai'] ?? '---') ?></dd>
+                        <dt class="col-sm-5">Email</dt>
+                        <dd class="col-sm-7"><?= htmlspecialchars($customer['Email'] ?? '---') ?></dd>
                         <dt class="col-sm-5">Địa chỉ</dt>
                         <dd class="col-sm-7"><?= htmlspecialchars($customer['DiaChi'] ?? '---') ?></dd>
                     </dl>

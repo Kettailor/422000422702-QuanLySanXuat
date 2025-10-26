@@ -1,6 +1,6 @@
 <?php
 $selectedCustomerId = $selectedCustomerId ?? null;
-$customerFormData = $customerFormData ?? ['name' => '', 'phone' => '', 'address' => '', 'type' => ''];
+$customerFormData = $customerFormData ?? ['name' => '', 'company' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
 $customerMode = $customerMode ?? 'existing';
 ?>
 <div class="col-lg-6" data-customer-selector>
@@ -24,7 +24,7 @@ $customerMode = $customerMode ?? 'existing';
             <?php foreach ($customers as $customer): ?>
                 <option value="<?= htmlspecialchars($customer['IdKhachHang']) ?>"
                     <?= $customer['IdKhachHang'] === $selectedCustomerId ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($customer['HoTen']) ?>
+                    <?= htmlspecialchars($customer['HoTen']) ?><?= !empty($customer['TenCongTy']) ? ' - ' . htmlspecialchars($customer['TenCongTy']) : '' ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -38,12 +38,26 @@ $customerMode = $customerMode ?? 'existing';
                        <?= $customerMode === 'new' ? 'required' : 'disabled' ?>
                        placeholder="Nhập tên khách hàng hoặc doanh nghiệp">
             </div>
+            <div class="col-12">
+                <label class="form-label">Tên công ty dự án</label>
+                <input type="text" class="form-control" name="customer_company"
+                       value="<?= htmlspecialchars($customerFormData['company'] ?? '') ?>"
+                       <?= $customerMode === 'new' ? '' : 'disabled' ?>
+                       placeholder="Ví dụ: Công ty TNHH ABC">
+            </div>
             <div class="col-md-6">
                 <label class="form-label">Số điện thoại</label>
                 <input type="tel" class="form-control" name="customer_phone"
                        value="<?= htmlspecialchars($customerFormData['phone'] ?? '') ?>"
                        <?= $customerMode === 'new' ? '' : 'disabled' ?>
                        placeholder="Ví dụ: 0901234567">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="customer_email"
+                       value="<?= htmlspecialchars($customerFormData['email'] ?? '') ?>"
+                       <?= $customerMode === 'new' ? '' : 'disabled' ?>
+                       placeholder="Ví dụ: customer@example.com">
             </div>
             <div class="col-md-6">
                 <label class="form-label">Nhóm khách hàng</label>
