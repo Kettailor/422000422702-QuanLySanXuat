@@ -19,6 +19,23 @@ class OrderDetail extends BaseModel
         return $this->db->query($sql)->fetchAll();
     }
 
+    public function getPendingForPlanning(): array
+    {
+        $sql = 'SELECT ct.*, don.IdDonHang, don.YeuCau AS YeuCauDonHang, don.NgayLap,
+                       san.TenSanPham, san.DonVi, san.MaSanPham,
+                       cau.TenCauHinh, cau.IdBOM, cau.Layout, cau.SwitchType, cau.CaseType, cau.Foam,
+                       ct.NgayGiao, ct.YeuCau AS YeuCauChiTiet, ct.GhiChu AS GhiChuChiTiet
+                FROM ct_don_hang ct
+                JOIN don_hang don ON don.IdDonHang = ct.IdDonHang
+                LEFT JOIN san_pham san ON san.IdSanPham = ct.IdSanPham
+                LEFT JOIN cau_hinh_san_pham cau ON cau.IdCauHinh = ct.IdCauHinh
+                LEFT JOIN ke_hoach_san_xuat kh ON kh.IdTTCTDonHang = ct.IdTTCTDonHang
+                WHERE kh.IdKeHoachSanXuat IS NULL
+                ORDER BY don.NgayLap ASC, ct.IdTTCTDonHang';
+
+        return $this->db->query($sql)->fetchAll();
+    }
+
     public function getByOrder(string $orderId): array
     {
         $sql = 'SELECT ct_don_hang.*, san_pham.TenSanPham, san_pham.DonVi, san_pham.GiaBan,
