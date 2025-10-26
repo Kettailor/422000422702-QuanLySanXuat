@@ -14,9 +14,8 @@
                 <th>Mã đơn</th>
                 <th>Khách hàng</th>
                 <th>Ngày lập</th>
-                <th>Trạng thái đơn</th>
-                <th>Trạng thái kế hoạch</th>
-                <th>Trạng thái hóa đơn</th>
+                <th>Trạng thái</th>
+                <th>Yêu cầu</th>
                 <th class="text-end">Tổng tiền</th>
                 <th></th>
             </tr>
@@ -31,22 +30,11 @@
                     </td>
                     <td><?= date('d/m/Y', strtotime($order['NgayLap'])) ?></td>
                     <td><span class="badge bg-light text-dark"><?= htmlspecialchars($order['TrangThai']) ?></span></td>
-                    <td>
-                        <?php if (!empty($order['TrangThaiKeHoach'])): ?>
-                            <?php foreach (explode(',', $order['TrangThaiKeHoach']) as $status): ?>
-                                <span class="badge bg-info bg-opacity-10 text-info me-1"><?= htmlspecialchars(trim($status)) ?></span>
-                            <?php endforeach; ?>
+                    <td class="text-muted small">
+                        <?php if (!empty($order['YeuCau'])): ?>
+                            <?= htmlspecialchars(mb_strimwidth($order['YeuCau'], 0, 80, '…', 'UTF-8')) ?>
                         <?php else: ?>
-                            <span class="text-muted">Chưa có</span>
-                        <?php endif; ?>
-                    </td>
-                    <td>
-                        <?php if (!empty($order['TrangThaiHoaDon'])): ?>
-                            <?php foreach (explode(',', $order['TrangThaiHoaDon']) as $status): ?>
-                                <span class="badge bg-success bg-opacity-10 text-success me-1"><?= htmlspecialchars(trim($status)) ?></span>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <span class="text-muted">Chưa có</span>
+                            <span class="text-muted">Không có</span>
                         <?php endif; ?>
                     </td>
                     <td class="text-end fw-semibold text-primary"><?= number_format($order['TongTien'], 0, ',', '.') ?> đ</td>
