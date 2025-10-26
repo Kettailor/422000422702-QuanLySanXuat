@@ -338,8 +338,15 @@ class PlanController extends Controller
             $label = trim((string) ($row['label'] ?? ''));
             $configurationId = $row['configuration_id'] ?? null;
             $componentId = $row['component_id'] ?? null;
-            if ($componentId === null && $configurationId !== null) {
+            if (($componentId === null || $componentId === '') && $configurationId !== null) {
                 $componentId = $configurationId;
+            }
+
+            if ($componentId !== null) {
+                $componentId = trim((string) $componentId);
+                if ($componentId === '' || !$this->componentModel->existsById($componentId)) {
+                    $componentId = null;
+                }
             }
 
             if ($workshopId === '' || $label === '') {

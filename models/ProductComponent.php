@@ -75,6 +75,23 @@ class ProductComponent extends BaseModel
         return $this->componentTableExists;
     }
 
+    public function existsById(?string $assignmentId): bool
+    {
+        if ($assignmentId === null || $assignmentId === '') {
+            return false;
+        }
+
+        if (!$this->componentTableExists()) {
+            return false;
+        }
+
+        $stmt = $this->db->prepare("SELECT 1 FROM {$this->table} WHERE {$this->primaryKey} = :id LIMIT 1");
+        $stmt->bindValue(':id', $assignmentId);
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
     public function getComponentsForProductConfiguration(?string $productId, ?string $configurationId): array
     {
         $components = [];
