@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Chi tiết đơn SV5TOT</h3>
-        <p class="text-muted mb-0">Thông tin chi tiết về đơn bàn phím SV5TOT và khách hàng liên quan.</p>
+        <h3 class="fw-bold mb-1">Chi tiết đơn hàng</h3>
+        <p class="text-muted mb-0">Thông tin tổng quan đơn hàng và các cấu hình sản phẩm đã đặt.</p>
     </div>
     <a href="?controller=order&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
@@ -11,172 +11,117 @@
 <?php else: ?>
     <div class="row g-4">
         <div class="col-lg-6">
-            <div class="card p-4">
-                <h5 class="fw-semibold mb-3">Thông tin đơn SV5TOT</h5>
+            <div class="card p-4 h-100">
+                <h5 class="fw-semibold mb-3">Thông tin đơn hàng</h5>
                 <dl class="row mb-0">
                     <dt class="col-sm-5">Mã đơn hàng</dt>
                     <dd class="col-sm-7">#<?= htmlspecialchars($order['IdDonHang']) ?></dd>
                     <dt class="col-sm-5">Ngày lập</dt>
-                    <dd class="col-sm-7"><?= date('d/m/Y', strtotime($order['NgayLap'])) ?></dd>
+                    <dd class="col-sm-7"><?= htmlspecialchars(!empty($order['NgayLap']) ? date('d/m/Y', strtotime($order['NgayLap'])) : '---') ?></dd>
                     <dt class="col-sm-5">Trạng thái</dt>
-                    <dd class="col-sm-7"><span class="badge bg-info bg-opacity-25 text-primary"><?= htmlspecialchars($order['TrangThai']) ?></span></dd>
+                    <dd class="col-sm-7"><span class="badge bg-info bg-opacity-25 text-primary"><?= htmlspecialchars($order['TrangThai'] ?? '---') ?></span></dd>
                     <dt class="col-sm-5">Tổng tiền</dt>
-                    <dd class="col-sm-7 fw-semibold text-primary"><?= number_format($order['TongTien'], 0, ',', '.') ?> đ</dd>
+                    <dd class="col-sm-7 fw-semibold text-primary"><?= number_format((float) ($order['TongTien'] ?? 0), 0, ',', '.') ?> đ</dd>
                 </dl>
-                <div class="mt-3">
-                    <h6 class="fw-semibold">Yêu cầu cấu hình SV5TOT</h6>
-                    <p class="text-muted mb-0"><?= nl2br(htmlspecialchars($order['YeuCau'])) ?></p>
-                </div>
+                <?php if (!empty($order['YeuCau'])): ?>
+                    <div class="mt-3">
+                        <h6 class="fw-semibold">Yêu cầu chung</h6>
+                        <p class="text-muted mb-0"><?= nl2br(htmlspecialchars($order['YeuCau'])) ?></p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="card p-4">
+            <div class="card p-4 h-100">
                 <h5 class="fw-semibold mb-3">Khách hàng</h5>
                 <?php if ($customer): ?>
                     <dl class="row mb-0">
                         <dt class="col-sm-5">Họ tên</dt>
-                        <dd class="col-sm-7"><?= htmlspecialchars($customer['HoTen']) ?></dd>
+                        <dd class="col-sm-7"><?= htmlspecialchars($customer['HoTen'] ?? '---') ?></dd>
                         <dt class="col-sm-5">Loại khách hàng</dt>
-                        <dd class="col-sm-7"><?= htmlspecialchars($customer['LoaiKhachHang']) ?></dd>
+                        <dd class="col-sm-7"><?= htmlspecialchars($customer['LoaiKhachHang'] ?? '---') ?></dd>
                         <dt class="col-sm-5">Số điện thoại</dt>
-                        <dd class="col-sm-7"><?= htmlspecialchars($customer['SoDienThoai']) ?></dd>
+                        <dd class="col-sm-7"><?= htmlspecialchars($customer['SoDienThoai'] ?? '---') ?></dd>
                         <dt class="col-sm-5">Địa chỉ</dt>
-                        <dd class="col-sm-7"><?= htmlspecialchars($customer['DiaChi']) ?></dd>
+                        <dd class="col-sm-7"><?= htmlspecialchars($customer['DiaChi'] ?? '---') ?></dd>
                     </dl>
                 <?php else: ?>
-                    <p class="text-muted">Không có thông tin khách hàng.</p>
+                    <p class="text-muted mb-0">Không có thông tin khách hàng.</p>
                 <?php endif; ?>
             </div>
         </div>
     </div>
-    <div class="row g-4 mt-1">
-        <div class="col-12">
-            <div class="card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-semibold mb-0">Danh sách sản phẩm &amp; cấu hình</h5>
-                    <span class="badge bg-light text-dark">Tổng số dòng: <?= count($orderDetails) ?></span>
-                </div>
-                <?php if (!empty($orderDetails)): ?>
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead>
-                            <tr>
-                                <th>Sản phẩm &amp; cấu hình</th>
-                                <th class="text-center">Số lượng</th>
-                                <th>Đơn giá</th>
-                                <th>VAT</th>
-                                <th>Thời gian giao</th>
-                                <th>Yêu cầu SV5TOT</th>
-                                <th class="text-end">Thành tiền</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php $totalAmount = 0; ?>
-                            <?php foreach ($orderDetails as $detail): ?>
-                                <?php $totalAmount += (float) $detail['ThanhTien']; ?>
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold"><?= htmlspecialchars($detail['TenSanPham'] ?? '---') ?></div>
-                                        <div class="text-muted small">Cấu hình: <?= htmlspecialchars($detail['TenCauHinh'] ?? '---') ?></div>
-                                        <?php if (!empty($detail['MoTaCauHinh'])): ?>
-                                            <div class="text-muted small"><?= htmlspecialchars($detail['MoTaCauHinh']) ?></div>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="text-center"><?= number_format($detail['SoLuong']) ?></td>
-                                    <td><?= number_format($detail['DonGia'], 0, ',', '.') ?> đ</td>
-                                    <td><?= isset($detail['VAT']) ? (float) $detail['VAT'] * 100 : 0 ?>%</td>
-                                    <td>
-                                        <?php if (!empty($detail['NgayGiao'])): ?>
-                                            <?= date('d/m/Y H:i', strtotime($detail['NgayGiao'])) ?>
-                                        <?php else: ?>
-                                            <span class="text-muted">Chưa xác định</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="text-muted small">
-                                        <?= nl2br(htmlspecialchars($detail['YeuCau'] ?? '')) ?>
-                                        <?php if (!empty($detail['GhiChu'])): ?>
-                                            <div class="mt-1">Ghi chú: <?= nl2br(htmlspecialchars($detail['GhiChu'])) ?></div>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="text-end fw-semibold text-primary"><?= number_format($detail['ThanhTien'], 0, ',', '.') ?> đ</td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-end mt-2">
-                        <span class="text-muted me-2">Tổng cộng:</span>
-                        <span class="fw-bold fs-5 text-primary"><?= number_format($totalAmount, 0, ',', '.') ?> đ</span>
-                    </div>
-                <?php else: ?>
-                    <p class="text-muted mb-0">Đơn SV5TOT chưa có cấu hình nào.</p>
-                <?php endif; ?>
+
+    <div class="card p-4 mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-semibold mb-0">Danh sách sản phẩm</h5>
+            <span class="badge bg-light text-dark">Tổng số dòng: <?= count($orderDetails) ?></span>
+        </div>
+        <?php if (!empty($orderDetails)): ?>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Cấu hình</th>
+                        <th class="text-center">Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>VAT</th>
+                        <th>Ngày giao</th>
+                        <th class="text-end">Thành tiền</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php $totalAmount = 0; ?>
+                    <?php foreach ($orderDetails as $detail): ?>
+                        <?php
+                        $totalAmount += (float) ($detail['ThanhTien'] ?? 0);
+                        $meta = $detail['meta'] ?? [];
+                        $config = $meta['configuration'] ?? [];
+                        $note = $meta['note'] ?? '';
+                        ?>
+                        <tr>
+                            <td>
+                                <div class="fw-semibold"><?= htmlspecialchars($detail['TenSanPham'] ?? '---') ?></div>
+                                <?php if (!empty($detail['YeuCau'])): ?>
+                                    <div class="text-muted small">Yêu cầu: <?= htmlspecialchars($detail['YeuCau']) ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($note)): ?>
+                                    <div class="text-muted small">Ghi chú: <?= nl2br(htmlspecialchars($note)) ?></div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div class="fw-medium"><?= htmlspecialchars($detail['TenCauHinh'] ?? 'Cấu hình tùy chỉnh') ?></div>
+                                <ul class="list-unstyled text-muted small mb-0">
+                                    <?php if (!empty($config['keycap'])): ?><li>Keycap: <?= htmlspecialchars($config['keycap']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['switch'])): ?><li>Switch: <?= htmlspecialchars($config['switch']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['case'])): ?><li>Case: <?= htmlspecialchars($config['case']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['main'])): ?><li>Mainboard: <?= htmlspecialchars($config['main']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['others'])): ?><li>Khác: <?= htmlspecialchars($config['others']) ?></li><?php endif; ?>
+                                </ul>
+                            </td>
+                            <td class="text-center"><?= number_format((int) ($detail['SoLuong'] ?? 0)) ?></td>
+                            <td><?= number_format((float) ($detail['DonGia'] ?? 0), 0, ',', '.') ?> đ</td>
+                            <td><?= isset($detail['VAT']) ? number_format((float) $detail['VAT'] * 100, 1) : '0.0' ?>%</td>
+                            <td>
+                                <?php if (!empty($detail['NgayGiao'])): ?>
+                                    <?= date('d/m/Y H:i', strtotime($detail['NgayGiao'])) ?>
+                                <?php else: ?>
+                                    <span class="text-muted">Chưa xác định</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-end fw-semibold text-primary"><?= number_format((float) ($detail['ThanhTien'] ?? 0), 0, ',', '.') ?> đ</td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
-    <div class="row g-4 mt-1">
-        <div class="col-12">
-            <form action="?controller=order&action=updateStatuses" method="post" class="card p-4">
-                <input type="hidden" name="order_id" value="<?= htmlspecialchars($order['IdDonHang']) ?>">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-semibold mb-0">Liên kết kế hoạch &amp; hóa đơn</h5>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat me-2"></i>Cập nhật trạng thái</button>
-                </div>
-                <div class="row g-4">
-                    <div class="col-lg-4">
-                        <div class="border rounded p-3 h-100">
-                            <h6 class="fw-semibold mb-3">Trạng thái đơn SV5TOT</h6>
-                            <select name="order_status" class="form-select">
-                                <option value="">-- Giữ nguyên --</option>
-                                <?php foreach ($orderStatuses as $status): ?>
-                                    <option value="<?= htmlspecialchars($status) ?>" <?= $status === $order['TrangThai'] ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <p class="text-muted small mb-0 mt-2">Cập nhật trạng thái chung của đơn hàng.</p>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="border rounded p-3 h-100">
-                            <h6 class="fw-semibold mb-3">Kế hoạch SV5TOT</h6>
-                            <?php if (!empty($plans)): ?>
-                                <?php foreach ($plans as $plan): ?>
-                                    <div class="mb-3">
-                                        <div class="fw-semibold">#<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?></div>
-                                        <div class="text-muted small mb-2">Sản phẩm: <?= htmlspecialchars($plan['TenSanPham'] ?? $plan['IdSanPham'] ?? '---') ?> | Cấu hình: <?= htmlspecialchars($plan['TenCauHinh'] ?? '---') ?> | SL: <?= number_format($plan['SoLuongChiTiet'] ?? 0) ?></div>
-                                        <select name="plan_statuses[<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?>]" class="form-select">
-                                            <?php foreach ($planStatuses as $status): ?>
-                                                <option value="<?= htmlspecialchars($status) ?>" <?= $status === $plan['TrangThai'] ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <p class="text-muted mb-0">Chưa có kế hoạch SV5TOT cho đơn này.</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="border rounded p-3 h-100">
-                            <h6 class="fw-semibold mb-3">Hóa đơn SV5TOT liên quan</h6>
-                            <?php if (!empty($bills)): ?>
-                                <?php foreach ($bills as $bill): ?>
-                                    <div class="mb-3">
-                                        <div class="fw-semibold">#<?= htmlspecialchars($bill['IdHoaDon']) ?></div>
-                                        <div class="text-muted small mb-2">Ngày lập: <?= !empty($bill['NgayLap']) ? date('d/m/Y', strtotime($bill['NgayLap'])) : '---' ?></div>
-                                        <select name="bill_statuses[<?= htmlspecialchars($bill['IdHoaDon']) ?>]" class="form-select">
-                                            <?php foreach ($billStatuses as $status): ?>
-                                                <option value="<?= htmlspecialchars($status) ?>" <?= $status === $bill['TrangThai'] ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <p class="text-muted mb-0">Chưa phát sinh hóa đơn cho đơn hàng này.</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
+            <div class="text-end mt-2">
+                <span class="text-muted me-2">Tổng cộng:</span>
+                <span class="fw-bold fs-5 text-primary"><?= number_format($totalAmount, 0, ',', '.') ?> đ</span>
+            </div>
+        <?php else: ?>
+            <p class="text-muted mb-0">Đơn hàng chưa có sản phẩm nào.</p>
+        <?php endif; ?>
     </div>
 <?php endif; ?>
