@@ -4,7 +4,6 @@ class PlanController extends Controller
 {
     private ProductionPlan $planModel;
     private OrderDetail $orderDetailModel;
-    private Employee $employeeModel;
     private WorkshopPlan $workshopPlanModel;
     private ProductComponent $componentModel;
     private Workshop $workshopModel;
@@ -14,7 +13,6 @@ class PlanController extends Controller
         $this->authorize(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG']);
         $this->planModel = new ProductionPlan();
         $this->orderDetailModel = new OrderDetail();
-        $this->employeeModel = new Employee();
         $this->workshopPlanModel = new WorkshopPlan();
         $this->componentModel = new ProductComponent();
         $this->workshopModel = new Workshop();
@@ -57,14 +55,17 @@ class PlanController extends Controller
             }
         }
 
+        $currentUser = $this->currentUser();
+
         $this->render('plan/create', [
             'title' => 'Lập kế hoạch sản xuất',
             'pendingOrders' => $pendingOrders,
             'selectedOrderDetailId' => $selectedOrderDetailId,
             'selectedOrderDetail' => $selectedOrderDetail,
             'componentAssignments' => $componentAssignments,
-            'managers' => $this->employeeModel->getBoardManagers(),
+            'configurationDetails' => $selectedOrderDetail ? $this->buildConfigurationDetails($selectedOrderDetail) : [],
             'workshops' => $this->workshopModel->getAllWithManagers(),
+            'currentUser' => $currentUser,
         ]);
     }
 
@@ -81,6 +82,15 @@ class PlanController extends Controller
         if (!$orderDetail) {
             $this->setFlash('danger', 'Vui lòng chọn đơn hàng hợp lệ trước khi lập kế hoạch.');
             $this->redirect('?controller=plan&action=create');
+            return;
+        }
+
+        $currentUser = $this->currentUser();
+        $actorId = $currentUser['IdNhanVien'] ?? null;
+
+        if (!$actorId) {
+            $this->setFlash('danger', 'Không xác định được người lập kế hoạch. Vui lòng đăng nhập lại.');
+            $this->redirect('?controller=plan&action=create&order_detail_id=' . urlencode($orderDetailId));
             return;
         }
 
@@ -102,7 +112,7 @@ class PlanController extends Controller
             'ThoiGianBD' => $startTime,
             'ThoiGianKetThuc' => $endTime,
             'TrangThai' => $status,
-            '`BANIAMDOC IdNhanVien`' => $_POST['BanGiamDoc'] ?? null,
+            'IdNguoiLap' => $actorId,
         ];
 
         $assignmentsInput = $_POST['component_assignments'] ?? [];
@@ -198,6 +208,7 @@ class PlanController extends Controller
 
         $components = $this->componentModel->getComponentsForProductConfiguration($productId, $configurationId);
         $assignments = [];
+        $configurationDetails = $this->buildConfigurationDetails($orderDetail);
 
         foreach ($components as $component) {
             $ratioRaw = $component['TyLeSoLuong'] ?? $component['quantity_per_unit'] ?? 1;
@@ -215,6 +226,12 @@ class PlanController extends Controller
                 'default_quantity' => max(1, $componentQuantity),
                 'quantity_ratio' => $ratio,
                 'default_workshop' => $component['IdXuong'] ?? null,
+                'configuration_label' => $component['TenCauHinh'] ?? null,
+                'unit' => $component['DonVi'] ?? 'sp',
+                'default_status' => $component['TrangThaiMacDinh'] ?? null,
+                'configuration_details' => $configurationDetails,
+                'detail_key' => null,
+                'detail_value' => null,
             ];
         }
 
@@ -227,7 +244,82 @@ class PlanController extends Controller
                 'default_quantity' => max(1, $quantity),
                 'quantity_ratio' => 1.0,
                 'default_workshop' => null,
+                'configuration_label' => $orderDetail['TenCauHinh'] ?? null,
+                'unit' => $orderDetail['DonVi'] ?? 'sp',
+                'default_status' => 'Đang chuẩn bị',
+                'configuration_details' => $configurationDetails,
+                'detail_key' => null,
+                'detail_value' => null,
             ];
+        }
+
+        return $this->appendConfigurationDetailAssignments($assignments, $configurationDetails, max(1, $quantity), $orderDetail);
+    }
+
+    private function buildConfigurationDetails(array $orderDetail): array
+    {
+        $mapping = [
+            'Layout' => 'Layout',
+            'SwitchType' => 'Switch',
+            'CaseType' => 'Case',
+            'Foam' => 'Foam',
+        ];
+
+        $details = [];
+
+        foreach ($mapping as $field => $label) {
+            $value = trim((string) ($orderDetail[$field] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $details[] = [
+                'key' => $field,
+                'label' => $label,
+                'value' => $value,
+            ];
+        }
+
+        return $details;
+    }
+
+    private function appendConfigurationDetailAssignments(array $assignments, array $configurationDetails, int $quantity, array $orderDetail): array
+    {
+        if (empty($configurationDetails)) {
+            return $assignments;
+        }
+
+        $normalizer = static function (string $value): string {
+            return function_exists('mb_strtolower') ? mb_strtolower($value) : strtolower($value);
+        };
+
+        $existingLabels = array_map(function (array $assignment) use ($normalizer): string {
+            return $normalizer((string) ($assignment['label'] ?? ''));
+        }, $assignments);
+
+        foreach ($configurationDetails as $detail) {
+            $displayLabel = sprintf('%s: %s', $detail['label'], $detail['value']);
+            if (in_array($normalizer($displayLabel), $existingLabels, true)) {
+                continue;
+            }
+
+            $assignments[] = [
+                'id' => null,
+                'configuration_id' => $orderDetail['IdCauHinh'] ?? null,
+                'label' => $displayLabel,
+                'category' => 'configuration-detail',
+                'default_quantity' => $quantity,
+                'quantity_ratio' => 1.0,
+                'default_workshop' => $orderDetail['IdXuongChinh'] ?? null,
+                'configuration_label' => $orderDetail['TenCauHinh'] ?? null,
+                'unit' => $orderDetail['DonVi'] ?? 'sp',
+                'default_status' => 'Đang chuẩn bị',
+                'configuration_details' => $configurationDetails,
+                'detail_key' => $detail['key'],
+                'detail_value' => $detail['value'],
+            ];
+
+            $existingLabels[] = $normalizer($displayLabel);
         }
 
         return $assignments;
@@ -238,7 +330,7 @@ class PlanController extends Controller
         $assignments = [];
         $defaultQuantity = max(1, (int) ($context['quantity'] ?? 1));
         $defaultStart = $context['start'] ?? null;
-        $allowedStatuses = ['Đang chuẩn bị', 'Đang sản xuất', 'Chờ nghiệm thu', 'Hoàn thành'];
+        $allowedStatuses = ['Đang chuẩn bị', 'Đang sản xuất', 'Chờ nghiệm thu', 'Hoàn thành', 'Đang chờ xác nhận'];
 
         foreach ($input as $row) {
             if (!is_array($row)) {
@@ -265,7 +357,7 @@ class PlanController extends Controller
             $start = $this->normalizeDateTimeInput($row['start'] ?? null) ?? $defaultStart;
             $end = $this->normalizeDateTimeInput($row['end'] ?? null) ?? $this->normalizeDateTimeInput($row['deadline'] ?? null);
 
-            $statusInput = $row['status'] ?? null;
+            $statusInput = $row['status'] ?? ($row['default_status'] ?? null);
             $status = in_array($statusInput, $allowedStatuses, true) ? $statusInput : 'Đang chuẩn bị';
 
             $assignments[] = [
