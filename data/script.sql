@@ -469,7 +469,6 @@ CREATE TABLE `khach_hang` (
   `SoLuongDonHang` int(10) DEFAULT NULL,
   `SoDienThoai` varchar(12) DEFAULT NULL,
   `Email` varchar(255) DEFAULT NULL,
-  `TenCongTy` varchar(255) DEFAULT NULL,
   `TongTien` float DEFAULT NULL,
   `LoaiKhachHang` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
