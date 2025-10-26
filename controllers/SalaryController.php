@@ -80,6 +80,11 @@ class SalaryController extends Controller
                 }
             }
         }
+        if ($payroll && !$this->salaryModel->supportsWorkingDays()) {
+            if (!isset($payroll['SoNgayCong']) || $payroll['SoNgayCong'] === null) {
+                $payroll['SoNgayCong'] = $this->salaryModel->deriveWorkingDays($payroll);
+            }
+        }
         $figures = $payroll ? Salary::calculateFigures($payroll) : null;
         $this->render('salary/read', [
             'title' => 'Chi tiết bảng lương',
@@ -431,6 +436,11 @@ class SalaryController extends Controller
         $this->requireManagePermission();
         $id = $_GET['id'] ?? null;
         $payroll = $id ? $this->salaryModel->find($id) : null;
+        if ($payroll && !$this->salaryModel->supportsWorkingDays()) {
+            if (!isset($payroll['SoNgayCong']) || $payroll['SoNgayCong'] === null) {
+                $payroll['SoNgayCong'] = $this->salaryModel->deriveWorkingDays($payroll);
+            }
+        }
         $employees = $this->employeeModel->getActiveEmployees();
         $accountants = array_filter($employees, static function (array $employee): bool {
             $position = mb_strtolower($employee['ChucVu'] ?? '');
