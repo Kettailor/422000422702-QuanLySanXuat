@@ -8,6 +8,7 @@ class ProductionAutomation
     private ProductComponent $componentModel;
     private ProductComponentMaterial $componentMaterialModel;
     private NotificationSetting $notificationSettingModel;
+    private InventoryAlertJob $inventoryAlertJob;
 
     public function __construct(
         ?WorkshopPlan $workshopPlanModel = null,
@@ -15,7 +16,8 @@ class ProductionAutomation
         ?Material $materialModel = null,
         ?ProductComponent $componentModel = null,
         ?ProductComponentMaterial $componentMaterialModel = null,
-        ?NotificationSetting $notificationSettingModel = null
+        ?NotificationSetting $notificationSettingModel = null,
+        ?InventoryAlertJob $inventoryAlertJob = null
     ) {
         $this->workshopPlanModel = $workshopPlanModel ?? new WorkshopPlan();
         $this->notificationStore = $notificationStore ?? new NotificationStore();
@@ -23,6 +25,7 @@ class ProductionAutomation
         $this->componentModel = $componentModel ?? new ProductComponent();
         $this->componentMaterialModel = $componentMaterialModel ?? new ProductComponentMaterial();
         $this->notificationSettingModel = $notificationSettingModel ?? new NotificationSetting();
+        $this->inventoryAlertJob = $inventoryAlertJob ?? new InventoryAlertJob($this->notificationStore, $this->notificationSettingModel);
     }
 
     public function handleNewPlan(array $plan, array $orderDetail): void
@@ -36,7 +39,10 @@ class ProductionAutomation
             return;
         }
 
-        $components = $this->loadComponentsForProduct($orderDetail['IdSanPham'] ?? null);
+        $components = $this->loadComponentsForProduct(
+            $orderDetail['IdSanPham'] ?? null,
+            $orderDetail['IdCauHinh'] ?? null
+        );
         if (empty($components)) {
             return;
         }
@@ -46,6 +52,8 @@ class ProductionAutomation
         $notifications = [];
         $logistics = [];
         $materialIds = [];
+        $componentMaterialRequirements = [];
+        $componentMeta = [];
 
         $workshopChannel = $this->notificationSettingModel->getValue('workshop_channel');
         $warehouseChannel = $this->notificationSettingModel->getValue('warehouse_channel');
@@ -74,6 +82,8 @@ class ProductionAutomation
                 'ThoiGianKetThuc' => $plan['ThoiGianKetThuc'] ?? null,
                 'IdKeHoachSanXuat' => $planId,
                 'IdXuong' => $workshopId,
+                'IdCongDoan' => $component['IdCongDoan'] ?? null,
+                'TinhTrangVatTu' => 'Chưa kiểm tra',
             ];
 
             if ($status !== null) {
@@ -81,6 +91,17 @@ class ProductionAutomation
             }
 
             $this->workshopPlanModel->create($workshopPlan);
+
+            $componentMeta[$workshopPlan['IdKeHoachSanXuatXuong']] = [
+                'component_id' => $component['IdCongDoan'] ?? null,
+                'component_name' => $componentName,
+                'workshop_id' => $workshopId,
+                'unit' => $unit,
+                'required_quantity' => $componentQuantity,
+                'logistics_key' => $component['LogisticsKey'] ?? $component['logistics_key'] ?? null,
+            ];
+
+            $componentMaterialRequirements[$workshopPlan['IdKeHoachSanXuatXuong']] = [];
 
             if ($workshopChannel) {
                 $notifications[] = [
@@ -113,9 +134,11 @@ class ProductionAutomation
                     'unit' => $unit,
                     'required' => 0,
                     'materials' => [],
+                    'workshop_plan_ids' => [],
                 ];
             }
             $logistics[$logisticsKey]['required'] += $componentQuantity;
+            $logistics[$logisticsKey]['workshop_plan_ids'][] = $workshopPlan['IdKeHoachSanXuatXuong'];
 
             foreach ($component['materials'] ?? [] as $material) {
                 $materialId = $material['id'] ?? null;
@@ -127,6 +150,13 @@ class ProductionAutomation
                 $materialUnit = $material['unit'] ?? $unit;
                 $materialLabel = $material['label'] ?? $componentName;
                 $materialRequired = $this->calculateMaterialQuantity($material, $planQuantity);
+
+                $componentMaterialRequirements[$workshopPlan['IdKeHoachSanXuatXuong']][$materialId] = [
+                    'id' => $materialId,
+                    'label' => $materialLabel,
+                    'unit' => $materialUnit,
+                    'required' => $materialRequired,
+                ];
 
                 if (!isset($logistics[$logisticsKey]['materials'][$materialId])) {
                     $logistics[$logisticsKey]['materials'][$materialId] = [
@@ -142,8 +172,10 @@ class ProductionAutomation
         }
 
         if (!empty($materialIds)) {
-            $this->attachInventorySnapshots($logistics, array_keys($materialIds));
+            $this->attachInventorySnapshots($logistics, array_keys($materialIds), $componentMaterialRequirements);
         }
+
+        $shortages = $this->updateMaterialStatuses($componentMaterialRequirements, $componentMeta);
 
         $notifications = array_merge(
             $notifications,
@@ -156,6 +188,17 @@ class ProductionAutomation
             )
         );
 
+        if (!empty($shortages)) {
+            $this->inventoryAlertJob->dispatch(
+                [
+                    'plan_id' => $planId,
+                    'order_id' => $orderDetail['IdDonHang'] ?? null,
+                    'order_request' => $orderDetail['YeuCau'] ?? $orderDetail['YeuCauDonHang'] ?? null,
+                ],
+                $shortages
+            );
+        }
+
         $this->notificationStore->pushMany($notifications);
     }
 
@@ -165,24 +208,22 @@ class ProductionAutomation
         return !empty($existing);
     }
 
-    private function loadComponentsForProduct(?string $productId): array
+    private function loadComponentsForProduct(?string $productId, ?string $configurationId): array
     {
-        $components = [];
-
-        if ($productId) {
-            $components = $this->componentModel->getByProduct($productId);
-        }
-
-        if (empty($components)) {
-            $components = $this->componentModel->getDefaultComponents();
-        }
+        $components = $this->componentModel->getComponentsForProductConfiguration($productId, $configurationId);
 
         if (empty($components)) {
             return [];
         }
 
+        $componentIds = array_values(array_filter(array_map(fn ($component) => $component['IdCongDoan'] ?? null, $components)));
+        $materialsByComponent = $this->componentMaterialModel->getMaterialsForComponents($componentIds);
+
         foreach ($components as &$component) {
-            $component['materials'] = $this->componentMaterialModel->getMaterialsForComponent($component['IdCongDoan']);
+            $componentId = $component['IdCongDoan'] ?? null;
+            $component['materials'] = $componentId && isset($materialsByComponent[$componentId])
+                ? $materialsByComponent[$componentId]
+                : [];
         }
         unset($component);
 
@@ -238,7 +279,7 @@ class ProductionAutomation
         return max($quantity, 1);
     }
 
-    private function attachInventorySnapshots(array &$logistics, array $materialIds): void
+    private function attachInventorySnapshots(array &$logistics, array $materialIds, array &$componentMaterialRequirements): void
     {
         try {
             $inventory = $this->materialModel->findMany($materialIds);
@@ -257,6 +298,92 @@ class ProductionAutomation
             unset($material);
         }
         unset($item);
+
+        foreach ($componentMaterialRequirements as &$materials) {
+            foreach ($materials as $id => &$material) {
+                $material['stock'] = (int) ($inventory[$id]['SoLuong'] ?? 0);
+                $material['deficit'] = max(0, ($material['required'] ?? 0) - ($material['stock'] ?? 0));
+            }
+            unset($material);
+        }
+        unset($materials);
+    }
+
+    private function updateMaterialStatuses(array $componentMaterialRequirements, array $componentMeta): array
+    {
+        if (empty($componentMaterialRequirements)) {
+            return [];
+        }
+
+        $shortages = [];
+
+        foreach ($componentMaterialRequirements as $planId => $materials) {
+            $result = $this->resolveMaterialStatusDetails($materials);
+            $status = $result['status'];
+
+            try {
+                $this->workshopPlanModel->update($planId, ['TinhTrangVatTu' => $status]);
+            } catch (Throwable $exception) {
+                // Bỏ qua lỗi cập nhật trạng thái để không chặn luồng tự động hóa.
+            }
+
+            if (!empty($result['shortages'])) {
+                $meta = $componentMeta[$planId] ?? [];
+                $shortages[] = [
+                    'workshop_plan_id' => $planId,
+                    'component_id' => $meta['component_id'] ?? null,
+                    'component' => $meta['component_name'] ?? $planId,
+                    'workshop_id' => $meta['workshop_id'] ?? null,
+                    'materials' => $result['shortages'],
+                ];
+            }
+        }
+
+        return $shortages;
+    }
+
+    private function resolveMaterialStatusDetails(array $materials): array
+    {
+        if (empty($materials)) {
+            return [
+                'status' => 'Không yêu cầu vật tư',
+                'shortages' => [],
+            ];
+        }
+
+        $shortages = [];
+
+        foreach ($materials as $material) {
+            $required = max(0, (int) ($material['required'] ?? 0));
+            $stock = max(0, (int) ($material['stock'] ?? 0));
+
+            if ($required === 0) {
+                continue;
+            }
+
+            if ($stock < $required) {
+                $shortages[] = [
+                    'id' => $material['id'] ?? null,
+                    'label' => $material['label'] ?? null,
+                    'unit' => $material['unit'] ?? null,
+                    'required' => $required,
+                    'stock' => $stock,
+                    'deficit' => max(0, $material['deficit'] ?? ($required - $stock)),
+                ];
+            }
+        }
+
+        if (!empty($shortages)) {
+            return [
+                'status' => 'Thiếu vật tư',
+                'shortages' => $shortages,
+            ];
+        }
+
+        return [
+            'status' => 'Đủ vật tư',
+            'shortages' => [],
+        ];
     }
 
     private function buildWarehouseNotifications(
