@@ -69,6 +69,8 @@ class ProductionAutomation
             $workshopId = $component['IdXuong'] ?? null;
             $unit = $component['DonVi'] ?? null;
             $status = $component['TrangThaiMacDinh'] ?? null;
+            $assignmentId = $component['IdCongDoan'] ?? null;
+            $configurationId = $component['IdCauHinh'] ?? null;
 
             if (!$workshopId || !$unit) {
                 continue;
@@ -82,7 +84,7 @@ class ProductionAutomation
                 'ThoiGianKetThuc' => $plan['ThoiGianKetThuc'] ?? null,
                 'IdKeHoachSanXuat' => $planId,
                 'IdXuong' => $workshopId,
-                'IdCongDoan' => $component['IdCongDoan'] ?? null,
+                'IdCongDoan' => $assignmentId,
                 'TinhTrangVatTu' => 'Chưa kiểm tra',
             ];
 
@@ -93,7 +95,8 @@ class ProductionAutomation
             $this->workshopPlanModel->create($workshopPlan);
 
             $componentMeta[$workshopPlan['IdKeHoachSanXuatXuong']] = [
-                'component_id' => $component['IdCongDoan'] ?? null,
+                'component_id' => $configurationId ?? $assignmentId,
+                'configuration_id' => $configurationId,
                 'component_name' => $componentName,
                 'workshop_id' => $workshopId,
                 'unit' => $unit,
@@ -118,7 +121,7 @@ class ProductionAutomation
                         'plan_id' => $planId,
                         'order_id' => $orderDetail['IdDonHang'] ?? null,
                         'workshop_plan_id' => $workshopPlan['IdKeHoachSanXuatXuong'],
-                        'component' => $component['IdCongDoan'] ?? $baseName,
+                        'component' => $configurationId ?? $assignmentId ?? $baseName,
                         'component_label' => $componentName,
                         'required_quantity' => $componentQuantity,
                         'unit' => $unit,
@@ -127,7 +130,7 @@ class ProductionAutomation
                 ];
             }
 
-            $logisticsKey = $component['LogisticsKey'] ?? $component['logistics_key'] ?? ($component['IdCongDoan'] ?? md5($componentName));
+            $logisticsKey = $component['LogisticsKey'] ?? $component['logistics_key'] ?? ($configurationId ?? $assignmentId ?? md5($componentName));
             if (!isset($logistics[$logisticsKey])) {
                 $logistics[$logisticsKey] = [
                     'label' => $component['LogisticsLabel'] ?? $component['logistics_label'] ?? $componentName,
@@ -216,13 +219,13 @@ class ProductionAutomation
             return [];
         }
 
-        $componentIds = array_values(array_filter(array_map(fn ($component) => $component['IdCongDoan'] ?? null, $components)));
-        $materialsByComponent = $this->componentMaterialModel->getMaterialsForComponents($componentIds);
+        $configurationIds = array_values(array_filter(array_map(fn ($component) => $component['IdCauHinh'] ?? null, $components)));
+        $materialsByConfiguration = $this->componentMaterialModel->getMaterialsForComponents($configurationIds);
 
         foreach ($components as &$component) {
-            $componentId = $component['IdCongDoan'] ?? null;
-            $component['materials'] = $componentId && isset($materialsByComponent[$componentId])
-                ? $materialsByComponent[$componentId]
+            $configurationId = $component['IdCauHinh'] ?? null;
+            $component['materials'] = $configurationId && isset($materialsByConfiguration[$configurationId])
+                ? $materialsByConfiguration[$configurationId]
                 : [];
         }
         unset($component);

@@ -20,7 +20,9 @@ class WorkshopPlan extends BaseModel
                        xuong.TenXuong,
                        ksx.TrangThai AS TrangThaiTong,
                        san.TenSanPham,
-                       cau.TenCauHinh,
+                       COALESCE(cau.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh,
+                       xcfg.IdCauHinh AS AssignmentConfigurationId,
+                       xcfg.TenPhanCong,
                        don.IdDonHang
                 FROM ke_hoach_san_xuat_xuong kx
                 JOIN xuong ON xuong.IdXuong = kx.IdXuong
@@ -28,6 +30,7 @@ class WorkshopPlan extends BaseModel
                 JOIN ct_don_hang ct ON ct.IdTTCTDonHang = ksx.IdTTCTDonHang
                 JOIN don_hang don ON don.IdDonHang = ct.IdDonHang
                 JOIN san_pham san ON san.IdSanPham = ct.IdSanPham
+                LEFT JOIN xuong_cau_hinh_san_pham xcfg ON xcfg.IdPhanCong = kx.IdCongDoan
                 LEFT JOIN cau_hinh_san_pham cau ON cau.IdCauHinh = ct.IdCauHinh
                 ORDER BY kx.ThoiGianBatDau DESC, kx.IdKeHoachSanXuatXuong DESC
                 LIMIT :limit';
@@ -48,9 +51,13 @@ class WorkshopPlan extends BaseModel
                        kx.TinhTrangVatTu,
                        kx.IdCongDoan,
                        kx.IdXuong,
-                       xuong.TenXuong
+                       xuong.TenXuong,
+                       xcfg.IdCauHinh AS AssignmentConfigurationId,
+                       COALESCE(cfg.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh
                 FROM ke_hoach_san_xuat_xuong kx
                 LEFT JOIN xuong ON xuong.IdXuong = kx.IdXuong
+                LEFT JOIN xuong_cau_hinh_san_pham xcfg ON xcfg.IdPhanCong = kx.IdCongDoan
+                LEFT JOIN cau_hinh_san_pham cfg ON cfg.IdCauHinh = xcfg.IdCauHinh
                 WHERE kx.IdKeHoachSanXuat = :planId
                 ORDER BY kx.ThoiGianBatDau ASC, kx.IdKeHoachSanXuatXuong';
 
@@ -78,9 +85,13 @@ class WorkshopPlan extends BaseModel
                        kx.TrangThai,
                        kx.TinhTrangVatTu,
                        kx.IdXuong,
-                       xuong.TenXuong
+                       xuong.TenXuong,
+                       xcfg.IdCauHinh AS AssignmentConfigurationId,
+                       COALESCE(cfg.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh
                 FROM ke_hoach_san_xuat_xuong kx
                 LEFT JOIN xuong ON xuong.IdXuong = kx.IdXuong
+                LEFT JOIN xuong_cau_hinh_san_pham xcfg ON xcfg.IdPhanCong = kx.IdCongDoan
+                LEFT JOIN cau_hinh_san_pham cfg ON cfg.IdCauHinh = xcfg.IdCauHinh
                 WHERE kx.IdKeHoachSanXuat IN (' . $placeholders . ')
                 ORDER BY kx.ThoiGianBatDau ASC, kx.IdKeHoachSanXuatXuong';
 
@@ -114,7 +125,8 @@ class WorkshopPlan extends BaseModel
                        xuong.TenXuong,
                        ksx.TrangThai AS TrangThaiTong,
                        san.TenSanPham,
-                       cau.TenCauHinh,
+                       COALESCE(cau.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh,
+                       xcfg.IdCauHinh AS AssignmentConfigurationId,
                        don.IdDonHang,
                        don.YeuCau
                 FROM ke_hoach_san_xuat_xuong kx
@@ -123,6 +135,7 @@ class WorkshopPlan extends BaseModel
                 LEFT JOIN ct_don_hang ct ON ct.IdTTCTDonHang = ksx.IdTTCTDonHang
                 LEFT JOIN don_hang don ON don.IdDonHang = ct.IdDonHang
                 LEFT JOIN san_pham san ON san.IdSanPham = ct.IdSanPham
+                LEFT JOIN xuong_cau_hinh_san_pham xcfg ON xcfg.IdPhanCong = kx.IdCongDoan
                 LEFT JOIN cau_hinh_san_pham cau ON cau.IdCauHinh = ct.IdCauHinh
                 WHERE kx.IdKeHoachSanXuatXuong = :id
                 LIMIT 1';
@@ -167,8 +180,8 @@ class WorkshopPlan extends BaseModel
                        ksx.SoLuong AS TongSoLuongKeHoach,
                        san.TenSanPham,
                        san.DonVi,
-                       cau.IdCauHinh,
-                       cau.TenCauHinh,
+                       COALESCE(cau.IdCauHinh, xcfg.IdCauHinh) AS IdCauHinh,
+                       COALESCE(cau.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh,
                        don.IdDonHang,
                        don.YeuCau
                 FROM ke_hoach_san_xuat_xuong kx
@@ -177,6 +190,7 @@ class WorkshopPlan extends BaseModel
                 JOIN ct_don_hang ct ON ct.IdTTCTDonHang = ksx.IdTTCTDonHang
                 JOIN don_hang don ON don.IdDonHang = ct.IdDonHang
                 JOIN san_pham san ON san.IdSanPham = ct.IdSanPham
+                LEFT JOIN xuong_cau_hinh_san_pham xcfg ON xcfg.IdPhanCong = kx.IdCongDoan
                 LEFT JOIN cau_hinh_san_pham cau ON cau.IdCauHinh = ct.IdCauHinh
                 ' . $whereClause . '
                 ORDER BY kx.ThoiGianBatDau ASC, kx.IdKeHoachSanXuatXuong';

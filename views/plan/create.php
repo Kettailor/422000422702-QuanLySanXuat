@@ -197,7 +197,7 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                 <table class="table align-middle">
                                     <thead class="table-light">
                                     <tr>
-                                        <th>Hạng mục</th>
+                                        <th>Cấu hình / Hạng mục</th>
                                         <th style="width: 180px;">Xưởng phụ trách</th>
                                         <th style="width: 140px;">Số lượng</th>
                                         <th style="width: 180px;">Bắt đầu</th>
@@ -209,6 +209,7 @@ $selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
                                         <tr data-assignment-row>
                                             <td>
                                                 <input type="hidden" name="component_assignments[<?= $index ?>][component_id]" value="<?= htmlspecialchars($component['id'] ?? '') ?>">
+                                                <input type="hidden" name="component_assignments[<?= $index ?>][configuration_id]" value="<?= htmlspecialchars($component['configuration_id'] ?? '') ?>">
                                                 <input type="text" name="component_assignments[<?= $index ?>][label]" class="form-control" value="<?= htmlspecialchars($component['label'] ?? 'Hạng mục sản xuất') ?>" required>
                                             </td>
                                             <td>

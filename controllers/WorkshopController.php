@@ -131,8 +131,11 @@ class WorkshopController extends Controller
 
         $plans = $this->workshopPlanModel->getDashboardPlans($selectedWorkshop);
 
-        $componentIds = array_values(array_filter(array_map(fn ($plan) => $plan['IdCongDoan'] ?? null, $plans)));
-        $materialsByComponent = $this->componentMaterialModel->getMaterialsForComponents($componentIds);
+        $configurationIds = array_values(array_filter(array_map(
+            fn ($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
+            $plans
+        )));
+        $materialsByComponent = $this->componentMaterialModel->getMaterialsForComponents($configurationIds);
 
         $materialIds = [];
         foreach ($materialsByComponent as $materials) {
@@ -163,12 +166,12 @@ class WorkshopController extends Controller
         foreach ($plans as $plan) {
             $planId = $plan['IdKeHoachSanXuatXuong'];
             $workshopId = $plan['IdXuong'];
-            $componentId = $plan['IdCongDoan'] ?? null;
+            $configurationId = $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null;
             $planMaterials = [];
             $hasShortage = false;
 
-            if ($componentId && isset($materialsByComponent[$componentId])) {
-                foreach ($materialsByComponent[$componentId] as $material) {
+            if ($configurationId && isset($materialsByComponent[$configurationId])) {
+                foreach ($materialsByComponent[$configurationId] as $material) {
                     $materialId = $material['id'];
                     $ratio = is_numeric($material['quantity_per_unit'] ?? null) ? (float) $material['quantity_per_unit'] : 1.0;
                     $required = (int) round(((int) ($plan['SoLuong'] ?? 0)) * $ratio);

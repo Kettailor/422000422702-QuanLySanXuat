@@ -2,21 +2,21 @@
 
 class ProductComponentMaterial extends BaseModel
 {
-    protected string $table = 'cong_doan_nguyen_lieu';
-    protected string $primaryKey = 'IdCongDoanNguyenLieu';
+    protected string $table = 'cau_hinh_nguyen_lieu';
+    protected string $primaryKey = 'IdCauHinhNguyenLieu';
 
-    public function getRawByComponent(string $componentId): array
+    public function getRawByComponent(string $configurationId): array
     {
-        $sql = "SELECT * FROM {$this->table} WHERE IdCongDoan = :componentId ORDER BY IdCongDoanNguyenLieu";
+        $sql = "SELECT * FROM {$this->table} WHERE IdCauHinh = :configurationId ORDER BY IdCauHinhNguyenLieu";
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':componentId', $componentId);
+        $stmt->bindValue(':configurationId', $configurationId);
         $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    public function getMaterialsForComponent(string $componentId): array
+    public function getMaterialsForComponent(string $configurationId): array
     {
-        $rows = $this->getRawByComponent($componentId);
+        $rows = $this->getRawByComponent($configurationId);
 
         if (empty($rows)) {
             return [];
@@ -36,19 +36,19 @@ class ProductComponentMaterial extends BaseModel
         }, $rows);
     }
 
-    public function getMaterialsForComponents(array $componentIds): array
+    public function getMaterialsForComponents(array $configurationIds): array
     {
-        $componentIds = array_values(array_filter(array_unique($componentIds)));
-        if (empty($componentIds)) {
+        $configurationIds = array_values(array_filter(array_unique($configurationIds)));
+        if (empty($configurationIds)) {
             return [];
         }
 
-        $placeholders = implode(', ', array_fill(0, count($componentIds), '?'));
-        $sql = "SELECT * FROM {$this->table} WHERE IdCongDoan IN ({$placeholders}) ORDER BY IdCongDoan, IdCongDoanNguyenLieu";
+        $placeholders = implode(', ', array_fill(0, count($configurationIds), '?'));
+        $sql = "SELECT * FROM {$this->table} WHERE IdCauHinh IN ({$placeholders}) ORDER BY IdCauHinh, IdCauHinhNguyenLieu";
         $stmt = $this->db->prepare($sql);
 
-        foreach ($componentIds as $index => $componentId) {
-            $stmt->bindValue($index + 1, $componentId);
+        foreach ($configurationIds as $index => $configurationId) {
+            $stmt->bindValue($index + 1, $configurationId);
         }
 
         $stmt->execute();
@@ -56,10 +56,10 @@ class ProductComponentMaterial extends BaseModel
 
         $grouped = [];
         foreach ($rows as $row) {
-            $componentId = $row['IdCongDoan'];
+            $configurationId = $row['IdCauHinh'];
             $ratio = $row['TyLeSoLuong'] ?? null;
             $standard = $row['DinhMuc'] ?? null;
-            $grouped[$componentId][] = [
+            $grouped[$configurationId][] = [
                 'id' => $row['IdNguyenLieu'],
                 'quantity_per_unit' => $ratio !== null ? $ratio : ($standard ?? 1),
                 'standard_quantity' => $standard,
