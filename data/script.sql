@@ -562,6 +562,102 @@ INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `Trang
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `san_pham_cong_doan`
+--
+
+DROP TABLE IF EXISTS `san_pham_cong_doan`;
+
+CREATE TABLE `san_pham_cong_doan` (
+  `IdCongDoan` varchar(50) NOT NULL,
+  `IdSanPham` varchar(50) DEFAULT NULL,
+  `TenCongDoan` varchar(255) DEFAULT NULL,
+  `TyLeSoLuong` float DEFAULT 1,
+  `DonVi` varchar(50) DEFAULT NULL,
+  `IdXuong` varchar(50) DEFAULT NULL,
+  `TrangThaiMacDinh` varchar(255) DEFAULT NULL,
+  `LogisticsKey` varchar(50) DEFAULT NULL,
+  `LogisticsLabel` varchar(255) DEFAULT NULL,
+  `IncludeYeuCau` tinyint(1) DEFAULT 0,
+  `ThuTu` int(11) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `san_pham_cong_doan`
+--
+
+INSERT INTO `san_pham_cong_doan` (`IdCongDoan`, `IdSanPham`, `TenCongDoan`, `TyLeSoLuong`, `DonVi`, `IdXuong`, `TrangThaiMacDinh`, `LogisticsKey`, `LogisticsLabel`, `IncludeYeuCau`, `ThuTu`) VALUES
+('CDKB87FILM', 'SPKB87', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
+('CDKB87CASE', 'SPKB87', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
+('CDKB87PCB', 'SPKB87', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
+('CDKB87PACK', 'SPKB87', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
+('CDKB108FILM', 'SPKB108', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
+('CDKB108CASE', 'SPKB108', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
+('CDKB108PCB', 'SPKB108', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
+('CDKB108PACK', 'SPKB108', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
+('CDKBCUSTOMFILM', 'SPKBCUSTOM', 'Dập phim tiêu âm', 54, 'tấm phim', 'XU001', 'Đang chờ xưởng xác nhận', 'film', 'Phim tiêu âm', 0, 1),
+('CDKBCUSTOMCASE', 'SPKBCUSTOM', 'Gia công vỏ & plate', 1, 'bộ vỏ', 'XU001', 'Đang chờ xưởng xác nhận', 'case', 'Vỏ & plate', 0, 2),
+('CDKBCUSTOMPCB', 'SPKBCUSTOM', 'Lắp ráp main/PCB', 1, 'bo mạch', 'XU001', 'Đang chờ xưởng xác nhận', 'pcb', 'Mainboard', 0, 3),
+('CDKBCUSTOMPACK', 'SPKBCUSTOM', 'QA & đóng gói bàn phím', 1, 'bộ', 'XU002', 'Đang chờ xưởng xác nhận', 'packaging', 'Đóng gói', 1, 4),
+('CDKEYCAPMOLD', 'SPCOMP01', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1),
+('CDKEYCAPMOLD02', 'SPCOMP02', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1),
+('CDKEYCAPMOLD03', 'SPCOMP03', 'Ép phím theo yêu cầu', 1, 'phím', 'XU001', 'Đang chờ xưởng xác nhận', 'keycap', 'Ép keycap', 0, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `cong_doan_nguyen_lieu`
+--
+
+DROP TABLE IF EXISTS `cong_doan_nguyen_lieu`;
+
+CREATE TABLE `cong_doan_nguyen_lieu` (
+  `IdCongDoanNguyenLieu` varchar(50) NOT NULL,
+  `IdCongDoan` varchar(50) NOT NULL,
+  `IdNguyenLieu` varchar(50) NOT NULL,
+  `TyLeSoLuong` float DEFAULT 1,
+  `Nhan` varchar(255) DEFAULT NULL,
+  `DonVi` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `cong_doan_nguyen_lieu`
+--
+
+INSERT INTO `cong_doan_nguyen_lieu` (`IdCongDoanNguyenLieu`, `IdCongDoan`, `IdNguyenLieu`, `TyLeSoLuong`, `Nhan`, `DonVi`) VALUES
+('CDMLKBPCB', 'CDKB87PCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
+('CDMLKBPCB108', 'CDKB108PCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
+('CDMLKBCPCB', 'CDKBCUSTOMPCB', 'NL002', 1, 'PCB SV5TOT R3', 'PCB'),
+('CDMLKEYCAP01', 'CDKEYCAPMOLD', 'NL003', 1, 'Keycap PBT Glacier', 'keycap'),
+('CDMLKEYCAP02', 'CDKEYCAPMOLD02', 'NL003', 1, 'Keycap PBT Glacier', 'keycap'),
+('CDMLKEYCAP03', 'CDKEYCAPMOLD03', 'NL003', 1, 'Keycap PBT Glacier', 'keycap');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `cau_hinh_thong_bao`
+--
+
+DROP TABLE IF EXISTS `cau_hinh_thong_bao`;
+
+CREATE TABLE `cau_hinh_thong_bao` (
+  `MaCauHinh` varchar(100) NOT NULL,
+  `GiaTri` text DEFAULT NULL,
+  `MoTa` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`MaCauHinh`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `cau_hinh_thong_bao`
+--
+
+INSERT INTO `cau_hinh_thong_bao` (`MaCauHinh`, `GiaTri`, `MoTa`) VALUES
+('workshop_channel', 'workshop', 'Kênh thông báo đẩy tới xưởng'),
+('warehouse_channel', 'warehouse', 'Kênh thông báo đẩy tới kho vận'),
+('warehouse_recipients', '["VT_NHANVIEN_KHO","VT_DOI_TAC_VAN_TAI"]', 'Các vai trò nhận thông báo kho vận');
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `nhan_vien`
 --
 
@@ -831,6 +927,21 @@ ALTER TABLE `cau_hinh_san_pham`
   ADD KEY `FKCAU_HINH_SANPHAM` (`IdSanPham`);
 
 --
+-- Chỉ mục cho bảng `cong_doan_nguyen_lieu`
+--
+ALTER TABLE `cong_doan_nguyen_lieu`
+  ADD PRIMARY KEY (`IdCongDoanNguyenLieu`),
+  ADD KEY `FKCDNL_CONG_DOAN` (`IdCongDoan`),
+  ADD KEY `FKCDNL_NGUYEN_LIEU` (`IdNguyenLieu`);
+
+--
+-- Chỉ mục cho bảng `san_pham_cong_doan`
+--
+ALTER TABLE `san_pham_cong_doan`
+  ADD PRIMARY KEY (`IdCongDoan`),
+  ADD KEY `FKSPCD_SANPHAM` (`IdSanPham`);
+
+--
 -- Chỉ mục cho bảng `bang_luong`
 --
 ALTER TABLE `bang_luong`
@@ -1084,6 +1195,19 @@ ALTER TABLE `chi_tiet_ke_hoach_san_xuat_xuong`
 --
 ALTER TABLE `cau_hinh_san_pham`
   ADD CONSTRAINT `FKCAU_HINH_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`);
+
+--
+-- Các ràng buộc cho bảng `cong_doan_nguyen_lieu`
+--
+ALTER TABLE `cong_doan_nguyen_lieu`
+  ADD CONSTRAINT `FKCDNL_CONG_DOAN` FOREIGN KEY (`IdCongDoan`) REFERENCES `san_pham_cong_doan` (`IdCongDoan`),
+  ADD CONSTRAINT `FKCDNL_NGUYEN_LIEU` FOREIGN KEY (`IdNguyenLieu`) REFERENCES `nguyen_lieu` (`IdNguyenLieu`);
+
+--
+-- Các ràng buộc cho bảng `san_pham_cong_doan`
+--
+ALTER TABLE `san_pham_cong_doan`
+  ADD CONSTRAINT `FKSPCD_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`);
 
 --
 -- Các ràng buộc cho bảng `ct_don_hang`
