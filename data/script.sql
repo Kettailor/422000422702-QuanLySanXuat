@@ -1049,7 +1049,6 @@ ALTER TABLE `cau_hinh_nguyen_lieu`
 -- Chỉ mục cho bảng `xuong_cau_hinh_san_pham`
 --
 ALTER TABLE `xuong_cau_hinh_san_pham`
-  ADD PRIMARY KEY (`IdPhanCong`),
   ADD KEY `FKXCHSP_SANPHAM` (`IdSanPham`),
   ADD KEY `FKXCHSP_CAU_HINH` (`IdCauHinh`),
   ADD KEY `FKXCHSP_XUONG` (`IdXuong`);
