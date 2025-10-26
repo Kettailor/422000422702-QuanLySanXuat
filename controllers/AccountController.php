@@ -180,7 +180,7 @@ class AccountController extends Controller
     {
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
-        $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-7 days'));
+        $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-6 days'));
         $endDate = $_GET['end_date'] ?? date('Y-m-d');
 
         $logs = Logger::getLog($page, $limit);
@@ -189,7 +189,11 @@ class AccountController extends Controller
         $this->render('account/audit_log', [
             'title' => 'Nhật ký hoạt động',
             'logs' => $logs,
-            'loginLogs' => $loginLogs,
+            'loginLogs' => [
+              'data' => $loginLogs,
+              'start_date' => $startDate,
+              'end_date' => $endDate,
+            ],
         ]);
     }
 }

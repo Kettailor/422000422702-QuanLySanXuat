@@ -81,13 +81,13 @@
       <label for="start_date" class="col-form-label">Từ ngày:</label>
     </div>
     <div class="col-auto">
-      <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo isset($_GET['start_date']) ? htmlspecialchars($_GET['start_date']) : ''; ?>">
+      <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $loginLogs['start_date']; ?>">
     </div>
     <div class="col-auto">
       <label for="end_date" class="col-form-label">Đến ngày:</label>
     </div>
     <div class="col-auto">
-      <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo isset($_GET['end_date']) ? htmlspecialchars($_GET['end_date']) : ''; ?>">
+      <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $loginLogs['end_date'] ; ?>">
     </div>
     <div class="col-auto">
       <button type="submit" class="btn btn-primary">Lọc</button>
@@ -97,8 +97,8 @@
 </div>
 <?php
 $loginCounts = [];
-      if (!empty($loginLogs) && is_array($loginLogs)) {
-          foreach ($loginLogs as $log) {
+      if (!empty($loginLogs['data']) && is_array($loginLogs['data'])) {
+          foreach ($loginLogs['data'] as $log) {
               $day = $log['day'];
               if (!isset($loginCounts[$day])) {
                   $loginCounts[$day] = 0;
