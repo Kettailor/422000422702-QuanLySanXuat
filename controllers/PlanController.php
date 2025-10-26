@@ -112,7 +112,7 @@ class PlanController extends Controller
             'ThoiGianBD' => $startTime,
             'ThoiGianKetThuc' => $endTime,
             'TrangThai' => $status,
-            '`BANGIAMDOC IdNhanVien`' => $actorId,
+            '`IdNguoiLap`' => $actorId,
         ];
 
         $assignmentsInput = $_POST['component_assignments'] ?? [];
