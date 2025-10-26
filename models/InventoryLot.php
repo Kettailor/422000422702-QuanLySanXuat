@@ -43,4 +43,71 @@ class InventoryLot extends BaseModel
 
         return $stmt->fetchAll();
     }
+
+    public function createLot(array $data): bool
+    {
+        $payload = $this->sanitizeLotPayload($data, true);
+
+        return $this->create($payload);
+    }
+
+    public function generateLotId(?string $prefix = null): string
+    {
+        $prefix = $prefix ?: 'LO';
+
+        return $prefix . date('YmdHis');
+    }
+
+    private function sanitizeLotPayload(array $data, bool $includeId = false): array
+    {
+        $fields = [
+            'IdLo',
+            'TenLo',
+            'SoLuong',
+            'NgayTao',
+            'LoaiLo',
+            'IdSanPham',
+            'IdKho',
+        ];
+
+        $payload = [];
+
+        foreach ($fields as $field) {
+            if (!$includeId && $field === 'IdLo') {
+                continue;
+            }
+
+            if (!array_key_exists($field, $data)) {
+                continue;
+            }
+
+            $value = $data[$field];
+
+            if (is_string($value)) {
+                $value = trim($value);
+            }
+
+            if ($value === '') {
+                $value = null;
+            }
+
+            if ($field === 'SoLuong' && $value !== null) {
+                $value = max(0, (int) $value);
+            }
+
+            if ($field === 'NgayTao' && $value === null) {
+                $value = date('Y-m-d H:i:s');
+            }
+
+            if ($value !== null) {
+                $payload[$field] = $value;
+            }
+        }
+
+        if (!isset($payload['NgayTao'])) {
+            $payload['NgayTao'] = date('Y-m-d H:i:s');
+        }
+
+        return $payload;
+    }
 }

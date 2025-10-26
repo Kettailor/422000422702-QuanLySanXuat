@@ -5,7 +5,31 @@ $documentGroups = $documentGroups ?? [];
 $warehouseGroups = $warehouseGroups ?? [];
 $warehouseEntryForms = $warehouseEntryForms ?? [];
 $employees = $employees ?? [];
+$productOptionsByType = $productOptionsByType ?? [];
 $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
+$lotMeta = [
+    'material' => [
+        'title' => 'Thông tin lô nguyên liệu',
+        'description' => 'Ghi nhận chi tiết lô nguyên liệu mới nhập kho, số lượng và đơn vị tính.',
+    ],
+    'finished' => [
+        'title' => 'Thông tin lô thành phẩm',
+        'description' => 'Nhập thông tin thành phẩm hoàn thiện được đưa vào kho xuất bán.',
+    ],
+    'quality' => [
+        'title' => 'Thông tin lô xử lý lỗi',
+        'description' => 'Ghi lại lô sản phẩm lỗi cần xử lý và theo dõi riêng.',
+    ],
+];
+$lotMetaDefault = [
+    'title' => 'Thông tin lô nhập kho',
+    'description' => 'Điền thông tin lô hàng chuẩn bị nhập kho.',
+];
+$lotPrefixMap = [
+    'material' => 'LONL',
+    'finished' => 'LOTP',
+    'quality' => 'LOXL',
+];
 ?>
 
 <style>
@@ -135,7 +159,7 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
             <?php $group = $warehouseGroups[$typeKey] ?? ['label' => $typeSummary['label'] ?? '', 'description' => '', 'warehouses' => [], 'statistics' => $typeSummary]; ?>
             <?php $form = $warehouseEntryForms[$typeKey] ?? null; ?>
             <?php $hasWarehouses = !empty($group['warehouses']); ?>
-            <?php $canCreateDocument = $form && $hasWarehouses && !empty($employees); ?>
+            <?php $canCreateDocument = $form && $hasWarehouses; ?>
             <div class="col-xl-4 col-md-6">
                 <div class="card h-100 border-0 shadow-sm warehouse-stats-card">
                     <div class="card-body d-flex flex-column">
@@ -147,7 +171,7 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                                 <?php endif; ?>
                             </div>
                             <?php if ($form): ?>
-                                <button type="button" class="btn btn-sm btn-outline-primary<?= $canCreateDocument ? '' : ' disabled' ?>" <?php if ($canCreateDocument): ?>data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>"<?php endif; ?>>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>">
                                     <i class="bi bi-plus-lg me-1"></i><?= htmlspecialchars($form['submit_label']) ?>
                                 </button>
                             <?php endif; ?>
@@ -174,11 +198,7 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                         </div>
                         <?php if ($form && !$canCreateDocument): ?>
                             <div class="alert alert-warning mt-3 py-2 px-3 small mb-0">
-                                <?php if (!$hasWarehouses): ?>
-                                    Chưa có kho thuộc nhóm này để lập phiếu.
-                                <?php elseif (empty($employees)): ?>
-                                    Cần có nhân viên kho hoạt động để lập phiếu.
-                                <?php endif; ?>
+                                Chưa có kho thuộc nhóm này để lập phiếu.
                             </div>
                         <?php endif; ?>
                     </div>
@@ -190,6 +210,11 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
 
 <?php foreach ($warehouseGroups as $typeKey => $group): ?>
     <?php $form = $warehouseEntryForms[$typeKey] ?? null; ?>
+    <?php $formUi = $form['ui'] ?? []; ?>
+    <?php $optionsForType = $productOptionsByType[$typeKey] ?? []; ?>
+    <?php $productOptionsJson = htmlspecialchars(json_encode($optionsForType, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8'); ?>
+    <?php $lotInfo = $lotMeta[$typeKey] ?? $lotMetaDefault; ?>
+    <?php $lotPrefix = $lotPrefixMap[$typeKey] ?? 'LONL'; ?>
     <section class="warehouse-section" id="warehouse-group-<?= htmlspecialchars($typeKey) ?>">
         <div class="section-header d-flex justify-content-between align-items-start mb-3">
             <div>
@@ -199,9 +224,7 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                 <?php endif; ?>
             </div>
             <?php if ($form): ?>
-                <?php $hasWarehouses = !empty($group['warehouses']); ?>
-                <?php $canCreateDocument = $hasWarehouses && !empty($employees); ?>
-                <button type="button" class="btn btn-success<?= $canCreateDocument ? '' : ' disabled' ?>" <?php if ($canCreateDocument): ?>data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>"<?php endif; ?>>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>">
                     <i class="bi bi-plus-lg me-2"></i><?= htmlspecialchars($form['submit_label']) ?>
                 </button>
             <?php endif; ?>
@@ -287,7 +310,7 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
     </section>
 
     <?php if ($form): ?>
-        <?php $formDisabled = empty($group['warehouses']) || empty($employees); ?>
+        <?php $formDisabled = empty($group['warehouses']); ?>
         <?php $defaultDate = date('Y-m-d'); ?>
         <?php $firstWarehouseId = $group['warehouses'][0]['IdKho'] ?? ''; ?>
         <div class="modal fade" id="warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" tabindex="-1" aria-hidden="true" data-warehouse-entry-modal data-entry-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>">
@@ -304,15 +327,14 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
 
                         <?php if ($formDisabled): ?>
                             <div class="alert alert-warning mb-0">
-                                <?php if (empty($group['warehouses'])): ?>
-                                    Hiện chưa có kho nào trong nhóm này. Vui lòng thêm kho trước khi lập phiếu.
-                                <?php elseif (empty($employees)): ?>
-                                    Chưa có nhân viên kho hoạt động để lập phiếu nhập.
-                                <?php endif; ?>
+                                Hiện chưa có kho nào trong nhóm này. Vui lòng thêm kho trước khi lập phiếu.
                             </div>
                         <?php else: ?>
-                            <form method="post" action="?controller=warehouse_sheet&action=store" class="row g-3" data-warehouse-entry-form>
+                            <form method="post" action="?controller=warehouse_sheet&action=store" class="row g-4" data-warehouse-entry-form data-products='<?= $productOptionsJson ?>' data-lot-prefix='<?= htmlspecialchars($lotPrefix) ?>'>
+                                <input type="hidden" name="quick_entry" value="1">
                                 <input type="hidden" name="LoaiPhieu" value="<?= htmlspecialchars($form['document_type']) ?>">
+                                <input type="hidden" name="redirect" value="?controller=warehouse&action=index">
+                                <input type="hidden" name="WarehouseType" value="<?= htmlspecialchars($typeKey) ?>">
                                 <div class="col-md-6">
                                     <label class="form-label">Loại phiếu</label>
                                     <input type="text" class="form-control" value="<?= htmlspecialchars($form['document_type']) ?>" readonly>
@@ -350,24 +372,76 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                                 <div class="col-md-6">
                                     <label class="form-label">Người lập phiếu <span class="text-danger">*</span></label>
                                     <select name="NguoiLap" class="form-select" required>
-                                        <option value="" disabled selected>-- Chọn nhân viên --</option>
-                                        <?php foreach ($employees as $employee): ?>
-                                            <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
-                                                <?= htmlspecialchars($employee['HoTen']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
+                                        <?php if (!empty($employees)): ?>
+                                            <option value="" disabled selected>-- Chọn nhân viên --</option>
+                                            <?php foreach ($employees as $employee): ?>
+                                                <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
+                                                    <?= htmlspecialchars($employee['HoTen']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <option value="" disabled selected>Chưa có nhân viên khả dụng</option>
+                                        <?php endif; ?>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Người xác nhận</label>
                                     <select name="NguoiXacNhan" class="form-select">
-                                        <option value="">-- Chọn nhân viên --</option>
-                                        <?php foreach ($employees as $employee): ?>
-                                            <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
-                                                <?= htmlspecialchars($employee['HoTen']) ?>
+                                        <?php if (!empty($employees)): ?>
+                                            <option value="">-- Chọn nhân viên --</option>
+                                            <?php foreach ($employees as $employee): ?>
+                                                <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
+                                                    <?= htmlspecialchars($employee['HoTen']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <option value="" selected>Chưa có nhân viên khả dụng</option>
+                                        <?php endif; ?>
+                                    </select>
+                                </div>
+                                <div class="col-12"><hr class="text-muted my-2"></div>
+                                <div class="col-12">
+                                    <h6 class="fw-semibold mb-1"><?= htmlspecialchars($lotInfo['title']) ?></h6>
+                                    <p class="text-muted small mb-3"><?= htmlspecialchars($lotInfo['description']) ?></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><?= htmlspecialchars($formUi['lot_code_label'] ?? 'Mã lô') ?> <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="text" name="Quick_IdLo" class="form-control" required data-field="IdLo" placeholder="VD: <?= htmlspecialchars($lotPrefix) ?>202312010930" data-prefix="<?= htmlspecialchars($lotPrefix) ?>">
+                                        <button type="button" class="btn btn-outline-secondary" data-action="regenerate-lot-id"><i class="bi bi-arrow-repeat me-1"></i>Tạo mã lô</button>
+                                    </div>
+                                    <div class="form-text"><?= htmlspecialchars($formUi['lot_code_hint'] ?? 'Mã lô sẽ tự sinh dựa trên loại kho khi mở biểu mẫu.') ?></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><?= htmlspecialchars($formUi['lot_name_label'] ?? 'Tên lô') ?> <span class="text-danger">*</span></label>
+                                    <input type="text" name="Quick_TenLo" class="form-control" required placeholder="<?= htmlspecialchars($formUi['lot_name_label'] ?? 'Tên lô nhập kho') ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><?= htmlspecialchars($formUi['product_label'] ?? 'Sản phẩm/nguyên liệu') ?> <span class="text-danger">*</span></label>
+                                    <select name="Quick_IdSanPham" class="form-select" required data-field="Product">
+                                        <option value="">-- <?= htmlspecialchars($formUi['product_placeholder'] ?? 'Chọn mặt hàng cần nhập') ?> --</option>
+                                        <?php foreach ($optionsForType as $product): ?>
+                                            <option value="<?= htmlspecialchars($product['id']) ?>" data-unit="<?= htmlspecialchars($product['unit']) ?>">
+                                                <?= htmlspecialchars($product['name']) ?> (<?= htmlspecialchars($product['id']) ?>)
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
+                                    <?php if (empty($optionsForType)): ?>
+                                        <div class="form-text text-danger">Chưa có danh mục phù hợp, vui lòng thêm sản phẩm trước khi nhập kho.</div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Đơn vị tính</label>
+                                    <input type="text" name="Quick_DonViTinh" class="form-control" placeholder="<?= htmlspecialchars($formUi['unit_hint'] ?? 'Tự động theo sản phẩm') ?>" data-field="ProductUnit" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><?= htmlspecialchars($formUi['quantity_label'] ?? 'Số lượng dự kiến') ?> <span class="text-danger">*</span></label>
+                                    <input type="number" name="Quick_SoLuong" class="form-control" min="1" required data-field="Quantity" placeholder="Nhập số lượng theo đơn vị">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><?= htmlspecialchars($formUi['received_label'] ?? 'Số lượng thực nhận') ?></label>
+                                    <input type="number" name="Quick_ThucNhan" class="form-control" min="0" data-field="ReceivedQuantity" placeholder="Mặc định theo số lượng dự kiến">
+                                    <div class="form-text">Giữ trống để hệ thống tự dùng số lượng dự kiến.</div>
                                 </div>
                                 <div class="col-12 d-flex justify-content-end">
                                     <button type="submit" class="btn btn-success">
@@ -440,6 +514,48 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
             var prefix = idInput ? (idInput.dataset.prefix || modalEl.getAttribute('data-entry-prefix') || 'PN') : (modalEl.getAttribute('data-entry-prefix') || 'PN');
             var regenerateButton = form.querySelector('[data-action="regenerate-id"]');
 
+            var lotInput = form.querySelector('[data-field="IdLo"]');
+            var lotPrefix = lotInput ? (lotInput.dataset.prefix || form.getAttribute('data-lot-prefix') || 'LO') : (form.getAttribute('data-lot-prefix') || 'LO');
+            var regenerateLotButton = form.querySelector('[data-action="regenerate-lot-id"]');
+
+            var productMap = {};
+            try {
+                var productData = JSON.parse(form.getAttribute('data-products') || '[]');
+                productData.forEach(function (product) {
+                    if (product && product.id) {
+                        productMap[product.id] = product;
+                    }
+                });
+            } catch (error) {
+                productMap = {};
+            }
+
+            var productSelect = form.querySelector('[data-field="Product"]');
+            var productUnitInput = form.querySelector('[data-field="ProductUnit"]');
+
+            var updateProductUnit = function () {
+                if (!productSelect || !productUnitInput) {
+                    return;
+                }
+
+                var selectedOption = productSelect.options[productSelect.selectedIndex] || null;
+                var unit = '';
+
+                if (selectedOption && selectedOption.dataset.unit) {
+                    unit = selectedOption.dataset.unit;
+                }
+
+                if (!unit && productMap[productSelect.value]) {
+                    unit = productMap[productSelect.value].unit || '';
+                }
+
+                productUnitInput.value = unit;
+            };
+
+            if (productSelect) {
+                productSelect.addEventListener('change', updateProductUnit);
+            }
+
             var buildId = function (pre) {
                 var now = new Date();
                 var pad = function (value) {
@@ -464,13 +580,39 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                 idInput.value = buildId(prefix);
             };
 
-            modalEl.addEventListener('show.bs.modal', function () {
-                updateId();
-            });
+            var buildLotId = function (pre) {
+                var now = new Date();
+                var pad = function (value) {
+                    return value.toString().padStart(2, '0');
+                };
+
+                return [
+                    pre,
+                    now.getFullYear(),
+                    pad(now.getMonth() + 1),
+                    pad(now.getDate()),
+                    pad(now.getHours()),
+                    pad(now.getMinutes()),
+                    pad(now.getSeconds())
+                ].join('');
+            };
+
+            var updateLotId = function () {
+                if (!lotInput) {
+                    return;
+                }
+                lotInput.value = buildLotId(lotPrefix);
+            };
 
             if (regenerateButton) {
                 regenerateButton.addEventListener('click', function () {
                     updateId();
+                });
+            }
+
+            if (regenerateLotButton) {
+                regenerateLotButton.addEventListener('click', function () {
+                    updateLotId();
                 });
             }
 
@@ -492,6 +634,36 @@ $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAP
                     confirmInput.dataset.synced = '0';
                 });
             }
+
+            var quantityInput = form.querySelector('[data-field="Quantity"]');
+            var receivedInput = form.querySelector('[data-field="ReceivedQuantity"]');
+            var syncReceivedQuantity = null;
+
+            if (quantityInput && receivedInput) {
+                syncReceivedQuantity = function () {
+                    if (!receivedInput.value || receivedInput.dataset.syncedQuantity === '1') {
+                        receivedInput.value = quantityInput.value;
+                        receivedInput.dataset.syncedQuantity = '1';
+                    }
+                };
+
+                quantityInput.addEventListener('input', syncReceivedQuantity);
+                receivedInput.addEventListener('input', function () {
+                    receivedInput.dataset.syncedQuantity = '0';
+                });
+
+                syncReceivedQuantity();
+            }
+
+            modalEl.addEventListener('show.bs.modal', function () {
+                updateId();
+                updateLotId();
+                if (syncReceivedQuantity) {
+                    receivedInput.dataset.syncedQuantity = '1';
+                    syncReceivedQuantity();
+                }
+                updateProductUnit();
+            });
         });
     });
 </script>
