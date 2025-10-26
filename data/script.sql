@@ -539,7 +539,11 @@ INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `IdSanPham`, 
 ('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02'),
 ('LOFOAM202310', 'Lô foam Poron 10/2023', 400, '2023-10-08 09:15:00', 'Linh kiện', 'SPCOMP04', 'KHO01'),
 ('LOTAPE202310', 'Lô băng keo 3M 10/2023', 350, '2023-10-08 09:20:00', 'Linh kiện', 'SPCOMP05', 'KHO01'),
-('LOBADGE202311', 'Lô badge TechHub 11/2023', 300, '2023-11-05 09:25:00', 'Linh kiện', 'SPCOMP06', 'KHO01');
+('LOBADGE202311', 'Lô badge TechHub 11/2023', 300, '2023-11-05 09:25:00', 'Linh kiện', 'SPCOMP06', 'KHO01'),
+('LOCASE202309', 'Lô vỏ CNC anodized 09/2023', 420, '2023-09-15 08:10:00', 'Linh kiện', 'SPCOMP07', 'KHO01'),
+('LOFOAM202308', 'Lô foam Poron 08/2023', 520, '2023-08-20 07:40:00', 'Linh kiện', 'SPCOMP04', 'KHO01'),
+('LOSW202307', 'Lô switch Lotus 07/2023', 900, '2023-07-10 09:00:00', 'Linh kiện', 'SPCOMP01', 'KHO01'),
+('LOPACK202311', 'Lô hộp đóng gói premium 11/2023', 550, '2023-11-18 08:45:00', 'Phụ kiện', 'SPCOMP08', 'KHO01');
 
 -- --------------------------------------------------------
 
@@ -858,7 +862,9 @@ INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VA
 ('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier'),
 ('SPCOMP04', 'Foam Poron 87%', 'Bộ', 120000, 'Foam Poron 3 lớp cho layout 87%'),
 ('SPCOMP05', 'Băng keo 3M 9495LE', 'Cuộn', 90000, 'Băng keo 3M 9495LE cho tape mod plate'),
-('SPCOMP06', 'Badge TechHub đồng', 'Chiếc', 150000, 'Badge đồng khắc laser logo TechHub');
+('SPCOMP06', 'Badge TechHub đồng', 'Chiếc', 150000, 'Badge đồng khắc laser logo TechHub'),
+('SPCOMP07', 'Vỏ CNC anodized', 'Bộ', 820000, 'Bộ vỏ nhôm CNC anodized dành cho dòng SV5TOT'),
+('SPCOMP08', 'Hộp đóng gói premium', 'Bộ', 90000, 'Bộ hộp đóng gói premium in thương hiệu TechHub');
 
 -- --------------------------------------------------------
 
