@@ -56,7 +56,8 @@ $period = $period ?? date('Y-m');
                 <li>Thuế TNCN mặc định = Tổng thu nhập × 10%</li>
             </ul>
         </div>
-        <div class="text-end mt-3">
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <a href="?controller=salary&action=wizardCompensation" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
             <button type="submit" class="btn btn-primary px-4">Đồng ý</button>
         </div>
     </div>

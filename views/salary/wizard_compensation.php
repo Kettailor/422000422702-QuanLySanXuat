@@ -88,7 +88,8 @@ $period = $period ?? date('Y-m');
                 <div class="fw-semibold mb-1">Công thức tính</div>
                 <div class="small mb-0">Số tiền lương = Lương cơ bản + (Đơn giá ngày công × Số ngày công) + Phụ cấp + Thưởng.</div>
             </div>
-            <div class="text-end mt-3">
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <a href="?controller=salary&action=wizardAttendance" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
                 <button type="submit" class="btn btn-primary px-4">Đồng ý</button>
             </div>
         <?php endif; ?>

@@ -2,11 +2,38 @@
 
 class Salary extends BaseModel
 {
+    private static bool $dailyRateColumnChecked = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->ensureDailyRateColumn();
+    }
+
     public const ACCOUNTANT_COLUMN = 'KETOAN IdNhanVien2';
     public const EMPLOYEE_COLUMN = 'NHAN_VIENIdNhanVien';
 
     protected string $table = 'bang_luong';
     protected string $primaryKey = 'IdBangLuong';
+
+    private function ensureDailyRateColumn(): void
+    {
+        if (self::$dailyRateColumnChecked) {
+            return;
+        }
+
+        try {
+            $stmt = $this->db->query("SHOW COLUMNS FROM `bang_luong` LIKE 'DonGiaNgayCong'");
+            $columnExists = $stmt->fetch();
+            if (!$columnExists) {
+                $this->db->exec("ALTER TABLE `bang_luong` ADD COLUMN `DonGiaNgayCong` FLOAT NULL DEFAULT NULL AFTER `PhuCap`");
+            }
+        } catch (Throwable $exception) {
+            // Ignore schema adjustments if the database user does not have permission.
+        }
+
+        self::$dailyRateColumnChecked = true;
+    }
 
     public static function calculateFigures(array $payroll): array
     {
