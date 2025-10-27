@@ -26,10 +26,12 @@ class AuthController extends Controller
                     'TenVaiTro' => $role['TenVaiTro'] ?? null,
                 ]);
                 $this->setFlash('success', 'Đăng nhập thành công.');
+                Logger::login($username);
                 $this->redirect('?controller=dashboard&action=index');
                 return;
             }
 
+            Logger::warn("Thất bại đăng nhập cho tên đăng nhập: $username");
             $this->setFlash('danger', 'Tên đăng nhập hoặc mật khẩu không chính xác.');
         }
 

@@ -84,7 +84,9 @@ class WarehouseController extends Controller
             $this->warehouseModel->createWarehouse($_POST);
             $this->setFlash('success', 'Đã thêm kho mới.');
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể thêm kho: ' . $e->getMessage());
+            Logger::error('Lỗi khi thêm kho: ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể thêm kho: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể thêm kho: Đã xảy ra lỗi, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=warehouse&action=index');
@@ -134,7 +136,9 @@ class WarehouseController extends Controller
             $this->warehouseModel->updateWarehouse($id, $_POST);
             $this->setFlash('success', 'Cập nhật kho thành công.');
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể cập nhật kho: ' . $e->getMessage());
+            Logger::error('Lỗi khi cập nhật kho ' . $id . ': ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể cập nhật kho: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể cập nhật kho, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
         $this->redirect('?controller=warehouse&action=index');
@@ -154,16 +158,15 @@ class WarehouseController extends Controller
         }
 
         try {
-            if ($this->warehouseModel->delete($id)) {
-                $this->setFlash('success', 'Đã xóa kho.');
-            } else {
-                $this->setFlash('warning', 'Kho đã được xóa hoặc không tồn tại.');
-            }
+            $this->warehouseModel->delete($id);
+            $this->setFlash('success', 'Đã xóa kho.');
+            $this->redirect('?controller=warehouse&action=index');
         } catch (Throwable $e) {
-            $this->setFlash('danger', 'Không thể xóa kho: ' . $e->getMessage());
+            Logger::error('Lỗi khi xóa kho ' . $id . ': ' . $e->getMessage());
+            /* $this->setFlash('danger', 'Không thể xóa kho: ' . $e->getMessage()); */
+            $this->setFlash('danger', 'Không thể xóa kho, vui lòng kiểm tra log để biết thêm chi tiết.');
         }
 
-        $this->redirect('?controller=warehouse&action=index');
     }
 
     private function buildDocumentGroups(array $documents): array

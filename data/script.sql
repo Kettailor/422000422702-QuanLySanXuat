@@ -636,8 +636,7 @@ CREATE TABLE `xuong_cau_hinh_san_pham` (
   `LogisticsKey` varchar(50) DEFAULT NULL,
   `LogisticsLabel` varchar(255) DEFAULT NULL,
   `IncludeYeuCau` tinyint(1) DEFAULT 0,
-  `ThuTu` int(11) DEFAULT 0,
-  PRIMARY KEY (`IdPhanCong`)
+  `ThuTu` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -677,8 +676,7 @@ CREATE TABLE `cau_hinh_nguyen_lieu` (
   `TyLeSoLuong` float DEFAULT 1,
   `DinhMuc` float DEFAULT NULL,
   `Nhan` varchar(255) DEFAULT NULL,
-  `DonVi` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`IdCauHinhNguyenLieu`)
+  `DonVi` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -52,16 +52,22 @@ class AccountController extends Controller
                 $nextUserId = 'ND001';
             }
 
-            $this->userModel->create([
-              'IdNguoiDung' => $nextUserId,
-              'IdNhanVien' => $employeeId,
-              'TenDangNhap' => $username,
-              'IdVaiTro' => $roleId,
-              'MatKhau' => password_hash($_POST['password'], PASSWORD_BCRYPT),
-              'TrangThai' => 'Hoạt động',
-            ]);
-            $this->setFlash('success', 'Tạo tài khoản thành công.');
-            $this->redirect('?controller=account&action=index');
+            try {
+                $this->userModel->create([
+                  'IdNguoiDung' => $nextUserId,
+                  'IdNhanVien' => $employeeId,
+                  'TenDangNhap' => $username,
+                  'IdVaiTro' => $roleId,
+                  'MatKhau' => password_hash($_POST['password'], PASSWORD_BCRYPT),
+                  'TrangThai' => 'Hoạt động',
+                ]);
+                $this->setFlash('success', 'Tạo tài khoản thành công.');
+                $this->redirect('?controller=account&action=index');
+            } catch (Exception $e) {
+                Logger::error('Lỗi khi tạo tài khoản: ' . $e->getMessage());
+                $this->setFlash('danger', 'Không thể tạo tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->redirect('?controller=account&action=create');
+            }
         }
 
         $employees = $this->employeeModel->getUnassignedEmployees();
@@ -98,10 +104,17 @@ class AccountController extends Controller
                 $userData['MatKhau'] = password_hash($password, PASSWORD_BCRYPT);
             }
 
-            $this->userModel->update($id, $userData);
-            $this->setFlash('success', 'Cập nhật tài khoản thành công.');
-            $this->redirect('?controller=account&action=index');
+            try {
+                $this->userModel->update($id, $userData);
+                $this->setFlash('success', 'Cập nhật tài khoản thành công.');
+                $this->redirect('?controller=account&action=index');
+            } catch (Exception $e) {
+                Logger::error('Lỗi khi cập nhật tài khoản ' . $id . ': ' . $e->getMessage());
+                $this->setFlash('danger', 'Không thể cập nhật tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->redirect("?controller=account&action=edit&id=$id");
+            }
         }
+
 
         $user = $this->userModel->find($id);
         $roles = $this->roleModel->all();
@@ -113,13 +126,74 @@ class AccountController extends Controller
         ]);
     }
 
-    public function delete(): void
+    public function suspense(): void
     {
         $id = $_GET['id'] ?? null;
         if ($id) {
-            $this->userModel->delete($id);
+            $user = $this->userModel->find($id);
+            if ($user) {
+                $newStatus = ($user['TrangThai'] === 'Hoạt động') ? 'Tạm ngưng' : 'Hoạt động';
+
+                try {
+                    $this->userModel->update($id, ['TrangThai' => $newStatus]);
+                    $this->setFlash('success', 'Cập nhật trạng thái tài khoản thành công.');
+                } catch (Exception $e) {
+                    Logger::error('Lỗi khi cập nhật trạng thái tài khoản ' . $id . ': ' . $e->getMessage());
+                    $this->setFlash('danger', 'Không thể cập nhật trạng thái tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                }
+            }
         }
-        $this->setFlash('success', 'Xóa tài khoản thành công.');
         $this->redirect('?controller=account&action=index');
+    }
+
+    public function delete(): void
+    {
+        $id = $_GET['id'] ?? null;
+        if ($id == null) {
+            $this->setFlash('danger', 'ID tài khoản không hợp lệ.');
+            $this->redirect('?controller=account&action=index');
+        }
+
+        $user = $this->userModel->find($id);
+        if (!$user) {
+            $this->setFlash('danger', 'Tài khoản không tồn tại.');
+            $this->redirect('?controller=account&action=index');
+        }
+
+        if ($user['TrangThai'] === 'Hoạt động') {
+            $this->setFlash('danger', 'Chỉ có thể xóa tài khoản đang ở trạng thái Tạm ngưng.');
+            $this->redirect('?controller=account&action=index');
+        }
+
+        try {
+            $this->userModel->delete($id);
+            $this->setFlash('success', 'Xóa tài khoản thành công.');
+            $this->redirect('?controller=account&action=index');
+        } catch (Exception $e) {
+            Logger::error('Lỗi khi xóa tài khoản ' . $id . ': ' . $e->getMessage());
+            $this->setFlash('danger', 'Không thể xóa tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->redirect('?controller=account&action=index');
+        }
+    }
+
+    public function auditLog(): void
+    {
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-6 days'));
+        $endDate = $_GET['end_date'] ?? date('Y-m-d');
+
+        $logs = Logger::getLog($page, $limit);
+        $loginLogs = Logger::getLoginLog($startDate, $endDate);
+
+        $this->render('account/audit_log', [
+            'title' => 'Nhật ký hoạt động',
+            'logs' => $logs,
+            'loginLogs' => [
+              'data' => $loginLogs,
+              'start_date' => $startDate,
+              'end_date' => $endDate,
+            ],
+        ]);
     }
 }
