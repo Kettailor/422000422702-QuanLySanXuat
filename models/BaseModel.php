@@ -32,20 +32,28 @@ abstract class BaseModel
     public function create(array $data): bool
     {
         $columns = array_keys($data);
-        $columnString = implode(', ', $columns);
 
+        // Bảo vệ tên cột và bảng bằng quoteIdentifier()
+        $quotedColumns = [];
         $placeholders = [];
         $bindings = [];
 
         foreach ($columns as $index => $column) {
+            $quotedColumns[] = $this->quoteIdentifier($column);
             $placeholder = ':p' . $index;
             $placeholders[] = $placeholder;
             $bindings[$placeholder] = $data[$column];
         }
 
-        $placeholderString = implode(', ', $placeholders);
+        $sql = sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            $this->quoteIdentifier($this->table),
+            implode(', ', $quotedColumns),
+            implode(', ', $placeholders)
+        );
 
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} ({$columnString}) VALUES ({$placeholderString})");
+        $stmt = $this->db->prepare($sql);
+
         foreach ($bindings as $placeholder => $value) {
             $stmt->bindValue($placeholder, $value);
         }
@@ -57,17 +65,23 @@ abstract class BaseModel
     public function update(string $id, array $data): bool
     {
         $columns = array_keys($data);
-        $setParts = [];
+        $assignments = [];
         $bindings = [];
 
         foreach ($columns as $index => $column) {
             $placeholder = ':p' . $index;
-            $setParts[] = "{$column} = {$placeholder}";
+            $assignments[] = sprintf('%s = %s', $this->quoteIdentifier($column), $placeholder);
             $bindings[$placeholder] = $data[$column];
         }
 
-        $setClause = implode(', ', $setParts);
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET {$setClause} WHERE {$this->primaryKey} = :id");
+        $sql = sprintf(
+            'UPDATE %s SET %s WHERE %s = :primary_id',
+            $this->quoteIdentifier($this->table),
+            implode(', ', $assignments),
+            $this->quoteIdentifier($this->primaryKey)
+        );
+
+        $stmt = $this->db->prepare($sql);
 
         foreach ($bindings as $placeholder => $value) {
             $stmt->bindValue($placeholder, $value);
@@ -75,6 +89,24 @@ abstract class BaseModel
         $stmt->bindValue(':id', $id);
         Logger::info("Cập nhật bản ghi {$id} trong {$this->table} với dữ liệu: " . json_encode($data));
         return $stmt->execute();
+    }
+
+    protected function quoteIdentifier(string $identifier): string
+    {
+        $identifier = trim($identifier);
+
+        if ($identifier === '*') {
+            return $identifier;
+        }
+
+        $parts = explode('.', $identifier);
+
+        $quotedParts = array_map(static function (string $part): string {
+            $part = trim($part, "` ");
+            return '`' . str_replace('`', '``', $part) . '`';
+        }, $parts);
+
+        return implode('.', $quotedParts);
     }
 
     public function delete(string $id): bool

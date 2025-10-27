@@ -112,7 +112,7 @@ class PlanController extends Controller
             'ThoiGianBD' => $startTime,
             'ThoiGianKetThuc' => $endTime,
             'TrangThai' => $status,
-            '`BANGIAMDOC IdNhanVien`' => $actorId,
+            '`IdNguoiLap`' => $actorId,
         ];
 
         $assignmentsInput = $_POST['component_assignments'] ?? [];
@@ -342,8 +342,15 @@ class PlanController extends Controller
             $label = trim((string) ($row['label'] ?? ''));
             $configurationId = $row['configuration_id'] ?? null;
             $componentId = $row['component_id'] ?? null;
-            if ($componentId === null && $configurationId !== null) {
+            if (($componentId === null || $componentId === '') && $configurationId !== null) {
                 $componentId = $configurationId;
+            }
+
+            if ($componentId !== null) {
+                $componentId = trim((string) $componentId);
+                if ($componentId === '' || !$this->componentModel->existsById($componentId)) {
+                    $componentId = null;
+                }
             }
 
             if ($workshopId === '' || $label === '') {
