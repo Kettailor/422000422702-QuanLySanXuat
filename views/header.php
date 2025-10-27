@@ -2,6 +2,8 @@
 $user = $_SESSION['user'] ?? null;
 $actualRole = null;
 $isImpersonating = false;
+$notifications = $notifications ?? [];
+$unreadNotifications = 0;
 
 if ($user) {
     $user = Impersonation::applyToUser($user);
@@ -9,6 +11,18 @@ if ($user) {
     $isImpersonating = !empty($user['IsImpersonating']);
 } else {
     $user = [];
+}
+
+foreach ($notifications as $notification) {
+    if (!is_array($notification)) {
+        continue;
+    }
+
+    $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
+
+    if (!$isRead) {
+        $unreadNotifications++;
+    }
 }
 ?>
 <!DOCTYPE html>

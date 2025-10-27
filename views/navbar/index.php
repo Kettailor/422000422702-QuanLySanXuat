@@ -114,6 +114,58 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             <div class="search-bar d-none d-md-block">
                 <input type="search" class="form-control" placeholder="Tìm nhanh đơn hàng, kế hoạch SV5TOT...">
             </div>
+            <div class="dropdown notification-dropdown">
+                <button class="btn btn-light border position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Xem thông báo">
+                    <i class="bi <?= $unreadNotifications > 0 ? 'bi-bell-fill text-primary' : 'bi-bell' ?> fs-5"></i>
+                    <?php if ($unreadNotifications > 0): ?>
+                        <span class="badge rounded-pill bg-danger notification-badge"><?= $unreadNotifications ?></span>
+                    <?php endif; ?>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow notification-menu p-0">
+                    <div class="notification-header px-3 py-2 border-bottom">
+                        <div class="fw-semibold">Thông báo</div>
+                        <small class="text-muted">
+                            <?= $unreadNotifications > 0 ? $unreadNotifications . ' thông báo chưa đọc' : 'Tất cả đã được xem' ?>
+                        </small>
+                    </div>
+                    <div class="notification-list">
+                        <?php if (!empty($notifications)): ?>
+                            <?php foreach ($notifications as $notification): ?>
+                                <?php if (!is_array($notification)) { continue; } ?>
+                                <?php
+                                    $title = $notification['title'] ?? 'Thông báo hệ thống';
+                                    $message = $notification['message'] ?? null;
+                                    $time = $notification['time'] ?? null;
+                                    $link = $notification['link'] ?? null;
+                                    $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
+                                ?>
+                                <div class="notification-item px-3 py-2 <?= $isRead ? '' : 'notification-unread' ?>">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <span class="fw-semibold text-truncate flex-grow-1"><?= htmlspecialchars($title) ?></span>
+                                        <?php if ($time): ?>
+                                            <small class="text-muted flex-shrink-0"><?= htmlspecialchars($time) ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if ($message): ?>
+                                        <div class="text-muted small mt-1"><?= htmlspecialchars($message) ?></div>
+                                    <?php endif; ?>
+                                    <?php if ($link): ?>
+                                        <a href="<?= htmlspecialchars($link) ?>" class="stretched-link"></a>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="notification-empty text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                Chưa có thông báo mới
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="notification-footer border-top px-3 py-2">
+                        <a href="?controller=notifications&action=index" class="text-decoration-none small">Xem tất cả thông báo</a>
+                    </div>
+                </div>
+            </div>
             <a href="?controller=auth&action=profile" class="btn btn-light border d-flex align-items-center gap-2">
                 <i class="bi bi-person-circle"></i>
                 <span>
