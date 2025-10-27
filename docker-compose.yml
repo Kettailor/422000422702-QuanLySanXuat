@@ -3,11 +3,12 @@ services:
     image: mysql:latest
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --lower_case_table_names=1
     restart: unless-stopped
+    env_file: .env
     environment:
-      MYSQL_ROOT_PASSWORD: ""
-      MYSQL_USER: ""
-      MYSQL_PASSWORD: ""
-      MYSQL_DATABASE: "422000422702-quanlysanxuat"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
+      MYSQL_USER: ${MYSQL_USER:-}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-422000422702-quanlysanxuat}
       MYSQL_ALLOW_EMPTY_PASSWORD: true
     ports:
       - "3306:3306"
