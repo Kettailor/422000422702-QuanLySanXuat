@@ -28,23 +28,28 @@ CREATE TABLE `bang_luong` (
   `NHAN_VIENIdNhanVien` varchar(50) NOT NULL,
   `ThangNam` int(11) DEFAULT NULL,
   `LuongCoBan` float DEFAULT NULL,
-  `PhuCap` int(10) DEFAULT NULL,
+  `PhuCap` float DEFAULT NULL,
+  `DonGiaNgayCong` float DEFAULT NULL,
+  `SoNgayCong` float DEFAULT NULL,
+  `TongLuongNgayCong` float DEFAULT NULL,
+  `Thuong` float DEFAULT NULL,
   `KhauTru` float DEFAULT NULL,
-  `ThueTNCN` int(10) DEFAULT NULL,
-  `TongThuNhap` int(10) DEFAULT NULL,
+  `TongBaoHiem` float DEFAULT NULL,
+  `ThueTNCN` float DEFAULT NULL,
+  `TongThuNhap` float DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
   `NgayLap` date DEFAULT NULL,
-  `ChuKy` varbinary(2000) DEFAULT NULL
+  `ChuKy` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `bang_luong`
 --
 
-INSERT INTO `bang_luong` (`IdBangLuong`, `KETOAN IdNhanVien2`, `NHAN_VIENIdNhanVien`, `ThangNam`, `LuongCoBan`, `PhuCap`, `KhauTru`, `ThueTNCN`, `TongThuNhap`, `TrangThai`, `NgayLap`, `ChuKy`) VALUES
-('BL202311NV003', 'NV006', 'NV003', 202311, 8500000, 1200000, 500000, 700000, 9200000, 'Chờ duyệt', '2023-11-28', 0x61646d696e2e6d696e68),
-('BL202311NV004', 'NV006', 'NV004', 202311, 9000000, 1000000, 600000, 750000, 9350000, 'Chờ duyệt', '2023-11-28', 0x61646d696e2e6d696e68),
-('BL202311NV005', 'NV006', 'NV005', 202311, 9500000, 1300000, 650000, 780000, 10180000, 'Chờ duyệt', '2023-11-28', 0x61646d696e2e6d696e68);
+INSERT INTO `bang_luong` (`IdBangLuong`, `KETOAN IdNhanVien2`, `NHAN_VIENIdNhanVien`, `ThangNam`, `LuongCoBan`, `PhuCap`, `DonGiaNgayCong`, `SoNgayCong`, `TongLuongNgayCong`, `Thuong`, `KhauTru`, `TongBaoHiem`, `ThueTNCN`, `TongThuNhap`, `TrangThai`, `NgayLap`, `ChuKy`) VALUES
+('BL202311NV003', 'NV006', 'NV003', 202311, 8500000, 1200000, 350000, 22, 7700000, 500000, 500000, 500000, 700000, 16700000, 'Chờ duyệt', '2023-11-28', 'admin.minh'),
+('BL202311NV004', 'NV006', 'NV004', 202311, 9000000, 1000000, 380000, 21.5, 8170000, 450000, 600000, 600000, 750000, 17270000, 'Chờ duyệt', '2023-11-28', 'admin.minh'),
+('BL202311NV005', 'NV006', 'NV005', 202311, 9500000, 1300000, 400000, 23, 9200000, 600000, 650000, 650000, 780000, 19170000, 'Chờ duyệt', '2023-11-28', 'admin.minh');
 
 -- --------------------------------------------------------
 
