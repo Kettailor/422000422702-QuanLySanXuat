@@ -88,6 +88,9 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             <a class="nav-link" href="?controller=account&action=auditLog">
                 <i class="bi bi-journal-check"></i> Nhật ký hoạt động
             </a>
+            <a class="nav-link" href="?controller=account&action=ticket">
+                <i class="bi bi-ticket-detailed"></i> Yêu cầu hỗ trợ
+            </a>
             <a class="nav-link" href="?controller=setting&action=index">
                 <i class="bi bi-gear"></i> Cài đặt
             </a>
@@ -131,13 +134,15 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                     <div class="notification-list">
                         <?php if (!empty($notifications)): ?>
                             <?php foreach ($notifications as $notification): ?>
-                                <?php if (!is_array($notification)) { continue; } ?>
+                                <?php if (!is_array($notification)) {
+                                    continue;
+                                } ?>
                                 <?php
                                     $title = $notification['title'] ?? 'Thông báo hệ thống';
-                                    $message = $notification['message'] ?? null;
-                                    $time = $notification['time'] ?? null;
-                                    $link = $notification['link'] ?? null;
-                                    $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
+                                $message = $notification['message'] ?? null;
+                                $time = $notification['time'] ?? null;
+                                $link = $notification['link'] ?? null;
+                                $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
                                 ?>
                                 <div class="notification-item px-3 py-2 <?= $isRead ? '' : 'notification-unread' ?>">
                                     <div class="d-flex justify-content-between align-items-start gap-2">
