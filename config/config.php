@@ -10,9 +10,9 @@ return [
         'charset' => 'utf8mb4',
     ],
     'app' => [
-        'name' => 'Quản lý sản xuất',
+        'name' => getenv("APP_NAME") ?: 'Quản lý sản xuất',
     ],
     'auth' => [
-        'default_password' => '1111'
+        'default_password' => getenv("DEFAULT_PASSWORD") ?: '1111'
     ]
 ];
