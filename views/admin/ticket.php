@@ -22,7 +22,7 @@
               <td class="text-wrap"><?php echo htmlspecialchars($ticket['request']); ?></td>
               <td>
                 <?php if ($ticket['status'] === 'open'): ?>
-                  <form method="post" action="?controller=account&action=closeTicket" onsubmit="return confirm('Bạn có chắc chắn muốn đóng yêu cầu này không?');">
+                  <form method="post" action="?controller=admin&action=closeTicket" onsubmit="return confirm('Bạn có chắc chắn muốn đóng yêu cầu này không?');">
                     <input type="hidden" name="ticket_id" value="<?php echo htmlspecialchars($ticket['id'] ?? ''); ?>">
                     <button type="submit" class="btn btn-sm btn-primary">Đóng yêu cầu</button>
                   </form>
@@ -47,7 +47,7 @@
         <li class="page-item<?php if ($tickets['page'] <= 1) {
             echo ' disabled';
         } ?>">
-        <a class="page-link" href="?controller=account&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $tickets['page'] - 1; ?>" tabindex="-1">
+        <a class="page-link" href="?controller=admin&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $tickets['page'] - 1; ?>" tabindex="-1">
           <i class="bi bi-chevron-left"></i>
           <span class="sr-only">Trước</span>
         </a>
@@ -56,13 +56,13 @@
           <li class="page-item<?php if ($i == $tickets['page']) {
               echo ' active';
           } ?>">
-            <a class="page-link" href="?controller=account&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
+            <a class="page-link" href="?controller=admin&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
           </li>
         <?php endfor; ?>
         <li class="page-item<?php if ($tickets['page'] >= $tickets['total_pages']) {
             echo ' disabled';
         } ?>">
-        <a class="page-link" href="?controller=account&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $tickets['page'] + 1; ?>">
+        <a class="page-link" href="?controller=admin&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $tickets['page'] + 1; ?>">
           <i class="bi bi-chevron-right"></i>
           <span class="sr-only">Sau</span>
         </a>

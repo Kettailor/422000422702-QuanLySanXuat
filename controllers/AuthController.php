@@ -66,7 +66,7 @@ class AuthController extends Controller
     public function forgotPassword(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Logger::createTicket("Yêu cầu đặt lại mật khẩu từ tài khoản: " . ($_POST['username'] ?? 'unknown'));
+            Ticket::createTicket("Yêu cầu đặt lại mật khẩu từ tài khoản: " . ($_POST['username'] ?? 'unknown'));
             $this->setFlash('success', 'Nếu tài khoản tồn tại, admin sẽ gửi hướng dẫn đặt lại mật khẩu đến email của bạn.');
             $this->redirect('?controller=auth&action=forgotPassword');
         }
