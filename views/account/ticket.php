@@ -41,28 +41,28 @@
     </table>
   </div>
 
-  <?php if (!empty($logs['total_pages']) && $logs['total_pages'] > 1): ?>
+  <?php if (!empty($tickets['total_pages']) && $tickets['total_pages'] > 1): ?>
     <nav>
       <ul class="pagination justify-content-center">
-        <li class="page-item<?php if ($logs['page'] <= 1) {
+        <li class="page-item<?php if ($tickets['page'] <= 1) {
             echo ' disabled';
         } ?>">
-        <a class="page-link" href="?controller=account&action=auditLog&limit=<?php echo $logs['limit'] ?>&page=<?php echo $logs['page'] - 1; ?>" tabindex="-1">
+        <a class="page-link" href="?controller=account&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $tickets['page'] - 1; ?>" tabindex="-1">
           <i class="bi bi-chevron-left"></i>
           <span class="sr-only">Trước</span>
         </a>
         </li>
-        <?php for ($i = 1; $i <= $logs['total_pages']; $i++): ?>
-          <li class="page-item<?php if ($i == $logs['page']) {
+        <?php for ($i = 1; $i <= $tickets['total_pages']; $i++): ?>
+          <li class="page-item<?php if ($i == $tickets['page']) {
               echo ' active';
           } ?>">
-            <a class="page-link" href="?controller=account&action=auditLog&limit=<?php echo $logs['limit'] ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
+            <a class="page-link" href="?controller=account&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
           </li>
         <?php endfor; ?>
-        <li class="page-item<?php if ($logs['page'] >= $logs['total_pages']) {
+        <li class="page-item<?php if ($tickets['page'] >= $tickets['total_pages']) {
             echo ' disabled';
         } ?>">
-        <a class="page-link" href="?controller=account&action=auditLog&limit=<?php echo $logs['limit'] ?>&page=<?php echo $logs['page'] + 1; ?>">
+        <a class="page-link" href="?controller=account&action=ticket&limit=<?php echo $tickets['limit'] ?>&page=<?php echo $tickets['page'] + 1; ?>">
           <i class="bi bi-chevron-right"></i>
           <span class="sr-only">Sau</span>
         </a>
