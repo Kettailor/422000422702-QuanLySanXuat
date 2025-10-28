@@ -34,7 +34,7 @@
                     <input class="form-check-input" type="checkbox" id="remember">
                     <label class="form-check-label" for="remember">Ghi nhớ</label>
                 </div>
-                <a href="#" class="small text-decoration-none">Quên mật khẩu?</a>
+                <a href="#" class="small text-decoration-none" tabindex="-1">Quên mật khẩu?</a>
             </div>
             <div class="col-12">
                 <button class="btn btn-primary w-100" type="submit">Đăng nhập</button>

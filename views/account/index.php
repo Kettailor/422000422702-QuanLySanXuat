@@ -1,5 +1,8 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="fw-bold">Quản lý tài khoản người dùng</h1>
+  <div>
+    <h3 class="fw-bold">Quản lý tài khoản người dùng</h3>
+    <p class="text-muted mb-0">Quản lý tài khoản người dùng hệ thống</p>
+  </div>
   <a class="btn btn-primary" href="?controller=account&action=create">
     Tạo tài khoản mới
   </a>

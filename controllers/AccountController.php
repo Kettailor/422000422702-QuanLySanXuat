@@ -189,7 +189,7 @@ class AccountController extends Controller
         $logs = Logger::getLog($page, $limit);
         $loginLogs = Logger::getLoginLog($startDate, $endDate);
 
-        $this->render('account/audit_log', [
+        $this->render('account/audit-log', [
             'title' => 'Nhật ký hoạt động',
             'logs' => $logs,
             'loginLogs' => [

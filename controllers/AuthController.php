@@ -31,7 +31,7 @@ class AuthController extends Controller
                 return;
             }
 
-            Logger::warn("Thất bại đăng nhập cho tên đăng nhập: $username");
+            Logger::warn("Đăng nhập thất bại cho tên đăng nhập: $username");
             $this->setFlash('danger', 'Tên đăng nhập hoặc mật khẩu không chính xác.');
         }
 
