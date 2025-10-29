@@ -25,7 +25,7 @@ $action = $_GET['action'] ?? 'index';
 ImpersonationMiddleware::handle();
 
 $publicRoutes = [
-    'auth' => ['login'],
+    'auth' => ['login', 'forgotPassword'],
 ];
 
 $isAuthenticated = !empty($_SESSION['user']);

@@ -52,13 +52,16 @@ class AccountController extends Controller
                 $nextUserId = 'ND001';
             }
 
+            $config = require __DIR__ . '/../config/config.php';
+            $defaultPassword = $config['auth']['default_password'];
+
             try {
                 $this->userModel->create([
                   'IdNguoiDung' => $nextUserId,
                   'IdNhanVien' => $employeeId,
                   'TenDangNhap' => $username,
                   'IdVaiTro' => $roleId,
-                  'MatKhau' => password_hash($_POST['password'], PASSWORD_BCRYPT),
+                  'MatKhau' => password_hash($defaultPassword, PASSWORD_BCRYPT),
                   'TrangThai' => 'Hoạt động',
                 ]);
                 $this->setFlash('success', 'Tạo tài khoản thành công.');
@@ -186,7 +189,7 @@ class AccountController extends Controller
         $logs = Logger::getLog($page, $limit);
         $loginLogs = Logger::getLoginLog($startDate, $endDate);
 
-        $this->render('account/audit_log', [
+        $this->render('account/audit-log', [
             'title' => 'Nhật ký hoạt động',
             'logs' => $logs,
             'loginLogs' => [

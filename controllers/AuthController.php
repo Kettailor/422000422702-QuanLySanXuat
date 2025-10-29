@@ -31,7 +31,7 @@ class AuthController extends Controller
                 return;
             }
 
-            Logger::warn("Thất bại đăng nhập cho tên đăng nhập: $username");
+            Logger::warn("Đăng nhập thất bại cho tên đăng nhập: $username");
             $this->setFlash('danger', 'Tên đăng nhập hoặc mật khẩu không chính xác.');
         }
 
@@ -61,5 +61,17 @@ class AuthController extends Controller
             'user' => $user,
             'employee' => $employee,
         ]);
+    }
+
+    public function forgotPassword(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            Ticket::createTicket("Yêu cầu đặt lại mật khẩu từ tài khoản: " . ($_POST['username'] ?? 'unknown'));
+            $this->setFlash('success', 'Nếu tài khoản tồn tại, admin sẽ gửi hướng dẫn đặt lại mật khẩu đến email của bạn.');
+            $this->redirect('?controller=auth&action=forgotPassword');
+        }
+
+        $flash = $this->getFlash();
+        include __DIR__ . '/../views/auth/forgot-password.php';
     }
 }

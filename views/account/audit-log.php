@@ -1,45 +1,48 @@
 <div class="container mt-4 card p-4">
   <h5>Nhật ký kiểm tra tài khoản</h5>
-  <table class="table table-bordered table-striped align-middle">
-    <thead>
-      <tr>
-        <th>Ngày</th>
-        <th>Mức độ</th>
-        <th>Người thực hiện</th>
-        <th>Hành động</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php if (!empty($logs['logs']) && is_array($logs['logs'])): ?>
-        <?php foreach ($logs['logs'] as $log): ?>
-          <tr>
-            <td><?php echo htmlspecialchars($log['date']); ?></td>
-            <td>
-              <span class="badge bg-<?php
-                  if ($log['level'] === 'INFO') {
-                      echo 'info';
-                  } elseif ($log['level'] === 'ERROR') {
-                      echo 'danger';
-                  } elseif ($log['level'] === 'WARN') {
-                      echo 'warning';
-                  } elseif ($log['level'] === 'DEBUG') {
-                      echo 'secondary';
-                  }
-            ?>">
-                  <?php echo htmlspecialchars($log['level']); ?>
-              </span>
-            </td>
-            <td><?php echo htmlspecialchars($log['actor']); ?></td>
-            <td><?php echo htmlspecialchars($log['action']); ?></td>
-          </tr>
-        <?php endforeach; ?>
-      <?php else: ?>
+
+  <div class="table-responsive mt-4">
+    <table class="table table-bordered table-striped align-middle text-nowrap">
+      <thead>
         <tr>
-          <td colspan="4" class="text-center">Không có nhật ký kiểm tra nào được tìm thấy.</td>
+          <th>Ngày</th>
+          <th>Mức độ</th>
+          <th>Người thực hiện</th>
+          <th>Hành động</th>
         </tr>
-      <?php endif; ?>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <?php if (!empty($logs['logs']) && is_array($logs['logs'])): ?>
+          <?php foreach ($logs['logs'] as $log): ?>
+            <tr>
+              <td><?php echo htmlspecialchars($log['date']); ?></td>
+              <td>
+                <span class="badge bg-<?php
+                    if ($log['level'] === 'INFO') {
+                        echo 'info';
+                    } elseif ($log['level'] === 'ERROR') {
+                        echo 'danger';
+                    } elseif ($log['level'] === 'WARN') {
+                        echo 'warning';
+                    } elseif ($log['level'] === 'DEBUG') {
+                        echo 'secondary';
+                    }
+              ?>">
+                    <?php echo htmlspecialchars($log['level']); ?>
+                </span>
+              </td>
+              <td><?php echo htmlspecialchars($log['actor']); ?></td>
+              <td class="text-wrap"><?php echo htmlspecialchars($log['action']); ?></td>
+            </tr>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <tr>
+            <td colspan="4" class="text-center">Không có nhật ký kiểm tra nào được tìm thấy.</td>
+          </tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
 
   <?php if (!empty($logs['total_pages']) && $logs['total_pages'] > 1): ?>
     <nav>
@@ -97,22 +100,22 @@
 </div>
 <?php
 $loginCounts = [];
-      if (!empty($loginLogs['data']) && is_array($loginLogs['data'])) {
-          foreach ($loginLogs['data'] as $log) {
-              $day = $log['day'];
-              if (!isset($loginCounts[$day])) {
-                  $loginCounts[$day] = 0;
-              }
-              $loginCounts[$day]++;
-          }
-      }
-      ?>
+        if (!empty($loginLogs['data']) && is_array($loginLogs['data'])) {
+            foreach ($loginLogs['data'] as $log) {
+                $day = $log['day'];
+                if (!isset($loginCounts[$day])) {
+                    $loginCounts[$day] = 0;
+                }
+                $loginCounts[$day]++;
+            }
+        }
+        ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const loginData = <?php echo json_encode([
-          'labels' => array_keys($loginCounts),
-          'counts' => array_values($loginCounts)
-      ]); ?>;
+            'labels' => array_keys($loginCounts),
+            'counts' => array_values($loginCounts)
+        ]); ?>;
 
 const ctx = document.getElementById('loginAttemptsChart').getContext('2d');
 new Chart(ctx, {

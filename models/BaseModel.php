@@ -58,7 +58,7 @@ abstract class BaseModel
             $stmt->bindValue($placeholder, $value);
         }
 
-        Logger::info("Tạo bản ghi mới trong {$this->table} với dữ liệu: " . json_encode($data));
+        Logger::info("Tạo bản ghi mới trong {$this->table} với dữ liệu: " . json_encode($data, JSON_UNESCAPED_UNICODE));
         return $stmt->execute();
     }
 
@@ -86,8 +86,8 @@ abstract class BaseModel
         foreach ($bindings as $placeholder => $value) {
             $stmt->bindValue($placeholder, $value);
         }
-        $stmt->bindValue(':id', $id);
-        Logger::info("Cập nhật bản ghi {$id} trong {$this->table} với dữ liệu: " . json_encode($data));
+        $stmt->bindValue(':primary_id', $id);
+        Logger::info("Cập nhật bản ghi {$id} trong {$this->table} với dữ liệu: " . json_encode($data, JSON_UNESCAPED_UNICODE));
         return $stmt->execute();
     }
 

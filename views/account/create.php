@@ -21,10 +21,6 @@
         <?php endforeach; ?>
       </select>
     </div>
-    <div class="form-group">
-    <label for="password">Mật khẩu</label>
-      <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
-    </div>
     <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
   </fieldset>
 </form>

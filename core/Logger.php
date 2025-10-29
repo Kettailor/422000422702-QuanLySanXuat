@@ -107,4 +107,5 @@ class Logger
         }
         return $logs;
     }
+
 }
