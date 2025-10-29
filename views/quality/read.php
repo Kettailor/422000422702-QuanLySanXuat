@@ -1,36 +1,41 @@
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold mb-1">Chi tiết biên bản chất lượng</h3>
-        <p class="text-muted mb-0">Xem thông tin đánh giá và kết quả kiểm tra.</p>
-    </div>
-    <a href="?controller=quality&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
-</div>
+<div class="container py-4">
 
-<?php if (!$report): ?>
-    <div class="alert alert-warning">Không tìm thấy biên bản.</div>
-<?php else: ?>
-    <div class="card p-4">
-        <div class="row g-4">
-            <div class="col-md-6">
-                <dl class="row mb-0">
-                    <dt class="col-sm-5">Mã biên bản</dt>
-                    <dd class="col-sm-7 fw-semibold"><?= htmlspecialchars($report['IdBienBanDanhGiaSP']) ?></dd>
-                    <dt class="col-sm-5">Mã lô</dt>
-                    <dd class="col-sm-7"><?= htmlspecialchars($report['IdLo']) ?></dd>
-                    <dt class="col-sm-5">Kết quả</dt>
-                    <dd class="col-sm-7"><span class="badge <?= $report['KetQua'] === 'Đạt' ? 'badge-soft-success' : 'badge-soft-danger' ?>"><?= htmlspecialchars($report['KetQua']) ?></span></dd>
-                </dl>
-            </div>
-            <div class="col-md-6">
-                <dl class="row mb-0">
-                    <dt class="col-sm-5">Thời gian</dt>
-                    <dd class="col-sm-7"><?= $report['ThoiGian'] ? date('d/m/Y H:i', strtotime($report['ThoiGian'])) : '-' ?></dd>
-                    <dt class="col-sm-5">Tiêu chí đạt</dt>
-                    <dd class="col-sm-7"><?= htmlspecialchars($report['TongTCD']) ?></dd>
-                    <dt class="col-sm-5">Tiêu chí không đạt</dt>
-                    <dd class="col-sm-7"><?= htmlspecialchars($report['TongTCKD']) ?></dd>
-                </dl>
-            </div>
-        </div>
-    </div>
-<?php endif; ?>
+  <?php if (!empty($isReport) && $isReport): ?>
+      <h4 class="fw-bold mb-3 text-primary">Biên bản đánh giá thành phẩm</h4>
+      <table class="table table-bordered">
+        <tr><th>Mã biên bản</th><td><?= htmlspecialchars($report['IdBienBanDanhGiaSP']) ?></td></tr>
+        <tr><th>Thời gian</th><td><?= htmlspecialchars($report['ThoiGian']) ?></td></tr>
+        <tr><th>Kết quả</th><td>
+          <?php if ($report['KetQua'] === 'Đạt'): ?>
+              <span class="badge bg-success">Đạt</span>
+          <?php else: ?>
+              <span class="badge bg-danger">Không đạt</span>
+          <?php endif; ?>
+        </td></tr>
+        <tr><th>Tổng tiêu chí đạt</th><td><?= htmlspecialchars($report['TongTCD']) ?></td></tr>
+        <tr><th>Tổng tiêu chí không đạt</th><td><?= htmlspecialchars($report['TongTCKD']) ?></td></tr>
+        <tr><th>Mã lô</th><td><?= htmlspecialchars($report['IdLo']) ?></td></tr>
+      </table>
+      <a href="?controller=quality&action=index" class="btn btn-secondary mt-2">← Quay lại</a>
+
+  <?php elseif (!empty($loInfo)): ?>
+      <h4 class="fw-bold mb-3 text-primary">Thông tin lô sản phẩm</h4>
+      <table class="table table-bordered">
+        <tr><th>Mã lô</th><td><?= htmlspecialchars($loInfo['IdLo']) ?></td></tr>
+        <tr><th>Tên lô</th><td><?= htmlspecialchars($loInfo['TenLo'] ?? '-') ?></td></tr>
+        <tr><th>Sản phẩm</th><td><?= htmlspecialchars($loInfo['TenSanPham'] ?? '-') ?></td></tr>
+        <tr><th>Xưởng</th><td><?= htmlspecialchars($loInfo['TenXuong'] ?? '-') ?></td></tr>
+      </table>
+      <div class="alert alert-warning mt-3">
+        Lô này <strong>chưa được kiểm tra</strong>. Bạn có thể tiến hành đánh giá ngay.
+      </div>
+      <a href="?controller=quality&action=create&IdLo=<?= urlencode($loInfo['IdLo']) ?>" class="btn btn-primary mt-2">
+        Đánh giá ngay
+      </a>
+      <a href="?controller=quality&action=index" class="btn btn-outline-secondary mt-2">← Quay lại</a>
+
+  <?php else: ?>
+      <div class="alert alert-danger">Không tìm thấy thông tin lô.</div>
+  <?php endif; ?>
+
+</div>
