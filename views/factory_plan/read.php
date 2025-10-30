@@ -1,5 +1,7 @@
 <?php
 $plan = $plan ?? null;
+$stockNeed = $stock_list_need;
+// var_dump($stockNeed);
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -98,27 +100,82 @@ $statusBadge = static function (string $status): string {
 
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-0">
-            <h5 class="mb-0">Nội dung đơn hàng</h5>
+            <h5 class="mb-0">Quản Lý Nguyên Liệu</h5>
         </div>
         <div class="card-body">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="border rounded-3 p-3 h-100">
-                        <div class="fw-semibold mb-2">Đơn hàng</div>
-                        <div>Đơn <?= htmlspecialchars($plan['IdDonHang'] ?? '-') ?></div>
-                        <?php if (!empty($plan['YeuCau'])): ?>
-                            <div class="text-muted small mt-2">Yêu cầu: <?= htmlspecialchars($plan['YeuCau']) ?></div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="border rounded-3 p-3 h-100">
-                        <div class="fw-semibold mb-2">Tiến độ kế hoạch tổng</div>
-                        <div class="text-muted small">Trạng thái chung: <?= htmlspecialchars($plan['TrangThaiTong'] ?? 'Chưa cập nhật') ?></div>
-                        <div class="text-muted small mt-2">Tham chiếu kế hoạch: <a href="?controller=plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuat'] ?? '') ?>"><?= htmlspecialchars($plan['IdKeHoachSanXuat'] ?? '-') ?></a></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tên nguyên liệu</th>
+                            <th class="text-end">Số lượng cần</th>
+                            <th class="text-end">Số lượng tồn</th>
+                            <th>Tên lô</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php  foreach($stockNeed as $tmp ) { ?>
+                        <tr>
+                            <td>
+                                <div class="fw-semibold"><?= $tmp['TenNL'] ?></div>
+                                <div class="small text-muted">Mã: <?= $tmp['IdNguyenLieu'] ?></div>
+                            </td>
+                            <td class="text-end"><?= $tmp['SoLuongCan'] ?></td>
+                            <td class="text-end"><?= $tmp['SoLuongTon'] ?></td>
+                            <td><?= $tmp['TenLo'] ?></td>
+                            <td class="text-center">
+                                <?php if( $tmp['SoLuongTon'] <= $tmp['SoLuongCan'] ) { ?>
+                                <button class="btn btn-sm btn-outline-primary send-notification-btn"
+                                        data-id-nguyen-lieu="<?= htmlspecialchars($tmp['IdNguyenLieu']) ?>"
+                                        data-ten-nl="<?= htmlspecialchars($tmp['TenNL']) ?>"
+                                        data-so-luong-can="<?= htmlspecialchars($tmp['SoLuongCan']) ?>"
+                                        data-so-luong-ton="<?= htmlspecialchars($tmp['SoLuongTon']) ?>"
+                                        data-ten-lo="<?= htmlspecialchars($tmp['TenLo']) ?>"
+                                        data-id-ke-hoach-san-xuat-xuong="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
+                                    Gửi thông báo
+                                </button>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                        <?php } ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('.send-notification-btn');
+
+    buttons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const materialData = {
+                IdNguyenLieu: this.dataset.idNguyenLieu,
+                TenNL: this.dataset.tenNl,
+                SoLuongCan: this.dataset.soLuongCan,
+                SoLuongTon: this.dataset.soLuongTon,
+                TenLo: this.dataset.tenLo,
+                IdKeHoachSanXuatXuong: this.dataset.idKeHoachSanXuatXuong
+            };
+
+            try {
+                const response = await fetch('?controller=factory_plan&action=sendMaterialNotification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(materialData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Thông báo đã được gửi thành công: ' + result.message);
+                } else {
+                    alert('Lỗi khi gửi thông báo: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Lỗi mạng hoặc lỗi khác:', error);
+                alert('Đã xảy ra lỗi khi gửi thông báo.');
+            }
+        });
+    });
+});
+</script>
 <?php endif; ?>

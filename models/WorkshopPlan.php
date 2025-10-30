@@ -110,6 +110,41 @@ class WorkshopPlan extends BaseModel
         return $grouped;
     }
 
+    public function getMaterialStock (string $id): ?array 
+    {
+        $sql = "
+        SELECT
+	nguyen_lieu.IdNguyenLieu, 
+	nguyen_lieu.TenNL, 
+	chi_tiet_ke_hoach_san_xuat_xuong.SoLuong as 'SoLuongCan', 
+	lo.TenLo, 
+	nguyen_lieu.SoLuong as 'SoLuongTon'
+FROM
+	ke_hoach_san_xuat_xuong
+	INNER JOIN
+	chi_tiet_ke_hoach_san_xuat_xuong
+	ON 
+		ke_hoach_san_xuat_xuong.IdKeHoachSanXuatXuong = chi_tiet_ke_hoach_san_xuat_xuong.IdKeHoachSanXuatXuong
+	INNER JOIN
+	nguyen_lieu
+	ON 
+		chi_tiet_ke_hoach_san_xuat_xuong.IdNguyenLieu = nguyen_lieu.IdNguyenLieu
+	INNER JOIN
+	lo
+	ON 
+		nguyen_lieu.IdLo = lo.IdLo
+WHERE
+	ke_hoach_san_xuat_xuong.IdKeHoachSanXuatXuong = :id
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $materials = $stmt->fetchAll();
+        return $materials ?: [];
+    }
+
     public function findWithRelations(string $id): ?array
     {
         $sql = 'SELECT kx.IdKeHoachSanXuatXuong,
