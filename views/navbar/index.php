@@ -54,9 +54,27 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             </a>
         <?php endif; ?>
         <?php if ($canAccess(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC'])): ?>
-            <a class="nav-link <?= $currentController === 'quality' ? 'active' : '' ?>" href="?controller=quality&action=index">
-                <i class="bi bi-shield-check"></i> Chất lượng
+        <div class="nav-group">
+            <a class="nav-link <?= in_array($currentController, ['quality']) ? 'active' : '' ?>"
+            data-bs-toggle="collapse"
+            href="#submenu-quality"
+            role="button"
+            aria-expanded="<?= in_array($currentController, ['quality']) ? 'true' : 'false' ?>"
+            aria-controls="submenu-quality">
+            <i class="bi bi-shield-check me-2"></i> Chất lượng
             </a>
+                <div class="collapse <?= in_array($currentController, ['quality', 'suddenly']) ? 'show' : '' ?>" id="submenu-quality">
+                <ul class="btn-toggle-nav list-unstyled fw-normal small ms-3">
+                <li>
+                    <a href="?controller=quality&action=index"
+                    class="nav-link <?= ($currentController === 'quality' && $currentAction === 'index') ? 'active' : '' ?>">
+                    <i class="bi bi-clipboard-data me-1"></i>Đánh giá thành phẩm</a>
+                    <a href="?controller=suddenly&action=index"
+                    class="nav-link <?= ($currentController === 'suddenly' && $currentAction === 'index') ? 'active' : '' ?>">
+                    <i class="bi bi-lightning-charge me-1"></i>Kiểm tra đột xuất</a>
+                </li>
+                </ul>
+                </div>
         <?php endif; ?>
         <?php if ($canAccess(['VT_NHANVIEN_KHO', 'VT_QUANLY_XUONG'])): ?>
             <a class="nav-link <?= $currentController === 'warehouse' ? 'active' : '' ?>" href="?controller=warehouse&action=index">
