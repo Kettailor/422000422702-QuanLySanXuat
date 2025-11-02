@@ -2,9 +2,9 @@
 
 class AccountController extends Controller
 {
-    private Employee $employeeModel;
-    private User $userModel;
-    private Role $roleModel;
+    protected Employee $employeeModel;
+    protected User $userModel;
+    protected Role $roleModel;
 
     public function __construct()
     {
@@ -68,7 +68,7 @@ class AccountController extends Controller
                 $this->redirect('?controller=account&action=index');
             } catch (Exception $e) {
                 Logger::error('Lỗi khi tạo tài khoản: ' . $e->getMessage());
-                $this->setFlash('danger', 'Không thể tạo tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể tạo tài khoản. Lỗi: ' . htmlspecialchars($e->getMessage()));
                 $this->redirect('?controller=account&action=create');
             }
         }
@@ -113,7 +113,7 @@ class AccountController extends Controller
                 $this->redirect('?controller=account&action=index');
             } catch (Exception $e) {
                 Logger::error('Lỗi khi cập nhật tài khoản ' . $id . ': ' . $e->getMessage());
-                $this->setFlash('danger', 'Không thể cập nhật tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể cập nhật tài khoản. Lỗi: ' . htmlspecialchars($e->getMessage()));
                 $this->redirect("?controller=account&action=edit&id=$id");
             }
         }
@@ -142,7 +142,7 @@ class AccountController extends Controller
                     $this->setFlash('success', 'Cập nhật trạng thái tài khoản thành công.');
                 } catch (Exception $e) {
                     Logger::error('Lỗi khi cập nhật trạng thái tài khoản ' . $id . ': ' . $e->getMessage());
-                    $this->setFlash('danger', 'Không thể cập nhật trạng thái tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+                    $this->setFlash('danger', 'Không thể cập nhật trạng thái tài khoản. Lỗi: ' . htmlspecialchars($e->getMessage()));
                 }
             }
         }
@@ -174,7 +174,7 @@ class AccountController extends Controller
             $this->redirect('?controller=account&action=index');
         } catch (Exception $e) {
             Logger::error('Lỗi khi xóa tài khoản ' . $id . ': ' . $e->getMessage());
-            $this->setFlash('danger', 'Không thể xóa tài khoản, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể xóa tài khoản. Lỗi: ' . htmlspecialchars($e->getMessage()));
             $this->redirect('?controller=account&action=index');
         }
     }
