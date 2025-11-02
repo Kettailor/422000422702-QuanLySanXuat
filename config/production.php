@@ -87,4 +87,3 @@ return [
         'warehouse_roles' => ['VT_NHANVIEN_KHO', 'VT_DOI_TAC_VAN_TAI'],
     ],
 ];
-

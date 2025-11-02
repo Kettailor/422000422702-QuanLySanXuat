@@ -2,9 +2,9 @@
 
 class AccountController extends Controller
 {
-    private Employee $employeeModel;
-    private User $userModel;
-    private Role $roleModel;
+    protected Employee $employeeModel;
+    protected User $userModel;
+    protected Role $roleModel;
 
     public function __construct()
     {
