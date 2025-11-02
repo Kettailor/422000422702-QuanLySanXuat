@@ -43,9 +43,13 @@ class Factory_planController extends Controller
         $id = $_GET['id'] ?? null;
         $plan = $id ? $this->workshopPlanModel->findWithRelations($id) : null;
 
+
+        $stockList = $this->workshopPlanModel->getMaterialStock($id) ?? [];
+ 
         $this->render('factory_plan/read', [
             'title' => 'Chi tiết hạng mục xưởng',
             'plan' => $plan,
+            "stock_list_need" =>  $stockList
         ]);
     }
 
@@ -122,5 +126,52 @@ class Factory_planController extends Controller
         }
 
         return $status;
+    }
+
+    public function sendMaterialNotification(): void
+    {
+        header('Content-Type: application/json');
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            echo json_encode(['success' => false, 'message' => 'Invalid JSON input.']);
+            return;
+        }
+
+        $requiredFields = ['IdNguyenLieu', 'TenNL', 'SoLuongCan', 'SoLuongTon', 'TenLo', 'IdKeHoachSanXuatXuong'];
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field])) {
+                echo json_encode(['success' => false, 'message' => 'Missing field: ' . $field]);
+                return;
+            }
+        }
+
+        $notificationDir = __DIR__ . '/../data/notification';
+        if (!is_dir($notificationDir)) {
+            mkdir($notificationDir, 0777, true);
+        }
+
+        $filename = 'notification_' . $data['IdKeHoachSanXuatXuong'] . '_' . $data['IdNguyenLieu'] . '_' . time() . '.json';
+        $filepath = $notificationDir . '/' . $filename;
+
+        $notificationContent = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'ke_hoach_san_xuat_xuong_id' => $data['IdKeHoachSanXuatXuong'],
+            'nguyen_lieu' => [
+                'id' => $data['IdNguyenLieu'],
+                'ten' => $data['TenNL'],
+                'so_luong_can' => $data['SoLuongCan'],
+                'so_luong_ton' => $data['SoLuongTon'],
+                'ten_lo' => $data['TenLo']
+            ],
+            'message' => 'Yêu cầu cung cấp nguyên liệu.'
+        ];
+
+        if (file_put_contents($filepath, json_encode($notificationContent, JSON_PRETTY_PRINT))) {
+            echo json_encode(['success' => true, 'message' => 'Thông báo đã được tạo và lưu.', 'filename' => $filename]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Không thể lưu thông báo.']);
+        }
     }
 }
