@@ -13,117 +13,113 @@ class SuddenlyController extends Controller
 
     /** Trang chính - Dashboard biên bản đột xuất */
     public function index(): void
-{
-    // Lọc theo loại (all / production / worker)
-    $filter = $_GET['filter'] ?? 'all';
+    {
+        $filter = $_GET['filter'] ?? 'all';
 
-    // Nạp dữ liệu core từ file QualityCriteria.php
-    $corePath = __DIR__ . '/../core/QualityCriteria.php';
-    $coreCriteria = file_exists($corePath) ? require $corePath : [];
+        $corePath = __DIR__ . '/../core/QualityCriteria.php';
+        $coreCriteria = file_exists($corePath) ? require $corePath : [];
 
-    // Lấy danh sách biên bản từ database
-    $listBienBan = $this->SuddenlyModel->getDanhSachBienBan();
+        $listBienBan = $this->SuddenlyModel->getDanhSachBienBan();
 
-    // So sánh dữ liệu core với DB để xác định loại hợp lệ
-    foreach ($listBienBan as &$bb) {
-        $type = strtolower(trim($bb['LoaiTieuChi'] ?? ''));
-        if ($type && isset($coreCriteria[$type])) {
-            $bb['LoaiHopLe'] = true;
-        } else {
-            $bb['LoaiHopLe'] = false;
+        foreach ($listBienBan as &$bb) {
+            $type = strtolower(trim($bb['LoaiTieuChi'] ?? ''));
+            $bb['LoaiHopLe'] = $type && isset($coreCriteria[$type]);
         }
+        unset($bb);
+
+        if ($filter !== 'all') {
+            $listBienBan = array_filter($listBienBan, function ($bb) use ($filter) {
+                return strtolower($bb['LoaiTieuChi'] ?? '') === $filter;
+            });
+        }
+
+        $reports   = $this->SuddenlyModel->getLatestReports(50);
+        $summary   = $this->SuddenlyModel->getSuddenlySummary();
+        $dashboard = $this->SuddenlyModel->getDashboardSummary();
+
+        // ✅ Lấy flash qua query string
+        $flash = null;
+        if (!empty($_GET['msg'])) {
+            $flash = [
+                'type'    => $_GET['type'] ?? 'success',
+                'message' => $_GET['msg']
+            ];
+        }
+
+        $this->render('suddenly/index', [
+            'title'       => 'Kiểm tra đột xuất',
+            'reports'     => $reports,
+            'summary'     => $summary,
+            'dashboard'   => $dashboard,
+            'listBienBan' => $listBienBan,
+            'filter'      => $filter,
+            'flash'       => $flash
+        ]);
     }
-    unset($bb);
-
-    // Nếu có filter (production/worker) thì lọc danh sách
-    if ($filter !== 'all') {
-        $listBienBan = array_filter($listBienBan, function ($bb) use ($filter) {
-            return strtolower($bb['LoaiTieuChi'] ?? '') === $filter;
-        });
-    }
-
-    // Lấy các thống kê
-    $reports   = $this->SuddenlyModel->getLatestReports(50);
-    $summary   = $this->SuddenlyModel->getSuddenlySummary();
-    $dashboard = $this->SuddenlyModel->getDashboardSummary();
-
-    // Render ra view
-    $this->render('suddenly/index', [
-        'title'       => 'Kiểm tra đột xuất',
-        'reports'     => $reports,
-        'summary'     => $summary,
-        'dashboard'   => $dashboard,
-        'listBienBan' => $listBienBan,
-        'filter'      => $filter
-    ]);
-}
-
 
     /** Xem chi tiết biên bản đột xuất */
     public function read(): void
-{
-    $id = $_GET['id'] ?? null;
+    {
+        $id = $_GET['id'] ?? null;
 
-    // 1. Kiểm tra mã biên bản
-    if (!$id) {
-        $this->setFlash('danger', 'Thiếu mã biên bản.');
-        $this->redirect('?controller=suddenly&action=index');
-        return;
+        if (!$id) {
+            $this->redirect('?controller=suddenly&action=index&msg=' . urlencode('Thiếu mã biên bản.') . '&type=danger');
+            return;
+        }
+
+        $db = $this->SuddenlyModel->getConnection();
+
+        // Lấy thông tin biên bản
+        $stmt = $db->prepare("
+        SELECT 
+            bb.*, 
+            x.TenXuong,
+            nv.HoTen AS NhanVienKiemTra,
+            COALESCE(bb.TongTCD, 0)  AS TongTieuChiDat,
+            COALESCE(bb.TongTCKD, 0) AS TongTieuChiKhongDat
+        FROM bien_ban_danh_gia_dot_xuat bb
+        LEFT JOIN xuong x ON x.IdXuong = bb.IdXuong
+        LEFT JOIN nhan_vien nv ON nv.IdNhanVien = bb.IdNhanVien
+        WHERE bb.IdBienBanDanhGiaDX = :id
+        LIMIT 1
+    ");
+        $stmt->execute([':id' => $id]);
+        $report = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$report) {
+            $this->redirect('?controller=suddenly&action=index&msg=' . urlencode('Không tìm thấy biên bản.') . '&type=warning');
+            return;
+        }
+
+        // Lấy chi tiết tiêu chí (nếu có)
+        $stmt2 = $db->prepare("
+        SELECT *
+        FROM ttct_bien_ban_danh_gia_dot_xuat
+        WHERE IdBienBanDanhGiaDX = :id
+    ");
+        $stmt2->execute([':id' => $id]);
+        $details = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+        // Lấy loại tiêu chí (nếu có)
+        $report['LoaiTieuChi'] = !empty($details[0]['LoaiTieuChi'] ?? null)
+            ? $details[0]['LoaiTieuChi']
+            : null;
+
+        // Render view (hiển thị đầy đủ thông tin + tổng tiêu chí)
+        $this->render('suddenly/read', [
+            'title'   => 'Chi tiết biên bản đột xuất',
+            'report'  => $report,
+            'details' => $details
+        ]);
     }
-
-    // 2. Kết nối database
-    $db = $this->SuddenlyModel->getConnection();
-
-    // 3. Lấy thông tin biên bản + xưởng
-    $stmt = $db->prepare("
-    SELECT 
-        bb.*, 
-        x.TenXuong,
-        nv.HoTen AS NhanVienKiemTra
-    FROM bien_ban_danh_gia_dot_xuat bb
-    LEFT JOIN xuong x ON x.IdXuong = bb.IdXuong
-    LEFT JOIN nhan_vien nv ON nv.IdNhanVien = bb.IdNhanVien
-    WHERE bb.IdBienBanDanhGiaDX = :id
-    LIMIT 1
-");
-
-    $stmt->execute([':id' => $id]);
-    $report = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$report) {
-        $this->setFlash('warning', 'Không tìm thấy biên bản.');
-        $this->redirect('?controller=suddenly&action=index');
-        return;
-    }
-
-    // 4. Lấy chi tiết tiêu chí
-    $stmt2 = $db->prepare(" SELECT * FROM ttct_bien_ban_danh_gia_dot_xuat WHERE IdBienBanDanhGiaDX = :id ");
-    $stmt2->execute([':id' => $id]);
-    $details = $stmt2->fetchAll(PDO::FETCH_ASSOC);
-
-    // 5. Gán loại tiêu chí (nếu có)
-    $report['LoaiTieuChi'] = !empty($details[0]['LoaiTieuChi'] ?? null)
-        ? $details[0]['LoaiTieuChi']
-        : null;
-
-    // 6. Render sang view
-    $this->render('suddenly/read', [
-        'title'   => 'Chi tiết biên bản đột xuất',
-        'report'  => $report,
-        'details' => $details
-    ]);
-}
 
     /** Form tạo mới biên bản đột xuất */
     public function create(): void
     {
         $db = $this->SuddenlyModel->getConnection();
-
-        // 🔹 Lấy danh sách xưởng
         $stmt = $db->query("SELECT IdXuong, TenXuong FROM xuong ORDER BY TenXuong");
         $xuongList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 🔹 Lấy toàn bộ nhân viên còn hoạt động
         $stmtNV = $db->query("
             SELECT IdNhanVien, HoTen 
             FROM nhan_vien
@@ -132,28 +128,22 @@ class SuddenlyController extends Controller
         ");
         $nhanVienList = $stmtNV->fetchAll(PDO::FETCH_ASSOC);
 
-        // 🔹 Sinh mã biên bản
         $date = date('Ymd');
         $stmt2 = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_dot_xuat WHERE IdBienBanDanhGiaDX LIKE :prefix");
         $stmt2->execute([':prefix' => 'BBDX' . $date . '%']);
         $count = (int)$stmt2->fetchColumn() + 1;
         $maBienBan = 'BBDX' . $date . str_pad($count, 2, '0', STR_PAD_LEFT);
 
-        // 🔹 Lấy loại biên bản (factory / production / worker)
-        //    Ví dụ: ?controller=suddenly&action=create&type=production
         $type = $_GET['type'] ?? 'production';
         $criteriaData = require __DIR__ . '/../core/QualityCriteria.php';
 
         if (!isset($criteriaData[$type])) {
-            $this->setFlash('danger', 'Loại biên bản không hợp lệ.');
-            $this->redirect('?controller=suddenly&action=index');
+            $this->redirect('?controller=suddenly&action=index&msg=' . urlencode('Loại biên bản không hợp lệ.') . '&type=danger');
         }
 
-        // 🔹 Lấy danh sách nhóm tiêu chí của loại tương ứng
         $criteriaList = $criteriaData[$type];
         $criteriaGroups = array_keys($criteriaList);
 
-        // Render
         $this->render('suddenly/create', [
             'title'          => 'Tạo biên bản đột xuất',
             'xuongList'      => $xuongList,
@@ -168,7 +158,6 @@ class SuddenlyController extends Controller
     /** Lưu biên bản đột xuất */
     public function store(): void
     {
-        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('?controller=suddenly&action=index');
         }
@@ -187,16 +176,53 @@ class SuddenlyController extends Controller
         $files       = $_FILES['FileMinhChung'] ?? null;
         $idNhanVien  = $_POST['IdNhanVien'] ?? null;
 
-        if (empty($arrTieuChi)) {
-            $this->setFlash('danger', 'Không có tiêu chí nào được nhập.');
-            $this->redirect('?controller=suddenly&action=create');
+        // --- Kiểm tra dữ liệu đầu vào ---
+        if (empty($idXuong)) {
+            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Yêu cầu chọn Xưởng kiểm tra.') . '&type=warning');
         }
+
+        if (empty($idNhanVien)) {
+            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Yêu cầu chọn Nhân viên kiểm tra.') . '&type=warning');
+        }
+
+        if (empty($arrTieuChi)) {
+            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Không có tiêu chí nào được nhập.') . '&type=danger');
+        }
+
+        foreach ($arrDiemDat as $diem) {
+            if ($diem === '' || !is_numeric($diem) || $diem < 0 || $diem > 10) {
+                $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Điểm tiêu chí phải nằm trong khoảng 0–10 và không được bỏ trống.') . '&type=warning');
+            }
+        }
+
+        foreach ($arrGhiChu as $note) {
+            if (preg_match('/[#@\$%<>\{\}\[\]\;]/', $note)) {
+                $this->redirect(
+                    '?controller=suddenly&action=create&msg=' . urlencode('Ghi chú chứa kí tự không hợp lệ, nhập lại Ghi chú') .
+                        '&type=danger'
+                );
+            }
+        }
+
+        if (!$files || empty($files['name'][0])) {
+            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Yêu cầu tải ảnh minh chứng.') . '&type=danger');
+        }
+
+        foreach ($files['name'] as $i => $name) {
+            if (empty($name)) {
+                $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Yêu cầu tải ảnh minh chứng cho tất cả tiêu chí.') . '&type=danger');
+            }
+            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Định dạng ảnh không hợp lệ. Chỉ chấp nhận JPG hoặc PNG.') . '&type=danger');
+            }
+        }
+        // --- Hết phần kiểm tra ---
 
         $db = $this->SuddenlyModel->getConnection();
         $db->beginTransaction();
 
         try {
-            // Tạo biên bản cha
             $this->SuddenlyModel->create([
                 'IdBienBanDanhGiaDX' => $idBienBan,
                 'IdXuong'            => $idXuong,
@@ -242,13 +268,12 @@ class SuddenlyController extends Controller
             $this->SuddenlyModel->updateTong($idBienBan, $tongTCD, $tongTCKD, $ketQuaTong);
             $db->commit();
 
-            $this->setFlash('success', "Đã tạo biên bản $idBienBan thành công.");
+            $msg = "Biên bản {$idBienBan} lưu thành công.";
+            $this->redirect('?controller=suddenly&action=index&msg=' . urlencode($msg) . '&type=success');
         } catch (Throwable $e) {
             $db->rollBack();
-            $this->setFlash('danger', 'Không thể tạo biên bản: ' . $e->getMessage());
+            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Không thể lưu biên bản: ' . $e->getMessage()) . '&type=danger');
         }
-
-        $this->redirect('?controller=suddenly&action=index');
     }
 
     /** Xóa biên bản đột xuất */
@@ -256,18 +281,16 @@ class SuddenlyController extends Controller
     {
         $id = $_GET['id'] ?? null;
 
-        if ($id) {
-            if ($this->SuddenlyModel->deleteBienBanCascade($id)) {
-                $this->setFlash('success', "Đã xóa biên bản $id và các chi tiết liên quan.");
-            } else {
-                $this->setFlash('danger', "Không thể xóa biên bản $id. Kiểm tra lại ràng buộc dữ liệu.");
-            }
-        } else {
-            $this->setFlash('warning', 'Thiếu mã biên bản để xóa.');
+        if (!$id) {
+            $this->redirect('?controller=suddenly&action=index&msg=' . urlencode('Thiếu mã biên bản để xóa.') . '&type=warning');
         }
 
-        $this->redirect('?controller=suddenly&action=index');
-    }
+        $deleted = $this->SuddenlyModel->deleteBienBanCascade($id);
 
-    
+        if ($deleted) {
+            $this->redirect('?controller=suddenly&action=index&msg=' . urlencode("Xóa biên bản $id thành công.") . '&type=success');
+        } else {
+            $this->redirect('?controller=suddenly&action=index&msg=' . urlencode("Không thể xóa biên bản $id. Kiểm tra lại ràng buộc dữ liệu.") . '&type=danger');
+        }
+    }
 }
