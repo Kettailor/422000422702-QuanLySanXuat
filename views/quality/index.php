@@ -1,43 +1,156 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
+?>
 <style>
-/* ===== STYLE CHUNG ===== */
-.qa-container{font-family:"Inter",sans-serif;background:#f9fafc}
+  /* ===== STYLE CHUNG ===== */
+  .qa-container {
+    font-family: "Inter", sans-serif;
+    background: #f9fafc;
+  }
 
-/* ===== DASHBOARD ===== */
-.summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:16px}
-.summary-cards .card{border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;text-align:center;transition:.2s;position:relative;cursor:pointer}
-.summary-cards .card:hover{transform:translateY(-3px);box-shadow:0 3px 8px rgba(0,0,0,.12)}
-.summary-cards h3{font-weight:700;margin-bottom:6px}
-.summary-cards p{color:#6c757d;margin:0;font-weight:500}
-.card-total h3{color:#2f6bff}
-.card-passed h3{color:#28a745}
-.card-failed h3{color:#dc3545}
+  /* ===== DASHBOARD ===== */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 16px;
+  }
 
-/* ===== FILTER BAR ===== */
-.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 18px}
-.filter-btn{border:1px solid #e2e6ea;background:#fff;color:#495057;border-radius:999px;padding:6px 12px;font-size:.9rem;cursor:pointer;transition:.15s}
-.filter-btn:hover{background:#f1f3f5}
-.filter-btn.active{background:#2f6bff;color:#fff;border-color:#2f6bff}
+  .summary-cards .card {
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+    padding: 20px;
+    text-align: center;
+    transition: .2s;
+    position: relative;
+    cursor: pointer;
+  }
 
-/* ===== TABLE ===== */
-.table-card{background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:20px}
-.table th{color:#6c757d;font-weight:600}
-.table td{vertical-align:middle}
-.hidden-row{display:none!important}
+  .summary-cards .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+  }
 
-/* ===== BUTTONS ===== */
-.btn-action{border-radius:8px;padding:4px 12px;font-size:.85rem;text-decoration:none;transition:.2s}
-.btn-create{background:#2f6bff;color:#fff!important}
-.btn-create:hover{background:#2556d8}
+  .summary-cards h3 {
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
 
-/* đổi màu CHI TIẾT -> tím */
-.btn-detail{background:#6f42c1;color:#fff!important}
-.btn-detail:hover{background:#59339b}
+  .summary-cards p {
+    color: #6c757d;
+    margin: 0;
+    font-weight: 500;
+  }
 
-/* badge kết quả */
-.badge{border-radius:8px;padding:6px 10px;font-weight:600}
+  .card-total h3 {
+    color: #2f6bff;
+  }
+
+  .card-passed h3 {
+    color: #28a745;
+  }
+
+  .card-failed h3 {
+    color: #dc3545;
+  }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 6px 0 18px;
+  }
+
+  .filter-btn {
+    border: 1px solid #e2e6ea;
+    background: #fff;
+    color: #495057;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: .9rem;
+    cursor: pointer;
+    transition: .15s;
+  }
+
+  .filter-btn:hover {
+    background: #f1f3f5;
+  }
+
+  .filter-btn.active {
+    background: #2f6bff;
+    color: #fff;
+    border-color: #2f6bff;
+  }
+
+  /* ===== TABLE ===== */
+  .table-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, .08);
+    padding: 20px;
+  }
+
+  .table th {
+    color: #6c757d;
+    font-weight: 600;
+  }
+
+  .table td {
+    vertical-align: middle;
+  }
+
+  .hidden-row {
+    display: none !important;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn-action {
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: .85rem;
+    text-decoration: none;
+    transition: .2s;
+  }
+
+  .btn-create {
+    background: #2f6bff;
+    color: #fff !important;
+  }
+
+  .btn-create:hover {
+    background: #2556d8;
+  }
+
+  .btn-detail {
+    background: #6f42c1;
+    color: #fff !important;
+  }
+
+  .btn-detail:hover {
+    background: #59339b;
+  }
+
+  .btn-delete {
+    background: #dc3545;
+    color: #fff !important;
+  }
+
+  .btn-delete:hover {
+    background: #b52a32;
+  }
+
+  .badge {
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 600;
+  }
 </style>
-
 <div class="qa-container">
+
 
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -52,7 +165,7 @@
 
   <!-- Dashboard -->
   <div class="summary-cards">
-    <div class="card card-total" onclick="applyFilter('all')">
+    <div class="card card-total" onclick="activateAllFilter()">
       <h3><?= $dashboard['total'] ?></h3>
       <p>Tổng lô sản phẩm</p>
       <small class="text-muted">
@@ -81,36 +194,41 @@
       </div>
     </div>
 
-    <!-- Bộ lọc bổ sung: ĐÃ KIỂM TRA / CHƯA KIỂM TRA -->
+    <!-- Bộ lọc -->
     <div class="filter-bar">
       <button class="filter-btn active" data-filter="all" onclick="applyFilter('all', this)">Tất cả</button>
       <button class="filter-btn" data-filter="checked" onclick="applyFilter('checked', this)">Lô đã kiểm tra</button>
       <button class="filter-btn" data-filter="unchecked" onclick="applyFilter('unchecked', this)">Lô chưa kiểm tra</button>
-      <button class="filter-btn" data-filter="passed" onclick="applyFilter('passed', this)">Lô đạt</button>
-      <button class="filter-btn" data-filter="failed" onclick="applyFilter('failed', this)">Lô không đạt</button>
     </div>
 
     <div class="table-responsive">
-      <table class="table align-middle">
-        <thead class="table-light">
+      <table class="table table-hover align-middle text-nowrap">
+        <thead class="table">
           <tr>
-            <th>Mã Lô</th>
-            <th>Sản phẩm</th>
-            <th>Số lượng</th>
-            <th>Ngày tạo</th>
-            <th>Xưởng</th>
-            <th>Kết quả</th>
-            <th class="text-end">Hành động</th>
+            <th class="text-center">Mã Lô</th>
+            <th class="text-center">Sản phẩm</th>
+            <th class="text-center">Số lượng</th>
+            <th class="text-center">Ngày tạo</th>
+            <th class="text-center">Xưởng</th>
+            <th class="text-center">Kết quả</th>
+            <th class="text-center">Hành động</th>
           </tr>
         </thead>
         <tbody id="lotTable">
           <?php if (!empty($listLo)): ?>
             <?php foreach ($listLo as $lo): ?>
               <?php
-                $ketqua = trim($lo['KetQua'] ?? '');
-                if ($ketqua === 'Đạt')      { $status = 'passed';   $checked = '1'; }
-                elseif ($ketqua === 'Không đạt'){ $status = 'failed';   $checked = '1'; }
-                else                        { $status = 'unchecked';$checked = '0'; }
+              $ketqua = trim($lo['KetQua'] ?? '');
+              if ($ketqua === 'Đạt') {
+                $status = 'passed';
+                $checked = '1';
+              } elseif ($ketqua === 'Không đạt') {
+                $status = 'failed';
+                $checked = '1';
+              } else {
+                $status = 'unchecked';
+                $checked = '0';
+              }
               ?>
               <tr data-status="<?= $status ?>" data-checked="<?= $checked ?>">
                 <td class="fw-semibold"><?= htmlspecialchars($lo['IdLo']) ?></td>
@@ -128,14 +246,29 @@
                   <?php endif; ?>
                 </td>
                 <td class="text-end">
-                  <a href="?controller=quality&action=create&IdLo=<?= urlencode($lo['IdLo']) ?>" class="btn-action btn-create me-2">Đánh giá</a>
-                  <a href="?controller=quality&action=read&id=<?= urlencode($lo['IdLo']) ?>" class="btn-action btn-detail">Chi tiết</a>
-                  <!-- Nút XÓA đã bị loại bỏ theo yêu cầu -->
+                  <?php if ($ketqua === '' || $ketqua === null): ?>
+                    <a href="?controller=quality&action=create&IdLo=<?= urlencode($lo['IdLo']) ?>"
+                      class="btn-action btn-create me-2">Đánh giá</a>
+                  <?php endif; ?>
+
+                  <a href="?controller=quality&action=read&id=<?= urlencode($lo['IdLo']) ?>"
+                    class="btn-action btn-detail me-2">Chi tiết</a>
+
+                  <?php if (!empty($lo['IdBienBanDanhGiaSP'])): ?>
+                    <a href="?controller=quality&action=delete&id=<?= urlencode($lo['IdBienBanDanhGiaSP']) ?>&IdLo=<?= urlencode($lo['IdLo']) ?>"
+                      class="btn-action btn-delete btn-delete-trigger"
+                      data-id="<?= htmlspecialchars($lo['IdBienBanDanhGiaSP']) ?>"
+                      data-lo="<?= htmlspecialchars($lo['IdLo']) ?>">
+                      Xóa
+                    </a>
+                  <?php endif; ?>
                 </td>
               </tr>
             <?php endforeach; ?>
           <?php else: ?>
-            <tr><td colspan="7" class="text-center text-muted py-3">Không có lô nào được tìm thấy.</td></tr>
+            <tr>
+              <td colspan="7" class="text-center text-muted py-3">Không có lô nào được tìm thấy.</td>
+            </tr>
           <?php endif; ?>
         </tbody>
       </table>
@@ -143,48 +276,114 @@
   </div>
 </div>
 
+<!-- Popup xác nhận xóa -->
+<div id="confirmModal" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-3">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title fw-semibold">Xác nhận xóa biên bản</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage" class="mb-0"></p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xóa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-function setActive(btn){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-}
+  // Filter
+  function setActive(btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  }
 
-function applyFilter(type, btn=null){
-  setActive(btn);
-  const rows = document.querySelectorAll('#lotTable tr[data-status]');
-  const label = document.getElementById('filterLabel');
+  function applyFilter(type, btn = null) {
+    setActive(btn);
+    const rows = document.querySelectorAll('#lotTable tr[data-status]');
+    const label = document.getElementById('filterLabel');
+    const map = {
+      all: "",
+      passed: "Lô đạt yêu cầu",
+      failed: "Lô không đạt yêu cầu",
+      checked: "Lô đã kiểm tra",
+      unchecked: "Lô chưa kiểm tra"
+    };
+    rows.forEach(row => {
+      const status = row.getAttribute('data-status');
+      const checked = row.getAttribute('data-checked');
+      let show = true;
 
-  rows.forEach(row=>{
-    const status  = row.getAttribute('data-status');     // passed | failed | unchecked
-    const checked = row.getAttribute('data-checked');    // "1" | "0"
-    let show = true;
+      if (type === 'passed') show = (status === 'passed');
+      else if (type === 'failed') show = (status === 'failed');
+      else if (type === 'unchecked') show = (status === 'unchecked');
+      else if (type === 'checked') show = (checked === '1');
+      else show = true;
 
-    if(type === 'passed')      show = (status === 'passed');
-    else if(type === 'failed') show = (status === 'failed');
-    else if(type === 'unchecked') show = (status === 'unchecked');
-    else if(type === 'checked')   show = (checked === '1');
-    else show = true;
+      row.classList.toggle('hidden-row', !show);
+    });
+    label.textContent = map[type] || '';
+  }
 
-    row.classList.toggle('hidden-row', !show);
+  function activateAllFilter() {
+    const allBtn = document.querySelector('.filter-btn[data-filter="all"]');
+    applyFilter('all', allBtn);
+  }
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const kw = this.value.toLowerCase();
+    document.querySelectorAll('#lotTable tr[data-status]').forEach(row => {
+      const passFilter = !row.classList.contains('hidden-row');
+      const match = row.innerText.toLowerCase().includes(kw);
+      row.style.display = passFilter && match ? '' : 'none';
+    });
   });
 
-  const map = {
-    all: '', 
-    checked: 'Đang hiển thị: Lô đã kiểm tra',
-    unchecked: 'Đang hiển thị: Lô chưa kiểm tra',
-    passed: 'Đang hiển thị: Lô đạt yêu cầu',
-    failed: 'Đang hiển thị: Lô không đạt'
-  };
-  label.textContent = map[type] || '';
-}
+  // Modal xác nhận XÓA
+  document.querySelectorAll('.btn-delete-trigger').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const id = btn.dataset.id || '(chưa có mã)';
+      const lo = btn.dataset.lo || '(không rõ)';
+      const url = btn.getAttribute('href');
 
-// search kết hợp với filter
-document.getElementById('searchInput').addEventListener('input', function(){
-  const kw = this.value.toLowerCase();
-  document.querySelectorAll('#lotTable tr[data-status]').forEach(row=>{
-    const passFilter = !row.classList.contains('hidden-row');
-    const match = row.innerText.toLowerCase().includes(kw);
-    row.style.display = passFilter && match ? '' : 'none';
+      if (!url || url.endsWith('id=&IdLo=')) {
+        alert('Không tìm thấy mã biên bản để xóa!');
+        return;
+      }
+
+      document.getElementById('confirmMessage').textContent =
+        `Bạn có chắc muốn xóa biên bản ${id} của lô ${lo} không?`;
+
+      const confirmBtn = document.getElementById('confirmDeleteBtn');
+      confirmBtn.onclick = () => {
+        window.location.href = url;
+      };
+
+      const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+      modal.show();
+    });
   });
-});
 </script>
+
+<?php if (!empty($_GET['msg'])): ?>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: '<?= ($_GET['type'] ?? 'success') === 'danger' ? 'error' : (($_GET['type'] ?? 'success') === 'warning' ? 'warning' : 'success') ?>',
+        title: '<?= addslashes(strip_tags($_GET['msg'])) ?>',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    });
+  </script>
+<?php endif; ?>

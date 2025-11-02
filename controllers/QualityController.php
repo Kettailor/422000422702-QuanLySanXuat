@@ -11,7 +11,7 @@ class QualityController extends Controller
         date_default_timezone_set('Asia/Ho_Chi_Minh');
     }
 
-    /** Dashboard chính */
+    /** Trang chính */
     public function index(): void
     {
         $reports   = $this->qualityModel->getLatestReports(50);
@@ -19,74 +19,62 @@ class QualityController extends Controller
         $dashboard = $this->qualityModel->getDashboardSummary();
         $listLo    = $this->qualityModel->getDanhSachLo();
 
+        // ✅ Lấy flash qua query string
+        $flash = null;
+        if (!empty($_GET['msg'])) {
+            $flash = [
+                'type' => $_GET['type'] ?? 'success',
+                'message' => $_GET['msg']
+            ];
+        }
+
         $this->render('quality/index', [
             'title'     => 'Kiểm soát chất lượng',
             'reports'   => $reports,
             'summary'   => $summary,
             'dashboard' => $dashboard,
-            'listLo'    => $listLo
+            'listLo'    => $listLo,
+            'flash'     => $flash
         ]);
     }
 
-    /** Danh sách lọc theo loại */
-    public function list(): void
-    {
-        $type = $_GET['type'] ?? 'all';
-        $list = $this->qualityModel->getListByType($type);
-        $titleMap = [
-            'passed'   => 'Danh sách lô đạt yêu cầu',
-            'failed'   => 'Danh sách lô không đạt',
-            'unchecked'=> 'Danh sách lô chưa kiểm tra',
-            'all'      => 'Danh sách toàn bộ lô'
-        ];
-        $this->render('quality/list', [
-            'title' => $titleMap[$type] ?? $titleMap['all'],
-            'list'  => $list,
-        ]);
-    }
-
-    /** Xem chi tiết biên bản */
+    /** Xem chi tiết biên bản hoặc lô */
     public function read(): void
-{
-    $id = $_GET['id'] ?? null;
+    {
+        $id = $_GET['id'] ?? null;
 
-    if (!$id) {
-        $this->setFlash('danger', 'Thiếu mã lô hoặc mã biên bản.');
-        $this->redirect('?controller=quality&action=index');
+        if (!$id) {
+            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Thiếu mã lô hoặc mã biên bản.') . '&type=danger');
+        }
+
+        $db = $this->qualityModel->getConnection();
+        $stmt = $db->prepare("
+            SELECT bb.*
+            FROM bien_ban_danh_gia_thanh_pham bb
+            WHERE bb.IdLo = :id
+            ORDER BY bb.ThoiGian DESC
+            LIMIT 1
+        ");
+        $stmt->execute([':id' => $id]);
+        $report = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($report) {
+            $this->render('quality/read', [
+                'title'    => 'Chi tiết biên bản đánh giá',
+                'report'   => $report,
+                'isReport' => true
+            ]);
+        } else {
+            $loInfo = $this->qualityModel->getLoInfo($id);
+            $this->render('quality/read', [
+                'title'    => 'Thông tin lô sản phẩm',
+                'loInfo'   => $loInfo,
+                'isReport' => false
+            ]);
+        }
     }
 
-    // Kiểm tra xem lô này có biên bản hay chưa
-    $db = $this->qualityModel->getConnection();
-    $stmt = $db->prepare("
-        SELECT bb.*
-        FROM bien_ban_danh_gia_thanh_pham bb
-        WHERE bb.IdLo = :id
-        ORDER BY bb.ThoiGian DESC
-        LIMIT 1
-    ");
-    $stmt->execute([':id' => $id]);
-    $report = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($report) {
-        // Có biên bản -> hiển thị trang chi tiết biên bản
-        $this->render('quality/read', [
-            'title'  => 'Chi tiết biên bản đánh giá',
-            'report' => $report,
-            'isReport' => true
-        ]);
-    } else {
-        // Chưa có biên bản -> chỉ hiển thị thông tin lô
-        $loInfo = $this->qualityModel->getLoInfo($id);
-        $this->render('quality/read', [
-            'title'  => 'Thông tin lô sản phẩm',
-            'loInfo' => $loInfo,
-            'isReport' => false
-        ]);
-    }
-}
-
-
-    /** Form tạo mới */
+    /** Form tạo mới biên bản */
     public function create(): void
     {
         $idLo = $_GET['IdLo'] ?? null;
@@ -94,6 +82,15 @@ class QualityController extends Controller
         $criteria = [];
 
         if ($idLo) {
+            $db = $this->qualityModel->getConnection();
+            $stmt = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_thanh_pham WHERE IdLo = :idLo");
+            $stmt->execute([':idLo' => $idLo]);
+            $exists = (int)$stmt->fetchColumn() > 0;
+
+            if ($exists) {
+                $this->redirect('?controller=quality&action=index&msg=' . urlencode("Lô $idLo đã có biên bản, không thể tạo mới.") . '&type=warning');
+            }
+
             $loInfo = $this->qualityModel->getLoInfo($idLo);
             $criteriaList = require __DIR__ . '/../core/QualityCriteria.php';
             $xuong = $loInfo['TenXuong'] ?? null;
@@ -116,12 +113,18 @@ class QualityController extends Controller
             $this->redirect('?controller=quality&action=index');
         }
 
-        $idBienBan = trim($_POST['IdBienBanDanhGiaSP'] ?? '');
-        if ($idBienBan === '') {
-            $idBienBan = $this->qualityModel->generateBienBanId();
+        $idLo = $_POST['IdLo'] ?? null;
+
+        if ($idLo) {
+            $db = $this->qualityModel->getConnection();
+            $stmt = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_thanh_pham WHERE IdLo = :idLo");
+            $stmt->execute([':idLo' => $idLo]);
+            if ((int)$stmt->fetchColumn() > 0) {
+                $this->redirect('?controller=quality&action=index&msg=' . urlencode("Lô $idLo đã có biên bản, không thể tạo mới.") . '&type=warning');
+            }
         }
 
-        $idLo = $_POST['IdLo'] ?? null;
+        $idBienBan = trim($_POST['IdBienBanDanhGiaSP'] ?? '') ?: $this->qualityModel->generateBienBanId();
         $thoiGian = $_POST['ThoiGian'] ?? date('Y-m-d H:i:s');
         $arrTieuChi = $_POST['TieuChi'] ?? [];
         $arrDiemDat = $_POST['DiemDat'] ?? [];
@@ -129,8 +132,7 @@ class QualityController extends Controller
         $files      = $_FILES['FileMinhChung'] ?? null;
 
         if (empty($arrTieuChi)) {
-            $this->setFlash('danger', 'Không có tiêu chí nào được nhập.');
-            $this->redirect('?controller=quality&action=create');
+            $this->redirect('?controller=quality&action=create&msg=' . urlencode('Không có tiêu chí nào được nhập.') . '&type=danger');
         }
 
         $db = $this->qualityModel->getConnection();
@@ -166,40 +168,39 @@ class QualityController extends Controller
 
                 $this->qualityModel->insertChiTietTieuChi($idBienBan, $tieuChi, (int)$diem, $ghiChu, $fileName);
 
-                if ($diem >= 8) $tongTCD++;
+                if ($diem >= 9) $tongTCD++;
                 else $tongTCKD++;
             }
 
             $ketQuaTong = ($tongTCKD > 0) ? 'Không đạt' : 'Đạt';
             $this->qualityModel->updateTong($idBienBan, $tongTCD, $tongTCKD, $ketQuaTong);
+
             $db->commit();
 
-            $this->setFlash('success', "Đã tạo biên bản $idBienBan thành công.");
+            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Lưu biên bản thành công.') . '&type=success');
         } catch (Throwable $e) {
             $db->rollBack();
-            $this->setFlash('danger', 'Không thể tạo biên bản: ' . $e->getMessage());
+            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Không thể tạo biên bản: ' . $e->getMessage()) . '&type=danger');
         }
-
-        $this->redirect('?controller=quality&action=index');
     }
 
     /** Xóa biên bản */
     public function delete(): void
-{
-    $id = $_GET['id'] ?? null;
+    {
+        $idBienBan = $_GET['id'] ?? null;
+        $idLo = $_GET['IdLo'] ?? null; // nếu bạn cần IdLo cho mục đích khác vẫn giữ
 
-    if ($id) {
-        if ($this->qualityModel->deleteBienBanCascade($id)) {
-            $this->setFlash('success', "Đã xóa biên bản $id và các chi tiết liên quan.");
-        } else {
-            $this->setFlash('danger', "Không thể xóa biên bản $id. Kiểm tra lại ràng buộc dữ liệu.");
+        if (!$idBienBan) {
+            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Thiếu mã biên bản để xóa.') . '&type=warning');
         }
-    } else {
-        $this->setFlash('warning', 'Thiếu mã biên bản để xóa.');
+
+        // Gọi model đúng cú pháp
+        $deleted = $this->qualityModel->deleteBienBanCascade($idBienBan);
+
+        if ($deleted) {
+            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Xóa biên bản thành công.') . '&type=success');
+        } else {
+            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Không thể xóa biên bản. Vui lòng kiểm tra lại dữ liệu.') . '&type=danger');
+        }
     }
-
-    $this->redirect('?controller=quality&action=index');
-}
-
-
 }

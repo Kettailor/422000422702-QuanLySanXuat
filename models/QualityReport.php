@@ -5,7 +5,7 @@ class QualityReport extends BaseModel
     protected string $table = 'bien_ban_danh_gia_thanh_pham';
     protected string $primaryKey = 'IdBienBanDanhGiaSP';
 
-    /** Danh sách biên bản mới nhất */
+    /** Lấy danh sách biên bản mới nhất */
     public function getLatestReports(int $limit = 10): array
     {
         $sql = 'SELECT 
@@ -29,7 +29,7 @@ class QualityReport extends BaseModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** Thống kê tổng hợp */
+    /** Lấy thống kê tổng quan */
     public function getQualitySummary(): array
     {
         $sql = 'SELECT 
@@ -40,7 +40,7 @@ class QualityReport extends BaseModel
         return $this->db->query($sql)->fetch(PDO::FETCH_ASSOC);
     }
 
-    /** Danh sách lô kèm kết quả kiểm tra (nếu có) */
+    /** Danh sách lô kèm biên bản mới nhất (nếu có) */
     public function getDanhSachLo(): array
     {
         $sql = 'SELECT 
@@ -50,19 +50,24 @@ class QualityReport extends BaseModel
                     lo.NgayTao,
                     sp.TenSanPham,
                     x.TenXuong,
+                    bb.IdBienBanDanhGiaSP,
                     bb.KetQua
                 FROM lo
                 LEFT JOIN san_pham sp ON sp.IdSanPham = lo.IdSanPham
                 LEFT JOIN kho k ON k.IdKho = lo.IdKho
                 LEFT JOIN xuong x ON x.IdXuong = k.IdXuong
-                LEFT JOIN bien_ban_danh_gia_thanh_pham bb ON bb.IdLo = lo.IdLo
+                LEFT JOIN (
+                    SELECT IdLo, MAX(IdBienBanDanhGiaSP) AS IdBienBanDanhGiaSP, KetQua
+                    FROM bien_ban_danh_gia_thanh_pham
+                    GROUP BY IdLo
+                ) bb ON bb.IdLo = lo.IdLo
                 ORDER BY lo.NgayTao DESC';
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** Thông tin chi tiết 1 lô */
+    /** Lấy thông tin chi tiết 1 lô */
     public function getLoInfo(string $idLo): ?array
     {
         $sql = 'SELECT 
@@ -93,10 +98,17 @@ class QualityReport extends BaseModel
                 VALUES
                     (:IdBienBanDanhGiaSP, :ThoiGian, :TongTCD, :TongTCKD, :KetQua, :IdLo)';
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute($data);
+        return $stmt->execute([
+            ':IdBienBanDanhGiaSP' => $data['IdBienBanDanhGiaSP'],
+            ':ThoiGian'           => $data['ThoiGian'],
+            ':TongTCD'            => $data['TongTCD'],
+            ':TongTCKD'           => $data['TongTCKD'],
+            ':KetQua'             => $data['KetQua'],
+            ':IdLo'               => $data['IdLo'],
+        ]);
     }
 
-    /** Cập nhật tổng */
+    /** Cập nhật tổng tiêu chí */
     public function updateTong(string $idBienBan, int $tongTCD, int $tongTCKD, string $ketQua): bool
     {
         $sql = 'UPDATE bien_ban_danh_gia_thanh_pham
@@ -105,13 +117,13 @@ class QualityReport extends BaseModel
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             ':tcd' => $tongTCD,
-            ':tckd'=> $tongTCKD,
+            ':tckd' => $tongTCKD,
             ':kq'  => $ketQua,
             ':id'  => $idBienBan,
         ]);
     }
 
-    /** Sinh ID biên bản */
+    /** Sinh ID biên bản (BBTPyyyymmddxx) */
     public function generateBienBanId(): string
     {
         $prefix = 'BBTP' . date('Ymd');
@@ -131,12 +143,13 @@ class QualityReport extends BaseModel
         return $newId;
     }
 
-    /** Sinh ID chi tiết */
+    /** Sinh ID chi tiết tiêu chí */
     public function generateChiTietId(string $idBienBan): string
     {
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM ttct_bien_ban_danh_gia_thanh_pham WHERE IdBienBanDanhGiaSP = :id");
         $stmt->execute([':id' => $idBienBan]);
-        $suffix = chr(65 + (int)$stmt->fetchColumn());
+        $count = (int)$stmt->fetchColumn();
+        $suffix = ($count < 26) ? chr(65 + $count) : $count + 1;
         return 'CT' . $idBienBan . $suffix;
     }
 
@@ -170,7 +183,12 @@ class QualityReport extends BaseModel
         $checked = $this->db->query("SELECT COUNT(DISTINCT IdLo) FROM bien_ban_danh_gia_thanh_pham")->fetchColumn();
         $passed = $this->db->query("SELECT COUNT(DISTINCT IdLo) FROM bien_ban_danh_gia_thanh_pham WHERE KetQua = 'Đạt'")->fetchColumn();
         $failed = $this->db->query("SELECT COUNT(DISTINCT IdLo) FROM bien_ban_danh_gia_thanh_pham WHERE KetQua = 'Không đạt'")->fetchColumn();
-        $unchecked = $this->db->query("SELECT COUNT(*) FROM lo WHERE IdLo NOT IN (SELECT IdLo FROM bien_ban_danh_gia_thanh_pham)")->fetchColumn();
+
+        $sqlUnchecked = "SELECT COUNT(lo.IdLo)
+                         FROM lo
+                         LEFT JOIN bien_ban_danh_gia_thanh_pham bb ON bb.IdLo = lo.IdLo
+                         WHERE bb.IdLo IS NULL";
+        $unchecked = $this->db->query($sqlUnchecked)->fetchColumn();
 
         return [
             'total'     => (int)$total,
@@ -236,29 +254,40 @@ class QualityReport extends BaseModel
         return $this->db;
     }
 
-    public function deleteBienBanCascade(string $id): bool
-{
-    try {
-        $this->db->beginTransaction();
+    /** Xóa biên bản + chi tiết */
+    public function deleteBienBanCascade(string $idBienBan, ?string $idLo = null): bool
+    {
+        try {
+            $this->db->beginTransaction();
 
-        // 1. Xóa các chi tiết con trước
-        $stmt1 = $this->db->prepare('DELETE FROM ttct_bien_ban_danh_gia_thanh_pham WHERE IdBienBanDanhGiaSP = :id');
-        $stmt1->execute([':id' => $id]);
+            // Xóa chi tiết trước
+            $this->db->prepare("
+                DELETE FROM ttct_bien_ban_danh_gia_thanh_pham 
+                WHERE IdBienBanDanhGiaSP = :id
+            ")->execute([':id' => $idBienBan]);
 
-        // 2. Sau đó mới xóa biên bản cha
-        $stmt2 = $this->db->prepare('DELETE FROM bien_ban_danh_gia_thanh_pham WHERE IdBienBanDanhGiaSP = :id');
-        $stmt2->execute([':id' => $id]);
+            // Xóa biên bản cha (nếu có IdLo, thêm điều kiện)
+            $stmt = $this->db->prepare(
+                "
+                DELETE FROM bien_ban_danh_gia_thanh_pham 
+                WHERE IdBienBanDanhGiaSP = :id" . ($idLo ? " AND IdLo = :lo" : "")
+            );
 
-        $this->db->commit();
-        return true;
+            $params = [':id' => $idBienBan];
+            if ($idLo) $params[':lo'] = $idLo;
 
-    } catch (Throwable $e) {
-        $this->db->rollBack();
-        error_log("Lỗi khi xóa biên bản $id: " . $e->getMessage());
-        return false;
+            $stmt->execute($params);
+
+            if ($stmt->rowCount() === 0) {
+                throw new Exception("Không tìm thấy biên bản để xóa ($idBienBan)");
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            error_log("❌ Lỗi khi xóa biên bản $idBienBan: " . $e->getMessage());
+            return false;
+        }
     }
-}
-
-
-
 }
