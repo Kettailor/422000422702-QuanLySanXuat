@@ -51,16 +51,17 @@ class QualityReport extends BaseModel
                     sp.TenSanPham,
                     x.TenXuong,
                     bb.IdBienBanDanhGiaSP,
-                    bb.KetQua
+                    bbdg.KetQua
                 FROM lo
                 LEFT JOIN san_pham sp ON sp.IdSanPham = lo.IdSanPham
                 LEFT JOIN kho k ON k.IdKho = lo.IdKho
                 LEFT JOIN xuong x ON x.IdXuong = k.IdXuong
                 LEFT JOIN (
-                    SELECT IdLo, MAX(IdBienBanDanhGiaSP) AS IdBienBanDanhGiaSP, KetQua
+                    SELECT IdLo, MAX(IdBienBanDanhGiaSP) AS IdBienBanDanhGiaSP
                     FROM bien_ban_danh_gia_thanh_pham
                     GROUP BY IdLo
                 ) bb ON bb.IdLo = lo.IdLo
+                LEFT JOIN bien_ban_danh_gia_thanh_pham bbdg ON bbdg.IdBienBanDanhGiaSP = bb.IdBienBanDanhGiaSP
                 ORDER BY lo.NgayTao DESC';
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
@@ -136,7 +137,9 @@ class QualityReport extends BaseModel
             $newId = $prefix . $suffix;
             $check = $this->db->prepare("SELECT 1 FROM bien_ban_danh_gia_thanh_pham WHERE IdBienBanDanhGiaSP = :id LIMIT 1");
             $check->execute([':id' => $newId]);
-            if (!$check->fetchColumn()) break;
+            if (!$check->fetchColumn()) {
+                break;
+            }
             $count++;
         } while (true);
 
@@ -274,7 +277,9 @@ class QualityReport extends BaseModel
             );
 
             $params = [':id' => $idBienBan];
-            if ($idLo) $params[':lo'] = $idLo;
+            if ($idLo) {
+                $params[':lo'] = $idLo;
+            }
 
             $stmt->execute($params);
 
