@@ -7,6 +7,7 @@ class PlanController extends Controller
     private WorkshopPlan $workshopPlanModel;
     private ProductComponent $componentModel;
     private Workshop $workshopModel;
+    private  WorkshopPlanMaterialDetail $workShopPlanDetail;
 
     public function __construct()
     {
@@ -16,6 +17,7 @@ class PlanController extends Controller
         $this->workshopPlanModel = new WorkshopPlan();
         $this->componentModel = new ProductComponent();
         $this->workshopModel = new Workshop();
+        $this->workShopPlanDetail = new WorkshopPlanMaterialDetail();
     }
 
     public function index(): void
@@ -79,6 +81,11 @@ class PlanController extends Controller
         $orderDetailId = $_POST['IdTTCTDonHang'] ?? null;
         $orderDetail = $orderDetailId ? $this->orderDetailModel->getPlanningContext($orderDetailId) : null;
 
+        var_dump( $orderDetail);
+        // exit;
+
+
+
         if (!$orderDetail) {
             $this->setFlash('danger', 'Vui lòng chọn đơn hàng hợp lệ trước khi lập kế hoạch.');
             $this->redirect('?controller=plan&action=create');
@@ -132,7 +139,17 @@ class PlanController extends Controller
             $this->planModel->create($planData);
             foreach ($assignments as $assignment) {
                 $this->workshopPlanModel->create($assignment);
+                if (isset($assignment['IdKeHoachSanXuatXuong'])) {
+
+                    $this->workShopPlanDetail->createWorkshopPlanDetail(
+                        $assignment['IdKeHoachSanXuatXuong'], // <-- Dùng cái này
+                        $orderDetail['IdCauHinh'], 
+                        $assignment['SoLuong'] // <-- Nên dùng số lượng phân cho xưởng đó
+                    );
+                }
             }
+
+
             $this->setFlash('success', 'Đã lập kế hoạch sản xuất và giao nhiệm vụ cho các xưởng.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi tạo kế hoạch sản xuất: ' . $exception->getMessage());
