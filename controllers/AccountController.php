@@ -8,6 +8,8 @@ class AccountController extends Controller
 
     public function __construct()
     {
+        $this->authorize(['VT_ADMIN']);
+
         $this->employeeModel = new Employee();
         $this->userModel = new User();
         $this->roleModel = new Role();
@@ -57,12 +59,12 @@ class AccountController extends Controller
 
             try {
                 $this->userModel->create([
-                  'IdNguoiDung' => $nextUserId,
-                  'IdNhanVien' => $employeeId,
-                  'TenDangNhap' => $username,
-                  'IdVaiTro' => $roleId,
-                  'MatKhau' => password_hash($defaultPassword, PASSWORD_BCRYPT),
-                  'TrangThai' => 'Hoạt động',
+                    'IdNguoiDung' => $nextUserId,
+                    'IdNhanVien' => $employeeId,
+                    'TenDangNhap' => $username,
+                    'IdVaiTro' => $roleId,
+                    'MatKhau' => password_hash($defaultPassword, PASSWORD_BCRYPT),
+                    'TrangThai' => 'Hoạt động',
                 ]);
                 $this->setFlash('success', 'Tạo tài khoản thành công.');
                 $this->redirect('?controller=account&action=index');
@@ -193,9 +195,9 @@ class AccountController extends Controller
             'title' => 'Nhật ký hoạt động',
             'logs' => $logs,
             'loginLogs' => [
-              'data' => $loginLogs,
-              'start_date' => $startDate,
-              'end_date' => $endDate,
+                'data' => $loginLogs,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ],
         ]);
     }
