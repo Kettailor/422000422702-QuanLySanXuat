@@ -67,6 +67,7 @@ class AccountController extends Controller
                     'TrangThai' => 'Hoạt động',
                 ]);
                 $this->setFlash('success', 'Tạo tài khoản thành công.');
+                Logger::info("Tạo tài khoản mới: $username (ID: $nextUserId)");
                 $this->redirect('?controller=account&action=index');
             } catch (Exception $e) {
                 Logger::error('Lỗi khi tạo tài khoản: ' . $e->getMessage());
@@ -112,6 +113,7 @@ class AccountController extends Controller
             try {
                 $this->userModel->update($id, $userData);
                 $this->setFlash('success', 'Cập nhật tài khoản thành công.');
+                Logger::info("Cập nhật tài khoản: $username (ID: $id): " . json_encode($userData));
                 $this->redirect('?controller=account&action=index');
             } catch (Exception $e) {
                 Logger::error('Lỗi khi cập nhật tài khoản ' . $id . ': ' . $e->getMessage());
@@ -142,6 +144,7 @@ class AccountController extends Controller
                 try {
                     $this->userModel->update($id, ['TrangThai' => $newStatus]);
                     $this->setFlash('success', 'Cập nhật trạng thái tài khoản thành công.');
+                    Logger::info("Cập nhật trạng thái tài khoản: " . $user['TenDangNhap'] . " (ID: $id) thành $newStatus");
                 } catch (Exception $e) {
                     Logger::error('Lỗi khi cập nhật trạng thái tài khoản ' . $id . ': ' . $e->getMessage());
                     $this->setFlash('danger', 'Không thể cập nhật trạng thái tài khoản. Lỗi: ' . htmlspecialchars($e->getMessage()));
@@ -178,6 +181,7 @@ class AccountController extends Controller
         try {
             $this->userModel->delete($id);
             $this->setFlash('success', 'Xóa tài khoản thành công.');
+            Logger::info("Xóa tài khoản: " . $user['TenDangNhap'] . " (ID: $id)");
             $this->redirect('?controller=account&action=index');
         } catch (Exception $e) {
             Logger::error('Lỗi khi xóa tài khoản ' . $id . ': ' . $e->getMessage());
