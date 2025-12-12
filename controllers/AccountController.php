@@ -36,6 +36,7 @@ class AccountController extends Controller
     public function create(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $idNguoiDung = uniqid('ND');
             $employeeId = $_POST['employee'] ?? null;
             $username = $_POST['username'] ?? null;
             $roleId = $_POST['role'] ?? null;
@@ -46,20 +47,14 @@ class AccountController extends Controller
                 $this->redirect('?controller=account&action=create');
             }
 
-            $lastUser = $this->userModel->getLastUserId();
-            if ($lastUser && preg_match('/ND(\d+)/', $lastUser, $matches)) {
-                $nextIdNumber = (int)$matches[1] + 1;
-                $nextUserId = 'ND' . str_pad($nextIdNumber, 3, '0', STR_PAD_LEFT);
-            } else {
-                $nextUserId = 'ND001';
-            }
-
             $config = require __DIR__ . '/../config/config.php';
             $defaultPassword = $config['auth']['default_password'];
 
+            Logger::info("Tạo tài khoản mới: $username (ID: $idNguoiDung), Nhân viên ID: $employeeId, Vai trò ID: $roleId");
+
             try {
                 $this->userModel->create([
-                    'IdNguoiDung' => $nextUserId,
+                    'IdNguoiDung' => $idNguoiDung,
                     'IdNhanVien' => $employeeId,
                     'TenDangNhap' => $username,
                     'IdVaiTro' => $roleId,
@@ -67,7 +62,7 @@ class AccountController extends Controller
                     'TrangThai' => 'Hoạt động',
                 ]);
                 $this->setFlash('success', 'Tạo tài khoản thành công.');
-                Logger::success("Tạo tài khoản mới: $username (ID: $nextUserId)");
+                Logger::success("Tạo tài khoản mới: $username (ID: $idNguoiDung)");
                 $this->redirect('?controller=account&action=index');
             } catch (Exception $e) {
                 Logger::error('Lỗi khi tạo tài khoản: ' . $e->getMessage());
