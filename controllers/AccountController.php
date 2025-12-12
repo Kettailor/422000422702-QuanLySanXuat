@@ -159,6 +159,11 @@ class AccountController extends Controller
             $this->redirect('?controller=account&action=index');
         }
 
+        if ($_SESSION['user']['IdNguoiDung'] === $id) {
+            $this->setFlash('danger', 'Không thể xóa tài khoản đang đăng nhập.');
+            $this->redirect('?controller=account&action=index');
+        }
+
         $user = $this->userModel->find($id);
         if (!$user) {
             $this->setFlash('danger', 'Tài khoản không tồn tại.');
