@@ -100,6 +100,7 @@ class AccountController extends Controller
                 $this->setFlash('danger', 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
                 $this->redirect("?controller=account&action=edit&id=$id");
             }
+            Logger::info("Cập nhật tài khoản: $username (ID: $id): " . ($password ? 'Đổi mật khẩu, ' : '') . "Vai trò ID: $roleId");
 
             $userData = [
                 'TenDangNhap' => $username,
@@ -113,7 +114,7 @@ class AccountController extends Controller
             try {
                 $this->userModel->update($id, $userData);
                 $this->setFlash('success', 'Cập nhật tài khoản thành công.');
-                Logger::info("Cập nhật tài khoản: $username (ID: $id): " . json_encode($userData));
+                Logger::info("Cập nhật tài khoản thành công: $username (ID: $id)");
                 $this->redirect('?controller=account&action=index');
             } catch (Exception $e) {
                 Logger::error('Lỗi khi cập nhật tài khoản ' . $id . ': ' . $e->getMessage());
@@ -138,13 +139,15 @@ class AccountController extends Controller
         $id = $_GET['id'] ?? null;
         if ($id) {
             $user = $this->userModel->find($id);
+            Logger::info("Thay đổi trạng thái tài khoản: " . $user['TenDangNhap'] . " (ID: $id)");
+
             if ($user) {
                 $newStatus = ($user['TrangThai'] === 'Hoạt động') ? 'Tạm ngưng' : 'Hoạt động';
 
                 try {
                     $this->userModel->update($id, ['TrangThai' => $newStatus]);
                     $this->setFlash('success', 'Cập nhật trạng thái tài khoản thành công.');
-                    Logger::info("Cập nhật trạng thái tài khoản: " . $user['TenDangNhap'] . " (ID: $id) thành $newStatus");
+                    Logger::info("Cập nhật trạng thái tài khoản thành công: " . $user['TenDangNhap'] . " (ID: $id) sang trạng thái $newStatus");
                 } catch (Exception $e) {
                     Logger::error('Lỗi khi cập nhật trạng thái tài khoản ' . $id . ': ' . $e->getMessage());
                     $this->setFlash('danger', 'Không thể cập nhật trạng thái tài khoản. Lỗi: ' . htmlspecialchars($e->getMessage()));
@@ -178,10 +181,12 @@ class AccountController extends Controller
             $this->redirect('?controller=account&action=index');
         }
 
+        Logger::info("Xóa tài khoản: " . $user['TenDangNhap'] . " (ID: $id)");
+
         try {
             $this->userModel->delete($id);
             $this->setFlash('success', 'Xóa tài khoản thành công.');
-            Logger::info("Xóa tài khoản: " . $user['TenDangNhap'] . " (ID: $id)");
+            Logger::info("Xóa tài khoản thành công: " . $user['TenDangNhap'] . " (ID: $id)");
             $this->redirect('?controller=account&action=index');
         } catch (Exception $e) {
             Logger::error('Lỗi khi xóa tài khoản ' . $id . ': ' . $e->getMessage());
