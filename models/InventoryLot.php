@@ -5,6 +5,17 @@ class InventoryLot extends BaseModel
     protected string $table = 'lo';
     protected string $primaryKey = 'IdLo';
 
+    public function findWithWarehouse(string $lotId): ?array
+    {
+        $stmt = $this->db->prepare('SELECT IdLo, SoLuong, IdKho FROM LO WHERE IdLo = :id LIMIT 1');
+        $stmt->bindValue(':id', $lotId);
+        $stmt->execute();
+
+        $lot = $stmt->fetch();
+
+        return $lot ?: null;
+    }
+
     public function getLotsByWarehouse(string $warehouseId): array
     {
         $sql = 'SELECT
@@ -48,6 +59,10 @@ class InventoryLot extends BaseModel
     {
         $payload = $this->sanitizeLotPayload($data, true);
 
+        if (isset($payload['IdLo']) && $this->find($payload['IdLo'])) {
+            throw new RuntimeException('Mã lô đã tồn tại, vui lòng kiểm tra lại.');
+        }
+
         return $this->create($payload);
     }
 
@@ -56,6 +71,56 @@ class InventoryLot extends BaseModel
         $prefix = $prefix ?: 'LO';
 
         return $prefix . date('YmdHis');
+    }
+
+    public function adjustLotQuantity(string $lotId, int $quantityDelta, bool $allowNegative = false): bool
+    {
+        $lot = $this->find($lotId);
+
+        if (!$lot) {
+            throw new RuntimeException('Không tìm thấy lô cần cập nhật.');
+        }
+
+        $currentQuantity = (int) ($lot['SoLuong'] ?? 0);
+        $newQuantity = $currentQuantity + $quantityDelta;
+
+        if ($newQuantity < 0 && !$allowNegative) {
+            throw new RuntimeException('Số lượng lô không đủ để xuất hoặc đảo phiếu.');
+        }
+
+        $stmt = $this->db->prepare('UPDATE LO SET SoLuong = :qty WHERE IdLo = :id');
+        $stmt->bindValue(':qty', $newQuantity);
+        $stmt->bindValue(':id', $lotId);
+
+        return $stmt->execute();
+    }
+
+    public function hasOtherDocuments(string $lotId, ?string $excludedDocumentId = null): bool
+    {
+        $sql = 'SELECT COUNT(DISTINCT IdPhieu) AS cnt FROM CT_PHIEU WHERE IdLo = :lot';
+        $params = [':lot' => $lotId];
+
+        if ($excludedDocumentId) {
+            $sql .= ' AND IdPhieu <> :excluded';
+            $params[':excluded'] = $excludedDocumentId;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->execute();
+
+        return ((int) ($stmt->fetchColumn() ?: 0)) > 0;
+    }
+
+    public function deleteLot(string $lotId): bool
+    {
+        $stmt = $this->db->prepare('DELETE FROM LO WHERE IdLo = :id');
+        $stmt->bindValue(':id', $lotId);
+
+        return $stmt->execute();
     }
 
     private function sanitizeLotPayload(array $data, bool $includeId = false): array
