@@ -255,6 +255,21 @@ class Warehouse extends BaseModel
         return 'KHO' . date('YmdHis');
     }
 
+    public function adjustWarehouseStock(string $warehouseId, int $quantityDelta = 0, int $lotDelta = 0): bool
+    {
+        $sql = 'UPDATE KHO
+                SET TongSL = GREATEST(0, COALESCE(TongSL, 0) + :quantity),
+                    TongSLLo = GREATEST(0, COALESCE(TongSLLo, 0) + :lots)
+                WHERE IdKho = :id';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':quantity', $quantityDelta, PDO::PARAM_INT);
+        $stmt->bindValue(':lots', $lotDelta, PDO::PARAM_INT);
+        $stmt->bindValue(':id', $warehouseId);
+
+        return $stmt->execute();
+    }
+
     private function sanitizeWarehousePayload(array $data, bool $includeId = false): array
     {
         $fields = [
