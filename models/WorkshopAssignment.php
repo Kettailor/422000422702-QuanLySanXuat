@@ -1,7 +1,5 @@
 <?php
 
-use PDOStatement;
-
 class WorkshopAssignment
 {
     private PDO $db;
@@ -71,7 +69,7 @@ class WorkshopAssignment
         $this->db->commit();
     }
 
-    private function insertAssignment(PDOStatement $stmt, string $workshopId, string $employeeId, string $role): void
+    private function insertAssignment(\PDOStatement $stmt, string $workshopId, string $employeeId, string $role): void
     {
         $stmt->execute([
             ':workshopId' => $workshopId,
