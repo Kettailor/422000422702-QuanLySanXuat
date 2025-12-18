@@ -52,6 +52,11 @@ class Logger
         ];
     }
 
+    public static function success($message): void
+    {
+        self::log($message, 'SUCCESS');
+    }
+
     public static function info($message): void
     {
         self::log($message, 'INFO');
@@ -107,5 +112,4 @@ class Logger
         }
         return $logs;
     }
-
 }

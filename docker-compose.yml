@@ -37,16 +37,16 @@ services:
     depends_on:
       - web
 
-  # phpmyadmin:
-  #   image: phpmyadmin/phpmyadmin:latest
-  #   restart: unless-stopped
-  #   environment:
-  #     PMA_HOST: db
-  #     PMA_PORT: 3306
-  #   ports:
-  #     - "8080:80"
-  #   depends_on:
-  #     - db
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
 
 volumes:
   db_data:
