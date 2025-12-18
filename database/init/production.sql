@@ -6,6 +6,38 @@ CREATE TABLE IF NOT EXISTS production_lines (
     status TEXT NOT NULL DEFAULT 'idle'
 );
 
+CREATE TABLE IF NOT EXISTS employees (
+    id SERIAL PRIMARY KEY,
+    employee_code TEXT NOT NULL UNIQUE,
+    full_name TEXT NOT NULL,
+    title TEXT,
+    system_role TEXT NOT NULL DEFAULT 'employee',
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS workshops (
+    id SERIAL PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    location TEXT,
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS workshop_assignments (
+    id SERIAL PRIMARY KEY,
+    workshop_id INTEGER NOT NULL REFERENCES workshops(id) ON DELETE CASCADE,
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    assignment_role TEXT NOT NULL,
+    assigned_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE (workshop_id, employee_id),
+    CONSTRAINT uq_workshop_manager UNIQUE (workshop_id, assignment_role) WHERE assignment_role = 'manager'
+);
+
+CREATE INDEX IF NOT EXISTS idx_employees_full_name ON employees USING GIN (to_tsvector('simple', full_name));
+CREATE INDEX IF NOT EXISTS idx_workshop_assignments_role ON workshop_assignments (assignment_role);
+
 CREATE TABLE IF NOT EXISTS shifts (
     id SERIAL PRIMARY KEY,
     shift_date DATE NOT NULL,
@@ -51,6 +83,33 @@ VALUES
     (CURRENT_DATE, 'Evening', '14:00', '22:00'),
     (CURRENT_DATE, 'Night', '22:00', '06:00')
 ON CONFLICT (shift_date, shift_name) DO NOTHING;
+
+INSERT INTO employees (employee_code, full_name, title, system_role, status)
+VALUES
+    ('EMP-ADM', 'Nguyễn Thị An', 'Quản trị hệ thống', 'system_admin', 'active'),
+    ('EMP-BOD', 'Trần Quang Huy', 'Ban giám đốc', 'board', 'active'),
+    ('EMP-MGR', 'Lê Minh Phong', 'Trưởng xưởng', 'workshop_manager', 'active'),
+    ('EMP-WH1', 'Đỗ Thị Hạnh', 'Nhân viên kho', 'warehouse_staff', 'active'),
+    ('EMP-P01', 'Phạm Văn Khải', 'Nhân viên sản xuất', 'production_staff', 'active'),
+    ('EMP-P02', 'Vũ Thị Lan', 'Nhân viên sản xuất', 'production_staff', 'active')
+ON CONFLICT (employee_code) DO NOTHING;
+
+INSERT INTO workshops (code, name, location, status)
+VALUES
+    ('WS-001', 'Xưởng Lắp ráp', 'Khu A', 'active'),
+    ('WS-002', 'Xưởng Gia công', 'Khu B', 'active')
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO workshop_assignments (workshop_id, employee_id, assignment_role, assigned_at)
+SELECT * FROM (
+    VALUES
+        ((SELECT id FROM workshops WHERE code = 'WS-001'), (SELECT id FROM employees WHERE employee_code = 'EMP-MGR'), 'manager', NOW()),
+        ((SELECT id FROM workshops WHERE code = 'WS-001'), (SELECT id FROM employees WHERE employee_code = 'EMP-WH1'), 'warehouse', NOW()),
+        ((SELECT id FROM workshops WHERE code = 'WS-001'), (SELECT id FROM employees WHERE employee_code = 'EMP-P01'), 'production', NOW()),
+        ((SELECT id FROM workshops WHERE code = 'WS-002'), (SELECT id FROM employees WHERE employee_code = 'EMP-P02'), 'production', NOW())
+) AS seed(workshop_id, employee_id, assignment_role, assigned_at)
+WHERE seed.workshop_id IS NOT NULL AND seed.employee_id IS NOT NULL
+ON CONFLICT DO NOTHING;
 
 INSERT INTO work_orders (order_code, line_id, product_code, planned_quantity, completed_quantity, scrap_quantity, status, due_time)
 SELECT * FROM (
