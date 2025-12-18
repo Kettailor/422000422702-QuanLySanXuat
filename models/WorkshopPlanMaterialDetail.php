@@ -5,6 +5,65 @@ class WorkshopPlanMaterialDetail extends BaseModel
     protected string $table = 'chi_tiet_ke_hoach_san_xuat_xuong';
     protected string $primaryKey = 'IdCTKHSXX';
 
+    public function createWorkshopPlanDetail (string $workshopPlanId, string $configId, int $productionQuantity) {
+        try {
+            // 1. Bắt đầu transaction để đảm bảo toàn vẹn dữ liệu
+            $this->db->beginTransaction();
+
+            // kiểm tra nguyên liệu có kh
+            $sqlGetBOM = "SELECT IdNguyenLieu, TyLeSoLuong 
+                          FROM cau_hinh_nguyen_lieu 
+                          WHERE IdCauHinh = :configId";
+            
+            $stmtGet = $this->db->prepare($sqlGetBOM);
+            $stmtGet->bindValue(':configId', $configId);
+            $stmtGet->execute();
+            $materials = $stmtGet->fetchAll();
+
+            if (empty($materials)) {
+                // Nếu không tìm thấy công thức nguyên liệu, rollback và báo lỗi
+                $this->db->rollBack();
+                throw new Exception("Không tìm thấy cấu hình nguyên liệu cho mã: " . $configId);
+            }
+
+            // 3. Chuẩn bị câu lệnh INSERT vào bảng chi tiết
+            $sqlInsert = "INSERT INTO " . $this->table . " 
+                          (IdCTKHSXX, SoLuong, IdKeHoachSanXuatXuong, IdNguyenLieu) 
+                          VALUES (:idDetail, :quantity, :planId, :materialId)";
+            
+            $stmtInsert = $this->db->prepare($sqlInsert);
+
+            // 4. Duyệt qua từng nguyên liệu để tính toán và lưu vào DB
+            foreach ($materials as $material) {
+                // Tính tổng số lượng cần = Số lượng SX * Định mức
+                $neededQty = $productionQuantity * $material['TyLeSoLuong'];
+
+                // Tạo ID chi tiết (Ví dụ: CT + Timestamp + Random để tránh trùng)
+                // Bạn có thể tùy chỉnh lại logic sinh ID này theo quy tắc của dự án
+                $idDetail = 'CT' . date('ymdHis') . rand(100, 999); 
+
+                $stmtInsert->bindValue(':idDetail', $idDetail);
+                $stmtInsert->bindValue(':quantity', $neededQty);
+                $stmtInsert->bindValue(':planId', $workshopPlanId);
+                $stmtInsert->bindValue(':materialId', $material['IdNguyenLieu']);
+                
+                $stmtInsert->execute();
+            }
+
+            // 5. Nếu mọi thứ êm đẹp, xác nhận lưu vào DB
+            $this->db->commit();
+            return true;
+
+        } catch (Exception $e) {
+            // Nếu có lỗi bất kỳ đâu, hoàn tác lại (không lưu gì cả)
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            // Ném lỗi ra ngoài để Controller xử lý (hiển thị thông báo cho user)
+            throw $e;
+        }
+    }
+
     public function getByWorkshopPlan(string $workshopPlanId): array
     {
         $sql = 'SELECT ct.IdCTKHSXX,

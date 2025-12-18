@@ -2,7 +2,7 @@
 
 abstract class BaseModel
 {
-    protected PDO $db;
+        protected PDO $db;
     protected string $table;
     protected string $primaryKey = 'id';
 

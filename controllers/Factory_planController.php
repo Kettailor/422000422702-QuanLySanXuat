@@ -44,7 +44,12 @@ class Factory_planController extends Controller
         $plan = $id ? $this->workshopPlanModel->findWithRelations($id) : null;
 
 
+
+
         $stockList = $this->workshopPlanModel->getMaterialStock($id) ?? [];
+
+
+        // var_dump($plan);
  
         $this->render('factory_plan/read', [
             'title' => 'Chi tiết hạng mục xưởng',
