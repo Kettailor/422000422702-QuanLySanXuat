@@ -50,8 +50,12 @@
             <input type="number" name="CongSuatDangSuDung" class="form-control" min="0" step="0.01">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Số lượng công nhân</label>
-            <input type="number" name="SoLuongCongNhan" class="form-control" min="0">
+            <label class="form-label">Nhân sự tối đa</label>
+            <input type="number" name="SlNhanVien" class="form-control" min="0" placeholder="Ví dụ: 50">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Nhân sự hiện tại</label>
+            <input type="number" name="SoLuongCongNhan" class="form-control" min="0" placeholder="Ví dụ: 42">
         </div>
         <div class="col-md-4">
             <label class="form-label">Trạng thái</label>

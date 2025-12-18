@@ -41,7 +41,9 @@
                     <dd class="col-sm-6 fw-semibold text-primary"><?= number_format($workshop['CongSuatToiDa'] ?? 0, 0, ',', '.') ?></dd>
                     <dt class="col-sm-6">Công suất đang dùng</dt>
                     <dd class="col-sm-6"><?= number_format($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0, 0, ',', '.') ?></dd>
-                    <dt class="col-sm-6">Số lượng công nhân</dt>
+                    <dt class="col-sm-6">Nhân sự tối đa</dt>
+                    <dd class="col-sm-6"><?= number_format($workshop['SlNhanVien'] ?? 0) ?></dd>
+                    <dt class="col-sm-6">Nhân sự hiện tại</dt>
                     <dd class="col-sm-6"><?= number_format($workshop['SoLuongCongNhan'] ?? 0) ?></dd>
                     <dt class="col-sm-6">Tỷ lệ sử dụng</dt>
                     <?php

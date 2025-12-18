@@ -29,7 +29,9 @@ class Workshop extends BaseModel
             'max_capacity' => 0.0,
             'current_capacity' => 0.0,
             'workforce' => 0,
+            'max_workforce' => 0,
             'utilization' => 0.0,
+            'workforce_utilization' => 0.0,
         ];
 
         if (!$rows) {
@@ -41,10 +43,17 @@ class Workshop extends BaseModel
             $summary['max_capacity'] += (float) ($row['CongSuatToiDa'] ?? 0);
             $summary['current_capacity'] += (float) ($row['CongSuatDangSuDung'] ?? $row['CongSuatHienTai'] ?? 0);
             $summary['workforce'] += (int) ($row['SoLuongCongNhan'] ?? 0);
+            $summary['max_workforce'] += (int) ($row['SlNhanVien'] ?? 0);
         }
 
         if ($summary['max_capacity'] > 0) {
             $summary['utilization'] = round(($summary['current_capacity'] / $summary['max_capacity']) * 100, 2);
+        }
+
+        if ($summary['max_workforce'] > 0) {
+            $summary['workforce_utilization'] = round(($summary['workforce'] / $summary['max_workforce']) * 100, 2);
+        } else {
+            $summary['workforce_utilization'] = 0.0;
         }
 
         return $summary;

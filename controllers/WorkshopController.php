@@ -419,6 +419,7 @@ class WorkshopController extends Controller
             'TenXuong' => trim($input['TenXuong'] ?? ''),
             'DiaDiem' => trim($input['DiaDiem'] ?? ''),
             'XUONGTRUONG_IdNhanVien' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
+            'SlNhanVien' => (int) ($input['SlNhanVien'] ?? 0),
             'SoLuongCongNhan' => (int) ($input['SoLuongCongNhan'] ?? 0),
             'CongSuatToiDa' => (float) ($input['CongSuatToiDa'] ?? 0),
             'CongSuatDangSuDung' => (float) ($input['CongSuatDangSuDung'] ?? 0),

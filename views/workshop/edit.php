@@ -54,7 +54,11 @@
                 <input type="number" name="CongSuatDangSuDung" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0) ?>">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Số lượng công nhân</label>
+                <label class="form-label">Nhân sự tối đa</label>
+                <input type="number" name="SlNhanVien" class="form-control" min="0" value="<?= htmlspecialchars($workshop['SlNhanVien'] ?? 0) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Nhân sự hiện tại</label>
                 <input type="number" name="SoLuongCongNhan" class="form-control" min="0" value="<?= htmlspecialchars($workshop['SoLuongCongNhan'] ?? 0) ?>">
             </div>
             <div class="col-md-3">

@@ -49,8 +49,9 @@
             <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-people"></i></div>
             <div>
                 <div class="text-muted text-uppercase small">Nhân sự</div>
-                <div class="fs-3 fw-bold"><?= number_format($summary['workforce']) ?></div>
-                <div class="small text-muted">Tỷ lệ sử dụng: <?= $summary['utilization'] ?>%</div>
+                <div class="fs-5 fw-bold">Hiện tại: <?= number_format($summary['workforce']) ?></div>
+                <div class="fs-6">Tối đa: <?= number_format($summary['max_workforce']) ?></div>
+                <div class="small text-muted">Tỷ lệ sử dụng: <?= $summary['workforce_utilization'] ?>%</div>
             </div>
         </div>
     </div>
@@ -71,7 +72,7 @@
                         <th>Tên xưởng</th>
                         <th>Quản lý</th>
                         <th>Công suất</th>
-                        <th>Nhân sự</th>
+                        <th>Nhân sự (hiện tại / tối đa)</th>
                         <th>Trạng thái</th>
                         <th></th>
                     </tr>
@@ -86,7 +87,10 @@
                                 <?= number_format($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0, 0, ',', '.') ?>
                                 / <?= number_format($workshop['CongSuatToiDa'] ?? 0, 0, ',', '.') ?>
                             </td>
-                            <td><?= number_format($workshop['SoLuongCongNhan'] ?? 0) ?></td>
+                            <td>
+                                <?= number_format($workshop['SoLuongCongNhan'] ?? 0) ?>
+                                / <?= number_format($workshop['SlNhanVien'] ?? 0) ?>
+                            </td>
                             <td>
                                 <?php $status = $workshop['TrangThai'] ?? 'Không xác định'; ?>
                                 <?php
