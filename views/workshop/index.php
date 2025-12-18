@@ -3,13 +3,16 @@
         <h3 class="fw-bold mb-1">Danh sách xưởng sản xuất</h3>
         <p class="text-muted mb-0">Quản lý thông tin cơ bản, công suất và nhân sự của từng xưởng.</p>
     </div>
+    <?php $canAssign = $canAssign ?? false; ?>
     <div class="d-flex gap-2">
         <a href="?controller=workshop&action=dashboard" class="btn btn-outline-primary">
             <i class="bi bi-speedometer2 me-2"></i>Dashboard vật tư
         </a>
-        <a href="?controller=workshop&action=create" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i>Thêm xưởng
-        </a>
+        <?php if ($canAssign): ?>
+            <a href="?controller=workshop&action=create" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Thêm xưởng
+            </a>
+        <?php endif; ?>
     </div>
 </div>
 

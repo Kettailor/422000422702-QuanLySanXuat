@@ -11,6 +11,12 @@
 <?php if (!$workshop): ?>
     <div class="alert alert-warning">Không tìm thấy thông tin xưởng.</div>
 <?php else: ?>
+    <?php
+    $assignments = $assignments ?? [];
+    $managerNames = array_column($assignments['truong_xuong'] ?? [], 'HoTen');
+    $warehouseNames = array_column($assignments['nhan_vien_kho'] ?? [], 'HoTen');
+    $productionNames = array_column($assignments['nhan_vien_san_xuat'] ?? [], 'HoTen');
+    ?>
     <div class="card p-4">
         <div class="row g-4">
             <div class="col-md-6">
@@ -24,7 +30,7 @@
                     <dt class="col-sm-4">Trạng thái</dt>
                     <dd class="col-sm-8"><span class="badge bg-light text-dark"><?= htmlspecialchars($workshop['TrangThai'] ?? 'Không xác định') ?></span></dd>
                     <dt class="col-sm-4">Trưởng xưởng</dt>
-                    <dd class="col-sm-8"><?= htmlspecialchars($workshop['IdTruongXuong'] ?? '-') ?></dd>
+                    <dd class="col-sm-8"><?= htmlspecialchars(implode(', ', $managerNames) ?: '-') ?></dd>
                     <dt class="col-sm-4">Ngày thành lập</dt>
                     <dd class="col-sm-8"><?= !empty($workshop['NgayThanhLap']) ? date('d/m/Y', strtotime($workshop['NgayThanhLap'])) : '-' ?></dd>
                 </dl>
@@ -54,5 +60,19 @@
                 <p class="mb-0"><?= nl2br(htmlspecialchars($workshop['MoTa'])) ?></p>
             </div>
         <?php endif; ?>
+        <div class="mt-4 row g-3">
+            <div class="col-md-6">
+                <h6 class="fw-semibold">Nhân viên kho</h6>
+                <p class="mb-0">
+                    <?= $warehouseNames ? htmlspecialchars(implode(', ', $warehouseNames)) : 'Chưa phân công' ?>
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-semibold">Nhân viên sản xuất</h6>
+                <p class="mb-0">
+                    <?= $productionNames ? htmlspecialchars(implode(', ', $productionNames)) : 'Chưa phân công' ?>
+                </p>
+            </div>
+        </div>
     </div>
 <?php endif; ?>

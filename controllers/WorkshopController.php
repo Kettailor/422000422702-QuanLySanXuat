@@ -6,6 +6,8 @@ class WorkshopController extends Controller
     private WorkshopPlan $workshopPlanModel;
     private ProductComponentMaterial $componentMaterialModel;
     private Material $materialModel;
+    private Employee $employeeModel;
+    private WorkshopAssignment $assignmentModel;
 
     public function __construct()
     {
@@ -14,6 +16,8 @@ class WorkshopController extends Controller
         $this->workshopPlanModel = new WorkshopPlan();
         $this->componentMaterialModel = new ProductComponentMaterial();
         $this->materialModel = new Material();
+        $this->employeeModel = new Employee();
+        $this->assignmentModel = new WorkshopAssignment();
     }
 
     public function index(): void
@@ -27,13 +31,25 @@ class WorkshopController extends Controller
             'workshops' => $workshops,
             'summary' => $summary,
             'statusDistribution' => $statusDistribution,
+            'canAssign' => $this->canAssign(),
         ]);
     }
 
     public function create(): void
     {
+        if (!$this->canAssign()) {
+            $this->setFlash('danger', 'Chỉ quản trị hệ thống hoặc ban giám đốc được phép thêm và phân công xưởng.');
+            $this->redirect('?controller=workshop&action=index');
+        }
+
+        $employees = $this->employeeModel->getActiveEmployees();
         $this->render('workshop/create', [
             'title' => 'Thêm xưởng mới',
+            'employees' => $employees,
+            'employeeGroups' => $this->groupEmployeesByRole($employees),
+            'selectedWarehouse' => [],
+            'selectedProduction' => [],
+            'canAssign' => true,
         ]);
     }
 
@@ -43,11 +59,29 @@ class WorkshopController extends Controller
             $this->redirect('?controller=workshop&action=index');
         }
 
+        if (!$this->canAssign()) {
+            $this->setFlash('danger', 'Bạn không có quyền phân công nhân sự cho xưởng.');
+            $this->redirect('?controller=workshop&action=index');
+        }
+
         $data = $this->extractWorkshopData($_POST);
+        $assignments = $this->extractAssignments($_POST);
+        $data['XUONGTRUONG_IdNhanVien'] = $assignments['manager'] ?: $data['XUONGTRUONG_IdNhanVien'];
         $data['IdXuong'] = $data['IdXuong'] ?: uniqid('XUONG');
+
+        if (empty($data['XUONGTRUONG_IdNhanVien'])) {
+            $this->setFlash('danger', 'Vui lòng chọn trưởng xưởng trước khi lưu.');
+            $this->redirect('?controller=workshop&action=create');
+        }
 
         try {
             $this->workshopModel->create($data);
+            $this->assignmentModel->syncAssignments(
+                $data['IdXuong'],
+                $assignments['manager'],
+                $assignments['warehouse'],
+                $assignments['production']
+            );
             $this->setFlash('success', 'Đã thêm xưởng sản xuất mới.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi thêm xưởng: ' . $exception->getMessage());
@@ -67,10 +101,18 @@ class WorkshopController extends Controller
         }
 
         $workshop = $this->workshopModel->find($id);
+        $assignments = $this->assignmentModel->getAssignmentsByWorkshop($id);
+        $employees = $this->employeeModel->getActiveEmployees();
 
         $this->render('workshop/edit', [
             'title' => 'Cập nhật thông tin xưởng',
             'workshop' => $workshop,
+            'employees' => $employees,
+            'employeeGroups' => $this->groupEmployeesByRole($employees),
+            'selectedManager' => $assignments['truong_xuong'][0]['IdNhanVien'] ?? ($workshop['XUONGTRUONG_IdNhanVien'] ?? ''),
+            'selectedWarehouse' => array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien'),
+            'selectedProduction' => array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien'),
+            'canAssign' => $this->canAssign(),
         ]);
     }
 
@@ -87,10 +129,32 @@ class WorkshopController extends Controller
         }
 
         $data = $this->extractWorkshopData($_POST);
+        $assignments = $this->extractAssignments($_POST);
+        $canAssign = $this->canAssign();
+        $currentAssignments = $this->assignmentModel->getAssignmentsByWorkshop($id);
+        $managerId = $assignments['manager'] ?: ($currentAssignments['truong_xuong'][0]['IdNhanVien'] ?? null);
         unset($data['IdXuong']);
+
+        if ($canAssign) {
+            if (!$managerId) {
+                $this->setFlash('danger', 'Vui lòng chọn trưởng xưởng trước khi lưu.');
+                $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
+            }
+            $data['XUONGTRUONG_IdNhanVien'] = $managerId;
+        } else {
+            unset($data['XUONGTRUONG_IdNhanVien']);
+        }
 
         try {
             $this->workshopModel->update($id, $data);
+            if ($canAssign) {
+                $this->assignmentModel->syncAssignments(
+                    $id,
+                    $managerId,
+                    $assignments['warehouse'],
+                    $assignments['production']
+                );
+            }
             $this->setFlash('success', 'Cập nhật thông tin xưởng thành công.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi cập nhật xưởng ' . $id . ': ' . $exception->getMessage());
@@ -122,10 +186,12 @@ class WorkshopController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $workshop = $id ? $this->workshopModel->find($id) : null;
+        $assignments = $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
 
         $this->render('workshop/read', [
             'title' => 'Chi tiết xưởng sản xuất',
             'workshop' => $workshop,
+            'assignments' => $assignments,
         ]);
     }
 
@@ -299,13 +365,60 @@ class WorkshopController extends Controller
         return '?' . http_build_query($params);
     }
 
+    private function canAssign(): bool
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+
+        return in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true);
+    }
+
+    private function extractAssignments(array $input): array
+    {
+        $warehouse = $input['warehouse_staff'] ?? [];
+        $production = $input['production_staff'] ?? [];
+
+        return [
+            'manager' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
+            'warehouse' => is_array($warehouse) ? array_filter(array_map('trim', $warehouse)) : [],
+            'production' => is_array($production) ? array_filter(array_map('trim', $production)) : [],
+        ];
+    }
+
+    private function groupEmployeesByRole(array $employees): array
+    {
+        $groups = [
+            'warehouse' => [],
+            'production' => [],
+        ];
+
+        foreach ($employees as $employee) {
+            $title = mb_strtolower($employee['ChucVu'] ?? '');
+            $isWarehouse = str_contains($title, 'kho') || str_contains($title, 'logistics');
+            $isProduction = str_contains($title, 'sản xuất')
+                || str_contains($title, 'lắp ráp')
+                || str_contains($title, 'qa')
+                || str_contains($title, 'vận hành');
+
+            if ($isWarehouse) {
+                $groups['warehouse'][] = $employee;
+            }
+
+            if ($isProduction || !$isWarehouse) {
+                $groups['production'][] = $employee;
+            }
+        }
+
+        return $groups;
+    }
+
     private function extractWorkshopData(array $input): array
     {
         return [
             'IdXuong' => trim($input['IdXuong'] ?? ''),
             'TenXuong' => trim($input['TenXuong'] ?? ''),
             'DiaDiem' => trim($input['DiaDiem'] ?? ''),
-            'IdTruongXuong' => trim($input['IdTruongXuong'] ?? ''),
+            'XUONGTRUONG_IdNhanVien' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
             'SoLuongCongNhan' => (int) ($input['SoLuongCongNhan'] ?? 0),
             'CongSuatToiDa' => (float) ($input['CongSuatToiDa'] ?? 0),
             'CongSuatDangSuDung' => (float) ($input['CongSuatDangSuDung'] ?? 0),

@@ -9,6 +9,10 @@
 </div>
 
 <div class="card p-4">
+    <?php
+    $employeeGroups = $employeeGroups ?? ['warehouse' => [], 'production' => []];
+    $employees = $employees ?? [];
+    ?>
     <form action="?controller=workshop&action=store" method="post" class="row g-4">
         <div class="col-md-4">
             <label class="form-label">Mã xưởng</label>
@@ -27,8 +31,15 @@
             <input type="text" name="DiaDiem" class="form-control" placeholder="Khu công nghiệp, tỉnh/thành...">
         </div>
         <div class="col-md-6">
-            <label class="form-label">Trưởng xưởng (Mã nhân viên)</label>
-            <input type="text" name="IdTruongXuong" class="form-control" placeholder="Ví dụ: NV001">
+            <label class="form-label">Trưởng xưởng</label>
+            <select name="XUONGTRUONG_IdNhanVien" class="form-select" required>
+                <option value="">Chọn trưởng xưởng</option>
+                <?php foreach ($employees as $employee): ?>
+                    <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
+                        <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Công suất tối đa (giờ máy / tháng)</label>
@@ -54,8 +65,72 @@
             <label class="form-label">Mô tả</label>
             <textarea name="MoTa" class="form-control" rows="4" placeholder="Ghi chú tình trạng thiết bị, hạng mục bảo trì..."></textarea>
         </div>
+        <div class="col-12">
+            <div class="card bg-light border-0">
+                <div class="card-body p-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Nhân viên kho</label>
+                            <div class="d-flex gap-2 align-items-center mb-2">
+                                <input type="text" class="form-control form-control-sm assignment-search" data-target="#warehouse-list" placeholder="Tìm theo tên hoặc mã">
+                            </div>
+                            <div class="assignment-list border rounded p-3" id="warehouse-list">
+                                <?php foreach ($employeeGroups['warehouse'] as $employee): ?>
+                                    <?php $nameKey = mb_strtolower($employee['HoTen'] ?? '', 'UTF-8'); ?>
+                                    <div class="form-check assignment-item" data-name="<?= htmlspecialchars($nameKey) ?>">
+                                        <input class="form-check-input" type="checkbox" name="warehouse_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
+                                        <label class="form-check-label">
+                                            <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
+                                        </label>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Nhân viên sản xuất</label>
+                            <div class="d-flex gap-2 align-items-center mb-2">
+                                <input type="text" class="form-control form-control-sm assignment-search" data-target="#production-list" placeholder="Tìm theo tên hoặc mã">
+                            </div>
+                            <div class="assignment-list border rounded p-3" id="production-list">
+                                <?php foreach ($employeeGroups['production'] as $employee): ?>
+                                    <?php $nameKey = mb_strtolower($employee['HoTen'] ?? '', 'UTF-8'); ?>
+                                    <div class="form-check assignment-item" data-name="<?= htmlspecialchars($nameKey) ?>">
+                                        <input class="form-check-input" type="checkbox" name="production_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
+                                        <label class="form-check-label">
+                                            <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
+                                        </label>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="col-12 text-end">
             <button type="submit" class="btn btn-primary px-4">Lưu thông tin xưởng</button>
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.assignment-search').forEach((input) => {
+        const targetSelector = input.getAttribute('data-target');
+        const target = document.querySelector(targetSelector);
+        if (!target) return;
+
+        input.addEventListener('input', () => {
+            const keyword = input.value.toLowerCase();
+            target.querySelectorAll('.assignment-item').forEach((item) => {
+                const name = item.getAttribute('data-name') || '';
+                if (!keyword || name.includes(keyword)) {
+                    item.classList.remove('d-none');
+                } else {
+                    item.classList.add('d-none');
+                }
+            });
+        });
+    });
+});
+</script>

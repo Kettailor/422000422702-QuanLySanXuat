@@ -11,6 +11,14 @@
 <?php if (!$workshop): ?>
     <div class="alert alert-warning">Không tìm thấy thông tin xưởng.</div>
 <?php else: ?>
+    <?php
+    $employeeGroups = $employeeGroups ?? ['warehouse' => [], 'production' => []];
+    $selectedWarehouse = $selectedWarehouse ?? [];
+    $selectedProduction = $selectedProduction ?? [];
+    $selectedManager = $selectedManager ?? ($workshop['XUONGTRUONG_IdNhanVien'] ?? '');
+    $canAssign = $canAssign ?? false;
+    $employees = $employees ?? [];
+    ?>
     <div class="card p-4">
         <form action="?controller=workshop&action=update" method="post" class="row g-4">
             <input type="hidden" name="IdXuong" value="<?= htmlspecialchars($workshop['IdXuong']) ?>">
@@ -23,8 +31,15 @@
                 <input type="date" name="NgayThanhLap" class="form-control" value="<?= htmlspecialchars($workshop['NgayThanhLap'] ?? '') ?>">
             </div>
             <div class="col-md-4">
-                <label class="form-label">Trưởng xưởng (Mã nhân viên)</label>
-                <input type="text" name="IdTruongXuong" class="form-control" value="<?= htmlspecialchars($workshop['IdTruongXuong'] ?? '') ?>">
+                <label class="form-label">Trưởng xưởng</label>
+                <select name="XUONGTRUONG_IdNhanVien" class="form-select" <?= $canAssign ? '' : 'disabled' ?>>
+                    <option value="">Chọn trưởng xưởng</option>
+                    <?php foreach ($employees as $employee): ?>
+                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= $selectedManager === $employee['IdNhanVien'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Địa điểm</label>
@@ -54,9 +69,78 @@
                 <label class="form-label">Mô tả</label>
                 <textarea name="MoTa" class="form-control" rows="4"><?= htmlspecialchars($workshop['MoTa'] ?? '') ?></textarea>
             </div>
+            <div class="col-12">
+                <div class="card bg-light border-0">
+                    <div class="card-body p-3">
+                        <?php if (!$canAssign): ?>
+                            <div class="alert alert-info py-2 mb-3">
+                                Chỉ quản trị hệ thống hoặc ban giám đốc được phép thay đổi phân công nhân sự. Bạn đang xem ở chế độ chỉ đọc.
+                            </div>
+                        <?php endif; ?>
+                        <div class="row g-3 align-items-start">
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0">Nhân viên kho</label>
+                                    <input type="text" class="form-control form-control-sm assignment-search" data-target="#warehouse-list" placeholder="Tìm theo tên hoặc mã">
+                                </div>
+                                <div class="assignment-list border rounded p-3" id="warehouse-list">
+                                    <?php foreach ($employeeGroups['warehouse'] as $employee): ?>
+                                        <?php $nameKey = mb_strtolower($employee['HoTen'] ?? '', 'UTF-8'); ?>
+                                        <div class="form-check assignment-item" data-name="<?= htmlspecialchars($nameKey) ?>">
+                                            <input class="form-check-input" type="checkbox" name="warehouse_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= in_array($employee['IdNhanVien'], $selectedWarehouse, true) ? 'checked' : '' ?> <?= $canAssign ? '' : 'disabled' ?>>
+                                            <label class="form-check-label">
+                                                <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
+                                            </label>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0">Nhân viên sản xuất</label>
+                                    <input type="text" class="form-control form-control-sm assignment-search" data-target="#production-list" placeholder="Tìm theo tên hoặc mã">
+                                </div>
+                                <div class="assignment-list border rounded p-3" id="production-list">
+                                    <?php foreach ($employeeGroups['production'] as $employee): ?>
+                                        <?php $nameKey = mb_strtolower($employee['HoTen'] ?? '', 'UTF-8'); ?>
+                                        <div class="form-check assignment-item" data-name="<?= htmlspecialchars($nameKey) ?>">
+                                            <input class="form-check-input" type="checkbox" name="production_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= in_array($employee['IdNhanVien'], $selectedProduction, true) ? 'checked' : '' ?> <?= $canAssign ? '' : 'disabled' ?>>
+                                            <label class="form-check-label">
+                                                <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
+                                            </label>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col-12 text-end">
                 <button type="submit" class="btn btn-primary px-4">Cập nhật</button>
             </div>
         </form>
     </div>
 <?php endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.assignment-search').forEach((input) => {
+        const targetSelector = input.getAttribute('data-target');
+        const target = document.querySelector(targetSelector);
+        if (!target) return;
+
+        input.addEventListener('input', () => {
+            const keyword = input.value.toLowerCase();
+            target.querySelectorAll('.assignment-item').forEach((item) => {
+                const name = item.getAttribute('data-name') || '';
+                if (!keyword || name.includes(keyword)) {
+                    item.classList.remove('d-none');
+                } else {
+                    item.classList.add('d-none');
+                }
+            });
+        });
+    });
+});
+</script>
