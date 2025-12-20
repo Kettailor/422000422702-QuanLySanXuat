@@ -107,46 +107,110 @@ if (session_status() === PHP_SESSION_NONE) {
     display: none !important;
   }
 
-  /* ===== BUTTONS ===== */
-  .btn-action {
+  /* ===== UI PILL – CHUẨN CHUNG (BUTTON + BADGE) ===== */
+  .ui-pill {
+    min-width: 84px;
+    height: 32px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1;
+
     border-radius: 8px;
-    padding: 4px 12px;
-    font-size: .85rem;
-    text-decoration: none;
-    transition: .2s;
+    white-space: nowrap;
   }
 
+  /* ===== ACTION BUTTON ===== */
+  .btn-action {
+    min-width: 72px;
+    /* ↓ từ 84 */
+    height: 28px;
+    /* ↓ từ 32 */
+    padding: 0 8px;
+
+    font-size: 0.75rem;
+    /* ↓ từ 0.8 */
+    font-weight: 500;
+    line-height: 1;
+
+    border-radius: 6px;
+    /* nhỏ hơn cho cân */
+    border: none;
+    text-decoration: none !important;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.15s ease;
+  }
+
+  /* Màu nút */
   .btn-create {
-    background: #2f6bff;
+    background-color: #2f6bff;
     color: #fff !important;
   }
 
   .btn-create:hover {
-    background: #2556d8;
+    background-color: #2556d8;
+    transform: translateY(-1px);
   }
 
   .btn-detail {
-    background: #6f42c1;
+    background-color: #6f42c1;
     color: #fff !important;
   }
 
   .btn-detail:hover {
-    background: #59339b;
+    background-color: #59339b;
+    transform: translateY(-1px);
   }
 
   .btn-delete {
-    background: #dc3545;
+    background-color: #dc3545;
     color: #fff !important;
   }
 
   .btn-delete:hover {
-    background: #b52a32;
+    background-color: #b02a37;
+    transform: translateY(-1px);
   }
 
-  .badge {
-    border-radius: 8px;
-    padding: 6px 10px;
+  /* ===== BADGE KẾT QUẢ (KHÔNG ĐÈ BOOTSTRAP .badge) ===== */
+  .badge-result {
+    min-width: 72px;
+    /* khớp nút */
+    height: 28px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 8px;
+    font-size: 0.7rem;
     font-weight: 600;
+    line-height: 1;
+
+    border-radius: 6px;
+    color: #fff;
+  }
+
+  .badge-result.success {
+    background: #28a745;
+  }
+
+  .badge-result.failed {
+    background: #dc3545;
+  }
+
+  .badge-result.unchecked {
+    background: #6c757d;
   }
 </style>
 <div class="qa-container">
@@ -245,23 +309,25 @@ if (session_status() === PHP_SESSION_NONE) {
                     <span class="badge bg-secondary">Chưa kiểm tra</span>
                   <?php endif; ?>
                 </td>
-                <td class="text-end">
-                  <?php if ($ketqua === '' || $ketqua === null): ?>
-                    <a href="?controller=quality&action=create&IdLo=<?= urlencode($lo['IdLo']) ?>"
-                      class="btn-action btn-create me-2">Đánh giá</a>
-                  <?php endif; ?>
+                <td>
+                  <div class="d-flex justify-content-end gap-2">
+                    <?php if ($ketqua === '' || $ketqua === null): ?>
+                      <a href="?controller=quality&action=create&IdLo=<?= urlencode($lo['IdLo']) ?>"
+                        class="btn-action btn-create">Đánh giá</a>
+                    <?php endif; ?>
 
-                  <a href="?controller=quality&action=read&id=<?= urlencode($lo['IdLo']) ?>"
-                    class="btn-action btn-detail me-2">Chi tiết</a>
+                    <a href="?controller=quality&action=read&id=<?= urlencode($lo['IdLo']) ?>"
+                      class="btn-action btn-detail">Chi tiết</a>
 
-                  <?php if (!empty($lo['IdBienBanDanhGiaSP'])): ?>
-                    <a href="?controller=quality&action=delete&id=<?= urlencode($lo['IdBienBanDanhGiaSP']) ?>&IdLo=<?= urlencode($lo['IdLo']) ?>"
-                      class="btn-action btn-delete btn-delete-trigger"
-                      data-id="<?= htmlspecialchars($lo['IdBienBanDanhGiaSP']) ?>"
-                      data-lo="<?= htmlspecialchars($lo['IdLo']) ?>">
-                      Xóa
-                    </a>
-                  <?php endif; ?>
+                    <?php if (!empty($lo['IdBienBanDanhGiaSP'])): ?>
+                      <a href="?controller=quality&action=delete&id=<?= urlencode($lo['IdBienBanDanhGiaSP']) ?>&IdLo=<?= urlencode($lo['IdLo']) ?>"
+                        class="btn-action btn-delete btn-delete-trigger"
+                        data-id="<?= htmlspecialchars($lo['IdBienBanDanhGiaSP']) ?>"
+                        data-lo="<?= htmlspecialchars($lo['IdLo']) ?>">
+                        Xóa
+                      </a>
+                    <?php endif; ?>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; ?>
