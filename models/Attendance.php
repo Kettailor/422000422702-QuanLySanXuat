@@ -78,12 +78,13 @@ class Attendance extends BaseModel
         $conditions = [];
         $bindings = [];
 
-        $placeholders = implode(', ', array_fill(0, count($employeeIds), '?'));
-        $conditions[] = "cc.`NHANVIEN IdNhanVien` IN ({$placeholders})";
-
+        $placeholders = [];
         foreach ($employeeIds as $index => $employeeId) {
-            $bindings[$index + 1] = $employeeId;
+            $param = ':emp' . $index;
+            $placeholders[] = $param;
+            $bindings[$param] = $employeeId;
         }
+        $conditions[] = 'cc.`NHANVIEN IdNhanVien` IN (' . implode(', ', $placeholders) . ')';
 
         if ($start) {
             $conditions[] = 'cc.`ThoiGianVao` >= :startTime';
@@ -111,11 +112,7 @@ class Attendance extends BaseModel
 
         $stmt = $this->db->prepare($sql);
         foreach ($bindings as $key => $value) {
-            if (is_int($key)) {
-                $stmt->bindValue($key, $value);
-            } else {
-                $stmt->bindValue($key, $value);
-            }
+            $stmt->bindValue($key, $value);
         }
         $stmt->execute();
 
