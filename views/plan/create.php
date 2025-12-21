@@ -315,6 +315,12 @@ foreach ($configurationDetails as $detail) {
             const planEnd = document.querySelector('[data-plan-end]');
             const startFields = document.querySelectorAll('[data-sync-start]');
             const endFields = document.querySelectorAll('[data-sync-end]');
+            const now = new Date();
+            const toDateTimeLocal = function (date) {
+                const pad = (num) => String(num).padStart(2, '0');
+                return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+            };
+            const todayMin = toDateTimeLocal(now);
 
             function syncValues(source, targets) {
                 if (!source) return;
@@ -322,6 +328,22 @@ foreach ($configurationDetails as $detail) {
                     if (!input.dataset.userEdited) {
                         input.value = source.value;
                     }
+                });
+            }
+
+            function setMinDates() {
+                if (planStart) {
+                    planStart.min = todayMin;
+                }
+                if (planEnd) {
+                    planEnd.min = planStart && planStart.value ? planStart.value : todayMin;
+                }
+                startFields.forEach(function (input) {
+                    input.min = todayMin;
+                });
+                endFields.forEach(function (input) {
+                    const startValue = input.closest('tr')?.querySelector('[data-sync-start]')?.value;
+                    input.min = startValue || (planStart ? planStart.value : todayMin);
                 });
             }
 
@@ -341,13 +363,26 @@ foreach ($configurationDetails as $detail) {
             if (planStart) {
                 planStart.addEventListener('change', function () {
                     syncValues(planStart, startFields);
+                    setMinDates();
                 });
             }
             if (planEnd) {
                 planEnd.addEventListener('change', function () {
                     syncValues(planEnd, endFields);
+                    setMinDates();
                 });
             }
+
+            startFields.forEach(function (input) {
+                input.addEventListener('change', setMinDates);
+                input.addEventListener('input', setMinDates);
+            });
+            endFields.forEach(function (input) {
+                input.addEventListener('change', setMinDates);
+                input.addEventListener('input', setMinDates);
+            });
+
+            setMinDates();
         });
     </script>
 <?php endif; ?>

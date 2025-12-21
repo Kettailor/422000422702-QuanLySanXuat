@@ -436,7 +436,8 @@ CREATE TABLE `ke_hoach_san_xuat` (
   `TrangThai` varchar(255) DEFAULT NULL,
   `ThoiGianBD` datetime DEFAULT NULL,
   `IdNguoiLap` varchar(50) NOT NULL,
-  `IdTTCTDonHang` varchar(50) NOT NULL
+  `IdTTCTDonHang` varchar(50) NOT NULL,
+  CONSTRAINT `chk_ke_hoach_san_xuat_date_range` CHECK (`ThoiGianKetThuc` IS NULL OR `ThoiGianBD` IS NULL OR `ThoiGianKetThuc` >= `ThoiGianBD`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -444,12 +445,38 @@ CREATE TABLE `ke_hoach_san_xuat` (
 --
 
 INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `IdNguoiLap`, `IdTTCTDonHang`) VALUES
-('KH68feddc3cb52d', 90, '2023-11-29 14:00:00', 'Đã lập kế hoạch', '2025-10-27 03:49:00', 'NV002', 'CTDH20231105B'),
+('KH68feddc3cb52d', 90, '2025-11-29 14:00:00', 'Đã lập kế hoạch', '2025-10-27 03:49:00', 'NV002', 'CTDH20231105B'),
 ('KHSX20231101', 180, '2023-11-19 17:00:00', 'Đang lắp ráp SV5TOT 87', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
 ('KHSX20231102', 120, '2023-11-22 17:30:00', 'Đang kiểm thử SV5TOT 108', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
 ('KHSX20231105', 150, '2023-11-26 16:00:00', 'Đang hoàn thiện đơn custom', '2023-11-18 07:30:00', 'NV001', 'CTDH20231105A'),
 ('KHSX20231202', 160, '2023-12-20 16:30:00', 'Đang chuẩn bị kit TechHub', '2023-12-10 08:00:00', 'NV001', 'CTDH20231202B'),
 ('KHSX20231202A', 140, '2023-12-22 17:00:00', 'Chuẩn bị SV5TOT 108 TechHub', '2023-12-12 07:45:00', 'NV001', 'CTDH20231202A');
+
+DELIMITER $$
+CREATE TRIGGER `trg_ke_hoach_san_xuat_validate_insert`
+BEFORE INSERT ON `ke_hoach_san_xuat`
+FOR EACH ROW
+BEGIN
+  IF NEW.`ThoiGianBD` IS NOT NULL AND DATE(NEW.`ThoiGianBD`) < CURDATE() THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+  END IF;
+  IF NEW.`ThoiGianBD` IS NOT NULL AND NEW.`ThoiGianKetThuc` IS NOT NULL AND NEW.`ThoiGianKetThuc` < NEW.`ThoiGianBD` THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+  END IF;
+END$$
+
+CREATE TRIGGER `trg_ke_hoach_san_xuat_validate_update`
+BEFORE UPDATE ON `ke_hoach_san_xuat`
+FOR EACH ROW
+BEGIN
+  IF NEW.`ThoiGianBD` IS NOT NULL AND DATE(NEW.`ThoiGianBD`) < CURDATE() THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+  END IF;
+  IF NEW.`ThoiGianBD` IS NOT NULL AND NEW.`ThoiGianKetThuc` IS NOT NULL AND NEW.`ThoiGianKetThuc` < NEW.`ThoiGianBD` THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+  END IF;
+END$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -467,7 +494,8 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
   `TinhTrangVatTu` varchar(255) DEFAULT 'Chưa kiểm tra',
   `IdCongDoan` varchar(50) DEFAULT NULL,
   `IdKeHoachSanXuat` varchar(50) NOT NULL,
-  `IdXuong` varchar(50) NOT NULL
+  `IdXuong` varchar(50) NOT NULL,
+  CONSTRAINT `chk_ke_hoach_san_xuat_xuong_date_range` CHECK (`ThoiGianKetThuc` IS NULL OR `ThoiGianBatDau` IS NULL OR `ThoiGianKetThuc` >= `ThoiGianBatDau`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -481,13 +509,39 @@ INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPh
 ('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'Chưa kiểm tra', 'PCFGKITTECH_KIT', 'KHSX20231105', 'XU001'),
 ('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'Chưa kiểm tra', 'PCFGKITTECH_PACK', 'KHSX20231202', 'XU002'),
 ('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'Chưa kiểm tra', 'PCFGKB108SILENT_ASM', 'KHSX20231202A', 'XU001'),
-('KXX68feddc3cbdf5', 'Chuẩn bị kit DIY bán lẻ', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_KIT', 'KH68feddc3cb52d', 'XU001'),
-('KXX68feddc3cc1b1', 'Rà soát phụ kiện kit Retail', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_QC', 'KH68feddc3cb52d', 'XU002'),
-('KXX68feddc3cc53b', 'Đóng gói kit Retail', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_PACK', 'KH68feddc3cb52d', 'XU002'),
-('KXX68feddc3cc8bd', 'Layout: 75% compact', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
-('KXX68feddc3ccc24', 'Switch: Không kèm switch', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
-('KXX68feddc3ccea1', 'Case: Nhôm CNC phủ sơn', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
-('KXX68feddc3cd147', 'Foam: EVA 2 lớp', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001');
+('KXX68feddc3cbdf5', 'Chuẩn bị kit DIY bán lẻ', 90, '2025-10-27 03:49:00', '2025-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_KIT', 'KH68feddc3cb52d', 'XU001'),
+('KXX68feddc3cc1b1', 'Rà soát phụ kiện kit Retail', 90, '2025-10-27 03:49:00', '2025-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_QC', 'KH68feddc3cb52d', 'XU002'),
+('KXX68feddc3cc53b', 'Đóng gói kit Retail', 90, '2025-10-27 03:49:00', '2025-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_PACK', 'KH68feddc3cb52d', 'XU002'),
+('KXX68feddc3cc8bd', 'Layout: 75% compact', 90, '2025-10-27 03:49:00', '2025-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
+('KXX68feddc3ccc24', 'Switch: Không kèm switch', 90, '2025-10-27 03:49:00', '2025-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
+('KXX68feddc3ccea1', 'Case: Nhôm CNC phủ sơn', 90, '2025-10-27 03:49:00', '2025-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
+('KXX68feddc3cd147', 'Foam: EVA 2 lớp', 90, '2025-10-27 03:49:00', '2025-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001');
+
+DELIMITER $$
+CREATE TRIGGER `trg_ke_hoach_san_xuat_xuong_validate_insert`
+BEFORE INSERT ON `ke_hoach_san_xuat_xuong`
+FOR EACH ROW
+BEGIN
+  IF NEW.`ThoiGianBatDau` IS NOT NULL AND DATE(NEW.`ThoiGianBatDau`) < CURDATE() THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+  END IF;
+  IF NEW.`ThoiGianBatDau` IS NOT NULL AND NEW.`ThoiGianKetThuc` IS NOT NULL AND NEW.`ThoiGianKetThuc` < NEW.`ThoiGianBatDau` THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+  END IF;
+END$$
+
+CREATE TRIGGER `trg_ke_hoach_san_xuat_xuong_validate_update`
+BEFORE UPDATE ON `ke_hoach_san_xuat_xuong`
+FOR EACH ROW
+BEGIN
+  IF NEW.`ThoiGianBatDau` IS NOT NULL AND DATE(NEW.`ThoiGianBatDau`) < CURDATE() THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+  END IF;
+  IF NEW.`ThoiGianBatDau` IS NOT NULL AND NEW.`ThoiGianKetThuc` IS NOT NULL AND NEW.`ThoiGianKetThuc` < NEW.`ThoiGianBatDau` THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+  END IF;
+END$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
