@@ -52,6 +52,14 @@ class WorkShift extends BaseModel
         $startDate = $this->normalizeDate($startTime) ?? date('Y-m-d');
         $endDate = $this->normalizeDate($endTime) ?? $startDate;
 
+        if ($startTime && $endTime) {
+            $startTs = strtotime($startTime);
+            $endTs = strtotime($endTime);
+            if ($startTs !== false && $endTs !== false && $endTs < $startTs) {
+                $endDate = date('Y-m-d', strtotime($startDate . ' +1 day'));
+            }
+        }
+
         if ($startDate > $endDate) {
             $endDate = $startDate;
         }
@@ -69,8 +77,8 @@ class WorkShift extends BaseModel
             $defaultLotId = 'LOTP202309';
         }
 
-        $date = new DateTime($startDate);
-        $end = new DateTime($endDate);
+        $date = new DateTimeImmutable($startDate);
+        $end = new DateTimeImmutable($endDate);
         while ($date <= $end) {
             $dateStr = $date->format('Y-m-d');
             foreach ($ranges as $label => [$start, $endHour]) {
@@ -99,7 +107,7 @@ class WorkShift extends BaseModel
                 ]);
             }
 
-            $date->modify('+1 day');
+            $date = $date->modify('+1 day');
         }
     }
 
