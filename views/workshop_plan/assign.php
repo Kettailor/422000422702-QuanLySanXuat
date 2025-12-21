@@ -91,6 +91,9 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
         </div>
 
         <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Bộ lọc phân công</h5>
+            </div>
             <div class="card-body">
                 <div class="row g-3 align-items-end">
                     <div class="col-lg-4">
@@ -122,22 +125,29 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                 </div>
 
                 <div class="mt-4">
-                    <div class="fw-semibold mb-2">Danh sách nhân viên</div>
-                    <div class="row g-2" id="employee-list">
-                        <?php foreach ($availableEmployees as $employee): ?>
-                            <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
-                            <div class="col-md-6 col-lg-4 employee-item" data-name="<?= htmlspecialchars(mb_strtolower($employee['HoTen'] ?? $employeeId, 'UTF-8')) ?>">
-                                <label class="form-check d-flex align-items-center gap-2 border rounded-3 p-2">
-                                    <input type="checkbox" class="form-check-input employee-checkbox" value="<?= htmlspecialchars($employeeId) ?>">
-                                    <span><?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?></span>
-                                </label>
+                    <div class="card border-0 bg-light">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="fw-semibold">Danh sách nhân viên</div>
+                                <span class="text-muted small">Chọn nhiều nhân viên để phân công nhanh.</span>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <div class="mt-3 d-flex justify-content-end">
-                        <button type="button" class="btn btn-outline-primary" id="bulk-assign-btn">
-                            <i class="bi bi-plus-circle me-2"></i>Thêm vào ca đã chọn
-                        </button>
+                            <div class="row g-2" id="employee-list">
+                                <?php foreach ($availableEmployees as $employee): ?>
+                                    <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
+                                    <div class="col-md-6 col-lg-4 employee-item" data-name="<?= htmlspecialchars(mb_strtolower($employee['HoTen'] ?? $employeeId, 'UTF-8')) ?>">
+                                        <label class="form-check d-flex align-items-center gap-2 border rounded-3 p-2 bg-white">
+                                            <input type="checkbox" class="form-check-input employee-checkbox" value="<?= htmlspecialchars($employeeId) ?>">
+                                            <span><?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?></span>
+                                        </label>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary" id="bulk-assign-btn">
+                                    <i class="bi bi-plus-circle me-2"></i>Thêm vào ca đã chọn
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
