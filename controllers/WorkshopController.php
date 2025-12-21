@@ -31,6 +31,8 @@ class WorkshopController extends Controller
             'workshops' => $workshops,
             'summary' => $summary,
             'statusDistribution' => $statusDistribution,
+            'workshopCards' => $this->buildWorkshopCards($workshops),
+            'focusWorkshop' => $this->getFocusWorkshop($workshops),
             'canAssign' => $this->canAssign(),
             'isWorkshopManagerView' => $this->isWorkshopManager(),
         ]);
@@ -476,6 +478,56 @@ class WorkshopController extends Controller
         }
 
         return $distribution;
+    }
+
+    private function buildWorkshopCards(array $workshops): array
+    {
+        $cards = [];
+
+        foreach ($workshops as $workshop) {
+            $maxCapacity = (float) ($workshop['CongSuatToiDa'] ?? 0);
+            $currentCapacity = (float) ($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0);
+            $capacityUsage = $maxCapacity > 0 ? round(($currentCapacity / $maxCapacity) * 100, 1) : 0.0;
+
+            $maxWorkforce = (int) ($workshop['SlNhanVien'] ?? 0);
+            $currentWorkforce = (int) ($workshop['SoLuongCongNhan'] ?? 0);
+            $workforceUsage = $maxWorkforce > 0 ? round(($currentWorkforce / $maxWorkforce) * 100, 1) : 0.0;
+
+            $cards[] = [
+                'id' => $workshop['IdXuong'] ?? '',
+                'name' => $workshop['TenXuong'] ?? 'Không xác định',
+                'location' => $workshop['DiaDiem'] ?? 'Chưa cập nhật địa điểm',
+                'manager' => $workshop['TruongXuong'] ?? 'Chưa phân công',
+                'status' => $workshop['TrangThai'] ?? 'Không xác định',
+                'capacityLabel' => number_format($currentCapacity, 0, ',', '.') . ' / ' . number_format($maxCapacity, 0, ',', '.'),
+                'capacityUsage' => $capacityUsage,
+                'workforceLabel' => number_format($currentWorkforce) . ' / ' . number_format($maxWorkforce),
+                'workforceUsage' => $workforceUsage,
+                'description' => $workshop['MoTa'] ?? null,
+            ];
+        }
+
+        return $cards;
+    }
+
+    private function getFocusWorkshop(array $workshops): ?array
+    {
+        if (empty($workshops)) {
+            return null;
+        }
+
+        $preferred = $workshops[0];
+
+        foreach ($workshops as $workshop) {
+            if (($workshop['TrangThai'] ?? '') === 'Đang hoạt động') {
+                $preferred = $workshop;
+                break;
+            }
+        }
+
+        $cards = $this->buildWorkshopCards([$preferred]);
+
+        return $cards[0] ?? null;
     }
 
     private function extractAssignments(array $input): array
