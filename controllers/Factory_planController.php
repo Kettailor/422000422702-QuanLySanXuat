@@ -4,29 +4,28 @@ class Factory_planController extends Controller
 {
     private WorkshopPlan $workshopPlanModel;
     private Workshop $workshopModel;
+    private WorkshopAssignment $assignmentModel;
 
     public function __construct()
     {
         $this->authorize(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT', 'VT_BAN_GIAM_DOC']);
         $this->workshopPlanModel = new WorkshopPlan();
         $this->workshopModel = new Workshop();
+        $this->assignmentModel = new WorkshopAssignment();
     }
 
     public function index(): void
     {
         $selectedWorkshop = $_GET['workshop_id'] ?? null;
-        $workshops = $this->workshopModel->getAllWithManagers();
+        $workshops = $this->getVisibleWorkshops();
+        $selectedWorkshop = $this->normalizeSelectedWorkshop($selectedWorkshop, $workshops);
         $workshopMap = [];
         foreach ($workshops as $workshop) {
             $workshopMap[$workshop['IdXuong'] ?? ''] = $workshop;
         }
 
         $plans = $this->workshopPlanModel->getDetailedPlans(200);
-        if ($selectedWorkshop) {
-            $plans = array_values(array_filter($plans, static function (array $plan) use ($selectedWorkshop): bool {
-                return ($plan['IdXuong'] ?? null) === $selectedWorkshop;
-            }));
-        }
+        $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops, $selectedWorkshop);
 
         $groupedPlans = $this->groupPlansByWorkshop($plans, $workshopMap);
 
@@ -42,6 +41,7 @@ class Factory_planController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $plan = $id ? $this->workshopPlanModel->findWithRelations($id) : null;
+        $plan = $this->filterPlanByAccess($plan);
 
 
 
@@ -56,6 +56,32 @@ class Factory_planController extends Controller
             'plan' => $plan,
             "stock_list_need" =>  $stockList
         ]);
+    }
+
+    private function getVisibleWorkshops(): array
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+            return $this->workshopModel->getAllWithManagers();
+        }
+
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if ($role === 'VT_QUANLY_XUONG' && $employeeId) {
+            $workshopIds = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
+            if (empty($workshopIds)) {
+                return [];
+            }
+            return $this->workshopModel->findByIds($workshopIds);
+        }
+
+        if ($role === 'VT_NHANVIEN_SANXUAT' && $employeeId) {
+            $workshopIds = $this->assignmentModel->getWorkshopsByEmployee($employeeId);
+            return $this->workshopModel->findByIds($workshopIds);
+        }
+
+        return [];
     }
 
     private function groupPlansByWorkshop(array $plans, array $workshopMap): array
@@ -133,6 +159,39 @@ class Factory_planController extends Controller
         return $status;
     }
 
+    private function normalizeSelectedWorkshop(?string $selected, array $visibleWorkshops): ?string
+    {
+        if ($selected) {
+            foreach ($visibleWorkshops as $workshop) {
+                if (($workshop['IdXuong'] ?? null) === $selected) {
+                    return $selected;
+                }
+            }
+        }
+
+        if (count($visibleWorkshops) === 1) {
+            return $visibleWorkshops[0]['IdXuong'] ?? null;
+        }
+
+        return null;
+    }
+
+    private function filterPlansByVisibleWorkshops(array $plans, array $visibleWorkshops, ?string $selectedWorkshop): array
+    {
+        $allowed = array_column($visibleWorkshops, 'IdXuong');
+        $plans = array_values(array_filter($plans, static function (array $plan) use ($allowed): bool {
+            return in_array($plan['IdXuong'] ?? null, $allowed, true);
+        }));
+
+        if ($selectedWorkshop) {
+            $plans = array_values(array_filter($plans, static function (array $plan) use ($selectedWorkshop): bool {
+                return ($plan['IdXuong'] ?? null) === $selectedWorkshop;
+            }));
+        }
+
+        return $plans;
+    }
+
     public function sendMaterialNotification(): void
     {
         header('Content-Type: application/json');
@@ -178,5 +237,21 @@ class Factory_planController extends Controller
         } else {
             echo json_encode(['success' => false, 'message' => 'Không thể lưu thông báo.']);
         }
+    }
+
+    private function filterPlanByAccess(?array $plan): ?array
+    {
+        if (!$plan) {
+            return null;
+        }
+
+        $visibleIds = array_column($this->getVisibleWorkshops(), 'IdXuong');
+        if (in_array($plan['IdXuong'] ?? null, $visibleIds, true)) {
+            return $plan;
+        }
+
+        $this->setFlash('danger', 'Bạn không có quyền xem hạng mục xưởng này.');
+        $this->redirect('?controller=factory_plan&action=index');
+        return null;
     }
 }

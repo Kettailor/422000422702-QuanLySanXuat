@@ -160,65 +160,88 @@ class SuddenlyController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('?controller=suddenly&action=index');
+            return;
         }
 
-        $idBienBan   = trim($_POST['IdBienBanDanhGiaDX'] ?? '');
+        // Nhận diện AJAX (fetch)
+        $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+        // Helper trả lỗi
+        $fail = function (string $msg, string $type = 'warning') use ($isAjax) {
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'type'    => $type,
+                    'message' => $msg
+                ]);
+                exit;
+            }
+            $this->redirect(
+                '?controller=suddenly&action=create&msg=' . urlencode($msg) . '&type=' . $type
+            );
+            exit;
+        };
+
+        // =========================
+        // LẤY DỮ LIỆU
+        // =========================
+        $idBienBan = trim($_POST['IdBienBanDanhGiaDX'] ?? '');
         if ($idBienBan === '') {
             $idBienBan = $this->SuddenlyModel->generateBienBanId();
         }
 
         $idXuong     = $_POST['IdXuong'] ?? null;
+        $idNhanVien  = $_POST['IdNhanVien'] ?? null;
         $thoiGian    = $_POST['ThoiGian'] ?? date('Y-m-d H:i:s');
         $loaiTieuChi = $_POST['LoaiTieuChi'] ?? ($_GET['type'] ?? '');
         $arrTieuChi  = $_POST['TieuChi'] ?? [];
         $arrDiemDat  = $_POST['DiemDat'] ?? [];
         $arrGhiChu   = $_POST['GhiChuTC'] ?? [];
         $files       = $_FILES['FileMinhChung'] ?? null;
-        $idNhanVien  = $_POST['IdNhanVien'] ?? null;
 
-        // --- Kiểm tra dữ liệu đầu vào ---
+        // =========================
+        // VALIDATE
+        // =========================
         if (empty($idXuong)) {
-            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Yêu cầu chọn Xưởng kiểm tra.') . '&type=warning');
+            $fail('Yêu cầu chọn Xưởng kiểm tra.');
         }
 
         if (empty($idNhanVien)) {
-            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Yêu cầu chọn Nhân viên kiểm tra.') . '&type=warning');
+            $fail('Yêu cầu chọn Nhân viên kiểm tra.');
         }
 
         if (empty($arrTieuChi)) {
-            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Không có tiêu chí nào được nhập.') . '&type=danger');
+            $fail('Không có tiêu chí nào được nhập.', 'danger');
         }
 
         foreach ($arrDiemDat as $diem) {
             if ($diem === '' || !is_numeric($diem) || $diem < 0 || $diem > 10) {
-                $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Điểm tiêu chí phải nằm trong khoảng 0–10 và không được bỏ trống.') . '&type=warning');
+                $fail('Điểm tiêu chí phải nằm trong khoảng 0–10.', 'warning');
             }
         }
 
         foreach ($arrGhiChu as $note) {
             if (preg_match('/[#@\$%<>\{\}\[\]\;]/', $note)) {
-                $this->redirect(
-                    '?controller=suddenly&action=create&msg=' . urlencode('Ghi chú chứa kí tự không hợp lệ, nhập lại Ghi chú') .
-                        '&type=danger'
-                );
+                $fail('Ghi chú chứa kí tự không hợp lệ.', 'danger');
             }
         }
 
         if (!$files || empty($files['name'][0])) {
-            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Yêu cầu tải ảnh minh chứng.') . '&type=danger');
+            $fail('Yêu cầu tải ít nhất một ảnh minh chứng.', 'danger');
         }
 
-        foreach ($files['name'] as $i => $name) {
-            if (empty($name)) {
-                $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Yêu cầu tải ảnh minh chứng cho tất cả tiêu chí.') . '&type=danger');
-            }
+        foreach ($files['name'] as $name) {
             $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
             if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
-                $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Định dạng ảnh không hợp lệ. Chỉ chấp nhận JPG hoặc PNG.') . '&type=danger');
+                $fail('Định dạng ảnh không hợp lệ. Chỉ chấp nhận JPG hoặc PNG.', 'danger');
             }
         }
-        // --- Hết phần kiểm tra ---
 
+        // =========================
+        // LƯU DB
+        // =========================
         $db = $this->SuddenlyModel->getConnection();
         $db->beginTransaction();
 
@@ -235,17 +258,17 @@ class SuddenlyController extends Controller
 
             $tongTCD = 0;
             $tongTCKD = 0;
+            $uploadDir = __DIR__ . '/../uploads/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
             foreach ($arrTieuChi as $i => $tieuChi) {
                 if (trim($tieuChi) === '') continue;
 
-                $diem = max(0, min(10, (float)($arrDiemDat[$i] ?? 0)));
-                $ghiChu = trim($arrGhiChu[$i] ?? '');
+                $diem    = (float)$arrDiemDat[$i];
+                $ghiChu  = trim($arrGhiChu[$i] ?? '');
                 $fileName = null;
 
-                if ($files && !empty($files['name'][$i])) {
-                    $uploadDir = __DIR__ . '/../uploads/';
-                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+                if (!empty($files['name'][$i])) {
                     $safeName = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $files['name'][$i]);
                     $fileName = uniqid('mc_') . '_' . $safeName;
                     move_uploaded_file($files['tmp_name'][$i], $uploadDir . $fileName);
@@ -266,13 +289,43 @@ class SuddenlyController extends Controller
 
             $ketQuaTong = ($tongTCKD > 0) ? 'Không đạt' : 'Đạt';
             $this->SuddenlyModel->updateTong($idBienBan, $tongTCD, $tongTCKD, $ketQuaTong);
+
             $db->commit();
 
+            // =========================
+            // TRẢ KẾT QUẢ
+            // =========================
             $msg = "Biên bản {$idBienBan} lưu thành công.";
-            $this->redirect('?controller=suddenly&action=index&msg=' . urlencode($msg) . '&type=success');
+
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => $msg
+                ]);
+                exit;
+            }
+
+            $this->redirect(
+                '?controller=suddenly&action=index&msg=' . urlencode($msg) . '&type=success'
+            );
         } catch (Throwable $e) {
             $db->rollBack();
-            $this->redirect('?controller=suddenly&action=create&msg=' . urlencode('Không thể lưu biên bản: ' . $e->getMessage()) . '&type=danger');
+
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+                exit;
+            }
+
+            $this->redirect(
+                '?controller=suddenly&action=create&msg=' .
+                    urlencode('Không thể lưu biên bản: ' . $e->getMessage()) .
+                    '&type=danger'
+            );
         }
     }
 

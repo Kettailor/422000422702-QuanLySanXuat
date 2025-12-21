@@ -38,6 +38,27 @@ class WorkshopAssignment
         return $assignments;
     }
 
+    public function getWorkshopsManagedBy(string $employeeId): array
+    {
+        $sql = 'SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employeeId AND VaiTro = :role';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employeeId', $employeeId);
+        $stmt->bindValue(':role', 'truong_xuong');
+        $stmt->execute();
+
+        return array_column($stmt->fetchAll(), 'IdXuong');
+    }
+
+    public function getWorkshopsByEmployee(string $employeeId): array
+    {
+        $sql = 'SELECT DISTINCT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employeeId';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employeeId', $employeeId);
+        $stmt->execute();
+
+        return array_column($stmt->fetchAll(), 'IdXuong');
+    }
+
     public function syncAssignments(
         string $workshopId,
         ?string $managerId,
