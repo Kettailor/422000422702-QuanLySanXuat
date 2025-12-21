@@ -239,4 +239,31 @@ WHERE
 
         return $stmt->fetchAll();
     }
+
+    public function deleteWithRelations(string $id): void
+    {
+        $this->db->beginTransaction();
+
+        try {
+            $tables = [
+                'chi_tiet_ke_hoach_san_xuat_xuong' => 'IdKeHoachSanXuatXuong',
+                'lich_su_ke_hoach_xuong' => 'IdKeHoachSanXuatXuong',
+                'yeu_cau_xuat_kho' => 'IdKeHoachSanXuatXuong',
+            ];
+
+            foreach ($tables as $table => $column) {
+                $stmt = $this->db->prepare("DELETE FROM {$table} WHERE {$column} = :id");
+                $stmt->bindValue(':id', $id);
+                $stmt->execute();
+            }
+
+            $this->delete($id);
+            $this->db->commit();
+        } catch (Throwable $exception) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $exception;
+        }
+    }
 }
