@@ -211,14 +211,25 @@ class Workshop_planController extends Controller
         }
 
         $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
-        $shiftDateMap = [];
+        $now = time();
+        $editableShiftIds = [];
         foreach ($workShifts as $shift) {
             $shiftId = $shift['IdCaLamViec'] ?? null;
-            $shiftDateMap[$shiftId] = $shift['NgayLamViec'] ?? null;
+            if (!$shiftId) {
+                continue;
+            }
+            $start = $shift['ThoiGianBatDau'] ?? null;
+            $end = $shift['ThoiGianKetThuc'] ?? null;
+            $startTs = $start ? strtotime($start) : null;
+            $endTs = $end ? strtotime($end) : null;
+            $isToday = ($shift['NgayLamViec'] ?? '') === date('Y-m-d');
+            $inProgress = $isToday && $startTs && $endTs && $now >= $startTs && $now <= $endTs;
+            if (!$inProgress) {
+                $editableShiftIds[$shiftId] = true;
+            }
         }
-        $today = date('Y-m-d');
         foreach ($assignmentsInput as $shiftId => $employees) {
-            if (isset($shiftDateMap[$shiftId]) && $shiftDateMap[$shiftId] === $today) {
+            if (!isset($editableShiftIds[$shiftId])) {
                 unset($assignmentsInput[$shiftId]);
             }
         }
