@@ -1,3 +1,18 @@
+<?php
+$materialSource = $materialSource ?? 'plan';
+$materialOptions = $materialOptions ?? [];
+$materials = $materials ?? [];
+$prefillPersist = $materialSource !== 'plan';
+$materialsForRender = !empty($materials) ? $materials : [['IdNguyenLieu' => '', 'SoLuongKeHoach' => 0, 'DonVi' => '', 'SoLuongTonKho' => null]];
+
+$materialOptionHtml = '<option value="">Chọn nguyên liệu</option>';
+foreach ($materialOptions as $option) {
+    $value = htmlspecialchars($option['IdNguyenLieu'] ?? '');
+    $label = htmlspecialchars(($option['TenNL'] ?? $value) . (!empty($option['DonVi']) ? ' (' . $option['DonVi'] . ')' : ''));
+    $materialOptionHtml .= "<option value=\"{$value}\">{$label}</option>";
+}
+?>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Kiểm tra nguyên liệu kế hoạch xưởng</h3>
@@ -18,12 +33,12 @@
 <?php if (!$plan): ?>
     <div class="alert alert-warning">Không tìm thấy kế hoạch xưởng.</div>
 <?php else: ?>
-    <?php if (!empty($materialCheckResult)): ?>
-        <div class="alert <?= $materialCheckResult['is_sufficient'] ? 'alert-success' : 'alert-warning' ?>">
-            <div class="fw-semibold mb-2">
-                <?= $materialCheckResult['is_sufficient']
-                    ? 'Tồn kho đáp ứng đủ nhu cầu thực tế.'
-                    : 'Thiếu nguyên liệu để đáp ứng nhu cầu. Đã tạo yêu cầu bổ sung nếu cần.' ?>
+        <?php if (!empty($materialCheckResult)): ?>
+            <div class="alert <?= $materialCheckResult['is_sufficient'] ? 'alert-success' : 'alert-warning' ?>">
+                <div class="fw-semibold mb-2">
+                    <?= $materialCheckResult['is_sufficient']
+                        ? 'Tồn kho đáp ứng đủ nhu cầu thực tế.'
+                        : 'Thiếu nguyên liệu để đáp ứng nhu cầu. Đã tạo yêu cầu bổ sung nếu cần.' ?>
             </div>
             <?php if (!empty($materialCheckResult['items'])): ?>
                 <div class="table-responsive">
@@ -94,60 +109,93 @@
     </div>
 
     <div class="card p-4 mb-4">
-        <h5 class="fw-semibold mb-3">Nhu cầu nguyên liệu thực tế</h5>
-        <?php if (empty($materials)): ?>
-            <div class="alert alert-light border">Chưa cấu hình chi tiết nguyên liệu cho kế hoạch này.</div>
-        <?php else: ?>
-            <form method="post" action="?controller=workshop_plan&action=checkMaterials">
-                <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
-                <div class="table-responsive mb-3">
-                    <table class="table align-middle">
-                        <thead>
-                            <tr>
-                                <th>Nguyên liệu</th>
-                                <th class="text-end">Định mức kế hoạch</th>
-                                <th class="text-end">Tồn kho</th>
-                                <th style="width: 220px">Nhu cầu thực tế</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($materials as $index => $material): ?>
-                            <tr>
-                                <td>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-semibold mb-1">Nhu cầu nguyên liệu thực tế</h5>
+                <?php if ($materialSource === 'inventory'): ?>
+                    <div class="text-muted small">Chọn nguyên liệu trực tiếp từ kho nguyen_lieu và nhập nhu cầu cho kế hoạch.</div>
+                <?php elseif ($materialSource === 'custom'): ?>
+                    <div class="text-muted small">Sản phẩm mới chưa có định mức. Vui lòng chọn nguyên liệu phù hợp trước khi kiểm tra tồn kho.</div>
+                <?php endif; ?>
+            </div>
+            <?php if ($materialSource !== 'plan'): ?>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row">
+                    <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
+                </button>
+            <?php endif; ?>
+        </div>
+        <form method="post" action="?controller=workshop_plan&action=checkMaterials">
+            <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
+            <div class="table-responsive mb-3">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nguyên liệu</th>
+                            <th class="text-end">Định mức kế hoạch</th>
+                            <th class="text-end">Tồn kho</th>
+                            <th style="width: 220px">Nhu cầu thực tế</th>
+                        </tr>
+                    </thead>
+                    <tbody id="material-rows">
+                    <?php foreach ($materialsForRender as $index => $material): ?>
+                        <tr>
+                            <td>
+                                <?php if ($materialSource === 'plan'): ?>
                                     <div class="fw-semibold mb-1"><?= htmlspecialchars($material['TenNL'] ?? $material['IdNguyenLieu']) ?></div>
                                     <div class="text-muted small">Mã: <?= htmlspecialchars($material['IdNguyenLieu']) ?></div>
-                                </td>
-                                <td class="text-end">
-                                    <?= number_format((int) ($material['SoLuongKeHoach'] ?? 0)) ?><?= $material['DonVi'] ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
-                                </td>
-                                <td class="text-end">
-                                    <?= number_format((int) ($material['SoLuongTonKho'] ?? 0)) ?><?= $material['DonVi'] ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
-                                </td>
-                                <td>
-                                    <div class="input-group input-group-sm">
-                                        <input type="hidden" name="materials[<?= $index ?>][IdNguyenLieu]" value="<?= htmlspecialchars($material['IdNguyenLieu']) ?>">
-                                        <input type="number" min="0" class="form-control" name="materials[<?= $index ?>][required]" value="<?= htmlspecialchars($material['SoLuongKeHoach'] ?? 0) ?>" required>
-                                        <?php if (!empty($material['DonVi'])): ?>
-                                            <span class="input-group-text"><?= htmlspecialchars($material['DonVi']) ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mb-3">
+                                    <input type="hidden" name="materials[<?= $index ?>][IdNguyenLieu]" value="<?= htmlspecialchars($material['IdNguyenLieu'] ?? '') ?>">
+                                <?php else: ?>
+                                    <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required>
+                                        <option value="">Chọn nguyên liệu</option>
+                                        <?php foreach ($materialOptions as $option): ?>
+                                            <?php $value = $option['IdNguyenLieu'] ?? ''; ?>
+                                            <option value="<?= htmlspecialchars($value) ?>" <?= ($value === ($material['IdNguyenLieu'] ?? null)) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars(($option['TenNL'] ?? $value) . (!empty($option['DonVi']) ? ' (' . $option['DonVi'] . ')' : '')) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-end">
+                                <?= number_format((int) ($material['SoLuongKeHoach'] ?? 0)) ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
+                            </td>
+                            <td class="text-end">
+                                <?= isset($material['SoLuongTonKho']) ? number_format((int) ($material['SoLuongTonKho'] ?? 0)) : 'Đang tra cứu' ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" min="0" class="form-control" name="materials[<?= $index ?>][required]" value="<?= htmlspecialchars($material['SoLuongKeHoach'] ?? 0) ?>" required>
+                                    <?php if (!empty($material['DonVi'])): ?>
+                                        <span class="input-group-text"><?= htmlspecialchars($material['DonVi']) ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-8">
                     <label for="note" class="form-label">Ghi chú điều chỉnh / lý do</label>
                     <textarea name="note" id="note" rows="3" class="form-control" placeholder="Ghi chú cho Ban giám đốc theo dõi..."></textarea>
                 </div>
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check2-circle me-2"></i>Kiểm tra tồn kho
-                    </button>
+                <div class="col-md-4">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" value="1" id="persistMaterials" name="persist_materials" <?= $prefillPersist ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="persistMaterials">
+                            Lưu lại danh sách nguyên liệu cho kế hoạch này
+                        </label>
+                        <div class="text-muted small mt-1">Bật để lưu cấu hình cho sản phẩm mới hoặc thay đổi định mức.</div>
+                    </div>
                 </div>
-            </form>
-        <?php endif; ?>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check2-circle me-2"></i>Kiểm tra tồn kho
+                </button>
+            </div>
+        </form>
     </div>
 
     <div class="row g-4">
@@ -217,4 +265,36 @@
             </div>
         </div>
     </div>
+<?php endif; ?>
+
+<?php if ($materialSource !== 'plan'): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addRowBtn = document.getElementById('add-material-row');
+    const rowsContainer = document.getElementById('material-rows');
+    const optionTemplate = <?= json_encode($materialOptionHtml, JSON_UNESCAPED_UNICODE) ?>;
+
+    if (addRowBtn && rowsContainer) {
+        addRowBtn.addEventListener('click', function() {
+            const index = rowsContainer.querySelectorAll('tr').length;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <select name="materials[${index}][IdNguyenLieu]" class="form-select form-select-sm" required>
+                        ${optionTemplate}
+                    </select>
+                </td>
+                <td class="text-end">0</td>
+                <td class="text-end">Đang tra cứu</td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <input type="number" min="0" class="form-control" name="materials[${index}][required]" value="0" required>
+                    </div>
+                </td>
+            `;
+            rowsContainer.appendChild(row);
+        });
+    }
+});
+</script>
 <?php endif; ?>

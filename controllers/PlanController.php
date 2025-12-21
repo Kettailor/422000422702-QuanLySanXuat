@@ -81,11 +81,6 @@ class PlanController extends Controller
         $orderDetailId = $_POST['IdTTCTDonHang'] ?? null;
         $orderDetail = $orderDetailId ? $this->orderDetailModel->getPlanningContext($orderDetailId) : null;
 
-        var_dump( $orderDetail);
-        // exit;
-
-
-
         if (!$orderDetail) {
             $this->setFlash('danger', 'Vui lòng chọn đơn hàng hợp lệ trước khi lập kế hoạch.');
             $this->redirect('?controller=plan&action=create');

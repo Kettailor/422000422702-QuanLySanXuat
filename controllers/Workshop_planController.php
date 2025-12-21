@@ -6,6 +6,7 @@ class Workshop_planController extends Controller
     private WorkshopPlanMaterialDetail $materialDetailModel;
     private WorkshopPlanHistory $historyModel;
     private WarehouseRequest $warehouseRequestModel;
+    private Material $materialModel;
 
     public function __construct()
     {
@@ -14,6 +15,7 @@ class Workshop_planController extends Controller
         $this->materialDetailModel = new WorkshopPlanMaterialDetail();
         $this->historyModel = new WorkshopPlanHistory();
         $this->warehouseRequestModel = new WarehouseRequest();
+        $this->materialModel = new Material();
     }
 
     public function read(): void
@@ -26,6 +28,14 @@ class Workshop_planController extends Controller
         $materialCheckResult = $_SESSION['material_check_result'] ?? null;
         unset($_SESSION['material_check_result']);
 
+        $materialSource = 'plan';
+        $materialOptions = $this->materialModel->all(500);
+
+        if ($plan && empty($materials)) {
+            $materialSource = 'inventory';
+            $materials = $this->buildMaterialFromInventory();
+        }
+
         $this->render('workshop_plan/read', [
             'title' => 'Kiểm tra nguyên liệu kế hoạch xưởng',
             'plan' => $plan,
@@ -33,6 +43,8 @@ class Workshop_planController extends Controller
             'history' => $history,
             'warehouseRequests' => $warehouseRequests,
             'materialCheckResult' => $materialCheckResult,
+            'materialSource' => $materialSource,
+            'materialOptions' => $materialOptions,
         ]);
     }
 
@@ -52,6 +64,7 @@ class Workshop_planController extends Controller
 
         $materialsInput = $_POST['materials'] ?? [];
         $note = trim($_POST['note'] ?? '');
+        $persistMaterials = ($_POST['persist_materials'] ?? '') === '1';
 
         $requirements = [];
         foreach ($materialsInput as $input) {
@@ -80,9 +93,19 @@ class Workshop_planController extends Controller
         $currentUser = $this->currentUser();
         $actorId = $currentUser['IdNhanVien'] ?? null;
 
-        $status = $checkResult['is_sufficient'] ? 'Đủ nguyên liệu' : 'Chờ bổ sung';
+        $status = $checkResult['is_sufficient'] ? 'Đủ nguyên liệu' : 'Thiếu nguyên liệu';
         $action = $checkResult['is_sufficient'] ? 'Kiểm tra tồn kho' : 'Tạo yêu cầu bổ sung';
         $requestId = null;
+
+        if ($persistMaterials || empty($this->materialDetailModel->getByWorkshopPlan($planId))) {
+            try {
+                $this->materialDetailModel->replaceForPlan($planId, $requirements);
+            } catch (Throwable $exception) {
+                Logger::error('Không thể lưu danh sách nguyên liệu cho kế hoạch ' . $planId . ': ' . $exception->getMessage());
+            }
+        }
+
+        $this->workshopPlanModel->update($planId, ['TinhTrangVatTu' => $status]);
 
         if ($checkResult['is_sufficient']) {
             $this->setFlash('success', 'Nguyên liệu đáp ứng đủ nhu cầu thực tế.');
@@ -103,5 +126,20 @@ class Workshop_planController extends Controller
         $_SESSION['material_check_result'] = $checkResult;
 
         $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+    }
+
+    private function buildMaterialFromInventory(): array
+    {
+        $inventory = $this->materialModel->all(500);
+
+        return array_map(static function (array $row): array {
+            return [
+                'IdNguyenLieu' => $row['IdNguyenLieu'] ?? '',
+                'TenNL' => $row['TenNL'] ?? ($row['IdNguyenLieu'] ?? ''),
+                'SoLuongKeHoach' => 0,
+                'DonVi' => $row['DonVi'] ?? null,
+                'SoLuongTonKho' => $row['SoLuong'] ?? 0,
+            ];
+        }, $inventory);
     }
 }

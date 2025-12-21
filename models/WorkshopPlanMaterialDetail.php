@@ -84,4 +84,58 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
         return $stmt->fetchAll();
     }
+
+    public function replaceForPlan(string $planId, array $materials): void
+    {
+        $normalized = [];
+        foreach ($materials as $material) {
+            $id = $material['id'] ?? $material['IdNguyenLieu'] ?? null;
+            if (!$id) {
+                continue;
+            }
+
+            $quantity = (int) ($material['required'] ?? $material['SoLuong'] ?? $material['SoLuongThucTe'] ?? 0);
+            if ($quantity < 0) {
+                $quantity = 0;
+            }
+
+            if (!isset($normalized[$id])) {
+                $normalized[$id] = 0;
+            }
+
+            $normalized[$id] += $quantity;
+        }
+
+        $this->db->beginTransaction();
+
+        try {
+            $delete = $this->db->prepare(
+                'DELETE FROM chi_tiet_ke_hoach_san_xuat_xuong WHERE IdKeHoachSanXuatXuong = :planId'
+            );
+            $delete->bindValue(':planId', $planId);
+            $delete->execute();
+
+            if (!empty($normalized)) {
+                $insert = $this->db->prepare(
+                    'INSERT INTO chi_tiet_ke_hoach_san_xuat_xuong (IdCTKHSXX, SoLuong, IdKeHoachSanXuatXuong, IdNguyenLieu)
+                     VALUES (:id, :quantity, :planId, :materialId)'
+                );
+
+                foreach ($normalized as $materialId => $quantity) {
+                    $insert->bindValue(':id', uniqid('CT'));
+                    $insert->bindValue(':quantity', $quantity);
+                    $insert->bindValue(':planId', $planId);
+                    $insert->bindValue(':materialId', $materialId);
+                    $insert->execute();
+                }
+            }
+
+            $this->db->commit();
+        } catch (Throwable $exception) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $exception;
+        }
+    }
 }
