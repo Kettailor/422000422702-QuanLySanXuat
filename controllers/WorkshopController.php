@@ -25,14 +25,18 @@ class WorkshopController extends Controller
         $workshops = $this->getVisibleWorkshops();
         $summary = $this->calculateSummary($workshops);
         $statusDistribution = $this->calculateStatusDistribution($workshops);
+        $isManager = $this->isWorkshopManager();
 
         $this->render('workshop/index', [
             'title' => 'Quản lý xưởng sản xuất',
             'workshops' => $workshops,
             'summary' => $summary,
             'statusDistribution' => $statusDistribution,
+            'executiveOverview' => $this->buildExecutiveOverview($summary, $statusDistribution),
+            'workshopCards' => $isManager ? $this->buildWorkshopCards($workshops) : [],
+            'focusWorkshop' => $isManager ? $this->getFocusWorkshop($workshops) : null,
             'canAssign' => $this->canAssign(),
-            'isWorkshopManagerView' => $this->isWorkshopManager(),
+            'isWorkshopManagerView' => $isManager,
         ]);
     }
 
@@ -476,6 +480,79 @@ class WorkshopController extends Controller
         }
 
         return $distribution;
+    }
+
+    private function buildExecutiveOverview(array $summary, array $statusDistribution): array
+    {
+        $active = $statusDistribution['Đang hoạt động'] ?? 0;
+        $paused = $statusDistribution['Tạm dừng'] ?? 0;
+        $maintenance = $statusDistribution['Bảo trì'] ?? 0;
+        $others = array_sum($statusDistribution) - ($active + $paused + $maintenance);
+
+        $total = max(1, $summary['total_workshops']);
+        $avgCapacity = $summary['max_capacity'] > 0 ? round($summary['max_capacity'] / $total, 1) : 0.0;
+        $avgHeadcount = $summary['max_workforce'] > 0 ? round($summary['max_workforce'] / $total, 1) : 0.0;
+
+        return [
+            'active' => $active,
+            'paused' => $paused,
+            'maintenance' => $maintenance,
+            'others' => $others > 0 ? $others : 0,
+            'utilization' => $summary['utilization'],
+            'workforce_utilization' => $summary['workforce_utilization'],
+            'avg_capacity' => $avgCapacity,
+            'avg_headcount' => $avgHeadcount,
+        ];
+    }
+
+    private function buildWorkshopCards(array $workshops): array
+    {
+        $cards = [];
+
+        foreach ($workshops as $workshop) {
+            $maxCapacity = (float) ($workshop['CongSuatToiDa'] ?? 0);
+            $currentCapacity = (float) ($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0);
+            $capacityUsage = $maxCapacity > 0 ? round(($currentCapacity / $maxCapacity) * 100, 1) : 0.0;
+
+            $maxWorkforce = (int) ($workshop['SlNhanVien'] ?? 0);
+            $currentWorkforce = (int) ($workshop['SoLuongCongNhan'] ?? 0);
+            $workforceUsage = $maxWorkforce > 0 ? round(($currentWorkforce / $maxWorkforce) * 100, 1) : 0.0;
+
+            $cards[] = [
+                'id' => $workshop['IdXuong'] ?? '',
+                'name' => $workshop['TenXuong'] ?? 'Không xác định',
+                'location' => $workshop['DiaDiem'] ?? 'Chưa cập nhật địa điểm',
+                'manager' => $workshop['TruongXuong'] ?? 'Chưa phân công',
+                'status' => $workshop['TrangThai'] ?? 'Không xác định',
+                'capacityLabel' => number_format($currentCapacity, 0, ',', '.') . ' / ' . number_format($maxCapacity, 0, ',', '.'),
+                'capacityUsage' => $capacityUsage,
+                'workforceLabel' => number_format($currentWorkforce) . ' / ' . number_format($maxWorkforce),
+                'workforceUsage' => $workforceUsage,
+                'description' => $workshop['MoTa'] ?? null,
+            ];
+        }
+
+        return $cards;
+    }
+
+    private function getFocusWorkshop(array $workshops): ?array
+    {
+        if (empty($workshops)) {
+            return null;
+        }
+
+        $preferred = $workshops[0];
+
+        foreach ($workshops as $workshop) {
+            if (($workshop['TrangThai'] ?? '') === 'Đang hoạt động') {
+                $preferred = $workshop;
+                break;
+            }
+        }
+
+        $cards = $this->buildWorkshopCards([$preferred]);
+
+        return $cards[0] ?? null;
     }
 
     private function extractAssignments(array $input): array
