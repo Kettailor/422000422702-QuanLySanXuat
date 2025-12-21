@@ -10,12 +10,13 @@ class WorkshopPlanAssignment extends BaseModel
         $sql = 'SELECT pc.IdPhanCong,
                        pc.IdKeHoachSanXuatXuong,
                        pc.IdNhanVien,
+                       pc.IdCaLamViec,
                        pc.VaiTro,
                        nv.HoTen
                 FROM phan_cong_ke_hoach_xuong pc
                 LEFT JOIN nhan_vien nv ON nv.IdNhanVien = pc.IdNhanVien
                 WHERE pc.IdKeHoachSanXuatXuong = :planId
-                ORDER BY nv.HoTen, pc.IdPhanCong';
+                ORDER BY pc.IdCaLamViec, nv.HoTen, pc.IdPhanCong';
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':planId', $planId);
@@ -24,10 +25,8 @@ class WorkshopPlanAssignment extends BaseModel
         return $stmt->fetchAll();
     }
 
-    public function replaceForPlan(string $planId, array $employeeIds, string $role = 'nhan_vien_san_xuat'): void
+    public function replaceForPlanWithShifts(string $planId, array $assignmentsByShift, string $role = 'nhan_vien_san_xuat'): void
     {
-        $employeeIds = array_values(array_unique(array_filter(array_map('trim', $employeeIds))));
-
         $this->db->beginTransaction();
 
         try {
@@ -35,20 +34,27 @@ class WorkshopPlanAssignment extends BaseModel
             $delete->bindValue(':planId', $planId);
             $delete->execute();
 
-            if (!empty($employeeIds)) {
+            if (!empty($assignmentsByShift)) {
                 $insert = $this->db->prepare(
-                    'INSERT INTO phan_cong_ke_hoach_xuong (IdPhanCong, IdKeHoachSanXuatXuong, IdNhanVien, VaiTro, NgayPhanCong)
-                     VALUES (:id, :planId, :employeeId, :role, :assignedAt)'
+                    'INSERT INTO phan_cong_ke_hoach_xuong (IdPhanCong, IdKeHoachSanXuatXuong, IdNhanVien, IdCaLamViec, VaiTro, NgayPhanCong)
+                     VALUES (:id, :planId, :employeeId, :shiftId, :role, :assignedAt)'
                 );
                 $assignedAt = date('Y-m-d H:i:s');
 
-                foreach ($employeeIds as $employeeId) {
-                    $insert->bindValue(':id', uniqid('PC'));
-                    $insert->bindValue(':planId', $planId);
-                    $insert->bindValue(':employeeId', $employeeId);
-                    $insert->bindValue(':role', $role);
-                    $insert->bindValue(':assignedAt', $assignedAt);
-                    $insert->execute();
+                foreach ($assignmentsByShift as $shiftId => $employeeIds) {
+                    $normalizedIds = array_values(array_unique(array_filter(array_map('trim', (array) $employeeIds))));
+                    if (empty($normalizedIds)) {
+                        continue;
+                    }
+                    foreach ($normalizedIds as $employeeId) {
+                        $insert->bindValue(':id', uniqid('PC'));
+                        $insert->bindValue(':planId', $planId);
+                        $insert->bindValue(':employeeId', $employeeId);
+                        $insert->bindValue(':shiftId', $shiftId);
+                        $insert->bindValue(':role', $role);
+                        $insert->bindValue(':assignedAt', $assignedAt);
+                        $insert->execute();
+                    }
                 }
             }
 

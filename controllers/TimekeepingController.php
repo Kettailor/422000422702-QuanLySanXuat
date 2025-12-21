@@ -16,17 +16,14 @@ class TimekeepingController extends Controller
 
     public function index(): void
     {
-        $workDate = $_GET['work_date'] ?? null;
-        $shiftId = $_GET['shift_id'] ?? null;
-
-        $entries = $this->timekeepingModel->getRecentRecords(200, $shiftId, $workDate);
+        $workDate = $_GET['work_date'] ?? date('Y-m-d');
+        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate);
         $shifts = $this->workShiftModel->getShifts($workDate);
 
         $this->render('timekeeping/index', [
             'title' => 'Nhật ký chấm công',
             'entries' => $entries,
             'workDate' => $workDate,
-            'shiftId' => $shiftId,
             'shifts' => $shifts,
         ]);
     }

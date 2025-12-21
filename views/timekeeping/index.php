@@ -1,7 +1,6 @@
 <?php
 $entries = $entries ?? [];
 $workDate = $workDate ?? null;
-$shiftId = $shiftId ?? null;
 $shifts = $shifts ?? [];
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
@@ -31,37 +30,11 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3 align-items-end">
-            <input type="hidden" name="controller" value="timekeeping">
-            <input type="hidden" name="action" value="index">
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Ngày làm việc</label>
-                <input type="date" name="work_date" class="form-control" value="<?= htmlspecialchars((string) $workDate) ?>">
-            </div>
-            <div class="col-md-5">
-                <label class="form-label fw-semibold">Ca làm việc</label>
-                <select name="shift_id" class="form-select">
-                    <option value="">Tất cả ca</option>
-                    <?php foreach ($shifts as $item): ?>
-                        <?php $id = $item['IdCaLamViec'] ?? ''; ?>
-                        <option value="<?= htmlspecialchars($id) ?>" <?= $id === $shiftId ? 'selected' : '' ?>>
-                            <?= htmlspecialchars(($item['TenCa'] ?? $id) . ' • ' . ($item['NgayLamViec'] ?? '')) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-outline-primary w-100">
-                    <i class="bi bi-funnel me-2"></i>Lọc dữ liệu
-                </button>
-            </div>
-            <div class="col-md-2">
-                <a href="?controller=timekeeping&action=index" class="btn btn-outline-secondary w-100">Xóa lọc</a>
-            </div>
-        </form>
-    </div>
+<div class="alert alert-light border d-flex flex-wrap align-items-center gap-2 mb-4">
+    <i class="bi bi-calendar-event text-primary"></i>
+    <span class="fw-semibold">Ngày làm việc:</span>
+    <span><?= htmlspecialchars((string) $workDate) ?></span>
+    <span class="text-muted">• Hiển thị tự động chấm công trong ngày.</span>
 </div>
 
 <div class="card border-0 shadow-sm">

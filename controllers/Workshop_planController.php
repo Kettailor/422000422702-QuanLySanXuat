@@ -36,12 +36,6 @@ class Workshop_planController extends Controller
         $history = $id ? $this->historyModel->getByPlan($id) : [];
         $warehouseRequests = $id ? $this->warehouseRequestModel->getByPlan($id) : [];
         $planAssignments = $id ? $this->planAssignmentModel->getByPlan($id) : [];
-        $availableEmployees = [];
-        if ($plan && !empty($plan['IdXuong'])) {
-            $assignments = $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong']);
-            $availableEmployees = $assignments['nhan_vien_san_xuat'] ?? [];
-        }
-        $workShifts = $id ? $this->workShiftModel->getShiftsByPlan($id) : [];
         $materialCheckResult = $_SESSION['material_check_result'] ?? null;
         unset($_SESSION['material_check_result']);
 
@@ -65,9 +59,7 @@ class Workshop_planController extends Controller
             'materialSource' => $materialSource,
             'materialOptions' => $materialOptions,
             'planAssignments' => $planAssignments,
-            'availableEmployees' => $availableEmployees,
             'canUpdateProgress' => $canUpdateProgress,
-            'workShifts' => $workShifts,
         ]);
     }
 
@@ -156,7 +148,37 @@ class Workshop_planController extends Controller
         $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
     }
 
-    public function assignEmployees(): void
+    public function assign(): void
+    {
+        $planId = $_GET['id'] ?? null;
+        if (!$planId) {
+            $this->setFlash('danger', 'Thiếu mã kế hoạch xưởng.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $plan = $this->workshopPlanModel->findWithRelations($planId);
+        if (!$plan) {
+            $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $assignments = $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong'] ?? '');
+        $availableEmployees = $assignments['nhan_vien_san_xuat'] ?? [];
+        $planAssignments = $this->planAssignmentModel->getByPlan($planId);
+        $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
+
+        $this->render('workshop_plan/assign', [
+            'title' => 'Phân công kế hoạch xưởng',
+            'plan' => $plan,
+            'availableEmployees' => $availableEmployees,
+            'planAssignments' => $planAssignments,
+            'workShifts' => $workShifts,
+        ]);
+    }
+
+    public function saveAssignments(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('?controller=factory_plan&action=index');
@@ -177,14 +199,14 @@ class Workshop_planController extends Controller
             return;
         }
 
-        $employeeIds = $_POST['employee_ids'] ?? [];
-        if (!is_array($employeeIds)) {
-            $employeeIds = [];
+        $assignmentsInput = $_POST['assignments'] ?? [];
+        if (!is_array($assignmentsInput)) {
+            $assignmentsInput = [];
         }
 
         try {
-            $this->planAssignmentModel->replaceForPlan($planId, $employeeIds, 'nhan_vien_san_xuat');
-            $this->setFlash('success', 'Đã cập nhật phân công nhân sự.');
+            $this->planAssignmentModel->replaceForPlanWithShifts($planId, $assignmentsInput, 'nhan_vien_san_xuat');
+            $this->setFlash('success', 'Đã cập nhật phân công nhân sự theo ca.');
         } catch (Throwable $exception) {
             Logger::error('Không thể cập nhật phân công kế hoạch ' . $planId . ': ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể lưu phân công, vui lòng kiểm tra log.');
@@ -194,7 +216,42 @@ class Workshop_planController extends Controller
         $hasAssignments = !empty($this->planAssignmentModel->getByPlan($planId));
         $this->updatePlanStatus($planId, $materialStatus, $hasAssignments);
 
-        $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+        $this->redirect('?controller=workshop_plan&action=assign&id=' . urlencode($planId));
+    }
+
+    public function progress(): void
+    {
+        $planId = $_GET['id'] ?? null;
+        if (!$planId) {
+            $this->setFlash('danger', 'Thiếu mã kế hoạch xưởng.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $plan = $this->workshopPlanModel->findWithRelations($planId);
+        if (!$plan) {
+            $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $planAssignments = $this->planAssignmentModel->getByPlan($planId);
+        $assignmentShiftIds = array_values(array_unique(array_filter(array_column($planAssignments, 'IdCaLamViec'))));
+        $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
+        $availableShifts = array_values(array_filter($workShifts, function (array $shift) use ($assignmentShiftIds): bool {
+            $shiftId = $shift['IdCaLamViec'] ?? null;
+            return $shiftId && in_array($shiftId, $assignmentShiftIds, true);
+        }));
+
+        $hasAssignments = !empty($planAssignments);
+        $canUpdateProgress = $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null) && $hasAssignments;
+
+        $this->render('workshop_plan/progress', [
+            'title' => 'Cập nhật tiến độ cuối ca',
+            'plan' => $plan,
+            'availableShifts' => $availableShifts,
+            'canUpdateProgress' => $canUpdateProgress,
+        ]);
     }
 
     public function updateProgress(): void
@@ -224,14 +281,14 @@ class Workshop_planController extends Controller
 
         if (!$shiftId || $quantity <= 0) {
             $this->setFlash('danger', 'Vui lòng chọn ca làm việc và nhập số lượng thành phẩm.');
-            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+            $this->redirect('?controller=workshop_plan&action=progress&id=' . urlencode($planId));
             return;
         }
 
         $warehouse = $this->warehouseModel->findFinishedWarehouseByWorkshop($plan['IdXuong'] ?? null);
         if (!$warehouse) {
             $this->setFlash('danger', 'Không tìm thấy kho thành phẩm cho xưởng.');
-            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+            $this->redirect('?controller=workshop_plan&action=progress&id=' . urlencode($planId));
             return;
         }
 
@@ -247,7 +304,7 @@ class Workshop_planController extends Controller
 
         if (empty($lotPayload['IdSanPham']) || empty($lotPayload['IdKho'])) {
             $this->setFlash('danger', 'Thiếu thông tin sản phẩm hoặc kho thành phẩm.');
-            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+            $this->redirect('?controller=workshop_plan&action=progress&id=' . urlencode($planId));
             return;
         }
 
@@ -274,7 +331,7 @@ class Workshop_planController extends Controller
             $this->setFlash('danger', 'Không thể cập nhật tiến độ, vui lòng kiểm tra log.');
         }
 
-        $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+        $this->redirect('?controller=workshop_plan&action=progress&id=' . urlencode($planId));
     }
 
     private function updatePlanStatus(string $planId, ?string $materialStatus, bool $hasAssignments): void

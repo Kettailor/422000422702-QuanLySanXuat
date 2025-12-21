@@ -4,10 +4,8 @@ $materialOptions = $materialOptions ?? [];
 $materials = $materials ?? [];
 $prefillPersist = $materialSource !== 'plan';
 $materialsForRender = !empty($materials) ? $materials : [['IdNguyenLieu' => '', 'SoLuongKeHoach' => 0, 'DonVi' => '', 'SoLuongTonKho' => null]];
-$planAssignments = $planAssignments ?? [];
-$availableEmployees = $availableEmployees ?? [];
 $canUpdateProgress = $canUpdateProgress ?? false;
-$workShifts = $workShifts ?? [];
+$planAssignments = $planAssignments ?? [];
 
 $materialOptionHtml = '<option value="">Chọn nguyên liệu</option>';
 foreach ($materialOptions as $option) {
@@ -251,94 +249,13 @@ foreach ($materialOptions as $option) {
         </div>
     </div>
 
-    <div class="row g-4 mt-1">
-        <div class="col-lg-6">
-            <div class="card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h5 class="fw-semibold mb-1">Phân công nhân sự</h5>
-                        <div class="text-muted small">Xưởng trưởng phân công nhân sự cho kế hoạch xưởng.</div>
-                    </div>
-                </div>
-                <?php if (empty($availableEmployees)): ?>
-                    <div class="alert alert-light border mb-0">Chưa có nhân sự sản xuất được gán cho xưởng.</div>
-                <?php else: ?>
-                    <form method="post" action="?controller=workshop_plan&action=assignEmployees">
-                        <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Chọn nhân sự sản xuất</label>
-                            <select name="employee_ids[]" class="form-select" multiple size="6">
-                                <?php
-                                    $assignedIds = array_column($planAssignments, 'IdNhanVien');
-                                ?>
-                                <?php foreach ($availableEmployees as $employee): ?>
-                                    <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
-                                    <option value="<?= htmlspecialchars($employeeId) ?>" <?= in_array($employeeId, $assignedIds, true) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <div class="text-muted small mt-2">Giữ Ctrl/Cmd để chọn nhiều nhân sự.</div>
-                        </div>
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="bi bi-people me-2"></i>Lưu phân công
-                        </button>
-                    </form>
-                <?php endif; ?>
-                <?php if (!empty($planAssignments)): ?>
-                    <div class="mt-4">
-                        <div class="fw-semibold mb-2">Nhân sự đã phân công</div>
-                        <ul class="list-unstyled mb-0">
-                            <?php foreach ($planAssignments as $assignment): ?>
-                                <li class="d-flex align-items-center gap-2 mb-1">
-                                    <i class="bi bi-person-check text-primary"></i>
-                                    <span><?= htmlspecialchars($assignment['HoTen'] ?? $assignment['IdNhanVien']) ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h5 class="fw-semibold mb-1">Cập nhật tiến độ cuối ca</h5>
-                        <div class="text-muted small">Chỉ mở khi đã đủ nguyên liệu và có phân công nhân sự.</div>
-                    </div>
-                </div>
-                <?php if (!$canUpdateProgress): ?>
-                    <div class="alert alert-light border mb-0">Cần đủ nguyên liệu và có phân công để cập nhật tiến độ.</div>
-                <?php else: ?>
-                    <form method="post" action="?controller=workshop_plan&action=updateProgress">
-                        <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Ca làm việc</label>
-                            <select name="shift_id" class="form-select" required>
-                                <option value="">Chọn ca làm việc</option>
-                                <?php foreach ($workShifts as $shift): ?>
-                                    <option value="<?= htmlspecialchars($shift['IdCaLamViec'] ?? '') ?>">
-                                        <?= htmlspecialchars(($shift['TenCa'] ?? '') . ' • ' . ($shift['NgayLamViec'] ?? '')) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Số lượng thành phẩm hoàn thành</label>
-                            <input type="number" min="1" name="produced_quantity" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Tên lô (tuỳ chọn)</label>
-                            <input type="text" name="lot_name" class="form-control" placeholder="Ví dụ: Lô TP ca sáng 15/01">
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ
-                        </button>
-                    </form>
-                <?php endif; ?>
-            </div>
-        </div>
+    <div class="d-flex gap-2 mt-3">
+        <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+            <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca
+        </a>
+        <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress ? '' : 'disabled' ?>">
+            <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ cuối ca
+        </a>
     </div>
 <?php endif; ?>
 
