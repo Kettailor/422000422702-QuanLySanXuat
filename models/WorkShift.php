@@ -59,9 +59,9 @@ class WorkShift extends BaseModel
         $existing = $this->getExistingShiftMap($planId);
 
         $ranges = [
-            'Ca sáng' => ['07:30:00', '15:30:00'],
-            'Ca chiều' => ['15:30:00', '23:30:00'],
-            'Ca tối' => ['23:30:00', '07:30:00'],
+            'Ca sáng' => ['06:30:00', '14:00:00'],
+            'Ca trưa' => ['14:00:00', '22:00:00'],
+            'Ca tối' => ['22:00:00', '06:00:00'],
         ];
 
         $defaultLotId = $this->getDefaultLotId();
