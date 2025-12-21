@@ -41,6 +41,21 @@ class Workshop_planController extends Controller
                     $configurationId,
                     (int) ($plan['SoLuong'] ?? 0)
                 );
+                if (!empty($materials)) {
+                    $requirements = array_map(static function (array $material): array {
+                        return [
+                            'id' => $material['IdNguyenLieu'] ?? null,
+                            'required' => $material['SoLuongKeHoach'] ?? 0,
+                        ];
+                    }, $materials);
+                    try {
+                        $this->materialDetailModel->replaceForPlan($plan['IdKeHoachSanXuatXuong'], $requirements);
+                        $materials = $this->materialDetailModel->getByWorkshopPlan($plan['IdKeHoachSanXuatXuong']);
+                        $materialSource = 'plan';
+                    } catch (Throwable $exception) {
+                        Logger::error('Không thể tự động lưu nguyên liệu cho kế hoạch ' . $plan['IdKeHoachSanXuatXuong'] . ': ' . $exception->getMessage());
+                    }
+                }
             } else {
                 $materialSource = 'custom';
             }

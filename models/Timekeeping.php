@@ -10,7 +10,9 @@ class Timekeeping extends BaseModel
         string $checkIn,
         ?string $checkOut,
         ?string $planId,
-        ?string $note = null
+        ?string $note = null,
+        ?string $supervisorId = null,
+        ?string $shiftId = null
     ): bool {
         $recordId = uniqid('CC');
         $payload = [
@@ -18,7 +20,10 @@ class Timekeeping extends BaseModel
             'NHANVIEN IdNhanVien' => $employeeId,
             'ThoiGianVao' => $checkIn,
             'ThoiGIanRa' => $checkOut,
-            'GhiChu' => $this->buildNote($planId, $note),
+            'IdKeHoachSanXuatXuong' => $planId,
+            'GhiChu' => $note ? trim($note) : null,
+            'XUONGTRUONG IdNhanVien' => $supervisorId,
+            'IdCaLamViec' => $shiftId,
         ];
 
         return $this->create($payload);
@@ -30,8 +35,8 @@ class Timekeeping extends BaseModel
         $bindings = [];
 
         if ($planId) {
-            $conditions[] = 'GhiChu LIKE :planPattern';
-            $bindings[':planPattern'] = '%PLAN:' . $planId . '%';
+            $conditions[] = 'cc.`IdKeHoachSanXuatXuong` = :planId';
+            $bindings[':planId'] = $planId;
         }
 
         $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
@@ -53,20 +58,36 @@ class Timekeeping extends BaseModel
         return $stmt->fetchAll();
     }
 
-    private function buildNote(?string $planId, ?string $note): ?string
+    public function getRecentRecords(int $limit = 100, ?string $planId = null): array
     {
-        $segments = [];
+        $conditions = [];
+        $bindings = [];
+
         if ($planId) {
-            $segments[] = 'PLAN:' . $planId;
-        }
-        if ($note) {
-            $segments[] = trim($note);
+            $conditions[] = 'cc.`IdKeHoachSanXuatXuong` = :planId';
+            $bindings[':planId'] = $planId;
         }
 
-        if (empty($segments)) {
-            return null;
-        }
+        $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
 
-        return implode(' | ', $segments);
+        $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien,
+                       kx.TenThanhThanhPhanSP,
+                       kx.IdKeHoachSanXuatXuong
+                FROM cham_cong cc
+                LEFT JOIN nhan_vien nv ON nv.IdNhanVien = cc.`NHANVIEN IdNhanVien`
+                LEFT JOIN ke_hoach_san_xuat_xuong kx ON kx.IdKeHoachSanXuatXuong = cc.`IdKeHoachSanXuatXuong`
+                {$where}
+                ORDER BY cc.`ThoiGianVao` DESC
+                LIMIT :limit";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
     }
+
 }

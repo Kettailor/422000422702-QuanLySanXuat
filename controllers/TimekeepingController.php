@@ -14,6 +14,23 @@ class TimekeepingController extends Controller
         $this->workshopPlanModel = new WorkshopPlan();
     }
 
+    public function index(): void
+    {
+        $planId = $_GET['plan_id'] ?? null;
+        $plan = $planId ? $this->workshopPlanModel->findWithRelations($planId) : null;
+
+        $entries = $this->timekeepingModel->getRecentRecords(200, $plan ? $planId : null);
+        $plans = $this->workshopPlanModel->getDetailedPlans(200);
+
+        $this->render('timekeeping/index', [
+            'title' => 'Nhật ký chấm công',
+            'entries' => $entries,
+            'plan' => $plan,
+            'planId' => $planId,
+            'plans' => $plans,
+        ]);
+    }
+
     public function create(): void
     {
         $planId = $_GET['plan_id'] ?? null;
@@ -59,12 +76,16 @@ class TimekeepingController extends Controller
         }
 
         try {
+            $currentUser = $this->currentUser();
+            $supervisorId = $currentUser['IdNhanVien'] ?? null;
             $this->timekeepingModel->createForPlan(
                 $employeeId,
                 $normalizedCheckIn,
                 $normalizedCheckOut,
                 $planId !== '' ? $planId : null,
-                $note
+                $note,
+                $supervisorId,
+                null
             );
             $this->setFlash('success', 'Đã ghi nhận chấm công cho nhân sự.');
         } catch (Throwable $exception) {

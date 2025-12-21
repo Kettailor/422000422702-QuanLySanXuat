@@ -238,8 +238,10 @@ CREATE TABLE `cham_cong` (
   `NHANVIEN IdNhanVien` varchar(50) NOT NULL,
   `ThoiGIanRa` datetime DEFAULT NULL,
   `ThoiGianVao` datetime DEFAULT NULL,
-  `XUONGTRUONG IdNhanVien` varchar(50) NOT NULL,
-  `IdCaLamViec` varchar(50) NOT NULL
+  `XUONGTRUONG IdNhanVien` varchar(50) DEFAULT NULL,
+  `IdCaLamViec` varchar(50) DEFAULT NULL,
+  `IdKeHoachSanXuatXuong` varchar(50) DEFAULT NULL,
+  `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1081,7 +1083,8 @@ ALTER TABLE `cham_cong`
   ADD PRIMARY KEY (`IdChamCong`),
   ADD KEY `Nhan vien duoc cham cong` (`NHANVIEN IdNhanVien`),
   ADD KEY `Nhan vien cham cong` (`XUONGTRUONG IdNhanVien`),
-  ADD KEY `FKCHAM_CONG958641` (`IdCaLamViec`);
+  ADD KEY `FKCHAM_CONG958641` (`IdCaLamViec`),
+  ADD KEY `FKCHAM_CONG_PLAN` (`IdKeHoachSanXuatXuong`);
 
 --
 -- Chỉ mục cho bảng `chi_tiet_ke_hoach_san_xuat_xuong`
@@ -1336,6 +1339,7 @@ ALTER TABLE `ca_lam`
 --
 ALTER TABLE `cham_cong`
   ADD CONSTRAINT `FKCHAM_CONG958641` FOREIGN KEY (`IdCaLamViec`) REFERENCES `ca_lam` (`IdCaLamViec`),
+  ADD CONSTRAINT `FKCHAM_CONG_PLAN` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
   ADD CONSTRAINT `Nhan vien cham cong` FOREIGN KEY (`XUONGTRUONG IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`),
   ADD CONSTRAINT `Nhan vien duoc cham cong` FOREIGN KEY (`NHANVIEN IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
 
