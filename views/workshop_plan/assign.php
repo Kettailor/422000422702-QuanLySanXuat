@@ -25,13 +25,38 @@ foreach ($workShifts as $shift) {
     $dateKey = $shift['NgayLamViec'] ?? 'unknown';
     $shiftsByDate[$dateKey][] = $shift;
 }
+$normalizeDate = static function (?string $value): ?string {
+    if (!$value) {
+        return null;
+    }
+
+    $formats = ['Y-m-d H:i:s', 'Y-m-d', 'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y'];
+    foreach ($formats as $format) {
+        $date = DateTime::createFromFormat($format, $value);
+        if ($date instanceof DateTime) {
+            return $date->format('Y-m-d');
+        }
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return null;
+    }
+    return date('Y-m-d', $timestamp);
+};
 $planDates = [];
 $planStart = $plan['ThoiGianBatDau'] ?? null;
 $planEnd = $plan['ThoiGianKetThuc'] ?? null;
 if ($planStart) {
-    $startDate = date('Y-m-d', strtotime($planStart));
-    $endDate = $planEnd ? date('Y-m-d', strtotime($planEnd)) : $startDate;
-    if ($planEnd && strtotime($planEnd) < strtotime($planStart)) {
+    $startDate = $normalizeDate($planStart);
+    $endDate = $planEnd ? $normalizeDate($planEnd) : $startDate;
+    if (!$startDate) {
+        $startDate = $normalizeDate($today);
+    }
+    if (!$endDate) {
+        $endDate = $startDate;
+    }
+    if ($planEnd && $startDate && $endDate && strtotime($endDate) < strtotime($startDate)) {
         $endDate = date('Y-m-d', strtotime($startDate . ' +1 day'));
     }
     $current = new DateTimeImmutable($startDate);

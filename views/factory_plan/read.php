@@ -4,6 +4,7 @@ $stockNeed = $stock_list_need;
 $assignments = $assignments ?? [];
 $progress = $progress ?? null;
 $materialStatus = $materialStatus ?? null;
+$canUpdateProgress = $canUpdateProgress ?? false;
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -66,6 +67,12 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                     <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
                 </button>
             </form>
+            <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+                <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca
+            </a>
+            <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress ? '' : 'disabled' ?>">
+                <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ cuối ca
+            </a>
             <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
                 <i class="bi bi-basket me-2"></i>Chọn thêm nguyên liệu
             </a>

@@ -141,6 +141,14 @@ class WorkShift extends BaseModel
         if (!$value) {
             return null;
         }
+        $formats = ['Y-m-d H:i:s', 'Y-m-d', 'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y'];
+        foreach ($formats as $format) {
+            $date = DateTime::createFromFormat($format, $value);
+            if ($date instanceof DateTime) {
+                return $date->format('Y-m-d');
+            }
+        }
+
         $timestamp = strtotime($value);
         if ($timestamp === false) {
             return null;
