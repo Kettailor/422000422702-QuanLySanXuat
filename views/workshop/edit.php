@@ -15,9 +15,7 @@
     $employeeGroups = $employeeGroups ?? ['warehouse' => [], 'production' => []];
     $selectedWarehouse = $selectedWarehouse ?? [];
     $selectedProduction = $selectedProduction ?? [];
-    $selectedManager = $selectedManager ?? ($workshop['XUONGTRUONG_IdNhanVien'] ?? '');
     $canAssign = $canAssign ?? false;
-    $employees = $employees ?? [];
     $warehouseSelectedCount = count($selectedWarehouse);
     $productionSelectedCount = count($selectedProduction);
     ?>
@@ -31,17 +29,6 @@
             <div class="col-md-4">
                 <label class="form-label">Ngày thành lập</label>
                 <input type="date" name="NgayThanhLap" class="form-control" value="<?= htmlspecialchars($workshop['NgayThanhLap'] ?? '') ?>">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Trưởng xưởng</label>
-                <select name="XUONGTRUONG_IdNhanVien" class="form-select" <?= $canAssign ? '' : 'disabled' ?>>
-                    <option value="">Chọn trưởng xưởng</option>
-                    <?php foreach ($employees as $employee): ?>
-                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= $selectedManager === $employee['IdNhanVien'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Địa điểm</label>

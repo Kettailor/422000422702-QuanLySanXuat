@@ -13,7 +13,6 @@
 <?php else: ?>
     <?php
     $assignments = $assignments ?? [];
-    $managerNames = array_column($assignments['truong_xuong'] ?? [], 'HoTen');
     $warehouseNames = array_column($assignments['nhan_vien_kho'] ?? [], 'HoTen');
     $productionNames = array_column($assignments['nhan_vien_san_xuat'] ?? [], 'HoTen');
     ?>
@@ -33,8 +32,6 @@
                             <?= htmlspecialchars($workshop['TrangThai'] ?? 'Không xác định') ?>
                         </span>
                     </dd>
-                    <dt class="col-sm-4">Trưởng xưởng</dt>
-                    <dd class="col-sm-8"><?= htmlspecialchars(implode(', ', $managerNames) ?: '-') ?></dd>
                     <dt class="col-sm-4">Ngày thành lập</dt>
                     <dd class="col-sm-8"><?= !empty($workshop['NgayThanhLap']) ? date('d/m/Y', strtotime($workshop['NgayThanhLap'])) : '-' ?></dd>
                 </dl>
@@ -69,7 +66,6 @@
     </div>
 
     <?php
-    $managerCount = count($managerNames);
     $warehouseCount = count($warehouseNames);
     $productionCount = count($productionNames);
     ?>
@@ -80,45 +76,16 @@
                     <div class="badge bg-secondary-subtle text-secondary mb-2">Phân công nhân sự</div>
                     <h5 class="fw-bold mb-1">Trạng thái phân công xưởng</h5>
                     <p class="text-muted small mb-0">
-                        Thông tin chỉ hiển thị nhân sự thuộc xưởng này<?= !empty($isWorkshopManagerView) ? ' (chế độ trưởng xưởng)' : '' ?>.
+                        Thông tin chỉ hiển thị nhân sự thuộc xưởng này.
                     </p>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                    <span class="chip text-primary bg-primary-subtle">Trưởng xưởng: <?= $managerCount ?></span>
                     <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>
                     <span class="chip text-info bg-info-subtle">Sản xuất: <?= $productionCount ?></span>
                 </div>
             </div>
             <div class="row g-3">
-                <div class="col-md-4">
-                    <div class="assignment-card h-100">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="icon-circle bg-primary-subtle text-primary"><i class="bi bi-person-badge"></i></span>
-                                <div>
-                                    <div class="text-muted small">Trưởng xưởng</div>
-                                    <div class="fw-semibold"><?= $managerCount ?> người</div>
-                                </div>
-                            </div>
-                            <span class="badge bg-primary-subtle text-primary">Bắt buộc</span>
-                        </div>
-                        <ul class="list-unstyled mb-0 assignment-stack">
-                            <?php if ($managerNames): ?>
-                                <?php foreach ($assignments['truong_xuong'] as $manager): ?>
-                                    <li class="assignment-stack-item">
-                                        <div>
-                                            <div class="fw-semibold"><?= htmlspecialchars($manager['HoTen']) ?></div>
-                                            <div class="text-muted small"><?= htmlspecialchars($manager['IdNhanVien']) ?></div>
-                                        </div>
-                                    </li>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <li class="text-muted small fst-italic">Chưa phân công trưởng xưởng.</li>
-                            <?php endif; ?>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="assignment-card h-100">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="d-flex align-items-center gap-2">
@@ -146,7 +113,7 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="assignment-card h-100">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="d-flex align-items-center gap-2">

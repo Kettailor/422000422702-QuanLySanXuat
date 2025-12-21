@@ -25,7 +25,6 @@ class WorkshopController extends Controller
         $workshops = $this->getVisibleWorkshops();
         $summary = $this->calculateSummary($workshops);
         $statusDistribution = $this->calculateStatusDistribution($workshops);
-        $isManager = $this->isWorkshopManager();
 
         $this->render('workshop/index', [
             'title' => 'Quản lý xưởng sản xuất',
@@ -33,10 +32,7 @@ class WorkshopController extends Controller
             'summary' => $summary,
             'statusDistribution' => $statusDistribution,
             'executiveOverview' => $this->buildExecutiveOverview($summary, $statusDistribution),
-            'workshopCards' => $isManager ? $this->buildWorkshopCards($workshops) : [],
-            'focusWorkshop' => $isManager ? $this->getFocusWorkshop($workshops) : null,
             'canAssign' => $this->canAssign(),
-            'isWorkshopManagerView' => $isManager,
         ]);
     }
 
@@ -71,19 +67,12 @@ class WorkshopController extends Controller
 
         $data = $this->extractWorkshopData($_POST);
         $assignments = $this->extractAssignments($_POST);
-        $data['XUONGTRUONG_IdNhanVien'] = $assignments['manager'] ?: $data['XUONGTRUONG_IdNhanVien'];
         $data['IdXuong'] = $data['IdXuong'] ?: uniqid('XUONG');
-
-        if (empty($data['XUONGTRUONG_IdNhanVien'])) {
-            $this->setFlash('danger', 'Vui lòng chọn trưởng xưởng trước khi lưu.');
-            $this->redirect('?controller=workshop&action=create');
-        }
 
         try {
             $this->workshopModel->create($data);
             $this->assignmentModel->syncAssignments(
                 $data['IdXuong'],
-                $assignments['manager'],
                 $assignments['warehouse'],
                 $assignments['production']
             );
@@ -114,7 +103,6 @@ class WorkshopController extends Controller
             'workshop' => $workshop,
             'employees' => $employees,
             'employeeGroups' => $this->groupEmployeesByRole($employees),
-            'selectedManager' => $assignments['truong_xuong'][0]['IdNhanVien'] ?? ($workshop['XUONGTRUONG_IdNhanVien'] ?? ''),
             'selectedWarehouse' => array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien'),
             'selectedProduction' => array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien'),
             'canAssign' => $this->canAssign(),
@@ -136,26 +124,14 @@ class WorkshopController extends Controller
         $data = $this->extractWorkshopData($_POST);
         $assignments = $this->extractAssignments($_POST);
         $canAssign = $this->canAssign();
-        $currentAssignments = $this->assignmentModel->getAssignmentsByWorkshop($id);
-        $managerId = $assignments['manager'] ?: ($currentAssignments['truong_xuong'][0]['IdNhanVien'] ?? null);
         unset($data['IdXuong']);
-
-        if ($canAssign) {
-            if (!$managerId) {
-                $this->setFlash('danger', 'Vui lòng chọn trưởng xưởng trước khi lưu.');
-                $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
-            }
-            $data['XUONGTRUONG_IdNhanVien'] = $managerId;
-        } else {
-            unset($data['XUONGTRUONG_IdNhanVien']);
-        }
+        unset($data['XUONGTRUONG_IdNhanVien']);
 
         try {
             $this->workshopModel->update($id, $data);
             if ($canAssign) {
                 $this->assignmentModel->syncAssignments(
                     $id,
-                    $managerId,
                     $assignments['warehouse'],
                     $assignments['production']
                 );
@@ -207,7 +183,6 @@ class WorkshopController extends Controller
             'title' => 'Chi tiết xưởng sản xuất',
             'workshop' => $workshop,
             'assignments' => $assignments,
-            'isWorkshopManagerView' => $this->isWorkshopManager(),
         ]);
     }
 
@@ -318,7 +293,6 @@ class WorkshopController extends Controller
             'selectedWorkshop' => $selectedWorkshop,
             'groupedPlans' => $grouped,
             'metrics' => $metrics,
-            'isWorkshopManagerView' => $this->isWorkshopManager(),
         ]);
     }
 
@@ -392,28 +366,9 @@ class WorkshopController extends Controller
         return in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true);
     }
 
-    private function isWorkshopManager(): bool
-    {
-        $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
-        return $role === 'VT_QUANLY_XUONG';
-    }
-
     private function canViewWorkshop(string $workshopId): bool
     {
-        if (!$this->isWorkshopManager()) {
-            return true;
-        }
-
-        $user = $this->currentUser();
-        $employeeId = $user['IdNhanVien'] ?? null;
-        if (!$employeeId) {
-            return false;
-        }
-
-        $managedWorkshops = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
-
-        return in_array($workshopId, $managedWorkshops, true);
+        return true;
     }
 
     private function getVisibleWorkshops(): array
@@ -421,17 +376,8 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
             return $this->workshopModel->getAllWithManagers();
-        }
-
-        $employeeId = $user['IdNhanVien'] ?? null;
-        if ($role === 'VT_QUANLY_XUONG' && $employeeId) {
-            $workshopIds = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
-            if (empty($workshopIds)) {
-                return [];
-            }
-            return $this->workshopModel->findByIds($workshopIds);
         }
 
         return [];
@@ -440,9 +386,7 @@ class WorkshopController extends Controller
     private function normalizeSelectedWorkshop(?string $selectedWorkshop, array $visibleWorkshops): ?string
     {
         if ($selectedWorkshop === null || $selectedWorkshop === '') {
-            return $this->isWorkshopManager() && count($visibleWorkshops) === 1
-                ? ($visibleWorkshops[0]['IdXuong'] ?? null)
-                : null;
+            return null;
         }
 
         foreach ($visibleWorkshops as $workshop) {
@@ -451,9 +395,7 @@ class WorkshopController extends Controller
             }
         }
 
-        return $this->isWorkshopManager() && count($visibleWorkshops) === 1
-            ? ($visibleWorkshops[0]['IdXuong'] ?? null)
-            : null;
+        return null;
     }
 
     private function filterPlansByVisibleWorkshops(array $plans, array $visibleWorkshops): array
@@ -533,63 +475,12 @@ class WorkshopController extends Controller
         ];
     }
 
-    private function buildWorkshopCards(array $workshops): array
-    {
-        $cards = [];
-
-        foreach ($workshops as $workshop) {
-            $maxCapacity = (float) ($workshop['CongSuatToiDa'] ?? 0);
-            $currentCapacity = (float) ($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0);
-            $capacityUsage = $maxCapacity > 0 ? round(($currentCapacity / $maxCapacity) * 100, 1) : 0.0;
-
-            $maxWorkforce = (int) ($workshop['SlNhanVien'] ?? 0);
-            $currentWorkforce = (int) ($workshop['SoLuongCongNhan'] ?? 0);
-            $workforceUsage = $maxWorkforce > 0 ? round(($currentWorkforce / $maxWorkforce) * 100, 1) : 0.0;
-
-            $cards[] = [
-                'id' => $workshop['IdXuong'] ?? '',
-                'name' => $workshop['TenXuong'] ?? 'Không xác định',
-                'location' => $workshop['DiaDiem'] ?? 'Chưa cập nhật địa điểm',
-                'manager' => $workshop['TruongXuong'] ?? 'Chưa phân công',
-                'status' => $workshop['TrangThai'] ?? 'Không xác định',
-                'capacityLabel' => number_format($currentCapacity, 0, ',', '.') . ' / ' . number_format($maxCapacity, 0, ',', '.'),
-                'capacityUsage' => $capacityUsage,
-                'workforceLabel' => number_format($currentWorkforce) . ' / ' . number_format($maxWorkforce),
-                'workforceUsage' => $workforceUsage,
-                'description' => $workshop['MoTa'] ?? null,
-            ];
-        }
-
-        return $cards;
-    }
-
-    private function getFocusWorkshop(array $workshops): ?array
-    {
-        if (empty($workshops)) {
-            return null;
-        }
-
-        $preferred = $workshops[0];
-
-        foreach ($workshops as $workshop) {
-            if (($workshop['TrangThai'] ?? '') === 'Đang hoạt động') {
-                $preferred = $workshop;
-                break;
-            }
-        }
-
-        $cards = $this->buildWorkshopCards([$preferred]);
-
-        return $cards[0] ?? null;
-    }
-
     private function extractAssignments(array $input): array
     {
         $warehouse = $input['warehouse_staff'] ?? [];
         $production = $input['production_staff'] ?? [];
 
         return [
-            'manager' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
             'warehouse' => is_array($warehouse) ? array_filter(array_map('trim', $warehouse)) : [],
             'production' => is_array($production) ? array_filter(array_map('trim', $production)) : [],
         ];

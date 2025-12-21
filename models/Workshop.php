@@ -9,13 +9,11 @@ class Workshop extends BaseModel
     {
         $sql = 'SELECT xuong.*, manager.HoTen AS TruongXuong
                 FROM xuong
-                LEFT JOIN xuong_nhan_vien xnv ON xnv.IdXuong = xuong.IdXuong AND xnv.VaiTro = :managerRole
-                LEFT JOIN nhan_vien manager ON manager.IdNhanVien = xnv.IdNhanVien
+                LEFT JOIN nhan_vien manager ON manager.IdNhanVien = xuong.XUONGTRUONG_IdNhanVien
                 ORDER BY xuong.TenXuong
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':managerRole', 'truong_xuong');
         $stmt->execute();
         return $stmt->fetchAll();
     }
@@ -81,7 +79,7 @@ class Workshop extends BaseModel
         }
 
         $placeholders = [];
-        $bindings = [':managerRole' => 'truong_xuong'];
+        $bindings = [];
         foreach ($ids as $index => $id) {
             $key = ':id' . $index;
             $placeholders[] = $key;
@@ -90,8 +88,7 @@ class Workshop extends BaseModel
 
         $sql = 'SELECT xuong.*, manager.HoTen AS TruongXuong
                 FROM xuong
-                LEFT JOIN xuong_nhan_vien xnv ON xnv.IdXuong = xuong.IdXuong AND xnv.VaiTro = :managerRole
-                LEFT JOIN nhan_vien manager ON manager.IdNhanVien = xnv.IdNhanVien
+                LEFT JOIN nhan_vien manager ON manager.IdNhanVien = xuong.XUONGTRUONG_IdNhanVien
                 WHERE xuong.IdXuong IN (' . implode(',', $placeholders) . ')
                 ORDER BY xuong.TenXuong';
 

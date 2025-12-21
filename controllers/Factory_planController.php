@@ -63,19 +63,11 @@ class Factory_planController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
             return $this->workshopModel->getAllWithManagers();
         }
 
         $employeeId = $user['IdNhanVien'] ?? null;
-        if ($role === 'VT_QUANLY_XUONG' && $employeeId) {
-            $workshopIds = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
-            if (empty($workshopIds)) {
-                return [];
-            }
-            return $this->workshopModel->findByIds($workshopIds);
-        }
-
         if ($role === 'VT_NHANVIEN_SANXUAT' && $employeeId) {
             $workshopIds = $this->assignmentModel->getWorkshopsByEmployee($employeeId);
             return $this->workshopModel->findByIds($workshopIds);
