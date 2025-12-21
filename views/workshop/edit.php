@@ -144,23 +144,33 @@
                 <?php else: ?>
                     <div class="card border-0 shadow-sm assignment-shell">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
                                     <div class="badge bg-secondary-subtle text-secondary mb-2">Nhân sự xưởng</div>
                                     <h6 class="fw-bold mb-1">Danh sách nhân sự thuộc xưởng</h6>
-                                    <p class="text-muted small mb-0">Xưởng trưởng chỉ được xem, không được phân công.</p>
+                                    <p class="text-muted small mb-0">Xưởng trưởng chỉ được xem thông tin nhân sự thuộc xưởng mình.</p>
                                 </div>
-                                <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
+                                    <?php
+                                    $warehouseCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Kho'));
+                                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
+                                    ?>
+                                    <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>
+                                    <span class="chip text-info bg-info-subtle">Sản xuất: <?= $productionCount ?></span>
+                                </div>
                             </div>
                             <?php if (!empty($staffList)): ?>
-                                <div class="list-group">
+                                <div class="row g-2">
                                     <?php foreach ($staffList as $member): ?>
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <div class="fw-semibold"><?= htmlspecialchars($member['name']) ?></div>
-                                                <div class="text-muted small"><?= htmlspecialchars($member['id']) ?></div>
+                                        <div class="col-md-6">
+                                            <div class="staff-card h-100 d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="fw-semibold"><?= htmlspecialchars($member['name']) ?></div>
+                                                    <div class="text-muted small"><?= htmlspecialchars($member['id']) ?></div>
+                                                </div>
+                                                <span class="badge bg-light text-dark"><?= htmlspecialchars($member['role']) ?></span>
                                             </div>
-                                            <span class="badge bg-light text-dark"><?= htmlspecialchars($member['role']) ?></span>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -248,5 +258,12 @@ document.addEventListener('DOMContentLoaded', function () {
     font-weight: 600;
     font-size: 12px;
     border: 1px solid transparent;
+}
+.staff-card {
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: 0 4px 14px rgba(17, 38, 146, 0.05);
 }
 </style>

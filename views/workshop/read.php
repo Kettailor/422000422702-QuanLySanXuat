@@ -150,26 +150,36 @@
     <?php else: ?>
         <div class="card mt-4 border-0 shadow-sm">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
                     <div>
                         <div class="badge bg-secondary-subtle text-secondary mb-2">Nhân sự xưởng</div>
                         <h5 class="fw-bold mb-1">Danh sách nhân sự thuộc xưởng</h5>
                         <p class="text-muted small mb-0">Xưởng trưởng được xem danh sách nhân sự, không được phân công.</p>
                     </div>
-                    <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
+                    <?php
+                    $warehouseCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Kho'));
+                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
+                    ?>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
+                        <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>
+                        <span class="chip text-info bg-info-subtle">Sản xuất: <?= $productionCount ?></span>
+                    </div>
                 </div>
                 <?php if (!empty($staffList)): ?>
-                    <ul class="list-group">
+                    <div class="row g-2">
                         <?php foreach ($staffList as $member): ?>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-semibold"><?= htmlspecialchars($member['name']) ?></div>
-                                    <div class="text-muted small"><?= htmlspecialchars($member['id']) ?></div>
+                            <div class="col-md-6">
+                                <div class="staff-card d-flex justify-content-between align-items-start h-100">
+                                    <div>
+                                        <div class="fw-semibold"><?= htmlspecialchars($member['name']) ?></div>
+                                        <div class="text-muted small"><?= htmlspecialchars($member['id']) ?></div>
+                                    </div>
+                                    <span class="badge bg-light text-dark"><?= htmlspecialchars($member['role']) ?></span>
                                 </div>
-                                <span class="badge bg-light text-dark"><?= htmlspecialchars($member['role']) ?></span>
-                            </li>
+                            </div>
                         <?php endforeach; ?>
-                    </ul>
+                    </div>
                 <?php else: ?>
                     <div class="alert alert-info mb-0">Chưa có nhân sự nào được gán cho xưởng.</div>
                 <?php endif; ?>
@@ -214,5 +224,12 @@
     font-weight: 600;
     font-size: 12px;
     border: 1px solid transparent;
+}
+.staff-card {
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: 0 4px 14px rgba(17, 38, 146, 0.05);
 }
 </style>
