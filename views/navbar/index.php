@@ -3,6 +3,16 @@ $currentController = $_GET['controller'] ?? 'dashboard';
 $role = is_array($user) ? ($user['IdVaiTro'] ?? null) : null;
 $actualRole = is_array($user) ? ($user['ActualIdVaiTro'] ?? ($user['OriginalIdVaiTro'] ?? $role)) : null;
 $isImpersonating = is_array($user) && !empty($user['IsImpersonating']);
+$displayName = is_array($user) ? ($user['TenDangNhap'] ?? 'Khách') : 'Khách';
+$roleName = is_array($user) ? ($user['TenVaiTro'] ?? 'Vai trò chưa cập nhật') : 'Khách';
+$initials = '';
+
+foreach (array_filter([$displayName, $roleName]) as $part) {
+    $initials .= mb_substr((string) $part, 0, 1, 'UTF-8');
+}
+
+$initials = strtoupper(mb_substr($initials, 0, 2, 'UTF-8') ?: 'SV');
+
 $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating): bool {
     if (!$role) {
         return false;
@@ -22,12 +32,29 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
 <nav class="sidebar">
     <div class="logo">
         <span class="bi bi-grid-1x2-fill"></span>
-        <span>SV5TOT Keyboard Ops</span>
+        <span>
+            SV5TOT Keyboard Ops
+            <span class="brand-subtitle">Trung tâm điều hành</span>
+        </span>
     </div>
+    <div class="profile-card">
+        <div class="profile-avatar"><?= htmlspecialchars($initials) ?></div>
+        <div class="profile-meta">
+            <div class="profile-name"><?= htmlspecialchars($displayName) ?></div>
+            <div class="profile-role">
+                <?= htmlspecialchars($roleName) ?>
+                <?php if ($isImpersonating): ?>
+                    <span class="badge bg-warning text-dark ms-1">Giả lập</span>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <div class="nav-section-title">Điều hướng</div>
     <div class="nav flex-column">
         <a class="nav-link <?= $currentController === 'dashboard' ? 'active' : '' ?>" href="?controller=dashboard&action=index">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
+        <div class="nav-section-title">Vận hành</div>
         <?php if ($canAccess(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC'])): ?>
             <a class="nav-link <?= $currentController === 'order' ? 'active' : '' ?>" href="?controller=order&action=index">
                 <i class="bi bi-receipt"></i> Đơn hàng
@@ -53,6 +80,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-people"></i> Nhân sự
             </a>
         <?php endif; ?>
+        <div class="nav-section-title">Chất lượng & Kho vận</div>
         <?php if ($canAccess(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC'])): ?>
         <div class="nav-group">
             <a class="nav-link <?= in_array($currentController, ['quality']) ? 'active' : '' ?>"
@@ -91,6 +119,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-file-earmark-text"></i> Hóa đơn
             </a>
         <?php endif; ?>
+        <div class="nav-section-title">Tài chính & Quản trị</div>
         <?php if ($canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC'])): ?>
             <a class="nav-link <?= $currentController === 'salary' ? 'active' : '' ?>" href="?controller=salary&action=index">
                 <i class="bi bi-cash-stack"></i> Bảng lương
@@ -114,16 +143,31 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             </a>
         <?php endif; ?>
     </div>
+    <div class="sidebar-footnote small text-white-50 mt-3">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="status-dot status-online"></span> Hệ thống trực tuyến, ổn định
+        </div>
+        <div class="opacity-75">Tiêu chuẩn vận hành SV5TOT - phiên bản mới nhất.</div>
+    </div>
     <button class="btn-close position-absolute top-0 end-0 m-3 text-white d-lg-none" data-toggle="sidebar" aria-label="Đóng menu"></button>
 </nav>
 <div class="sidebar-backdrop d-lg-none" data-toggle="sidebar"></div>
 <div class="main-wrapper">
     <header class="topbar">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
             <button class="btn btn-outline-primary d-lg-none" data-toggle="sidebar"><i class="bi bi-list"></i></button>
-            <div class="fw-semibold text-secondary">SV5TOT Keyboard Manufacturing Hub</div>
+            <div>
+                <div class="eyebrow">Trung tâm điều hành SV5TOT</div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="title mb-0"><?= htmlspecialchars($pageTitle ?? 'Bảng điều khiển') ?></div>
+                    <span class="pill">
+                        <span class="status-dot status-online"></span>
+                        Luồng sản xuất ổn định
+                    </span>
+                </div>
+            </div>
         </div>
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end">
             <?php if ($isImpersonating): ?>
                 <span class="badge bg-warning text-dark">
                     Đang giả lập: <?= htmlspecialchars($user['TenVaiTro'] ?? $role ?? 'Không xác định') ?>
