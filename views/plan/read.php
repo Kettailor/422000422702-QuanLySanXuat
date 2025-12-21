@@ -142,6 +142,8 @@ $statusBadge = static function (string $status): string {
                         <th>Bắt đầu</th>
                         <th>Hạn chót</th>
                         <th>Trạng thái</th>
+                        <th>Tình trạng vật tư</th>
+                        <th class="text-center">Nguyên liệu</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -161,6 +163,16 @@ $statusBadge = static function (string $status): string {
                                 <span class="<?= $statusBadge((string) ($item['TrangThai'] ?? '')) ?>">
                                     <?= htmlspecialchars($item['TrangThai'] ?? 'Chưa cập nhật') ?>
                                 </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-muted">
+                                    <?= htmlspecialchars($item['TinhTrangVatTu'] ?? 'Chưa kiểm tra') ?>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a href="?controller=workshop_plan&action=read&id=<?= urlencode($item['IdKeHoachSanXuatXuong']) ?>" class="btn btn-sm btn-outline-primary">
+                                    Kiểm tra
+                                </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
