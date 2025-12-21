@@ -4,29 +4,32 @@ class Factory_planController extends Controller
 {
     private WorkshopPlan $workshopPlanModel;
     private Workshop $workshopModel;
+    private WorkshopAssignment $assignmentModel;
+    private Attendance $attendanceModel;
+    private Timekeeping $timekeepingModel;
 
     public function __construct()
     {
         $this->authorize(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT', 'VT_BAN_GIAM_DOC']);
         $this->workshopPlanModel = new WorkshopPlan();
         $this->workshopModel = new Workshop();
+        $this->assignmentModel = new WorkshopAssignment();
+        $this->attendanceModel = new Attendance();
+        $this->timekeepingModel = new Timekeeping();
     }
 
     public function index(): void
     {
         $selectedWorkshop = $_GET['workshop_id'] ?? null;
-        $workshops = $this->workshopModel->getAllWithManagers();
+        $workshops = $this->getVisibleWorkshops();
+        $selectedWorkshop = $this->normalizeSelectedWorkshop($selectedWorkshop, $workshops);
         $workshopMap = [];
         foreach ($workshops as $workshop) {
             $workshopMap[$workshop['IdXuong'] ?? ''] = $workshop;
         }
 
         $plans = $this->workshopPlanModel->getDetailedPlans(200);
-        if ($selectedWorkshop) {
-            $plans = array_values(array_filter($plans, static function (array $plan) use ($selectedWorkshop): bool {
-                return ($plan['IdXuong'] ?? null) === $selectedWorkshop;
-            }));
-        }
+        $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops, $selectedWorkshop);
 
         $groupedPlans = $this->groupPlansByWorkshop($plans, $workshopMap);
 
@@ -42,20 +45,71 @@ class Factory_planController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $plan = $id ? $this->workshopPlanModel->findWithRelations($id) : null;
+        $plan = $this->filterPlanByAccess($plan);
 
+        $stockList = $plan ? ($this->workshopPlanModel->getMaterialStock($id) ?? []) : [];
 
-
-
-        $stockList = $this->workshopPlanModel->getMaterialStock($id) ?? [];
-
-
-        // var_dump($plan);
- 
         $this->render('factory_plan/read', [
             'title' => 'Chi tiết hạng mục xưởng',
             'plan' => $plan,
-            "stock_list_need" =>  $stockList
+            'stock_list_need' =>  $stockList,
+            'assignments' => $plan ? $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong']) : [],
+            'attendance' => $plan ? $this->buildAttendanceSummary($plan) : [],
+            'progress' => $plan ? $this->calculateProgress($plan['ThoiGianBatDau'] ?? null, $plan['ThoiGianKetThuc'] ?? null, $plan['TrangThai'] ?? null) : null,
+            'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
+            'timekeeping' => $plan ? $this->timekeepingModel->getRecentByPlan($plan['IdKeHoachSanXuatXuong'] ?? null) : [],
         ]);
+    }
+
+    public function delete(): void
+    {
+        $id = $_POST['id'] ?? ($_GET['id'] ?? null);
+        if (!$id) {
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $plan = $this->workshopPlanModel->findWithRelations($id);
+        $plan = $this->filterPlanByAccess($plan);
+        if (!$plan) {
+            return;
+        }
+
+        if (!$this->canModifyPlan($plan)) {
+            $this->setFlash('danger', 'Bạn không được phép xóa kế hoạch xưởng này.');
+            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
+        try {
+            $this->workshopPlanModel->deleteWithRelations($id);
+            $this->setFlash('success', 'Đã xóa kế hoạch xưởng. Vui lòng lập lại từ kế hoạch tổng nếu cần.');
+        } catch (Throwable $exception) {
+            Logger::error('Lỗi khi xóa kế hoạch xưởng ' . $id . ': ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể xóa kế hoạch xưởng. Vui lòng kiểm tra log.');
+            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
+        $this->redirect('?controller=factory_plan&action=index');
+    }
+
+    private function getVisibleWorkshops(): array
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
+            return $this->workshopModel->getAllWithManagers();
+        }
+
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if ($role === 'VT_NHANVIEN_SANXUAT' && $employeeId) {
+            $workshopIds = $this->assignmentModel->getWorkshopsByEmployee($employeeId);
+            return $this->workshopModel->findByIds($workshopIds);
+        }
+
+        return [];
     }
 
     private function groupPlansByWorkshop(array $plans, array $workshopMap): array
@@ -133,6 +187,39 @@ class Factory_planController extends Controller
         return $status;
     }
 
+    private function normalizeSelectedWorkshop(?string $selected, array $visibleWorkshops): ?string
+    {
+        if ($selected) {
+            foreach ($visibleWorkshops as $workshop) {
+                if (($workshop['IdXuong'] ?? null) === $selected) {
+                    return $selected;
+                }
+            }
+        }
+
+        if (count($visibleWorkshops) === 1) {
+            return $visibleWorkshops[0]['IdXuong'] ?? null;
+        }
+
+        return null;
+    }
+
+    private function filterPlansByVisibleWorkshops(array $plans, array $visibleWorkshops, ?string $selectedWorkshop): array
+    {
+        $allowed = array_column($visibleWorkshops, 'IdXuong');
+        $plans = array_values(array_filter($plans, static function (array $plan) use ($allowed): bool {
+            return in_array($plan['IdXuong'] ?? null, $allowed, true);
+        }));
+
+        if ($selectedWorkshop) {
+            $plans = array_values(array_filter($plans, static function (array $plan) use ($selectedWorkshop): bool {
+                return ($plan['IdXuong'] ?? null) === $selectedWorkshop;
+            }));
+        }
+
+        return $plans;
+    }
+
     public function sendMaterialNotification(): void
     {
         header('Content-Type: application/json');
@@ -178,5 +265,105 @@ class Factory_planController extends Controller
         } else {
             echo json_encode(['success' => false, 'message' => 'Không thể lưu thông báo.']);
         }
+    }
+
+    private function filterPlanByAccess(?array $plan): ?array
+    {
+        if (!$plan) {
+            return null;
+        }
+
+        $visibleIds = array_column($this->getVisibleWorkshops(), 'IdXuong');
+        if (in_array($plan['IdXuong'] ?? null, $visibleIds, true)) {
+            return $plan;
+        }
+
+        $this->setFlash('danger', 'Bạn không có quyền xem hạng mục xưởng này.');
+        $this->redirect('?controller=factory_plan&action=index');
+        return null;
+    }
+
+    private function canModifyPlan(array $plan): bool
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+            return true;
+        }
+
+        if ($role === 'VT_QUANLY_XUONG') {
+            $employeeId = $user['IdNhanVien'] ?? null;
+            if (!$employeeId) {
+                return false;
+            }
+
+            $managedWorkshops = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
+            return in_array($plan['IdXuong'] ?? null, $managedWorkshops, true);
+        }
+
+        return false;
+    }
+
+    private function buildAttendanceSummary(array $plan): array
+    {
+        $assignments = $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong']);
+        $employeeIds = [];
+        foreach ($assignments as $group) {
+            foreach ($group as $employee) {
+                if (!empty($employee['IdNhanVien'])) {
+                    $employeeIds[] = $employee['IdNhanVien'];
+                }
+            }
+        }
+
+        return $this->attendanceModel->getSummaryForEmployees(
+            $employeeIds,
+            $plan['ThoiGianBatDau'] ?? null,
+            $plan['ThoiGianKetThuc'] ?? null
+        );
+    }
+
+    private function calculateProgress(?string $start, ?string $end, ?string $status): array
+    {
+        $now = time();
+        $percent = 0;
+        $label = 'Chưa bắt đầu';
+
+        $startTs = $start ? strtotime($start) : null;
+        $endTs = $end ? strtotime($end) : null;
+
+        if ($startTs && $endTs && $endTs > $startTs) {
+            $percent = (int) round(min(1, max(0, ($now - $startTs) / ($endTs - $startTs))) * 100);
+            $label = $percent >= 100 ? 'Đến hạn' : 'Đang thực hiện';
+        } elseif ($startTs && !$endTs) {
+            $percent = $now >= $startTs ? 10 : 0;
+            $label = $now >= $startTs ? 'Đang thực hiện' : 'Chưa bắt đầu';
+        }
+
+        if ($status && str_contains(mb_strtolower($status), 'hoàn thành')) {
+            $percent = 100;
+            $label = 'Hoàn thành';
+        }
+
+        return [
+            'percent' => $percent,
+            'label' => $label,
+        ];
+    }
+
+    private function summarizeMaterialStatus(array $stocks, ?string $existingStatus): string
+    {
+        if ($existingStatus) {
+            return $existingStatus;
+        }
+
+        foreach ($stocks as $item) {
+            if (($item['SoLuongTon'] ?? 0) < ($item['SoLuongCan'] ?? 0)) {
+                return 'Thiếu nguyên liệu';
+            }
+        }
+
+        return empty($stocks) ? 'Chưa cấu hình' : 'Đủ nguyên liệu';
     }
 }

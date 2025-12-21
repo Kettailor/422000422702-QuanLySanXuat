@@ -698,14 +698,14 @@ CREATE TABLE `nhan_vien` (
 
 INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`) VALUES
 ('NV001', 'Nguyễn Thị Lan', '1985-05-10', 0, 'Quản đốc xưởng lắp ráp', 5, 'Đang làm việc', 'Khu phố 3, phường Phú Lợi, TP.Thủ Dầu Một', '2020-01-15 07:30:00', NULL, 'XU001'),
-('NV002', 'Trần Văn Minh', '1982-11-22', 1, 'Kỹ sư vận hành dây chuyền SMT', 4, 'Đang làm việc', 'Đường N4, KCN VSIP 1, Bình Dương', '2019-07-01 07:30:00', NULL, NULL),
+('NV002', 'Trần Văn Minh', '1982-11-22', 1, 'Kỹ sư vận hành dây chuyền SMT', 4, 'Đang làm việc', 'Đường N4, KCN VSIP 1, Bình Dương', '2019-07-01 07:30:00', NULL, 'XU002'),
 ('NV003', 'Lê Hoàng Anh', '1990-03-18', 1, 'Tổ trưởng lắp ráp switch', 3, 'Đang làm việc', 'Ấp 2, xã Phú An, Bến Cát', '2021-03-10 07:45:00', NULL, 'XU001'),
-('NV004', 'Phạm Thu Trang', '1992-08-05', 0, 'Thủ kho linh kiện', 3, 'Đang làm việc', 'Khu phố Đông, phường Hòa Phú, TP.Thủ Dầu Một', '2020-09-01 08:00:00', NULL, NULL),
-('NV005', 'Đặng Quốc Việt', '1988-01-26', 1, 'Tổ trưởng hoàn thiện & QA', 3, 'Đang làm việc', 'Phường Chánh Nghĩa, TP.Thủ Dầu Một', '2021-06-21 07:20:00', NULL, NULL),
+('NV004', 'Phạm Thu Trang', '1992-08-05', 0, 'Thủ kho linh kiện', 3, 'Đang làm việc', 'Khu phố Đông, phường Hòa Phú, TP.Thủ Dầu Một', '2020-09-01 08:00:00', NULL, 'XU001'),
+('NV005', 'Đặng Quốc Việt', '1988-01-26', 1, 'Tổ trưởng hoàn thiện & QA', 3, 'Đang làm việc', 'Phường Chánh Nghĩa, TP.Thủ Dầu Một', '2021-06-21 07:20:00', NULL, 'XU002'),
 ('NV006', 'Vũ Hữu Tài', '1983-09-14', 1, 'Kế toán trưởng', 4, 'Đang làm việc', 'Khu phố 5, thị trấn Mỹ Phước, Bến Cát', '2018-04-02 08:05:00', NULL, NULL),
-('NV007', 'Đào Ngọc Hạnh', '1987-04-19', 0, 'Trưởng nhóm QA bàn phím', 4, 'Đang làm việc', 'Phường Hiệp Thành, TP.Thủ Dầu Một', '2019-02-11 08:00:00', NULL, NULL),
+('NV007', 'Đào Ngọc Hạnh', '1987-04-19', 0, 'Trưởng nhóm QA bàn phím', 4, 'Đang làm việc', 'Phường Hiệp Thành, TP.Thủ Dầu Một', '2019-02-11 08:00:00', NULL, 'XU002'),
 ('NV008', 'Phạm Đức Long', '1989-12-02', 1, 'Chuyên viên kinh doanh thiết bị', 3, 'Đang làm việc', 'Phường Hưng Định, TP.Thuận An', '2020-05-05 08:15:00', NULL, NULL),
-('NV009', 'Nguyễn Hải Nam', '1991-07-23', 1, 'Điều phối logistics', 3, 'Đang làm việc', 'Phường Mỹ Phước, TX.Bến Cát', '2021-08-09 07:50:00', NULL, NULL),
+('NV009', 'Nguyễn Hải Nam', '1991-07-23', 1, 'Điều phối logistics', 3, 'Đang làm việc', 'Phường Mỹ Phước, TX.Bến Cát', '2021-08-09 07:50:00', NULL, 'XU002'),
 ('NV010', 'Võ Thị Mai', '1986-03-30', 0, 'Chuyên viên nhân sự sản xuất', 4, 'Đang làm việc', 'Phường Phú Tân, TP.Thủ Dầu Một', '2018-09-17 08:10:00', NULL, NULL);
 
 -- --------------------------------------------------------
@@ -913,10 +913,16 @@ INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
 CREATE TABLE `xuong` (
   `IdXuong` varchar(50) NOT NULL,
   `TenXuong` varchar(255) DEFAULT NULL,
+  `DiaDiem` varchar(255) DEFAULT NULL,
+  `NgayThanhLap` date DEFAULT NULL,
   `SlThietBi` int(10) DEFAULT NULL,
   `SlNhanVien` int(10) DEFAULT NULL,
+  `SoLuongCongNhan` int(10) DEFAULT 0,
   `TenQuyTrinh` varchar(255) DEFAULT NULL,
+  `CongSuatToiDa` float DEFAULT 0,
+  `CongSuatDangSuDung` float DEFAULT 0,
   `TrangThai` varchar(255) NOT NULL,
+  `MoTa` text DEFAULT NULL,
   `XUONGTRUONG_IdNhanVien` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -924,9 +930,36 @@ CREATE TABLE `xuong` (
 -- Đang đổ dữ liệu cho bảng `xuong`
 --
 
-INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `SlThietBi`, `SlNhanVien`, `TenQuyTrinh`, `TrangThai`, `XUONGTRUONG_IdNhanVien`) VALUES
-('XU001', 'Xưởng Lắp Ráp SV5TOT', 25, 40, 'Lắp ráp & hiệu chỉnh bàn phím', 'Đang hoạt động', 'NV001'),
-('XU002', 'Xưởng Kiểm Định & Đóng Gói', 18, 28, 'Kiểm thử & đóng gói thành phẩm', 'Đang hoạt động', 'NV002');
+INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietBi`, `SlNhanVien`, `SoLuongCongNhan`, `TenQuyTrinh`, `CongSuatToiDa`, `CongSuatDangSuDung`, `TrangThai`, `MoTa`, `XUONGTRUONG_IdNhanVien`) VALUES
+('XU001', 'Xưởng Lắp Ráp SV5TOT', 'KCN Phúc An, Bến Cát', '2019-03-01', 25, 40, 42, 'Lắp ráp & hiệu chỉnh bàn phím', 12000, 8400, 'Đang hoạt động', 'Tập trung dây chuyền lắp ráp switch và hoàn thiện bàn phím.', 'NV001'),
+('XU002', 'Xưởng Kiểm Định & Đóng Gói', 'KCN Phúc An, Bến Cát', '2020-06-15', 18, 28, 30, 'Kiểm thử & đóng gói thành phẩm', 9500, 6200, 'Đang hoạt động', 'Đảm nhiệm kiểm thử, đóng gói và kiểm soát chất lượng thành phẩm.', 'NV002');
+
+-- --------------------------------------------------------
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `xuong_nhan_vien`
+--
+
+CREATE TABLE `xuong_nhan_vien` (
+  `IdXuong` varchar(50) NOT NULL,
+  `IdNhanVien` varchar(50) NOT NULL,
+  `VaiTro` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `xuong_nhan_vien`
+--
+
+INSERT INTO `xuong_nhan_vien` (`IdXuong`, `IdNhanVien`, `VaiTro`) VALUES
+('XU001', 'NV001', 'truong_xuong'),
+('XU001', 'NV003', 'nhan_vien_san_xuat'),
+('XU001', 'NV004', 'nhan_vien_kho'),
+('XU002', 'NV002', 'truong_xuong'),
+('XU002', 'NV005', 'nhan_vien_san_xuat'),
+('XU002', 'NV007', 'nhan_vien_san_xuat'),
+('XU002', 'NV009', 'nhan_vien_kho');
 
 -- --------------------------------------------------------
 
@@ -1226,6 +1259,13 @@ ALTER TABLE `vai_tro`
   ADD PRIMARY KEY (`IdVaiTro`);
 
 --
+-- Chỉ mục cho bảng `xuong_nhan_vien`
+--
+ALTER TABLE `xuong_nhan_vien`
+  ADD PRIMARY KEY (`IdXuong`,`IdNhanVien`,`VaiTro`),
+  ADD KEY `FKXNV_NhanVien` (`IdNhanVien`);
+
+--
 -- Chỉ mục cho bảng `xuong`
 --
 ALTER TABLE `xuong`
@@ -1435,6 +1475,13 @@ ALTER TABLE `ttct_bien_ban_danh_gia_thanh_pham`
 --
 ALTER TABLE `xuong`
   ADD CONSTRAINT `Xuong truong` FOREIGN KEY (`XUONGTRUONG_IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
+
+--
+-- Các ràng buộc cho bảng `xuong_nhan_vien`
+--
+ALTER TABLE `xuong_nhan_vien`
+  ADD CONSTRAINT `FKXNV_NhanVien` FOREIGN KEY (`IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`),
+  ADD CONSTRAINT `FKXNV_Xuong` FOREIGN KEY (`IdXuong`) REFERENCES `xuong` (`IdXuong`);
 
 --
 -- Các ràng buộc cho bảng `xuong_cau_hinh_san_pham`
