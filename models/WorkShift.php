@@ -32,4 +32,18 @@ class WorkShift extends BaseModel
 
         return $stmt->fetchAll();
     }
+
+    public function getShiftsByPlan(string $planId): array
+    {
+        $sql = "SELECT ca.*
+                FROM ca_lam ca
+                WHERE ca.IdKeHoachSanXuatXuong = :planId
+                ORDER BY ca.NgayLamViec DESC, ca.ThoiGianBatDau ASC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':planId', $planId);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
 }

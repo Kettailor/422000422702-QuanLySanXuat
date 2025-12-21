@@ -581,6 +581,20 @@ CREATE TABLE `lich_su_ke_hoach_xuong` (
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `phan_cong_ke_hoach_xuong`
+--
+
+CREATE TABLE `phan_cong_ke_hoach_xuong` (
+  `IdPhanCong` varchar(50) NOT NULL,
+  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
+  `IdNhanVien` varchar(50) NOT NULL,
+  `VaiTro` varchar(255) DEFAULT NULL,
+  `NgayPhanCong` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `lo`
 --
 
@@ -1180,6 +1194,14 @@ ALTER TABLE `lich_su_ke_hoach_xuong`
   ADD KEY `FKLSKHX_YeuCauKho` (`IdYeuCauKho`);
 
 --
+-- Chỉ mục cho bảng `phan_cong_ke_hoach_xuong`
+--
+ALTER TABLE `phan_cong_ke_hoach_xuong`
+  ADD PRIMARY KEY (`IdPhanCong`),
+  ADD KEY `FKPCKHX_KeHoach` (`IdKeHoachSanXuatXuong`),
+  ADD KEY `FKPCKHX_NhanVien` (`IdNhanVien`);
+
+--
 -- Chỉ mục cho bảng `lo`
 --
 ALTER TABLE `lo`
@@ -1417,6 +1439,13 @@ ALTER TABLE `lich_su_ke_hoach_xuong`
   ADD CONSTRAINT `FKLSKHX_KeHoach` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
   ADD CONSTRAINT `FKLSKHX_NhanVien` FOREIGN KEY (`NguoiThucHien`) REFERENCES `nhan_vien` (`IdNhanVien`),
   ADD CONSTRAINT `FKLSKHX_YeuCauKho` FOREIGN KEY (`IdYeuCauKho`) REFERENCES `yeu_cau_xuat_kho` (`IdYeuCau`);
+
+--
+-- Các ràng buộc cho bảng `phan_cong_ke_hoach_xuong`
+--
+ALTER TABLE `phan_cong_ke_hoach_xuong`
+  ADD CONSTRAINT `FKPCKHX_KeHoach` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
+  ADD CONSTRAINT `FKPCKHX_NhanVien` FOREIGN KEY (`IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
 
 --
 -- Các ràng buộc cho bảng `lo`
