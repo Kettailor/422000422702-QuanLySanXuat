@@ -3,7 +3,11 @@
         <h3 class="fw-bold mb-1">Danh sách xưởng sản xuất</h3>
         <p class="text-muted mb-0">Tổng quan danh sách xưởng và tình trạng vận hành.</p>
     </div>
-    <?php $canAssign = $canAssign ?? false; ?>
+    <?php
+    $canAssign = $canAssign ?? false;
+    $showExecutiveOverview = $showExecutiveOverview ?? true;
+    $managerOverview = $managerOverview ?? null;
+    ?>
     <div class="d-flex gap-2">
         <a href="?controller=workshop&action=dashboard" class="btn btn-outline-primary">
             <i class="bi bi-speedometer2 me-2"></i>Dashboard vật tư & tiến độ
@@ -15,6 +19,13 @@
         <?php endif; ?>
     </div>
 </div>
+
+<style>
+.manager-overview {
+    background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);
+    border: 1px solid #e8eef6;
+}
+</style>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-sm-6">
@@ -58,7 +69,7 @@
     </div>
 </div>
 
-<?php if (!empty($executiveOverview)): ?>
+<?php if ($showExecutiveOverview && !empty($executiveOverview)): ?>
     <div class="card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
@@ -123,6 +134,30 @@
             </div>
         </div>
     </div>
+<?php elseif ($managerOverview): ?>
+    <div class="card p-4 mb-4 manager-overview">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div class="badge bg-secondary-subtle text-secondary mb-2">Tổng quan nhanh</div>
+                <h4 class="fw-bold mb-1"><?= htmlspecialchars($managerOverview['name']) ?></h4>
+                <div class="text-muted small">Trạng thái: <?= htmlspecialchars($managerOverview['status']) ?></div>
+            </div>
+            <div class="d-flex flex-wrap gap-3">
+                <div class="text-center">
+                    <div class="text-muted small">Nhân sự</div>
+                    <div class="fs-5 fw-bold text-primary">
+                        <?= number_format($managerOverview['staff_current']) ?> / <?= number_format($managerOverview['staff_max']) ?>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-muted small">Hiệu suất</div>
+                    <div class="fs-5 fw-bold text-success">
+                        <?= $managerOverview['capacity_rate'] !== null ? number_format($managerOverview['capacity_rate'], 1) . '%' : '—' ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 <?php endif; ?>
 
 <div class="row g-4">
@@ -159,8 +194,10 @@
                                 / <?= number_format($workshop['CongSuatToiDa'] ?? 0, 0, ',', '.') ?>
                             </td>
                             <td>
-                                <?= number_format($workshop['SoLuongCongNhan'] ?? 0) ?>
-                                / <?= number_format($workshop['SlNhanVien'] ?? 0) ?>
+                                <?php $staffCurrent = $workshop['staff_current'] ?? $workshop['SoLuongCongNhan'] ?? 0; ?>
+                                <?php $staffMax = $workshop['staff_max'] ?? $workshop['SlNhanVien'] ?? 0; ?>
+                                <?= number_format($staffCurrent) ?>
+                                / <?= number_format($staffMax) ?>
                             </td>
                             <td>
                                 <?php $status = $workshop['TrangThai'] ?? 'Không xác định'; ?>

@@ -22,9 +22,10 @@ class WorkshopController extends Controller
 
     public function index(): void
     {
-        $workshops = $this->getVisibleWorkshops();
+        $workshops = $this->attachStaffCounts($this->getVisibleWorkshops());
         $summary = $this->calculateSummary($workshops);
         $statusDistribution = $this->calculateStatusDistribution($workshops);
+        $isWorkshopManager = $this->isWorkshopManager();
 
         $this->render('workshop/index', [
             'title' => 'Quản lý xưởng sản xuất',
@@ -32,6 +33,8 @@ class WorkshopController extends Controller
             'summary' => $summary,
             'statusDistribution' => $statusDistribution,
             'executiveOverview' => $this->buildExecutiveOverview($summary, $statusDistribution),
+            'managerOverview' => $isWorkshopManager ? $this->buildManagerOverview($workshops) : null,
+            'showExecutiveOverview' => !$isWorkshopManager,
             'canAssign' => $this->canAssign(),
         ]);
     }
@@ -386,6 +389,14 @@ class WorkshopController extends Controller
         return in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true);
     }
 
+    private function isWorkshopManager(): bool
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+
+        return $role === 'VT_QUANLY_XUONG' && !$this->canAssign();
+    }
+
     private function canViewWorkshop(string $workshopId): bool
     {
         $user = $this->currentUser();
@@ -480,8 +491,8 @@ class WorkshopController extends Controller
             $summary['total_workshops']++;
             $summary['max_capacity'] += (float) ($row['CongSuatToiDa'] ?? 0);
             $summary['current_capacity'] += (float) ($row['CongSuatDangSuDung'] ?? $row['CongSuatHienTai'] ?? 0);
-            $summary['workforce'] += (int) ($row['SoLuongCongNhan'] ?? 0);
-            $summary['max_workforce'] += (int) ($row['SlNhanVien'] ?? 0);
+            $summary['workforce'] += (int) ($row['staff_current'] ?? $row['SoLuongCongNhan'] ?? 0);
+            $summary['max_workforce'] += (int) ($row['staff_max'] ?? $row['SlNhanVien'] ?? 0);
         }
 
         if ($summary['max_capacity'] > 0) {
@@ -493,6 +504,26 @@ class WorkshopController extends Controller
         }
 
         return $summary;
+    }
+
+    private function buildManagerOverview(array $workshops): ?array
+    {
+        if (empty($workshops)) {
+            return null;
+        }
+
+        $workshop = $workshops[0];
+        $capacityMax = (float) ($workshop['CongSuatToiDa'] ?? 0);
+        $capacityCurrent = (float) ($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0);
+        $capacityRate = $capacityMax > 0 ? round(($capacityCurrent / $capacityMax) * 100, 1) : null;
+
+        return [
+            'name' => $workshop['TenXuong'] ?? ($workshop['IdXuong'] ?? 'Xưởng của bạn'),
+            'status' => $workshop['TrangThai'] ?? 'Không xác định',
+            'staff_current' => (int) ($workshop['staff_current'] ?? $workshop['SoLuongCongNhan'] ?? 0),
+            'staff_max' => (int) ($workshop['staff_max'] ?? $workshop['SlNhanVien'] ?? 0),
+            'capacity_rate' => $capacityRate,
+        ];
     }
 
     private function calculateStatusDistribution(array $workshops): array
@@ -582,6 +613,29 @@ class WorkshopController extends Controller
             'TrangThai' => $input['TrangThai'] ?? 'Đang hoạt động',
             'MoTa' => trim($input['MoTa'] ?? ''),
         ];
+    }
+
+    private function attachStaffCounts(array $workshops): array
+    {
+        foreach ($workshops as &$workshop) {
+            $assignments = $this->assignmentModel->getAssignmentsByWorkshop($workshop['IdXuong']);
+            $derivedCount = count($assignments['nhan_vien_kho'] ?? []) + count($assignments['nhan_vien_san_xuat'] ?? []);
+
+            $current = (int) ($workshop['SoLuongCongNhan'] ?? 0);
+            if ($current <= 0) {
+                $current = $derivedCount;
+            }
+
+            $max = (int) ($workshop['SlNhanVien'] ?? 0);
+            if ($max <= 0) {
+                $max = max($current, $derivedCount);
+            }
+
+            $workshop['staff_current'] = $current;
+            $workshop['staff_max'] = $max;
+        }
+
+        return $workshops;
     }
 
     private function buildStaffList(array $assignments): array
