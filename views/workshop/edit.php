@@ -50,7 +50,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Nhân sự hiện tại</label>
-                <input type="number" name="SoLuongCongNhan" class="form-control" min="0" value="<?= htmlspecialchars($workshop['SoLuongCongNhan'] ?? 0) ?>">
+                <div class="form-control bg-light"><?= number_format(count($staffList)) ?></div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Trạng thái</label>

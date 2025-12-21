@@ -606,7 +606,7 @@ class WorkshopController extends Controller
             'DiaDiem' => trim($input['DiaDiem'] ?? ''),
             'XUONGTRUONG_IdNhanVien' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
             'SlNhanVien' => (int) ($input['SlNhanVien'] ?? 0),
-            'SoLuongCongNhan' => (int) ($input['SoLuongCongNhan'] ?? 0),
+            'SoLuongCongNhan' => 0,
             'CongSuatToiDa' => (float) ($input['CongSuatToiDa'] ?? 0),
             'CongSuatDangSuDung' => (float) ($input['CongSuatDangSuDung'] ?? 0),
             'NgayThanhLap' => $input['NgayThanhLap'] ?? null,
@@ -621,10 +621,7 @@ class WorkshopController extends Controller
             $assignments = $this->assignmentModel->getAssignmentsByWorkshop($workshop['IdXuong']);
             $derivedCount = count($assignments['nhan_vien_kho'] ?? []) + count($assignments['nhan_vien_san_xuat'] ?? []);
 
-            $current = (int) ($workshop['SoLuongCongNhan'] ?? 0);
-            if ($current <= 0) {
-                $current = $derivedCount;
-            }
+            $current = $derivedCount;
 
             $max = (int) ($workshop['SlNhanVien'] ?? 0);
             if ($max <= 0) {

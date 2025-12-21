@@ -194,8 +194,8 @@
                                 / <?= number_format($workshop['CongSuatToiDa'] ?? 0, 0, ',', '.') ?>
                             </td>
                             <td>
-                                <?php $staffCurrent = $workshop['staff_current'] ?? $workshop['SoLuongCongNhan'] ?? 0; ?>
-                                <?php $staffMax = $workshop['staff_max'] ?? $workshop['SlNhanVien'] ?? 0; ?>
+                                <?php $staffCurrent = $workshop['staff_current'] ?? 0; ?>
+                                <?php $staffMax = $workshop['staff_max'] ?? 0; ?>
                                 <?= number_format($staffCurrent) ?>
                                 / <?= number_format($staffMax) ?>
                             </td>
