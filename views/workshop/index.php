@@ -1,7 +1,13 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Danh sách xưởng sản xuất</h3>
-        <p class="text-muted mb-0">Quản lý thông tin cơ bản, công suất và nhân sự của từng xưởng.</p>
+        <p class="text-muted mb-0">
+            <?php if (!empty($isWorkshopManagerView)): ?>
+                Bạn đang xem các xưởng được giao phụ trách.
+            <?php else: ?>
+                Quản lý thông tin cơ bản, công suất và nhân sự của từng xưởng.
+            <?php endif; ?>
+        </p>
     </div>
     <?php $canAssign = $canAssign ?? false; ?>
     <div class="d-flex gap-2">
@@ -64,6 +70,11 @@
                 <h5 class="mb-0">Thông tin chi tiết</h5>
                 <span class="text-muted small">Theo dõi tình trạng từng xưởng</span>
             </div>
+            <?php if (empty($workshops)): ?>
+                <div class="alert alert-info mb-0">
+                    Hiện bạn chưa được phân công xưởng nào. Vui lòng liên hệ ban quản trị nếu cần được cấp quyền.
+                </div>
+            <?php else: ?>
             <div class="table-responsive">
                 <table class="table align-middle">
                     <thead>
@@ -109,7 +120,9 @@
                                 <div class="table-actions">
                                     <a class="btn btn-sm btn-outline-secondary" href="?controller=workshop&action=read&id=<?= urlencode($workshop['IdXuong']) ?>">Chi tiết</a>
                                     <a class="btn btn-sm btn-outline-primary" href="?controller=workshop&action=edit&id=<?= urlencode($workshop['IdXuong']) ?>">Sửa</a>
-                                    <a class="btn btn-sm btn-outline-danger" href="?controller=workshop&action=delete&id=<?= urlencode($workshop['IdXuong']) ?>" onclick="return confirm('Xác nhận xóa xưởng này?');">Xóa</a>
+                                    <?php if ($canAssign): ?>
+                                        <a class="btn btn-sm btn-outline-danger" href="?controller=workshop&action=delete&id=<?= urlencode($workshop['IdXuong']) ?>" onclick="return confirm('Xác nhận xóa xưởng này?');">Xóa</a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -117,6 +130,7 @@
                     </tbody>
                 </table>
             </div>
+            <?php endif; ?>
         </div>
     </div>
     <div class="col-xl-4">

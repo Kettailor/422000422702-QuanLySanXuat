@@ -22,9 +22,9 @@ class WorkshopController extends Controller
 
     public function index(): void
     {
-        $workshops = $this->workshopModel->getAllWithManagers();
-        $summary = $this->workshopModel->getCapacitySummary();
-        $statusDistribution = $this->workshopModel->getStatusDistribution();
+        $workshops = $this->getVisibleWorkshops();
+        $summary = $this->calculateSummary($workshops);
+        $statusDistribution = $this->calculateStatusDistribution($workshops);
 
         $this->render('workshop/index', [
             'title' => 'Quản lý xưởng sản xuất',
@@ -32,6 +32,7 @@ class WorkshopController extends Controller
             'summary' => $summary,
             'statusDistribution' => $statusDistribution,
             'canAssign' => $this->canAssign(),
+            'isWorkshopManagerView' => $this->isWorkshopManager(),
         ]);
     }
 
@@ -197,11 +198,13 @@ class WorkshopController extends Controller
 
     public function dashboard(): void
     {
-        $workshops = $this->workshopModel->getAllWithManagers();
+        $workshops = $this->getVisibleWorkshops();
         $selectedWorkshop = $_GET['workshop'] ?? null;
         $selectedWorkshop = $selectedWorkshop !== '' ? $selectedWorkshop : null;
+        $selectedWorkshop = $this->normalizeSelectedWorkshop($selectedWorkshop, $workshops);
 
         $plans = $this->workshopPlanModel->getDashboardPlans($selectedWorkshop);
+        $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops);
 
         $configurationIds = array_values(array_filter(array_map(
             fn ($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
@@ -300,6 +303,7 @@ class WorkshopController extends Controller
             'selectedWorkshop' => $selectedWorkshop,
             'groupedPlans' => $grouped,
             'metrics' => $metrics,
+            'isWorkshopManagerView' => $this->isWorkshopManager(),
         ]);
     }
 
@@ -371,6 +375,107 @@ class WorkshopController extends Controller
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
         return in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true);
+    }
+
+    private function isWorkshopManager(): bool
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        return $role === 'VT_QUANLY_XUONG';
+    }
+
+    private function getVisibleWorkshops(): array
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+            return $this->workshopModel->getAllWithManagers();
+        }
+
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if ($role === 'VT_QUANLY_XUONG' && $employeeId) {
+            $workshopIds = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
+            if (empty($workshopIds)) {
+                return [];
+            }
+            return $this->workshopModel->findByIds($workshopIds);
+        }
+
+        return [];
+    }
+
+    private function normalizeSelectedWorkshop(?string $selectedWorkshop, array $visibleWorkshops): ?string
+    {
+        if ($selectedWorkshop === null || $selectedWorkshop === '') {
+            return $this->isWorkshopManager() && count($visibleWorkshops) === 1
+                ? ($visibleWorkshops[0]['IdXuong'] ?? null)
+                : null;
+        }
+
+        foreach ($visibleWorkshops as $workshop) {
+            if (($workshop['IdXuong'] ?? null) === $selectedWorkshop) {
+                return $selectedWorkshop;
+            }
+        }
+
+        return $this->isWorkshopManager() && count($visibleWorkshops) === 1
+            ? ($visibleWorkshops[0]['IdXuong'] ?? null)
+            : null;
+    }
+
+    private function filterPlansByVisibleWorkshops(array $plans, array $visibleWorkshops): array
+    {
+        $allowedIds = array_column($visibleWorkshops, 'IdXuong');
+        if (empty($allowedIds)) {
+            return [];
+        }
+
+        return array_values(array_filter($plans, static function (array $plan) use ($allowedIds): bool {
+            return in_array($plan['IdXuong'] ?? null, $allowedIds, true);
+        }));
+    }
+
+    private function calculateSummary(array $workshops): array
+    {
+        $summary = [
+            'total_workshops' => 0,
+            'max_capacity' => 0.0,
+            'current_capacity' => 0.0,
+            'workforce' => 0,
+            'max_workforce' => 0,
+            'utilization' => 0.0,
+            'workforce_utilization' => 0.0,
+        ];
+
+        foreach ($workshops as $row) {
+            $summary['total_workshops']++;
+            $summary['max_capacity'] += (float) ($row['CongSuatToiDa'] ?? 0);
+            $summary['current_capacity'] += (float) ($row['CongSuatDangSuDung'] ?? $row['CongSuatHienTai'] ?? 0);
+            $summary['workforce'] += (int) ($row['SoLuongCongNhan'] ?? 0);
+            $summary['max_workforce'] += (int) ($row['SlNhanVien'] ?? 0);
+        }
+
+        if ($summary['max_capacity'] > 0) {
+            $summary['utilization'] = round(($summary['current_capacity'] / $summary['max_capacity']) * 100, 2);
+        }
+
+        if ($summary['max_workforce'] > 0) {
+            $summary['workforce_utilization'] = round(($summary['workforce'] / $summary['max_workforce']) * 100, 2);
+        }
+
+        return $summary;
+    }
+
+    private function calculateStatusDistribution(array $workshops): array
+    {
+        $distribution = [];
+        foreach ($workshops as $workshop) {
+            $status = $workshop['TrangThai'] ?? 'Không xác định';
+            $distribution[$status] = ($distribution[$status] ?? 0) + 1;
+        }
+
+        return $distribution;
     }
 
     private function extractAssignments(array $input): array

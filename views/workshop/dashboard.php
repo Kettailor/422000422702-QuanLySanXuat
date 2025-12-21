@@ -1,21 +1,35 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Dashboard cấp phát vật tư xưởng</h3>
-        <p class="text-muted mb-0">Theo dõi nhu cầu nguyên liệu và xác nhận kế hoạch trước khi triển khai.</p>
+        <p class="text-muted mb-0">
+            <?php if (!empty($isWorkshopManagerView)): ?>
+                Bạn chỉ xem và xử lý các kế hoạch thuộc xưởng được giao.
+            <?php else: ?>
+                Theo dõi nhu cầu nguyên liệu và xác nhận kế hoạch trước khi triển khai.
+            <?php endif; ?>
+        </p>
     </div>
-    <form class="d-flex align-items-center gap-2" method="get">
-        <input type="hidden" name="controller" value="workshop">
-        <input type="hidden" name="action" value="dashboard">
-        <label for="workshop-filter" class="text-muted small mb-0">Lọc theo xưởng</label>
-        <select class="form-select" id="workshop-filter" name="workshop" onchange="this.form.submit()">
-            <option value="">Tất cả</option>
-            <?php foreach ($workshops as $workshop): ?>
-                <option value="<?= htmlspecialchars($workshop['IdXuong']) ?>" <?= $selectedWorkshop === ($workshop['IdXuong'] ?? null) ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($workshop['TenXuong'] ?? $workshop['IdXuong']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </form>
+    <?php $workshopCount = count($workshops ?? []); ?>
+    <?php if (empty($isWorkshopManagerView) || $workshopCount > 1): ?>
+        <form class="d-flex align-items-center gap-2" method="get">
+            <input type="hidden" name="controller" value="workshop">
+            <input type="hidden" name="action" value="dashboard">
+            <label for="workshop-filter" class="text-muted small mb-0">Lọc theo xưởng</label>
+            <select class="form-select" id="workshop-filter" name="workshop" onchange="this.form.submit()">
+                <option value="">Tất cả</option>
+                <?php foreach ($workshops as $workshop): ?>
+                    <option value="<?= htmlspecialchars($workshop['IdXuong']) ?>" <?= $selectedWorkshop === ($workshop['IdXuong'] ?? null) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($workshop['TenXuong'] ?? $workshop['IdXuong']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+    <?php elseif (!empty($workshops)): ?>
+        <div class="d-flex align-items-center gap-2 text-muted small">
+            <i class="bi bi-houses"></i>
+            Xưởng: <strong><?= htmlspecialchars($workshops[0]['TenXuong'] ?? $workshops[0]['IdXuong']) ?></strong>
+        </div>
+    <?php endif; ?>
 </div>
 
 <div class="row g-3 mb-4">

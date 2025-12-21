@@ -72,4 +72,35 @@ class Workshop extends BaseModel
 
         return $result;
     }
+
+    public function findByIds(array $ids): array
+    {
+        $ids = array_values(array_filter($ids));
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = [];
+        $bindings = [':managerRole' => 'truong_xuong'];
+        foreach ($ids as $index => $id) {
+            $key = ':id' . $index;
+            $placeholders[] = $key;
+            $bindings[$key] = $id;
+        }
+
+        $sql = 'SELECT xuong.*, manager.HoTen AS TruongXuong
+                FROM xuong
+                LEFT JOIN xuong_nhan_vien xnv ON xnv.IdXuong = xuong.IdXuong AND xnv.VaiTro = :managerRole
+                LEFT JOIN nhan_vien manager ON manager.IdNhanVien = xnv.IdNhanVien
+                WHERE xuong.IdXuong IN (' . implode(',', $placeholders) . ')
+                ORDER BY xuong.TenXuong';
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
 }
