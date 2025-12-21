@@ -164,6 +164,12 @@ class Workshop_planController extends Controller
             return;
         }
 
+        $this->workShiftModel->ensureDefaultShiftsForPlan(
+            $planId,
+            $plan['ThoiGianBatDau'] ?? null,
+            $plan['ThoiGianKetThuc'] ?? null
+        );
+
         $assignments = $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong'] ?? '');
         $availableEmployees = $assignments['nhan_vien_san_xuat'] ?? [];
         $planAssignments = $this->planAssignmentModel->getByPlan($planId);
@@ -234,6 +240,12 @@ class Workshop_planController extends Controller
             $this->redirect('?controller=factory_plan&action=index');
             return;
         }
+
+        $this->workShiftModel->ensureDefaultShiftsForPlan(
+            $planId,
+            $plan['ThoiGianBatDau'] ?? null,
+            $plan['ThoiGianKetThuc'] ?? null
+        );
 
         $planAssignments = $this->planAssignmentModel->getByPlan($planId);
         $assignmentShiftIds = array_values(array_unique(array_filter(array_column($planAssignments, 'IdCaLamViec'))));
