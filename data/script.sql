@@ -469,11 +469,14 @@ CREATE TRIGGER `trg_ke_hoach_san_xuat_validate_update`
 BEFORE UPDATE ON `ke_hoach_san_xuat`
 FOR EACH ROW
 BEGIN
-  IF NEW.`ThoiGianBD` IS NOT NULL AND DATE(NEW.`ThoiGianBD`) < CURDATE() THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
-  END IF;
-  IF NEW.`ThoiGianBD` IS NOT NULL AND NEW.`ThoiGianKetThuc` IS NOT NULL AND NEW.`ThoiGianKetThuc` < NEW.`ThoiGianBD` THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+  IF NOT (NEW.`ThoiGianBD` <=> OLD.`ThoiGianBD`)
+     OR NOT (NEW.`ThoiGianKetThuc` <=> OLD.`ThoiGianKetThuc`) THEN
+    IF NEW.`ThoiGianBD` IS NOT NULL AND DATE(NEW.`ThoiGianBD`) < CURDATE() THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+    END IF;
+    IF NEW.`ThoiGianBD` IS NOT NULL AND NEW.`ThoiGianKetThuc` IS NOT NULL AND NEW.`ThoiGianKetThuc` < NEW.`ThoiGianBD` THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+    END IF;
   END IF;
 END$$
 DELIMITER ;
@@ -534,11 +537,14 @@ CREATE TRIGGER `trg_ke_hoach_san_xuat_xuong_validate_update`
 BEFORE UPDATE ON `ke_hoach_san_xuat_xuong`
 FOR EACH ROW
 BEGIN
-  IF NEW.`ThoiGianBatDau` IS NOT NULL AND DATE(NEW.`ThoiGianBatDau`) < CURDATE() THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
-  END IF;
-  IF NEW.`ThoiGianBatDau` IS NOT NULL AND NEW.`ThoiGianKetThuc` IS NOT NULL AND NEW.`ThoiGianKetThuc` < NEW.`ThoiGianBatDau` THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+  IF NOT (NEW.`ThoiGianBatDau` <=> OLD.`ThoiGianBatDau`)
+     OR NOT (NEW.`ThoiGianKetThuc` <=> OLD.`ThoiGianKetThuc`) THEN
+    IF NEW.`ThoiGianBatDau` IS NOT NULL AND DATE(NEW.`ThoiGianBatDau`) < CURDATE() THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+    END IF;
+    IF NEW.`ThoiGianBatDau` IS NOT NULL AND NEW.`ThoiGianKetThuc` IS NOT NULL AND NEW.`ThoiGianKetThuc` < NEW.`ThoiGianBatDau` THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+    END IF;
   END IF;
 END$$
 DELIMITER ;

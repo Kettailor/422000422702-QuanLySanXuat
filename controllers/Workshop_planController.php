@@ -384,7 +384,12 @@ class Workshop_planController extends Controller
         }
 
         if (!empty($payload)) {
-            $this->workshopPlanModel->update($planId, $payload);
+            try {
+                $this->workshopPlanModel->update($planId, $payload);
+            } catch (PDOException $exception) {
+                Logger::error('Không thể cập nhật trạng thái kế hoạch ' . $planId . ': ' . $exception->getMessage());
+                $this->setFlash('danger', $this->resolveDateRuleMessage($exception->getMessage()));
+            }
         }
     }
 
@@ -440,5 +445,17 @@ class Workshop_planController extends Controller
         }
 
         $notificationStore->pushMany($entries);
+    }
+
+    private function resolveDateRuleMessage(string $message): string
+    {
+        if (str_contains($message, 'Ngày bắt đầu không được bé hơn ngày hiện tại')) {
+            return 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+        }
+        if (str_contains($message, 'Ngày kết thúc không được bé hơn ngày bắt đầu')) {
+            return 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+        }
+
+        return 'Không thể cập nhật trạng thái kế hoạch, vui lòng kiểm tra lại thời gian.';
     }
 }
