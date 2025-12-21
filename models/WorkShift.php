@@ -141,7 +141,12 @@ class WorkShift extends BaseModel
         if (!$value) {
             return null;
         }
-        $formats = ['Y-m-d H:i:s', 'Y-m-d', 'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y'];
+        $value = trim($value);
+        if (preg_match('/^\d{1,2}\/\d{1,2}$/', $value)) {
+            $value .= '/' . date('Y');
+        }
+
+        $formats = ['Y-m-d H:i:s', 'Y-m-d', 'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 'd/m/y'];
         foreach ($formats as $format) {
             $date = DateTime::createFromFormat($format, $value);
             if ($date instanceof DateTime) {

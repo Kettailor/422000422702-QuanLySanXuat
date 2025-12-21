@@ -25,12 +25,17 @@ foreach ($workShifts as $shift) {
     $dateKey = $shift['NgayLamViec'] ?? 'unknown';
     $shiftsByDate[$dateKey][] = $shift;
 }
-$normalizeDate = static function (?string $value): ?string {
+$normalizeDate = static function (?string $value, ?int $fallbackYear = null): ?string {
     if (!$value) {
         return null;
     }
 
-    $formats = ['Y-m-d H:i:s', 'Y-m-d', 'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y'];
+    $value = trim($value);
+    if (preg_match('/^\d{1,2}\/\d{1,2}$/', $value)) {
+        $value .= '/' . ($fallbackYear ?? (int) date('Y'));
+    }
+
+    $formats = ['Y-m-d H:i:s', 'Y-m-d', 'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 'd/m/y'];
     foreach ($formats as $format) {
         $date = DateTime::createFromFormat($format, $value);
         if ($date instanceof DateTime) {
@@ -49,15 +54,17 @@ $planStart = $plan['ThoiGianBatDau'] ?? null;
 $planEnd = $plan['ThoiGianKetThuc'] ?? null;
 if ($planStart) {
     $startDate = $normalizeDate($planStart);
-    $endDate = $planEnd ? $normalizeDate($planEnd) : $startDate;
+    $startYear = $startDate ? (int) date('Y', strtotime($startDate)) : null;
+    $endDate = $planEnd ? $normalizeDate($planEnd, $startYear) : $startDate;
     if (!$startDate) {
         $startDate = $normalizeDate($today);
+        $startYear = (int) date('Y', strtotime($startDate));
     }
     if (!$endDate) {
         $endDate = $startDate;
     }
     if ($planEnd && $startDate && $endDate && strtotime($endDate) < strtotime($startDate)) {
-        $endDate = date('Y-m-d', strtotime($startDate . ' +1 day'));
+        $endDate = date('Y-m-d', strtotime($startDate . ' +1 year'));
     }
     $current = new DateTimeImmutable($startDate);
     $end = new DateTimeImmutable($endDate);
