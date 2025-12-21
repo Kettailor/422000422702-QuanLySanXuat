@@ -64,6 +64,8 @@ class WorkShift extends BaseModel
             $endDate = $startDate;
         }
 
+        $this->removeShiftsOutsideRange($planId, $startDate, $endDate);
+
         $existing = $this->getExistingShiftMap($planId);
 
         $ranges = [
@@ -172,5 +174,17 @@ class WorkShift extends BaseModel
         $stmt->execute();
         $value = $stmt->fetchColumn();
         return $value !== false ? (string) $value : null;
+    }
+
+    private function removeShiftsOutsideRange(string $planId, string $startDate, string $endDate): void
+    {
+        $sql = 'DELETE FROM ca_lam
+                WHERE IdKeHoachSanXuatXuong = :planId
+                  AND (NgayLamViec < :startDate OR NgayLamViec > :endDate)';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':planId', $planId);
+        $stmt->bindValue(':startDate', $startDate);
+        $stmt->bindValue(':endDate', $endDate);
+        $stmt->execute();
     }
 }
