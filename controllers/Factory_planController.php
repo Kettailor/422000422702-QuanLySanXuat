@@ -6,6 +6,7 @@ class Factory_planController extends Controller
     private Workshop $workshopModel;
     private WorkshopAssignment $assignmentModel;
     private Attendance $attendanceModel;
+    private Timekeeping $timekeepingModel;
 
     public function __construct()
     {
@@ -14,6 +15,7 @@ class Factory_planController extends Controller
         $this->workshopModel = new Workshop();
         $this->assignmentModel = new WorkshopAssignment();
         $this->attendanceModel = new Attendance();
+        $this->timekeepingModel = new Timekeeping();
     }
 
     public function index(): void
@@ -54,7 +56,8 @@ class Factory_planController extends Controller
             'assignments' => $plan ? $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong']) : [],
             'attendance' => $plan ? $this->buildAttendanceSummary($plan) : [],
             'progress' => $plan ? $this->calculateProgress($plan['ThoiGianBatDau'] ?? null, $plan['ThoiGianKetThuc'] ?? null, $plan['TrangThai'] ?? null) : null,
-            'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null)
+            'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
+            'timekeeping' => $plan ? $this->timekeepingModel->getRecentByPlan($plan['IdKeHoachSanXuatXuong'] ?? null) : [],
         ]);
     }
 

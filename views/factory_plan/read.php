@@ -5,6 +5,7 @@ $assignments = $assignments ?? [];
 $attendance = $attendance ?? [];
 $progress = $progress ?? null;
 $materialStatus = $materialStatus ?? null;
+$timekeeping = $timekeeping ?? [];
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -47,6 +48,15 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
     }
     return 'badge bg-light text-muted';
 };
+
+$timekeepingSummary = static function (array $entries): string {
+    if (empty($entries)) {
+        return 'Chưa có bản ghi';
+    }
+    $total = count($entries);
+    $latest = $entries[0]['ThoiGianVao'] ?? null;
+    return $total . ' bản ghi • mới nhất: ' . ($latest ? date('d/m H:i', strtotime($latest)) : '-');
+};
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
@@ -66,6 +76,12 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                     <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
                 </button>
             </form>
+            <a href="?controller=timekeeping&action=create&plan_id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary">
+                <i class="bi bi-stopwatch me-2"></i>Ghi nhận chấm công
+            </a>
+            <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+                <i class="bi bi-basket me-2"></i>Chọn thêm nguyên liệu
+            </a>
         <?php endif; ?>
         <a href="?controller=factory_plan&action=index" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Quay về kế hoạch xưởng
@@ -130,6 +146,9 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                     <?php endif; ?>
                     <?php if (!empty($plan['TenCauHinh'])): ?>
                         <div class="text-muted small">Cấu hình: <?= htmlspecialchars($plan['TenCauHinh']) ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($plan['YeuCau'])): ?>
+                        <div class="text-muted small mt-2">Yêu cầu khách hàng: <?= htmlspecialchars($plan['YeuCau']) ?></div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -197,6 +216,41 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                                 <?php endforeach; ?>
                                 </tbody>
                             </table>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (!empty($timekeeping)): ?>
+                        <div class="alert alert-primary bg-opacity-10 border-0 mt-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold mb-1">Nhật ký chấm công</div>
+                                    <div class="text-muted small"><?= htmlspecialchars($timekeepingSummary($timekeeping)) ?></div>
+                                </div>
+                                <a class="btn btn-sm btn-outline-primary" href="?controller=timekeeping&action=create&plan_id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>">
+                                    Thêm bản ghi
+                                </a>
+                            </div>
+                            <div class="table-responsive mt-3">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Nhân sự</th>
+                                            <th>Giờ vào</th>
+                                            <th>Giờ ra</th>
+                                            <th>Ghi chú</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($timekeeping as $tk): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($tk['TenNhanVien'] ?? $tk['NHANVIEN IdNhanVien'] ?? '-') ?></td>
+                                                <td><?= $formatDate($tk['ThoiGianVao'] ?? null) ?></td>
+                                                <td><?= $formatDate($tk['ThoiGIanRa'] ?? null) ?></td>
+                                                <td class="text-muted small"><?= htmlspecialchars($tk['GhiChu'] ?? '-') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
