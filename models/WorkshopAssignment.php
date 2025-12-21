@@ -14,7 +14,7 @@ class WorkshopAssignment
         $sql = 'SELECT xnv.IdNhanVien, xnv.VaiTro, nv.HoTen
                 FROM xuong_nhan_vien xnv
                 JOIN nhan_vien nv ON nv.IdNhanVien = xnv.IdNhanVien
-                WHERE xnv.IdXuong = :workshopId
+                WHERE xnv.IdXuong = :workshopId AND xnv.VaiTro IN (\'nhan_vien_kho\', \'nhan_vien_san_xuat\')
                 ORDER BY nv.HoTen';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':workshopId', $workshopId);
@@ -22,7 +22,6 @@ class WorkshopAssignment
         $rows = $stmt->fetchAll();
 
         $assignments = [
-            'truong_xuong' => [],
             'nhan_vien_kho' => [],
             'nhan_vien_san_xuat' => [],
         ];
@@ -30,7 +29,7 @@ class WorkshopAssignment
         foreach ($rows as $row) {
             $role = $row['VaiTro'];
             if (!isset($assignments[$role])) {
-                $assignments[$role] = [];
+                continue;
             }
             $assignments[$role][] = $row;
         }
@@ -61,7 +60,6 @@ class WorkshopAssignment
 
     public function syncAssignments(
         string $workshopId,
-        ?string $managerId,
         array $warehouseIds,
         array $productionIds
     ): void {
@@ -73,11 +71,6 @@ class WorkshopAssignment
         $insert = $this->db->prepare(
             'INSERT INTO xuong_nhan_vien (IdXuong, IdNhanVien, VaiTro) VALUES (:workshopId, :employeeId, :role)'
         );
-
-        $managerId = $managerId ?: null;
-        if ($managerId) {
-            $this->insertAssignment($insert, $workshopId, $managerId, 'truong_xuong');
-        }
 
         foreach ($this->uniqueIds($warehouseIds) as $employeeId) {
             $this->insertAssignment($insert, $workshopId, $employeeId, 'nhan_vien_kho');

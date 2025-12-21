@@ -1,16 +1,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Dashboard cấp phát vật tư xưởng</h3>
-        <p class="text-muted mb-0">
-            <?php if (!empty($isWorkshopManagerView)): ?>
-                Bạn chỉ xem và xử lý các kế hoạch thuộc xưởng được giao.
-            <?php else: ?>
-                Theo dõi nhu cầu nguyên liệu và xác nhận kế hoạch trước khi triển khai.
-            <?php endif; ?>
-        </p>
+        <p class="text-muted mb-0">Theo dõi nhu cầu nguyên liệu và xác nhận kế hoạch trước khi triển khai.</p>
     </div>
     <?php $workshopCount = count($workshops ?? []); ?>
-    <?php if (empty($isWorkshopManagerView) || $workshopCount > 1): ?>
+    <?php if ($workshopCount > 1): ?>
         <form class="d-flex align-items-center gap-2" method="get">
             <input type="hidden" name="controller" value="workshop">
             <input type="hidden" name="action" value="dashboard">

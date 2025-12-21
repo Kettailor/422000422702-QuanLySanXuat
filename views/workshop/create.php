@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Thêm xưởng sản xuất</h3>
-        <p class="text-muted mb-0">Khai báo thông tin cơ bản, công suất và người phụ trách xưởng.</p>
+        <p class="text-muted mb-0">Khai báo thông tin cơ bản, công suất và nhân sự hỗ trợ.</p>
     </div>
     <a href="?controller=workshop&action=index" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> Quay lại
@@ -11,7 +11,6 @@
 <div class="card p-4">
     <?php
     $employeeGroups = $employeeGroups ?? ['warehouse' => [], 'production' => []];
-    $employees = $employees ?? [];
     $selectedWarehouse = $selectedWarehouse ?? [];
     $selectedProduction = $selectedProduction ?? [];
     $warehouseSelectedCount = count($selectedWarehouse);
@@ -33,17 +32,6 @@
         <div class="col-md-6">
             <label class="form-label">Địa điểm</label>
             <input type="text" name="DiaDiem" class="form-control" placeholder="Khu công nghiệp, tỉnh/thành...">
-        </div>
-        <div class="col-md-6">
-            <label class="form-label">Trưởng xưởng</label>
-            <select name="XUONGTRUONG_IdNhanVien" class="form-select" required>
-                <option value="">Chọn trưởng xưởng</option>
-                <?php foreach ($employees as $employee): ?>
-                    <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
-                        <?= htmlspecialchars($employee['HoTen']) ?> (<?= htmlspecialchars($employee['IdNhanVien']) ?>)
-                    </option>
-                <?php endforeach; ?>
-            </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Công suất tối đa (giờ máy / tháng)</label>
