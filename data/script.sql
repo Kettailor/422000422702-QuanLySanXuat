@@ -936,6 +936,8 @@ INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietB
 
 -- --------------------------------------------------------
 
+-- --------------------------------------------------------
+
 --
 -- Cấu trúc bảng cho bảng `xuong_nhan_vien`
 --
