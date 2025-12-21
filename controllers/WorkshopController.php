@@ -25,16 +25,18 @@ class WorkshopController extends Controller
         $workshops = $this->getVisibleWorkshops();
         $summary = $this->calculateSummary($workshops);
         $statusDistribution = $this->calculateStatusDistribution($workshops);
+        $isManager = $this->isWorkshopManager();
 
         $this->render('workshop/index', [
             'title' => 'Quản lý xưởng sản xuất',
             'workshops' => $workshops,
             'summary' => $summary,
             'statusDistribution' => $statusDistribution,
-            'workshopCards' => $this->buildWorkshopCards($workshops),
-            'focusWorkshop' => $this->getFocusWorkshop($workshops),
+            'executiveOverview' => $this->buildExecutiveOverview($summary, $statusDistribution),
+            'workshopCards' => $isManager ? $this->buildWorkshopCards($workshops) : [],
+            'focusWorkshop' => $isManager ? $this->getFocusWorkshop($workshops) : null,
             'canAssign' => $this->canAssign(),
-            'isWorkshopManagerView' => $this->isWorkshopManager(),
+            'isWorkshopManagerView' => $isManager,
         ]);
     }
 
@@ -478,6 +480,29 @@ class WorkshopController extends Controller
         }
 
         return $distribution;
+    }
+
+    private function buildExecutiveOverview(array $summary, array $statusDistribution): array
+    {
+        $active = $statusDistribution['Đang hoạt động'] ?? 0;
+        $paused = $statusDistribution['Tạm dừng'] ?? 0;
+        $maintenance = $statusDistribution['Bảo trì'] ?? 0;
+        $others = array_sum($statusDistribution) - ($active + $paused + $maintenance);
+
+        $total = max(1, $summary['total_workshops']);
+        $avgCapacity = $summary['max_capacity'] > 0 ? round($summary['max_capacity'] / $total, 1) : 0.0;
+        $avgHeadcount = $summary['max_workforce'] > 0 ? round($summary['max_workforce'] / $total, 1) : 0.0;
+
+        return [
+            'active' => $active,
+            'paused' => $paused,
+            'maintenance' => $maintenance,
+            'others' => $others > 0 ? $others : 0,
+            'utilization' => $summary['utilization'],
+            'workforce_utilization' => $summary['workforce_utilization'],
+            'avg_capacity' => $avgCapacity,
+            'avg_headcount' => $avgHeadcount,
+        ];
     }
 
     private function buildWorkshopCards(array $workshops): array
