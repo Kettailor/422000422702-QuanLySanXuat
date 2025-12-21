@@ -16,6 +16,8 @@
     $selectedWarehouse = $selectedWarehouse ?? [];
     $selectedProduction = $selectedProduction ?? [];
     $canAssign = $canAssign ?? false;
+    $canViewAssignments = $canViewAssignments ?? false;
+    $staffList = $staffList ?? [];
     $warehouseSelectedCount = count($selectedWarehouse);
     $productionSelectedCount = count($selectedProduction);
     ?>
@@ -48,7 +50,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Nhân sự hiện tại</label>
-                <input type="number" name="SoLuongCongNhan" class="form-control" min="0" value="<?= htmlspecialchars($workshop['SoLuongCongNhan'] ?? 0) ?>">
+                <div class="form-control bg-light"><?= number_format(count($staffList)) ?></div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Trạng thái</label>
@@ -63,81 +65,121 @@
                 <textarea name="MoTa" class="form-control" rows="4"><?= htmlspecialchars($workshop['MoTa'] ?? '') ?></textarea>
             </div>
             <div class="col-12">
-                <div class="card border-0 shadow-sm assignment-shell">
-                    <div class="card-body">
-                        <?php if (!$canAssign): ?>
-                            <div class="alert alert-info py-2 mb-3 d-flex align-items-center gap-2">
-                                <i class="bi bi-shield-lock text-primary"></i>
-                                <span>Chỉ quản trị hệ thống hoặc ban giám đốc được phép thay đổi phân công nhân sự. Bạn đang xem ở chế độ chỉ đọc.</span>
-                            </div>
-                        <?php endif; ?>
-                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
-                            <div>
-                                <div class="badge bg-secondary-subtle text-secondary mb-2">Phân công nhân sự</div>
-                                <h6 class="fw-bold mb-1">Chia theo vai trò</h6>
-                                <p class="text-muted small mb-0">Lọc nhanh theo tên/mã, danh sách rõ ràng theo kho và sản xuất.</p>
-                            </div>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <span class="chip text-success bg-success-subtle" data-chip="warehouse-count">Kho: <?= $warehouseSelectedCount ?> chọn</span>
-                                <span class="chip text-info bg-info-subtle" data-chip="production-count">Sản xuất: <?= $productionSelectedCount ?> chọn</span>
-                            </div>
-                        </div>
-                        <div class="row g-3 align-items-start">
-                            <div class="col-md-6">
-                                <div class="assignment-panel h-100">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label mb-0">Nhân viên kho</label>
-                                        <div class="input-group input-group-sm assignment-search-group">
-                                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                                            <input type="text" class="form-control assignment-search border-start-0" data-target="#warehouse-list" placeholder="Tìm tên/mã nhân viên">
-                                        </div>
-                                    </div>
-                                    <div class="assignment-list list-group" id="warehouse-list">
-                                        <?php foreach ($employeeGroups['warehouse'] as $employee): ?>
-                                            <?php $keyword = mb_strtolower(($employee['HoTen'] ?? '') . ' ' . ($employee['IdNhanVien'] ?? ''), 'UTF-8'); ?>
-                                            <label class="list-group-item assignment-item d-flex align-items-start justify-content-between" data-keywords="<?= htmlspecialchars($keyword) ?>">
-                                                <div class="form-check flex-grow-1">
-                                                    <input class="form-check-input" type="checkbox" name="warehouse_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= in_array($employee['IdNhanVien'], $selectedWarehouse, true) ? 'checked' : '' ?> <?= $canAssign ? '' : 'disabled' ?>>
-                                                    <div class="ms-2">
-                                                        <div class="fw-semibold"><?= htmlspecialchars($employee['HoTen']) ?></div>
-                                                        <div class="text-muted small"><?= htmlspecialchars($employee['IdNhanVien']) ?> <?= !empty($employee['ChucVu']) ? '• ' . htmlspecialchars($employee['ChucVu']) : '' ?></div>
-                                                    </div>
-                                                </div>
-                                                <span class="badge bg-success-subtle text-success">Kho</span>
-                                            </label>
-                                        <?php endforeach; ?>
-                                    </div>
+                <?php if ($canViewAssignments): ?>
+                    <div class="card border-0 shadow-sm assignment-shell">
+                        <div class="card-body">
+                            <?php if (!$canAssign): ?>
+                                <div class="alert alert-info py-2 mb-3 d-flex align-items-center gap-2">
+                                    <i class="bi bi-shield-lock text-primary"></i>
+                                    <span>Chỉ quản trị hệ thống hoặc ban giám đốc được phép thay đổi phân công nhân sự. Bạn đang xem ở chế độ chỉ đọc.</span>
+                                </div>
+                            <?php endif; ?>
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                                <div>
+                                    <div class="badge bg-secondary-subtle text-secondary mb-2">Phân công nhân sự</div>
+                                    <h6 class="fw-bold mb-1">Chia theo vai trò</h6>
+                                    <p class="text-muted small mb-0">Lọc nhanh theo tên/mã, danh sách rõ ràng theo kho và sản xuất.</p>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="chip text-success bg-success-subtle" data-chip="warehouse-count">Kho: <?= $warehouseSelectedCount ?> chọn</span>
+                                    <span class="chip text-info bg-info-subtle" data-chip="production-count">Sản xuất: <?= $productionSelectedCount ?> chọn</span>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="assignment-panel h-100">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label mb-0">Nhân viên sản xuất</label>
-                                        <div class="input-group input-group-sm assignment-search-group">
-                                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                                            <input type="text" class="form-control assignment-search border-start-0" data-target="#production-list" placeholder="Tìm tên/mã nhân viên">
+                            <div class="row g-3 align-items-start">
+                                <div class="col-md-6">
+                                    <div class="assignment-panel h-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <label class="form-label mb-0">Nhân viên kho</label>
+                                            <div class="input-group input-group-sm assignment-search-group">
+                                                <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                                                <input type="text" class="form-control assignment-search border-start-0" data-target="#warehouse-list" placeholder="Tìm tên/mã nhân viên">
+                                            </div>
+                                        </div>
+                                        <div class="assignment-list list-group" id="warehouse-list">
+                                            <?php foreach ($employeeGroups['warehouse'] as $employee): ?>
+                                                <?php $keyword = mb_strtolower(($employee['HoTen'] ?? '') . ' ' . ($employee['IdNhanVien'] ?? ''), 'UTF-8'); ?>
+                                                <label class="list-group-item assignment-item d-flex align-items-start justify-content-between" data-keywords="<?= htmlspecialchars($keyword) ?>">
+                                                    <div class="form-check flex-grow-1">
+                                                        <input class="form-check-input" type="checkbox" name="warehouse_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= in_array($employee['IdNhanVien'], $selectedWarehouse, true) ? 'checked' : '' ?> <?= $canAssign ? '' : 'disabled' ?>>
+                                                        <div class="ms-2">
+                                                            <div class="fw-semibold"><?= htmlspecialchars($employee['HoTen']) ?></div>
+                                                            <div class="text-muted small"><?= htmlspecialchars($employee['IdNhanVien']) ?> <?= !empty($employee['ChucVu']) ? '• ' . htmlspecialchars($employee['ChucVu']) : '' ?></div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="badge bg-success-subtle text-success">Kho</span>
+                                                </label>
+                                            <?php endforeach; ?>
                                         </div>
                                     </div>
-                                    <div class="assignment-list list-group" id="production-list">
-                                        <?php foreach ($employeeGroups['production'] as $employee): ?>
-                                            <?php $keyword = mb_strtolower(($employee['HoTen'] ?? '') . ' ' . ($employee['IdNhanVien'] ?? ''), 'UTF-8'); ?>
-                                            <label class="list-group-item assignment-item d-flex align-items-start justify-content-between" data-keywords="<?= htmlspecialchars($keyword) ?>">
-                                                <div class="form-check flex-grow-1">
-                                                    <input class="form-check-input" type="checkbox" name="production_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= in_array($employee['IdNhanVien'], $selectedProduction, true) ? 'checked' : '' ?> <?= $canAssign ? '' : 'disabled' ?>>
-                                                    <div class="ms-2">
-                                                        <div class="fw-semibold"><?= htmlspecialchars($employee['HoTen']) ?></div>
-                                                        <div class="text-muted small"><?= htmlspecialchars($employee['IdNhanVien']) ?> <?= !empty($employee['ChucVu']) ? '• ' . htmlspecialchars($employee['ChucVu']) : '' ?></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="assignment-panel h-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <label class="form-label mb-0">Nhân viên sản xuất</label>
+                                            <div class="input-group input-group-sm assignment-search-group">
+                                                <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                                                <input type="text" class="form-control assignment-search border-start-0" data-target="#production-list" placeholder="Tìm tên/mã nhân viên">
+                                            </div>
+                                        </div>
+                                        <div class="assignment-list list-group" id="production-list">
+                                            <?php foreach ($employeeGroups['production'] as $employee): ?>
+                                                <?php $keyword = mb_strtolower(($employee['HoTen'] ?? '') . ' ' . ($employee['IdNhanVien'] ?? ''), 'UTF-8'); ?>
+                                                <label class="list-group-item assignment-item d-flex align-items-start justify-content-between" data-keywords="<?= htmlspecialchars($keyword) ?>">
+                                                    <div class="form-check flex-grow-1">
+                                                        <input class="form-check-input" type="checkbox" name="production_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= in_array($employee['IdNhanVien'], $selectedProduction, true) ? 'checked' : '' ?> <?= $canAssign ? '' : 'disabled' ?>>
+                                                        <div class="ms-2">
+                                                            <div class="fw-semibold"><?= htmlspecialchars($employee['HoTen']) ?></div>
+                                                            <div class="text-muted small"><?= htmlspecialchars($employee['IdNhanVien']) ?> <?= !empty($employee['ChucVu']) ? '• ' . htmlspecialchars($employee['ChucVu']) : '' ?></div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <span class="badge bg-info-subtle text-info">Sản xuất</span>
-                                            </label>
-                                        <?php endforeach; ?>
+                                                    <span class="badge bg-info-subtle text-info">Sản xuất</span>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                <?php else: ?>
+                    <div class="card border-0 shadow-sm assignment-shell">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <div class="badge bg-secondary-subtle text-secondary mb-2">Nhân sự xưởng</div>
+                                    <h6 class="fw-bold mb-1">Danh sách nhân sự thuộc xưởng</h6>
+                                    <p class="text-muted small mb-0">Xưởng trưởng chỉ được xem thông tin nhân sự thuộc xưởng mình.</p>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
+                                    <?php
+                                    $warehouseCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Kho'));
+                                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
+                                    ?>
+                                    <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>
+                                    <span class="chip text-info bg-info-subtle">Sản xuất: <?= $productionCount ?></span>
+                                </div>
+                            </div>
+                            <?php if (!empty($staffList)): ?>
+                                <div class="row g-2">
+                                    <?php foreach ($staffList as $member): ?>
+                                        <div class="col-md-6">
+                                            <div class="staff-card h-100 d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="fw-semibold"><?= htmlspecialchars($member['name']) ?></div>
+                                                    <div class="text-muted small"><?= htmlspecialchars($member['id']) ?></div>
+                                                </div>
+                                                <span class="badge bg-light text-dark"><?= htmlspecialchars($member['role']) ?></span>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="alert alert-info mb-0">Chưa có nhân sự nào được gán cho xưởng.</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="col-12 text-end">
                 <button type="submit" class="btn btn-primary px-4">Cập nhật</button>
@@ -216,5 +258,12 @@ document.addEventListener('DOMContentLoaded', function () {
     font-weight: 600;
     font-size: 12px;
     border: 1px solid transparent;
+}
+.staff-card {
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: 0 4px 14px rgba(17, 38, 146, 0.05);
 }
 </style>
