@@ -315,7 +315,11 @@ class Factory_planController extends Controller
 
         if ($startTs && $endTs && $endTs > $startTs) {
             $percent = (int) round(min(1, max(0, ($now - $startTs) / ($endTs - $startTs))) * 100);
-            $label = $percent >= 100 ? 'Đến hạn' : 'Đang thực hiện';
+            if ($now > $endTs) {
+                $label = 'Quá hạn';
+            } else {
+                $label = $percent >= 100 ? 'Đến hạn' : 'Đang thực hiện';
+            }
         } elseif ($startTs && !$endTs) {
             $percent = $now >= $startTs ? 10 : 0;
             $label = $now >= $startTs ? 'Đang thực hiện' : 'Chưa bắt đầu';

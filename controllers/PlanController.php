@@ -150,7 +150,7 @@ class PlanController extends Controller
 
                     $this->workShopPlanDetail->createWorkshopPlanDetail(
                         $assignment['IdKeHoachSanXuatXuong'], // <-- Dùng cái này
-                        $orderDetail['IdCauHinh'], 
+                        $orderDetail['IdCauHinh'],
                         $assignment['SoLuong'] // <-- Nên dùng số lượng phân cho xưởng đó
                     );
                 }
@@ -158,6 +158,11 @@ class PlanController extends Controller
 
 
             $this->setFlash('success', 'Đã lập kế hoạch sản xuất và giao nhiệm vụ cho các xưởng.');
+        } catch (PDOException $exception) {
+            Logger::error('Lỗi khi tạo kế hoạch sản xuất: ' . $exception->getMessage());
+            $this->setFlash('danger', $this->resolveDateRuleMessage($exception->getMessage()));
+            $this->redirect('?controller=plan&action=create&order_detail_id=' . urlencode($orderDetailId));
+            return;
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi tạo kế hoạch sản xuất: ' . $exception->getMessage());
             /* $this->setFlash('danger', 'Không thể tạo kế hoạch: ' . $exception->getMessage()); */
@@ -473,5 +478,17 @@ class PlanController extends Controller
         }
 
         return true;
+    }
+
+    private function resolveDateRuleMessage(string $message): string
+    {
+        if (str_contains($message, 'Ngày bắt đầu không được bé hơn ngày hiện tại')) {
+            return 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+        }
+        if (str_contains($message, 'Ngày kết thúc không được bé hơn ngày bắt đầu')) {
+            return 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+        }
+
+        return 'Không thể tạo kế hoạch, vui lòng kiểm tra lại thời gian.';
     }
 }

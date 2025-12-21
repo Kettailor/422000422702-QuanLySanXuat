@@ -214,17 +214,24 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
         </div>
 
         <?php foreach ($shiftsByDate as $dateKey => $shifts): ?>
-            <?php $isToday = $dateKey === $today; ?>
+            <?php
+                $isToday = $dateKey === $today;
+                $dateCompare = strcmp($dateKey, $today);
+                $groupStatus = $dateCompare < 0 ? 'past' : ($dateCompare > 0 ? 'future' : 'today');
+                $groupStatusLabel = $groupStatus === 'past' ? 'Đã khóa' : ($groupStatus === 'future' ? 'Sắp tới' : 'Hôm nay');
+                $groupStatusClass = $groupStatus === 'past' ? 'bg-secondary-subtle text-secondary' : ($groupStatus === 'future' ? 'bg-info-subtle text-info' : 'bg-primary-subtle text-primary');
+                $groupHint = $groupStatus === 'past'
+                    ? 'Ngày đã qua: không chỉnh sửa phân công.'
+                    : ($groupStatus === 'future' ? 'Ngày sắp tới: có thể chỉnh sửa phân công.' : 'Hôm nay: chỉ chỉnh sửa trước giờ vào ca.');
+            ?>
             <div class="card border-0 shadow-sm mb-4 shift-group" data-date="<?= htmlspecialchars($dateKey) ?>">
                 <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                     <div>
                         <div class="fw-semibold">Ngày <?= htmlspecialchars($formatDate($dateKey)) ?></div>
-                        <div class="text-muted small">
-                            <?= $isToday ? 'Hôm nay: không chỉnh sửa phân công' : 'Có thể điều chỉnh phân công' ?>
-                        </div>
+                        <div class="text-muted small"><?= $groupHint ?></div>
                     </div>
-                    <span class="badge <?= $isToday ? 'bg-secondary-subtle text-secondary' : 'bg-success-subtle text-success' ?>">
-                        <?= $isToday ? 'Đã khóa' : 'Đang mở' ?>
+                    <span class="badge <?= $groupStatusClass ?>">
+                        <?= $groupStatusLabel ?>
                     </span>
                 </div>
                 <div class="card-body">
@@ -240,9 +247,28 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                 $endTime = $shift['ThoiGianKetThuc'] ?? null;
                                 $startTs = $startTime ? strtotime($startTime) : null;
                                 $endTs = $endTime ? strtotime($endTime) : null;
-                                $isTodayShift = ($shift['NgayLamViec'] ?? '') === $today;
+                                $shiftDate = $shift['NgayLamViec'] ?? '';
+                                $isTodayShift = $shiftDate === $today;
+                                $shiftDateCompare = $shiftDate ? strcmp($shiftDate, $today) : 0;
+                                $isPastDate = $shiftDateCompare < 0;
+                                $isFutureDate = $shiftDateCompare > 0;
                                 $isInProgress = $isTodayShift && $startTs && $endTs && $nowTimestamp >= $startTs && $nowTimestamp <= $endTs;
-                                $isEditable = !$isTodayShift || ($isTodayShift && (!$startTs || !$endTs || $nowTimestamp < $startTs || $nowTimestamp > $endTs));
+                                $isAfterEnd = $isTodayShift && $endTs && $nowTimestamp > $endTs;
+                                $isEditable = $isFutureDate || ($isTodayShift && $startTs && $nowTimestamp < $startTs);
+                                if ($isPastDate || $isAfterEnd) {
+                                    $isEditable = false;
+                                }
+
+                                if ($isPastDate || $isAfterEnd) {
+                                    $statusLabel = 'Đã khóa';
+                                    $statusClass = 'bg-secondary-subtle text-secondary';
+                                } elseif ($isInProgress) {
+                                    $statusLabel = 'Đang diễn ra';
+                                    $statusClass = 'bg-warning-subtle text-warning';
+                                } else {
+                                    $statusLabel = 'Chưa bắt đầu';
+                                    $statusClass = 'bg-success-subtle text-success';
+                                }
                             ?>
                             <div class="col-lg-4">
                                 <div class="border rounded-3 p-3 h-100 shift-card" data-date="<?= htmlspecialchars($dateKey) ?>" data-shift-type="<?= htmlspecialchars($typeLabel) ?>" data-shift-id="<?= htmlspecialchars($shiftId) ?>" data-editable="<?= $isEditable ? '1' : '0' ?>">
@@ -250,8 +276,8 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                     <div class="text-muted small mb-2">
                                         <?= htmlspecialchars($shift['ThoiGianBatDau'] ?? '-') ?>
                                         <?= !empty($shift['ThoiGianKetThuc']) ? '→ ' . htmlspecialchars($shift['ThoiGianKetThuc']) : '' ?>
-                                        <span class="badge <?= $isEditable ? 'bg-success-subtle text-success' : ($isInProgress ? 'bg-warning-subtle text-warning' : 'bg-secondary-subtle text-secondary') ?> ms-2">
-                                            <?= $isEditable ? 'Có thể sửa' : ($isInProgress ? 'Đang diễn ra' : 'Đã khóa') ?>
+                                        <span class="badge <?= $statusClass ?> ms-2">
+                                            <?= $statusLabel ?>
                                         </span>
                                     </div>
                                     <label class="form-label fw-semibold">Nhân sự</label>
@@ -264,7 +290,9 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                         <?php endforeach; ?>
                                     </select>
                                     <?php if (!$isEditable): ?>
-                                        <div class="text-muted small mt-2">Không thể chỉnh sửa trong khung giờ đang diễn ra.</div>
+                                        <div class="text-muted small mt-2">
+                                            <?= $isInProgress ? 'Không thể chỉnh sửa trong khung giờ đang diễn ra.' : 'Ca đã khóa sau giờ chấm công.' ?>
+                                        </div>
                                     <?php else: ?>
                                         <div class="text-muted small mt-2">Giữ Ctrl/Cmd để chọn nhiều nhân sự.</div>
                                     <?php endif; ?>
