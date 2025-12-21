@@ -94,9 +94,14 @@ class WorkshopController extends Controller
             $this->redirect('?controller=workshop&action=index');
         }
 
+        if (!$this->canManageWorkshop($id)) {
+            $this->setFlash('danger', 'Bạn không được phép chỉnh sửa xưởng này.');
+            $this->redirect('?controller=workshop&action=index');
+        }
+
         $workshop = $this->workshopModel->find($id);
-        $assignments = $this->assignmentModel->getAssignmentsByWorkshop($id);
-        $employees = $this->employeeModel->getActiveEmployees();
+        $assignments = $this->canAssign() ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
+        $employees = $this->canAssign() ? $this->employeeModel->getActiveEmployees() : [];
 
         $this->render('workshop/edit', [
             'title' => 'Cập nhật thông tin xưởng',
@@ -106,6 +111,7 @@ class WorkshopController extends Controller
             'selectedWarehouse' => array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien'),
             'selectedProduction' => array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien'),
             'canAssign' => $this->canAssign(),
+            'canViewAssignments' => $this->canAssign(),
         ]);
     }
 
@@ -118,6 +124,11 @@ class WorkshopController extends Controller
         $id = $_POST['IdXuong'] ?? null;
         if (!$id) {
             $this->setFlash('danger', 'Không xác định được xưởng cần cập nhật.');
+            $this->redirect('?controller=workshop&action=index');
+        }
+
+        if (!$this->canManageWorkshop($id)) {
+            $this->setFlash('danger', 'Bạn không được phép chỉnh sửa xưởng này.');
             $this->redirect('?controller=workshop&action=index');
         }
 
@@ -149,6 +160,11 @@ class WorkshopController extends Controller
     public function delete(): void
     {
         $id = $_GET['id'] ?? null;
+        if (!$this->canAssign()) {
+            $this->setFlash('danger', 'Bạn không có quyền xóa xưởng.');
+            $this->redirect('?controller=workshop&action=index');
+        }
+
         if ($id) {
             try {
                 $this->workshopModel->delete($id);
@@ -177,12 +193,14 @@ class WorkshopController extends Controller
         }
 
         $workshop = $id ? $this->workshopModel->find($id) : null;
-        $assignments = $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
+        $canViewAssignments = $this->canAssign();
+        $assignments = $canViewAssignments && $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
 
         $this->render('workshop/read', [
             'title' => 'Chi tiết xưởng sản xuất',
             'workshop' => $workshop,
             'assignments' => $assignments,
+            'canViewAssignments' => $canViewAssignments,
         ]);
     }
 
@@ -368,7 +386,32 @@ class WorkshopController extends Controller
 
     private function canViewWorkshop(string $workshopId): bool
     {
-        return true;
+        $user = $this->currentUser();
+        if (!$user) {
+            return false;
+        }
+
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+            return true;
+        }
+
+        if ($role === 'VT_QUANLY_XUONG') {
+            $employeeId = $user['IdNhanVien'] ?? null;
+            if (!$employeeId) {
+                return false;
+            }
+
+            $workshop = $this->workshopModel->find($workshopId);
+            return $workshop && ($workshop['XUONGTRUONG_IdNhanVien'] ?? null) === $employeeId;
+        }
+
+        return false;
+    }
+
+    private function canManageWorkshop(string $workshopId): bool
+    {
+        return $this->canAssign() || $this->canViewWorkshop($workshopId);
     }
 
     private function getVisibleWorkshops(): array
@@ -376,8 +419,17 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
             return $this->workshopModel->getAllWithManagers();
+        }
+
+        if ($role === 'VT_QUANLY_XUONG') {
+            $employeeId = $user['IdNhanVien'] ?? null;
+            if (!$employeeId) {
+                return [];
+            }
+
+            return $this->workshopModel->getByManager($employeeId);
         }
 
         return [];

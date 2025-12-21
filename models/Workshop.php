@@ -5,6 +5,22 @@ class Workshop extends BaseModel
     protected string $table = 'xuong';
     protected string $primaryKey = 'IdXuong';
 
+    public function getByManager(string $managerId, int $limit = 100): array
+    {
+        $sql = 'SELECT xuong.*, manager.HoTen AS TruongXuong
+                FROM xuong
+                LEFT JOIN nhan_vien manager ON manager.IdNhanVien = xuong.XUONGTRUONG_IdNhanVien
+                WHERE xuong.XUONGTRUONG_IdNhanVien = :managerId
+                ORDER BY xuong.TenXuong
+                LIMIT :limit';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':managerId', $managerId);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
     public function getAllWithManagers(int $limit = 100): array
     {
         $sql = 'SELECT xuong.*, manager.HoTen AS TruongXuong
