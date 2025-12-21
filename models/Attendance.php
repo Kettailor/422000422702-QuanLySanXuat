@@ -63,4 +63,76 @@ class Attendance extends BaseModel
 
         return $results;
     }
+
+    /**
+     * @param string[] $employeeIds
+     * @return array<int, array<string, mixed>>
+     */
+    public function getSummaryForEmployees(array $employeeIds, ?string $start = null, ?string $end = null): array
+    {
+        $employeeIds = array_values(array_filter(array_unique($employeeIds)));
+        if (empty($employeeIds)) {
+            return [];
+        }
+
+        $conditions = [];
+        $bindings = [];
+
+        $placeholders = [];
+        foreach ($employeeIds as $index => $employeeId) {
+            $param = ':emp' . $index;
+            $placeholders[] = $param;
+            $bindings[$param] = $employeeId;
+        }
+        $conditions[] = 'cc.`NHANVIEN IdNhanVien` IN (' . implode(', ', $placeholders) . ')';
+
+        if ($start) {
+            $conditions[] = 'cc.`ThoiGianVao` >= :startTime';
+            $bindings[':startTime'] = $start;
+        }
+
+        if ($end) {
+            $conditions[] = 'cc.`ThoiGianVao` <= :endTime';
+            $bindings[':endTime'] = $end;
+        }
+
+        $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
+
+        $sql = "SELECT cc.`NHANVIEN IdNhanVien` AS employee_id,
+                       nv.HoTen AS employee_name,
+                       COUNT(*) AS sessions,
+                       COALESCE(SUM(GREATEST(TIMESTAMPDIFF(MINUTE, cc.`ThoiGianVao`, COALESCE(cc.`ThoiGIanRa`, cc.`ThoiGianVao`)), 0)), 0) AS total_minutes,
+                       MIN(cc.`ThoiGianVao`) AS first_checkin,
+                       MAX(cc.`ThoiGIanRa`) AS last_checkout
+                FROM cham_cong cc
+                JOIN nhan_vien nv ON nv.IdNhanVien = cc.`NHANVIEN IdNhanVien`
+                {$where}
+                GROUP BY cc.`NHANVIEN IdNhanVien`, nv.HoTen
+                ORDER BY nv.HoTen";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+
+        $results = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $minutes = max((float) ($row['total_minutes'] ?? 0), 0.0);
+            $hours = round($minutes / 60, 2);
+            $workingDays = round($hours / 8, 2);
+            $results[] = [
+                'employee_id' => $row['employee_id'],
+                'employee_name' => $row['employee_name'],
+                'sessions' => (int) ($row['sessions'] ?? 0),
+                'total_minutes' => $minutes,
+                'total_hours' => $hours,
+                'working_days' => $workingDays,
+                'first_checkin' => $row['first_checkin'] ?? null,
+                'last_checkout' => $row['last_checkout'] ?? null,
+            ];
+        }
+
+        return $results;
+    }
 }

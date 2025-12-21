@@ -5,6 +5,65 @@ class WorkshopPlanMaterialDetail extends BaseModel
     protected string $table = 'chi_tiet_ke_hoach_san_xuat_xuong';
     protected string $primaryKey = 'IdCTKHSXX';
 
+    public function createWorkshopPlanDetail (string $workshopPlanId, string $configId, int $productionQuantity) {
+        try {
+            // 1. Bắt đầu transaction để đảm bảo toàn vẹn dữ liệu
+            $this->db->beginTransaction();
+
+            // kiểm tra nguyên liệu có kh
+            $sqlGetBOM = "SELECT IdNguyenLieu, TyLeSoLuong 
+                          FROM cau_hinh_nguyen_lieu 
+                          WHERE IdCauHinh = :configId";
+            
+            $stmtGet = $this->db->prepare($sqlGetBOM);
+            $stmtGet->bindValue(':configId', $configId);
+            $stmtGet->execute();
+            $materials = $stmtGet->fetchAll();
+
+            if (empty($materials)) {
+                // Nếu không tìm thấy công thức nguyên liệu, rollback và báo lỗi
+                $this->db->rollBack();
+                throw new Exception("Không tìm thấy cấu hình nguyên liệu cho mã: " . $configId);
+            }
+
+            // 3. Chuẩn bị câu lệnh INSERT vào bảng chi tiết
+            $sqlInsert = "INSERT INTO " . $this->table . " 
+                          (IdCTKHSXX, SoLuong, IdKeHoachSanXuatXuong, IdNguyenLieu) 
+                          VALUES (:idDetail, :quantity, :planId, :materialId)";
+            
+            $stmtInsert = $this->db->prepare($sqlInsert);
+
+            // 4. Duyệt qua từng nguyên liệu để tính toán và lưu vào DB
+            foreach ($materials as $material) {
+                // Tính tổng số lượng cần = Số lượng SX * Định mức
+                $neededQty = $productionQuantity * $material['TyLeSoLuong'];
+
+                // Tạo ID chi tiết (Ví dụ: CT + Timestamp + Random để tránh trùng)
+                // Bạn có thể tùy chỉnh lại logic sinh ID này theo quy tắc của dự án
+                $idDetail = 'CT' . date('ymdHis') . rand(100, 999); 
+
+                $stmtInsert->bindValue(':idDetail', $idDetail);
+                $stmtInsert->bindValue(':quantity', $neededQty);
+                $stmtInsert->bindValue(':planId', $workshopPlanId);
+                $stmtInsert->bindValue(':materialId', $material['IdNguyenLieu']);
+                
+                $stmtInsert->execute();
+            }
+
+            // 5. Nếu mọi thứ êm đẹp, xác nhận lưu vào DB
+            $this->db->commit();
+            return true;
+
+        } catch (Exception $e) {
+            // Nếu có lỗi bất kỳ đâu, hoàn tác lại (không lưu gì cả)
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            // Ném lỗi ra ngoài để Controller xử lý (hiển thị thông báo cho user)
+            throw $e;
+        }
+    }
+
     public function getByWorkshopPlan(string $workshopPlanId): array
     {
         $sql = 'SELECT ct.IdCTKHSXX,
@@ -24,5 +83,59 @@ class WorkshopPlanMaterialDetail extends BaseModel
         $stmt->execute();
 
         return $stmt->fetchAll();
+    }
+
+    public function replaceForPlan(string $planId, array $materials): void
+    {
+        $normalized = [];
+        foreach ($materials as $material) {
+            $id = $material['id'] ?? $material['IdNguyenLieu'] ?? null;
+            if (!$id) {
+                continue;
+            }
+
+            $quantity = (int) ($material['required'] ?? $material['SoLuong'] ?? $material['SoLuongThucTe'] ?? 0);
+            if ($quantity < 0) {
+                $quantity = 0;
+            }
+
+            if (!isset($normalized[$id])) {
+                $normalized[$id] = 0;
+            }
+
+            $normalized[$id] += $quantity;
+        }
+
+        $this->db->beginTransaction();
+
+        try {
+            $delete = $this->db->prepare(
+                'DELETE FROM chi_tiet_ke_hoach_san_xuat_xuong WHERE IdKeHoachSanXuatXuong = :planId'
+            );
+            $delete->bindValue(':planId', $planId);
+            $delete->execute();
+
+            if (!empty($normalized)) {
+                $insert = $this->db->prepare(
+                    'INSERT INTO chi_tiet_ke_hoach_san_xuat_xuong (IdCTKHSXX, SoLuong, IdKeHoachSanXuatXuong, IdNguyenLieu)
+                     VALUES (:id, :quantity, :planId, :materialId)'
+                );
+
+                foreach ($normalized as $materialId => $quantity) {
+                    $insert->bindValue(':id', uniqid('CT'));
+                    $insert->bindValue(':quantity', $quantity);
+                    $insert->bindValue(':planId', $planId);
+                    $insert->bindValue(':materialId', $materialId);
+                    $insert->execute();
+                }
+            }
+
+            $this->db->commit();
+        } catch (Throwable $exception) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $exception;
+        }
     }
 }
