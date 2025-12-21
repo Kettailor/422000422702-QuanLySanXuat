@@ -16,6 +16,7 @@
     $warehouseNames = array_column($assignments['nhan_vien_kho'] ?? [], 'HoTen');
     $productionNames = array_column($assignments['nhan_vien_san_xuat'] ?? [], 'HoTen');
     $canViewAssignments = $canViewAssignments ?? false;
+    $staffList = $staffList ?? [];
     ?>
     <div class="card p-4 shadow-sm">
         <div class="row g-4">
@@ -147,9 +148,32 @@
             </div>
         </div>
     <?php else: ?>
-        <div class="alert alert-info mt-4 d-flex align-items-center gap-2">
-            <i class="bi bi-shield-lock"></i>
-            <span>Bạn không có quyền xem thông tin phân công nhân sự của xưởng này.</span>
+        <div class="card mt-4 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                    <div>
+                        <div class="badge bg-secondary-subtle text-secondary mb-2">Nhân sự xưởng</div>
+                        <h5 class="fw-bold mb-1">Danh sách nhân sự thuộc xưởng</h5>
+                        <p class="text-muted small mb-0">Xưởng trưởng được xem danh sách nhân sự, không được phân công.</p>
+                    </div>
+                    <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
+                </div>
+                <?php if (!empty($staffList)): ?>
+                    <ul class="list-group">
+                        <?php foreach ($staffList as $member): ?>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold"><?= htmlspecialchars($member['name']) ?></div>
+                                    <div class="text-muted small"><?= htmlspecialchars($member['id']) ?></div>
+                                </div>
+                                <span class="badge bg-light text-dark"><?= htmlspecialchars($member['role']) ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <div class="alert alert-info mb-0">Chưa có nhân sự nào được gán cho xưởng.</div>
+                <?php endif; ?>
+            </div>
         </div>
     <?php endif; ?>
 <?php endif; ?>

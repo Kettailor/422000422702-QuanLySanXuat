@@ -100,8 +100,7 @@ class WorkshopController extends Controller
         }
 
         $workshop = $this->workshopModel->find($id);
-        $canViewAssignments = $this->canViewAssignments($id);
-        $assignments = $canViewAssignments ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
+        $assignments = $this->assignmentModel->getAssignmentsByWorkshop($id);
         $employees = $this->canAssign() ? $this->employeeModel->getActiveEmployees() : [];
 
         $this->render('workshop/edit', [
@@ -112,7 +111,8 @@ class WorkshopController extends Controller
             'selectedWarehouse' => array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien'),
             'selectedProduction' => array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien'),
             'canAssign' => $this->canAssign(),
-            'canViewAssignments' => $canViewAssignments,
+            'canViewAssignments' => $this->canAssign(),
+            'staffList' => $this->buildStaffList($assignments),
         ]);
     }
 
@@ -194,14 +194,15 @@ class WorkshopController extends Controller
         }
 
         $workshop = $id ? $this->workshopModel->find($id) : null;
-        $canViewAssignments = $this->canViewAssignments($id);
-        $assignments = $canViewAssignments && $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
+        $assignments = $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
+        $canViewAssignments = $this->canAssign();
 
         $this->render('workshop/read', [
             'title' => 'Chi tiết xưởng sản xuất',
             'workshop' => $workshop,
             'assignments' => $assignments,
             'canViewAssignments' => $canViewAssignments,
+            'staffList' => $this->buildStaffList($assignments),
         ]);
     }
 
@@ -415,11 +416,6 @@ class WorkshopController extends Controller
         return $this->canAssign() || $this->canViewWorkshop($workshopId);
     }
 
-    private function canViewAssignments(string $workshopId): bool
-    {
-        return $this->canAssign() || $this->canViewWorkshop($workshopId);
-    }
-
     private function getVisibleWorkshops(): array
     {
         $user = $this->currentUser();
@@ -586,5 +582,30 @@ class WorkshopController extends Controller
             'TrangThai' => $input['TrangThai'] ?? 'Đang hoạt động',
             'MoTa' => trim($input['MoTa'] ?? ''),
         ];
+    }
+
+    private function buildStaffList(array $assignments): array
+    {
+        $list = [];
+
+        foreach ($assignments['nhan_vien_kho'] ?? [] as $row) {
+            $list[] = [
+                'id' => $row['IdNhanVien'] ?? '',
+                'name' => $row['HoTen'] ?? '',
+                'role' => 'Kho',
+            ];
+        }
+
+        foreach ($assignments['nhan_vien_san_xuat'] ?? [] as $row) {
+            $list[] = [
+                'id' => $row['IdNhanVien'] ?? '',
+                'name' => $row['HoTen'] ?? '',
+                'role' => 'Sản xuất',
+            ];
+        }
+
+        usort($list, fn ($a, $b) => strcmp($a['name'], $b['name']));
+
+        return $list;
     }
 }
