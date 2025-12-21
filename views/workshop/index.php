@@ -3,7 +3,7 @@
         <h3 class="fw-bold mb-1">Danh sách xưởng sản xuất</h3>
         <p class="text-muted mb-0">
             <?php if (!empty($isWorkshopManagerView)): ?>
-                Bạn đang xem các xưởng được giao phụ trách.
+                Bảng điều khiển mặc định dành riêng cho trưởng xưởng theo dõi xưởng được giao.
             <?php else: ?>
                 Quản lý thông tin cơ bản, công suất và nhân sự của từng xưởng.
             <?php endif; ?>
@@ -12,7 +12,7 @@
     <?php $canAssign = $canAssign ?? false; ?>
     <div class="d-flex gap-2">
         <a href="?controller=workshop&action=dashboard" class="btn btn-outline-primary">
-            <i class="bi bi-speedometer2 me-2"></i>Dashboard vật tư
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard vật tư & tiến độ
         </a>
         <?php if ($canAssign): ?>
             <a href="?controller=workshop&action=create" class="btn btn-primary">
@@ -29,6 +29,7 @@
             <div>
                 <div class="text-muted text-uppercase small">Tổng số xưởng</div>
                 <div class="fs-3 fw-bold"><?= $summary['total_workshops'] ?></div>
+                <div class="small text-muted">Đang hoạt động: <?= $statusDistribution['Đang hoạt động'] ?? 0 ?></div>
             </div>
         </div>
     </div>
@@ -45,8 +46,9 @@
         <div class="card metric-card">
             <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-speedometer"></i></div>
             <div>
-                <div class="text-muted text-uppercase small">Đang sử dụng</div>
+                <div class="text-muted text-uppercase small">Công suất đang dùng</div>
                 <div class="fs-3 fw-bold"><?= number_format($summary['current_capacity'], 0, ',', '.') ?></div>
+                <div class="small text-muted">Hiệu suất: <?= number_format($summary['utilization'], 1) ?>%</div>
             </div>
         </div>
     </div>
@@ -56,10 +58,81 @@
             <div>
                 <div class="text-muted text-uppercase small">Nhân sự</div>
                 <div class="fs-5 fw-bold">Hiện tại: <?= number_format($summary['workforce']) ?></div>
+                <div class="small text-muted">Tỷ lệ lấp đầy: <?= number_format($summary['workforce_utilization'], 1) ?>%</div>
             </div>
         </div>
     </div>
 </div>
+
+<?php if (!empty($focusWorkshop)): ?>
+    <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <div class="badge bg-primary-subtle text-primary mb-2">Xưởng ưu tiên</div>
+                <h4 class="fw-bold mb-1"><?= htmlspecialchars($focusWorkshop['name']) ?></h4>
+                <div class="text-muted">Mã xưởng: <?= htmlspecialchars($focusWorkshop['id']) ?> • <?= htmlspecialchars($focusWorkshop['location']) ?></div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Trưởng xưởng</span>
+                <div class="fw-semibold"><?= htmlspecialchars($focusWorkshop['manager']) ?></div>
+            </div>
+        </div>
+        <div class="row g-3 align-items-center mt-3">
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Công suất</div>
+                        <div class="fw-semibold"><?= htmlspecialchars($focusWorkshop['capacityLabel']) ?></div>
+                    </div>
+                    <div class="text-end">
+                        <div class="small text-muted">Hiệu suất</div>
+                        <div class="fs-5 fw-bold text-primary"><?= $focusWorkshop['capacityUsage'] ?>%</div>
+                    </div>
+                </div>
+                <div class="progress mt-2" style="height: 10px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: <?= min($focusWorkshop['capacityUsage'], 100) ?>%"></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Nhân sự</div>
+                        <div class="fw-semibold"><?= htmlspecialchars($focusWorkshop['workforceLabel']) ?></div>
+                    </div>
+                    <div class="text-end">
+                        <div class="small text-muted">Lấp đầy</div>
+                        <div class="fs-5 fw-bold text-success"><?= $focusWorkshop['workforceUsage'] ?>%</div>
+                    </div>
+                </div>
+                <div class="progress mt-2" style="height: 10px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: <?= min($focusWorkshop['workforceUsage'], 100) ?>%"></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex flex-column gap-2">
+                    <div>
+                        <span class="text-muted small">Trạng thái</span>
+                        <?php $status = $focusWorkshop['status']; ?>
+                        <?php
+                        $badgeClass = 'badge-soft-warning';
+                        if ($status === 'Đang hoạt động') {
+                            $badgeClass = 'badge-soft-success';
+                        } elseif ($status === 'Tạm dừng') {
+                            $badgeClass = 'badge-soft-danger';
+                        }
+                        ?>
+                        <span class="badge <?= $badgeClass ?> ms-2"><?= htmlspecialchars($status) ?></span>
+                    </div>
+                    <?php if (!empty($focusWorkshop['description'])): ?>
+                        <div class="text-muted small"><?= nl2br(htmlspecialchars($focusWorkshop['description'])) ?></div>
+                    <?php else: ?>
+                        <div class="text-muted small fst-italic">Chưa có ghi chú cho xưởng này.</div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div class="row g-4">
     <div class="col-xl-8">
@@ -146,6 +219,62 @@
         </div>
     </div>
 </div>
+
+<?php if (!empty($workshopCards)): ?>
+    <div class="card p-4 mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Thẻ tổng quan theo xưởng</h5>
+            <span class="text-muted small">Phù hợp cho ban giám đốc & admin</span>
+        </div>
+        <div class="row g-3">
+            <?php foreach ($workshopCards as $card): ?>
+                <div class="col-xl-4 col-md-6">
+                    <div class="card h-100 p-3 shadow-sm border-0">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="fw-bold mb-1"><?= htmlspecialchars($card['name']) ?></div>
+                                <div class="text-muted small"><?= htmlspecialchars($card['id']) ?> • <?= htmlspecialchars($card['location']) ?></div>
+                            </div>
+                            <?php
+                            $status = $card['status'];
+                            $badgeClass = 'badge-soft-warning';
+                            if ($status === 'Đang hoạt động') {
+                                $badgeClass = 'badge-soft-success';
+                            } elseif ($status === 'Tạm dừng') {
+                                $badgeClass = 'badge-soft-danger';
+                            }
+                            ?>
+                            <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($status) ?></span>
+                        </div>
+                        <div class="mb-2 text-muted small">Trưởng xưởng: <span class="text-dark fw-semibold"><?= htmlspecialchars($card['manager']) ?></span></div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Công suất</span>
+                                <span class="fw-semibold text-dark"><?= htmlspecialchars($card['capacityLabel']) ?> (<?= $card['capacityUsage'] ?>%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: <?= min($card['capacityUsage'], 100) ?>%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Nhân sự</span>
+                                <span class="fw-semibold text-dark"><?= htmlspecialchars($card['workforceLabel']) ?> (<?= $card['workforceUsage'] ?>%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: <?= min($card['workforceUsage'], 100) ?>%"></div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <a class="btn btn-sm btn-outline-secondary" href="?controller=workshop&action=read&id=<?= urlencode($card['id']) ?>">Xem chi tiết</a>
+                            <a class="btn btn-sm btn-primary" href="?controller=workshop&action=dashboard&workshop=<?= urlencode($card['id']) ?>">Dashboard xưởng</a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
