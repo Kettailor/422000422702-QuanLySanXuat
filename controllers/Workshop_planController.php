@@ -6,6 +6,7 @@ class Workshop_planController extends Controller
     private WorkshopPlanMaterialDetail $materialDetailModel;
     private WorkshopPlanHistory $historyModel;
     private WarehouseRequest $warehouseRequestModel;
+    private WorkshopAssignment $assignmentModel;
     private Material $materialModel;
 
     public function __construct()
@@ -15,6 +16,7 @@ class Workshop_planController extends Controller
         $this->materialDetailModel = new WorkshopPlanMaterialDetail();
         $this->historyModel = new WorkshopPlanHistory();
         $this->warehouseRequestModel = new WarehouseRequest();
+        $this->assignmentModel = new WorkshopAssignment();
         $this->materialModel = new Material();
     }
 
@@ -61,6 +63,13 @@ class Workshop_planController extends Controller
             return;
         }
 
+        $plan = $this->workshopPlanModel->findWithRelations($planId);
+        if (!$plan) {
+            $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
         $materialsInput = $_POST['materials'] ?? [];
         $note = trim($_POST['note'] ?? '');
         $persistMaterials = ($_POST['persist_materials'] ?? '') === '1';
@@ -96,9 +105,13 @@ class Workshop_planController extends Controller
         $action = $checkResult['is_sufficient'] ? 'Kiểm tra tồn kho' : 'Tạo yêu cầu bổ sung';
         $requestId = null;
 
-        if ($persistMaterials || empty($this->materialDetailModel->getByWorkshopPlan($planId))) {
+        $existingMaterials = $this->materialDetailModel->getByWorkshopPlan($planId);
+        $shouldPersist = $persistMaterials || empty($existingMaterials);
+
+        if ($shouldPersist) {
             try {
                 $this->materialDetailModel->replaceForPlan($planId, $requirements);
+                $this->notifyWarehouseAssignments($plan, $requirements);
             } catch (Throwable $exception) {
                 Logger::error('Không thể lưu danh sách nguyên liệu cho kế hoạch ' . $planId . ': ' . $exception->getMessage());
             }
@@ -127,5 +140,47 @@ class Workshop_planController extends Controller
         $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
     }
 
-    
+    private function notifyWarehouseAssignments(array $plan, array $requirements): void
+    {
+        $workshopId = $plan['IdXuong'] ?? null;
+        if (!$workshopId) {
+            return;
+        }
+
+        $assignments = $this->assignmentModel->getAssignmentsByWorkshop($workshopId);
+        $warehouseEmployees = $assignments['nhan_vien_kho'] ?? [];
+        if (empty($warehouseEmployees)) {
+            return;
+        }
+
+        $notificationStore = new NotificationStore();
+        $message = sprintf(
+            'Kế hoạch xưởng %s cập nhật nguyên liệu (%d mục). Vui lòng kiểm tra tồn kho.',
+            $plan['IdKeHoachSanXuatXuong'] ?? '',
+            count($requirements)
+        );
+
+        $entries = [];
+        foreach ($warehouseEmployees as $employee) {
+            $employeeId = $employee['IdNhanVien'] ?? null;
+            if (!$employeeId) {
+                continue;
+            }
+
+            $entries[] = [
+                'channel' => 'warehouse_assignment',
+                'recipient' => $employeeId,
+                'title' => 'Cập nhật nguyên liệu kế hoạch xưởng',
+                'message' => $message,
+                'link' => '?controller=workshop_plan&action=read&id=' . urlencode($plan['IdKeHoachSanXuatXuong']),
+                'metadata' => [
+                    'workshop_id' => $workshopId,
+                    'workshop_plan_id' => $plan['IdKeHoachSanXuatXuong'] ?? null,
+                    'materials' => $requirements,
+                ],
+            ];
+        }
+
+        $notificationStore->pushMany($entries);
+    }
 }

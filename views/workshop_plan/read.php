@@ -116,11 +116,9 @@ foreach ($materialOptions as $option) {
                     <div class="text-muted small">Sản phẩm mới chưa có định mức. Vui lòng chọn nguyên liệu phù hợp trước khi kiểm tra tồn kho.</div>
                 <?php endif; ?>
             </div>
-            <?php if ($materialSource !== 'plan'): ?>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row">
-                    <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
-                </button>
-            <?php endif; ?>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row">
+                <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
+            </button>
         </div>
         <form method="post" action="?controller=workshop_plan&action=checkMaterials">
             <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
@@ -138,21 +136,15 @@ foreach ($materialOptions as $option) {
                     <?php foreach ($materialsForRender as $index => $material): ?>
                         <tr>
                             <td>
-                                <?php if ($materialSource === 'plan'): ?>
-                                    <div class="fw-semibold mb-1"><?= htmlspecialchars($material['TenNL'] ?? $material['IdNguyenLieu']) ?></div>
-                                    <div class="text-muted small">Mã: <?= htmlspecialchars($material['IdNguyenLieu']) ?></div>
-                                    <input type="hidden" name="materials[<?= $index ?>][IdNguyenLieu]" value="<?= htmlspecialchars($material['IdNguyenLieu'] ?? '') ?>">
-                                <?php else: ?>
-                                    <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required>
-                                        <option value="">Chọn nguyên liệu</option>
-                                        <?php foreach ($materialOptions as $option): ?>
-                                            <?php $value = $option['IdNguyenLieu'] ?? ''; ?>
-                                            <option value="<?= htmlspecialchars($value) ?>" <?= ($value === ($material['IdNguyenLieu'] ?? null)) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars(($option['TenNL'] ?? $value) . (!empty($option['DonVi']) ? ' (' . $option['DonVi'] . ')' : '')) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                <?php endif; ?>
+                                <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required>
+                                    <option value="">Chọn nguyên liệu</option>
+                                    <?php foreach ($materialOptions as $option): ?>
+                                        <?php $value = $option['IdNguyenLieu'] ?? ''; ?>
+                                        <option value="<?= htmlspecialchars($value) ?>" <?= ($value === ($material['IdNguyenLieu'] ?? null)) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars(($option['TenNL'] ?? $value) . (!empty($option['DonVi']) ? ' (' . $option['DonVi'] . ')' : '')) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </td>
                             <td class="text-end">
                                 <?= number_format((int) ($material['SoLuongKeHoach'] ?? 0)) ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
@@ -265,7 +257,6 @@ foreach ($materialOptions as $option) {
     </div>
 <?php endif; ?>
 
-<?php if ($materialSource !== 'plan'): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const addRowBtn = document.getElementById('add-material-row');
@@ -295,4 +286,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-<?php endif; ?>
