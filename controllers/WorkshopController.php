@@ -6,6 +6,7 @@ class WorkshopController extends Controller
     private WorkshopPlan $workshopPlanModel;
     private ProductComponentMaterial $componentMaterialModel;
     private Material $materialModel;
+    private ?array $cachedScope = null;
 
     public function __construct()
     {
@@ -18,15 +19,18 @@ class WorkshopController extends Controller
 
     public function index(): void
     {
-        $workshops = $this->workshopModel->getAllWithManagers();
-        $summary = $this->workshopModel->getCapacitySummary();
-        $statusDistribution = $this->workshopModel->getStatusDistribution();
+        $scope = $this->getWorkshopScope();
+        $workshops = $this->workshopModel->getAllWithManagers(100, $scope['ids']);
+        $summary = $this->workshopModel->getCapacitySummary($scope['ids']);
+        $statusDistribution = $this->workshopModel->getStatusDistribution($scope['ids']);
 
         $this->render('workshop/index', [
             'title' => 'Quản lý xưởng sản xuất',
             'workshops' => $workshops,
             'summary' => $summary,
             'statusDistribution' => $statusDistribution,
+            'isScoped' => $scope['is_scoped'],
+            'accessibleIds' => $scope['ids'] ?? [],
         ]);
     }
 
@@ -131,9 +135,23 @@ class WorkshopController extends Controller
 
     public function dashboard(): void
     {
-        $workshops = $this->workshopModel->getAllWithManagers();
+        $scope = $this->getWorkshopScope();
+        $workshops = $this->workshopModel->getAllWithManagers(100, $scope['ids']);
         $selectedWorkshop = $_GET['workshop'] ?? null;
         $selectedWorkshop = $selectedWorkshop !== '' ? $selectedWorkshop : null;
+
+        if ($scope['is_scoped']) {
+            $accessibleIds = $scope['ids'];
+
+            if ($selectedWorkshop && !in_array($selectedWorkshop, $accessibleIds, true)) {
+                $this->setFlash('danger', 'Bạn không có quyền xem xưởng này.');
+                $this->redirect($this->buildDashboardRedirect(null));
+            }
+
+            if (!$selectedWorkshop && !empty($accessibleIds)) {
+                $selectedWorkshop = $accessibleIds[0];
+            }
+        }
 
         $plans = $this->workshopPlanModel->getDashboardPlans($selectedWorkshop);
 
@@ -234,6 +252,7 @@ class WorkshopController extends Controller
             'selectedWorkshop' => $selectedWorkshop,
             'groupedPlans' => $grouped,
             'metrics' => $metrics,
+            'isScoped' => $scope['is_scoped'],
         ]);
     }
 
@@ -252,6 +271,16 @@ class WorkshopController extends Controller
         if (!$planId) {
             $this->setFlash('danger', 'Không xác định được kế hoạch xưởng cần cập nhật.');
             $this->redirect($this->buildDashboardRedirect($redirectWorkshop));
+        }
+
+        $scope = $this->getWorkshopScope();
+        if ($scope['is_scoped']) {
+            $plan = $this->workshopPlanModel->find($planId);
+            $planWorkshop = is_array($plan) ? ($plan['IdXuong'] ?? null) : null;
+            if (!$planWorkshop || !in_array($planWorkshop, $scope['ids'], true)) {
+                $this->setFlash('danger', 'Bạn không có quyền cập nhật kế hoạch của xưởng này.');
+                $this->redirect($this->buildDashboardRedirect($redirectWorkshop));
+            }
         }
 
         $payload = [];
@@ -313,5 +342,45 @@ class WorkshopController extends Controller
             'TrangThai' => $input['TrangThai'] ?? 'Đang hoạt động',
             'MoTa' => trim($input['MoTa'] ?? ''),
         ];
+    }
+
+    private function getWorkshopScope(): array
+    {
+        if ($this->cachedScope !== null) {
+            return $this->cachedScope;
+        }
+
+        $user = $this->currentUser();
+        $role = $user['IdVaiTro'] ?? null;
+        $actualRole = $user['ActualIdVaiTro'] ?? $role;
+        $employeeId = $user['IdNhanVien'] ?? '';
+
+        $isGlobalManager = $actualRole === 'VT_ADMIN' || $role === 'VT_BAN_GIAM_DOC';
+
+        if ($isGlobalManager) {
+            $this->cachedScope = [
+                'ids' => null,
+                'is_scoped' => false,
+            ];
+
+            return $this->cachedScope;
+        }
+
+        if ($role === 'VT_QUANLY_XUONG') {
+            $ids = $this->workshopModel->getManagedWorkshopIds($employeeId);
+            $this->cachedScope = [
+                'ids' => $ids,
+                'is_scoped' => true,
+            ];
+
+            return $this->cachedScope;
+        }
+
+        $this->cachedScope = [
+            'ids' => [],
+            'is_scoped' => true,
+        ];
+
+        return $this->cachedScope;
     }
 }

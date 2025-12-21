@@ -7,11 +7,23 @@
         <a href="?controller=workshop&action=dashboard" class="btn btn-outline-primary">
             <i class="bi bi-speedometer2 me-2"></i>Dashboard vật tư
         </a>
-        <a href="?controller=workshop&action=create" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i>Thêm xưởng
-        </a>
+        <?php if (!$isScoped): ?>
+            <a href="?controller=workshop&action=create" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Thêm xưởng
+            </a>
+        <?php endif; ?>
     </div>
 </div>
+
+<?php if ($isScoped): ?>
+    <div class="alert alert-info d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-diamond text-primary fs-5"></i>
+        <div>
+            <div class="fw-semibold">Bạn đang xem các xưởng được phân công.</div>
+            <div class="small mb-0">Chỉ hiển thị xưởng bạn phụ trách, liên hệ Ban giám đốc nếu cần cấp thêm quyền.</div>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-sm-6">
@@ -102,7 +114,9 @@
                                 <div class="table-actions">
                                     <a class="btn btn-sm btn-outline-secondary" href="?controller=workshop&action=read&id=<?= urlencode($workshop['IdXuong']) ?>">Chi tiết</a>
                                     <a class="btn btn-sm btn-outline-primary" href="?controller=workshop&action=edit&id=<?= urlencode($workshop['IdXuong']) ?>">Sửa</a>
-                                    <a class="btn btn-sm btn-outline-danger" href="?controller=workshop&action=delete&id=<?= urlencode($workshop['IdXuong']) ?>" onclick="return confirm('Xác nhận xóa xưởng này?');">Xóa</a>
+                                    <?php if (!$isScoped): ?>
+                                        <a class="btn btn-sm btn-outline-danger" href="?controller=workshop&action=delete&id=<?= urlencode($workshop['IdXuong']) ?>" onclick="return confirm('Xác nhận xóa xưởng này?');">Xóa</a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

@@ -6,9 +6,11 @@
     <form class="d-flex align-items-center gap-2" method="get">
         <input type="hidden" name="controller" value="workshop">
         <input type="hidden" name="action" value="dashboard">
-        <label for="workshop-filter" class="text-muted small mb-0">Lọc theo xưởng</label>
-        <select class="form-select" id="workshop-filter" name="workshop" onchange="this.form.submit()">
-            <option value="">Tất cả</option>
+        <label for="workshop-filter" class="text-muted small mb-0"><?= $isScoped ? 'Xưởng của bạn' : 'Lọc theo xưởng' ?></label>
+        <select class="form-select" id="workshop-filter" name="workshop" onchange="this.form.submit()" <?= $isScoped && count($workshops) <= 1 ? 'disabled' : '' ?>>
+            <?php if (!$isScoped): ?>
+                <option value="">Tất cả</option>
+            <?php endif; ?>
             <?php foreach ($workshops as $workshop): ?>
                 <option value="<?= htmlspecialchars($workshop['IdXuong']) ?>" <?= $selectedWorkshop === ($workshop['IdXuong'] ?? null) ? 'selected' : '' ?>>
                     <?= htmlspecialchars($workshop['TenXuong'] ?? $workshop['IdXuong']) ?>
@@ -17,6 +19,16 @@
         </select>
     </form>
 </div>
+
+<?php if ($isScoped): ?>
+    <div class="alert alert-info d-flex align-items-center gap-2">
+        <i class="bi bi-person-workspace text-primary fs-5"></i>
+        <div>
+            <div class="fw-semibold">Chỉ hiển thị kế hoạch của các xưởng bạn quản lý.</div>
+            <div class="small mb-0">Liên hệ Ban giám đốc để xem thêm xưởng khác.</div>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div class="row g-3 mb-4">
     <div class="col-md-4">
