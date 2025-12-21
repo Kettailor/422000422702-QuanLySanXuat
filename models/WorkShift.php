@@ -88,7 +88,7 @@ class WorkShift extends BaseModel
 
                 $this->create([
                     'IdCaLamViec' => uniqid('CA'),
-                    'TenCa' => $label . ' (' . $dateStr . ')',
+                    'TenCa' => $label,
                     'LoaiCa' => 'Sản xuất',
                     'NgayLamViec' => $dateStr,
                     'ThoiGianBatDau' => $startAt,
@@ -117,8 +117,9 @@ class WorkShift extends BaseModel
         foreach ($stmt->fetchAll() as $row) {
             $date = $row['NgayLamViec'] ?? null;
             $label = $row['TenCa'] ?? null;
-            if ($date && $label) {
-                $map[$date . '|' . $label] = true;
+            $type = $this->extractShiftType($label);
+            if ($date && $type) {
+                $map[$date . '|' . $type] = true;
             }
         }
 
@@ -135,6 +136,26 @@ class WorkShift extends BaseModel
             return null;
         }
         return date('Y-m-d', $timestamp);
+    }
+
+    private function extractShiftType(?string $label): ?string
+    {
+        if (!$label) {
+            return null;
+        }
+
+        $normalized = mb_strtolower($label, 'UTF-8');
+        if (str_contains($normalized, 'sáng')) {
+            return 'Ca sáng';
+        }
+        if (str_contains($normalized, 'trưa') || str_contains($normalized, 'chiều')) {
+            return 'Ca trưa';
+        }
+        if (str_contains($normalized, 'tối')) {
+            return 'Ca tối';
+        }
+
+        return null;
     }
 
     private function getDefaultLotId(): ?string
