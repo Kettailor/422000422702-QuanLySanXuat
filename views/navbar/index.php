@@ -53,6 +53,11 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-people"></i> Nhân sự
             </a>
         <?php endif; ?>
+        <?php if ($canAccess(['VT_BAN_GIAM_DOC'])): ?>
+            <a class="nav-link <?= $currentController === 'report' ? 'active' : '' ?>" href="?controller=report&action=i    ndex">
+                <i class="bi bi-file-earmark-bar-graph"></i> Thống Kê Báo Cáo
+            </a>
+        <?php endif; ?>
         <?php if ($canAccess(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC'])): ?>
         <div class="nav-group">
             <a class="nav-link <?= in_array($currentController, ['quality']) ? 'active' : '' ?>"
@@ -217,4 +222,5 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                     </div>
                 </div>
             </div>
+            
         <?php endif; ?>

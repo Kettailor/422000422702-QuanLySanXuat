@@ -2,6 +2,11 @@
 
 class AdminController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorize(['VT_ADMIN']);
+    }
+
     public function ticket(): void
     {
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
