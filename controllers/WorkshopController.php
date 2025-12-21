@@ -100,7 +100,8 @@ class WorkshopController extends Controller
         }
 
         $workshop = $this->workshopModel->find($id);
-        $assignments = $this->canAssign() ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
+        $canViewAssignments = $this->canViewAssignments($id);
+        $assignments = $canViewAssignments ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
         $employees = $this->canAssign() ? $this->employeeModel->getActiveEmployees() : [];
 
         $this->render('workshop/edit', [
@@ -111,7 +112,7 @@ class WorkshopController extends Controller
             'selectedWarehouse' => array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien'),
             'selectedProduction' => array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien'),
             'canAssign' => $this->canAssign(),
-            'canViewAssignments' => $this->canAssign(),
+            'canViewAssignments' => $canViewAssignments,
         ]);
     }
 
@@ -193,7 +194,7 @@ class WorkshopController extends Controller
         }
 
         $workshop = $id ? $this->workshopModel->find($id) : null;
-        $canViewAssignments = $this->canAssign();
+        $canViewAssignments = $this->canViewAssignments($id);
         $assignments = $canViewAssignments && $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
 
         $this->render('workshop/read', [
@@ -410,6 +411,11 @@ class WorkshopController extends Controller
     }
 
     private function canManageWorkshop(string $workshopId): bool
+    {
+        return $this->canAssign() || $this->canViewWorkshop($workshopId);
+    }
+
+    private function canViewAssignments(string $workshopId): bool
     {
         return $this->canAssign() || $this->canViewWorkshop($workshopId);
     }
