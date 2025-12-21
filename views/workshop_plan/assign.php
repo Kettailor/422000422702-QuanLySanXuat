@@ -25,6 +25,30 @@ foreach ($workShifts as $shift) {
     $dateKey = $shift['NgayLamViec'] ?? 'unknown';
     $shiftsByDate[$dateKey][] = $shift;
 }
+$planDates = [];
+$planStart = $plan['ThoiGianBatDau'] ?? null;
+$planEnd = $plan['ThoiGianKetThuc'] ?? null;
+if ($planStart) {
+    $startDate = date('Y-m-d', strtotime($planStart));
+    $endDate = $planEnd ? date('Y-m-d', strtotime($planEnd)) : $startDate;
+    if ($planEnd && strtotime($planEnd) < strtotime($planStart)) {
+        $endDate = date('Y-m-d', strtotime($startDate . ' +1 day'));
+    }
+    $current = new DateTimeImmutable($startDate);
+    $end = new DateTimeImmutable($endDate);
+    while ($current <= $end) {
+        $planDates[] = $current->format('Y-m-d');
+        $current = $current->modify('+1 day');
+    }
+}
+if (empty($planDates)) {
+    $planDates = array_keys($shiftsByDate);
+}
+foreach ($planDates as $dateKey) {
+    if (!isset($shiftsByDate[$dateKey])) {
+        $shiftsByDate[$dateKey] = [];
+    }
+}
 ksort($shiftsByDate);
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y'): string {
@@ -99,7 +123,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                     <div class="col-lg-4">
                         <div class="fw-semibold mb-2">Chọn ngày phân công</div>
                         <div class="d-flex flex-wrap gap-2">
-                            <?php foreach (array_keys($shiftsByDate) as $dateKey): ?>
+                            <?php foreach ($planDates as $dateKey): ?>
                                 <label class="btn btn-sm btn-outline-primary">
                                     <input type="checkbox" class="form-check-input me-2 assignment-date" value="<?= htmlspecialchars($dateKey) ?>" checked>
                                     <?= htmlspecialchars($formatDate($dateKey)) ?>
@@ -168,6 +192,9 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                     </span>
                 </div>
                 <div class="card-body">
+                    <?php if (empty($shifts)): ?>
+                        <div class="alert alert-light border mb-0">Chưa có ca làm việc cho ngày này.</div>
+                    <?php else: ?>
                     <div class="row g-3">
                         <?php foreach ($shifts as $shift): ?>
                             <?php $shiftId = $shift['IdCaLamViec'] ?? ''; ?>
@@ -215,6 +242,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                             </div>
                         <?php endforeach; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endforeach; ?>
