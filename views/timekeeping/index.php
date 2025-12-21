@@ -1,8 +1,9 @@
 <?php
 $entries = $entries ?? [];
-$plan = $plan ?? null;
-$planId = $planId ?? null;
-$plans = $plans ?? [];
+$workDate = $workDate ?? null;
+$shiftId = $shiftId ?? null;
+$workshopPlanId = $workshopPlanId ?? null;
+$shifts = $shifts ?? [];
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -19,18 +20,12 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
         <h2 class="fw-bold mb-1">Nhật ký chấm công</h2>
-        <?php if ($plan): ?>
-            <p class="text-muted mb-0">Theo dõi chấm công cho kế hoạch xưởng <?= htmlspecialchars($plan['IdKeHoachSanXuatXuong'] ?? '') ?>.</p>
-        <?php else: ?>
-            <p class="text-muted mb-0">Danh sách chấm công mới nhất của các xưởng.</p>
-        <?php endif; ?>
+        <p class="text-muted mb-0">Danh sách chấm công mới nhất theo ca làm việc.</p>
     </div>
     <div class="d-flex gap-2">
-        <?php if ($planId): ?>
-            <a href="?controller=timekeeping&action=create&plan_id=<?= urlencode($planId) ?>" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Ghi nhận chấm công
-            </a>
-        <?php endif; ?>
+        <a href="?controller=timekeeping&action=create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Ghi nhận chấm công
+        </a>
         <a href="?controller=factory_plan&action=index" class="btn btn-outline-secondary">
             <i class="bi bi-list me-2"></i>Kế hoạch xưởng
         </a>
@@ -42,24 +37,28 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         <form method="get" class="row g-3 align-items-end">
             <input type="hidden" name="controller" value="timekeeping">
             <input type="hidden" name="action" value="index">
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Lọc theo kế hoạch xưởng</label>
-                <select name="plan_id" class="form-select">
-                    <option value="">Tất cả kế hoạch</option>
-                    <?php foreach ($plans as $item): ?>
-                        <?php $id = $item['IdKeHoachSanXuatXuong'] ?? ''; ?>
-                        <option value="<?= htmlspecialchars($id) ?>" <?= $id === $planId ? 'selected' : '' ?>>
-                            <?= htmlspecialchars(($item['TenThanhThanhPhanSP'] ?? $id) . ' - ' . ($item['TenXuong'] ?? '')) ?>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Ngày làm việc</label>
+                <input type="date" name="work_date" class="form-control" value="<?= htmlspecialchars((string) $workDate) ?>">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Ca làm việc</label>
+                <select name="shift_id" class="form-select">
+                    <option value="">Tất cả ca</option>
+                    <?php foreach ($shifts as $item): ?>
+                        <?php $id = $item['IdCaLamViec'] ?? ''; ?>
+                        <option value="<?= htmlspecialchars($id) ?>" <?= $id === $shiftId ? 'selected' : '' ?>>
+                            <?= htmlspecialchars(($item['TenCa'] ?? $id) . ' • ' . ($item['NgayLamViec'] ?? '')) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <button type="submit" class="btn btn-outline-primary w-100">
                     <i class="bi bi-funnel me-2"></i>Lọc dữ liệu
                 </button>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <a href="?controller=timekeeping&action=index" class="btn btn-outline-secondary w-100">Xóa lọc</a>
             </div>
         </form>
@@ -79,7 +78,7 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
                     <thead class="table-light">
                         <tr>
                             <th>Nhân sự</th>
-                            <th>Kế hoạch xưởng</th>
+                            <th>Ca làm việc</th>
                             <th>Giờ vào</th>
                             <th>Giờ ra</th>
                             <th>Ghi chú</th>
@@ -90,13 +89,13 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
                             <tr>
                                 <td><?= htmlspecialchars($entry['TenNhanVien'] ?? $entry['NHANVIEN IdNhanVien'] ?? '-') ?></td>
                                 <td>
-                                    <?php if (!empty($entry['IdKeHoachSanXuatXuong'])): ?>
-                                        <a href="?controller=factory_plan&action=read&id=<?= urlencode($entry['IdKeHoachSanXuatXuong']) ?>" class="fw-semibold text-decoration-none">
-                                            <?= htmlspecialchars($entry['TenThanhThanhPhanSP'] ?? $entry['IdKeHoachSanXuatXuong']) ?>
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="text-muted">Chưa liên kết</span>
-                                    <?php endif; ?>
+                                    <div class="fw-semibold"><?= htmlspecialchars($entry['TenCa'] ?? $entry['IdCaLamViec'] ?? '-') ?></div>
+                                    <div class="text-muted small">
+                                        <?= htmlspecialchars($entry['NgayLamViec'] ?? '-') ?>
+                                        <?php if (!empty($entry['LoaiCa'])): ?>
+                                            • <?= htmlspecialchars($entry['LoaiCa']) ?>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                                 <td><?= $formatDate($entry['ThoiGianVao'] ?? null) ?></td>
                                 <td><?= $formatDate($entry['ThoiGIanRa'] ?? null) ?></td>

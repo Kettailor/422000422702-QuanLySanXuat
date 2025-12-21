@@ -239,8 +239,7 @@ CREATE TABLE `cham_cong` (
   `ThoiGIanRa` datetime DEFAULT NULL,
   `ThoiGianVao` datetime DEFAULT NULL,
   `XUONGTRUONG IdNhanVien` varchar(50) DEFAULT NULL,
-  `IdCaLamViec` varchar(50) DEFAULT NULL,
-  `IdKeHoachSanXuatXuong` varchar(50) DEFAULT NULL,
+  `IdCaLamViec` varchar(50) NOT NULL,
   `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -654,6 +653,7 @@ CREATE TABLE `nguyen_lieu` (
   `IdNguyenLieu` varchar(50) NOT NULL,
   `TenNL` varchar(255) DEFAULT NULL,
   `SoLuong` int(10) DEFAULT NULL,
+  `DonVi` varchar(50) DEFAULT NULL,
   `DonGian` float DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
   `NgaySanXuat` datetime DEFAULT NULL,
@@ -665,14 +665,14 @@ CREATE TABLE `nguyen_lieu` (
 -- Đang đổ dữ liệu cho bảng `nguyen_lieu`
 --
 
-INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
-('NL001', 'Switch Lotus Linear', 400, 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
-('NL002', 'PCB SV5TOT R3', 300, 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
-('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311'),
-('NL004', 'Bộ vỏ CNC anodized', 150, 820000, 'Đang sử dụng', '2023-09-15 08:20:00', '2026-09-15 00:00:00', 'LOCASE202309'),
-('NL005', 'Foam Poron định hình', 520, 120000, 'Đang sử dụng', '2023-08-20 07:45:00', '2025-08-20 00:00:00', 'LOFOAM202308'),
-('NL006', 'Switch Silent Lavender', 260, 520000, 'Đang sử dụng', '2023-07-10 09:10:00', '2025-07-10 00:00:00', 'LOSW202307'),
-('NL007', 'Bộ hộp đóng gói premium', 320, 90000, 'Đang sử dụng', '2023-11-18 08:50:00', '2024-11-18 00:00:00', 'LOPACK202311');
+INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonVi`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
+('NL001', 'Switch Lotus Linear', 400, 'switch', 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
+('NL002', 'PCB SV5TOT R3', 300, 'bo mạch', 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
+('NL003', 'Keycap PBT Glacier', 280, 'bộ', 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311'),
+('NL004', 'Bộ vỏ CNC anodized', 150, 'bộ', 820000, 'Đang sử dụng', '2023-09-15 08:20:00', '2026-09-15 00:00:00', 'LOCASE202309'),
+('NL005', 'Foam Poron định hình', 520, 'tấm', 120000, 'Đang sử dụng', '2023-08-20 07:45:00', '2025-08-20 00:00:00', 'LOFOAM202308'),
+('NL006', 'Switch Silent Lavender', 260, 'switch', 520000, 'Đang sử dụng', '2023-07-10 09:10:00', '2025-07-10 00:00:00', 'LOSW202307'),
+('NL007', 'Bộ hộp đóng gói premium', 320, 'bộ', 90000, 'Đang sử dụng', '2023-11-18 08:50:00', '2024-11-18 00:00:00', 'LOPACK202311');
 
 -- --------------------------------------------------------
 
@@ -1083,8 +1083,7 @@ ALTER TABLE `cham_cong`
   ADD PRIMARY KEY (`IdChamCong`),
   ADD KEY `Nhan vien duoc cham cong` (`NHANVIEN IdNhanVien`),
   ADD KEY `Nhan vien cham cong` (`XUONGTRUONG IdNhanVien`),
-  ADD KEY `FKCHAM_CONG958641` (`IdCaLamViec`),
-  ADD KEY `FKCHAM_CONG_PLAN` (`IdKeHoachSanXuatXuong`);
+  ADD KEY `FKCHAM_CONG958641` (`IdCaLamViec`);
 
 --
 -- Chỉ mục cho bảng `chi_tiet_ke_hoach_san_xuat_xuong`
@@ -1339,7 +1338,6 @@ ALTER TABLE `ca_lam`
 --
 ALTER TABLE `cham_cong`
   ADD CONSTRAINT `FKCHAM_CONG958641` FOREIGN KEY (`IdCaLamViec`) REFERENCES `ca_lam` (`IdCaLamViec`),
-  ADD CONSTRAINT `FKCHAM_CONG_PLAN` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
   ADD CONSTRAINT `Nhan vien cham cong` FOREIGN KEY (`XUONGTRUONG IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`),
   ADD CONSTRAINT `Nhan vien duoc cham cong` FOREIGN KEY (`NHANVIEN IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
 

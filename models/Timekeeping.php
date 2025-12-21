@@ -5,14 +5,13 @@ class Timekeeping extends BaseModel
     protected string $table = 'cham_cong';
     protected string $primaryKey = 'IdChamCong';
 
-    public function createForPlan(
+    public function createForShift(
         string $employeeId,
         string $checkIn,
         ?string $checkOut,
-        ?string $planId,
+        string $shiftId,
         ?string $note = null,
-        ?string $supervisorId = null,
-        ?string $shiftId = null
+        ?string $supervisorId = null
     ): bool {
         $recordId = uniqid('CC');
         $payload = [
@@ -20,10 +19,9 @@ class Timekeeping extends BaseModel
             'NHANVIEN IdNhanVien' => $employeeId,
             'ThoiGianVao' => $checkIn,
             'ThoiGIanRa' => $checkOut,
-            'IdKeHoachSanXuatXuong' => $planId,
+            'IdCaLamViec' => $shiftId,
             'GhiChu' => $note ? trim($note) : null,
             'XUONGTRUONG IdNhanVien' => $supervisorId,
-            'IdCaLamViec' => $shiftId,
         ];
 
         return $this->create($payload);
@@ -35,14 +33,15 @@ class Timekeeping extends BaseModel
         $bindings = [];
 
         if ($planId) {
-            $conditions[] = 'cc.`IdKeHoachSanXuatXuong` = :planId';
+            $conditions[] = 'ca.`IdKeHoachSanXuatXuong` = :planId';
             $bindings[':planId'] = $planId;
         }
 
         $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
 
-        $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien
+        $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien, ca.TenCa, ca.NgayLamViec
                 FROM cham_cong cc
+                LEFT JOIN ca_lam ca ON ca.IdCaLamViec = cc.`IdCaLamViec`
                 LEFT JOIN nhan_vien nv ON nv.IdNhanVien = cc.`NHANVIEN IdNhanVien`
                 {$where}
                 ORDER BY cc.`ThoiGianVao` DESC
@@ -58,24 +57,32 @@ class Timekeeping extends BaseModel
         return $stmt->fetchAll();
     }
 
-    public function getRecentRecords(int $limit = 100, ?string $planId = null): array
+    public function getRecentRecords(int $limit = 100, ?string $shiftId = null, ?string $workDate = null): array
     {
         $conditions = [];
         $bindings = [];
 
-        if ($planId) {
-            $conditions[] = 'cc.`IdKeHoachSanXuatXuong` = :planId';
-            $bindings[':planId'] = $planId;
+        if ($shiftId) {
+            $conditions[] = 'cc.`IdCaLamViec` = :shiftId';
+            $bindings[':shiftId'] = $shiftId;
+        }
+
+        if ($workDate) {
+            $conditions[] = 'ca.NgayLamViec = :workDate';
+            $bindings[':workDate'] = $workDate;
         }
 
         $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
 
         $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien,
-                       kx.TenThanhThanhPhanSP,
-                       kx.IdKeHoachSanXuatXuong
+                       ca.TenCa,
+                       ca.LoaiCa,
+                       ca.NgayLamViec,
+                       ca.ThoiGianBatDau,
+                       ca.ThoiGianKetThuc
                 FROM cham_cong cc
                 LEFT JOIN nhan_vien nv ON nv.IdNhanVien = cc.`NHANVIEN IdNhanVien`
-                LEFT JOIN ke_hoach_san_xuat_xuong kx ON kx.IdKeHoachSanXuatXuong = cc.`IdKeHoachSanXuatXuong`
+                LEFT JOIN ca_lam ca ON ca.IdCaLamViec = cc.`IdCaLamViec`
                 {$where}
                 ORDER BY cc.`ThoiGianVao` DESC
                 LIMIT :limit";

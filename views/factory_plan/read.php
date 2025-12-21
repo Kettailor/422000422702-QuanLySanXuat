@@ -76,7 +76,7 @@ $timekeepingSummary = static function (array $entries): string {
                     <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
                 </button>
             </form>
-            <a href="?controller=timekeeping&action=create&plan_id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary">
+            <a href="?controller=timekeeping&action=create&workshop_plan_id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary">
                 <i class="bi bi-stopwatch me-2"></i>Ghi nhận chấm công
             </a>
             <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
@@ -225,7 +225,7 @@ $timekeepingSummary = static function (array $entries): string {
                                     <div class="fw-semibold mb-1">Nhật ký chấm công</div>
                                     <div class="text-muted small"><?= htmlspecialchars($timekeepingSummary($timekeeping)) ?></div>
                                 </div>
-                                <a class="btn btn-sm btn-outline-primary" href="?controller=timekeeping&action=create&plan_id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>">
+                                <a class="btn btn-sm btn-outline-primary" href="?controller=timekeeping&action=create&workshop_plan_id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>">
                                     Thêm bản ghi
                                 </a>
                             </div>

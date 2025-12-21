@@ -4,43 +4,51 @@ class TimekeepingController extends Controller
 {
     private Timekeeping $timekeepingModel;
     private Employee $employeeModel;
-    private WorkshopPlan $workshopPlanModel;
+    private WorkShift $workShiftModel;
 
     public function __construct()
     {
         $this->authorize(['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG']);
         $this->timekeepingModel = new Timekeeping();
         $this->employeeModel = new Employee();
-        $this->workshopPlanModel = new WorkshopPlan();
+        $this->workShiftModel = new WorkShift();
     }
 
     public function index(): void
     {
-        $planId = $_GET['plan_id'] ?? null;
-        $plan = $planId ? $this->workshopPlanModel->findWithRelations($planId) : null;
+        $workDate = $_GET['work_date'] ?? null;
+        $shiftId = $_GET['shift_id'] ?? null;
+        $workshopPlanId = $_GET['workshop_plan_id'] ?? null;
 
-        $entries = $this->timekeepingModel->getRecentRecords(200, $plan ? $planId : null);
-        $plans = $this->workshopPlanModel->getDetailedPlans(200);
+        $entries = $this->timekeepingModel->getRecentRecords(200, $shiftId, $workDate);
+        $shifts = $this->workShiftModel->getShifts($workDate, $workshopPlanId);
 
         $this->render('timekeeping/index', [
             'title' => 'Nhật ký chấm công',
             'entries' => $entries,
-            'plan' => $plan,
-            'planId' => $planId,
-            'plans' => $plans,
+            'workDate' => $workDate,
+            'shiftId' => $shiftId,
+            'workshopPlanId' => $workshopPlanId,
+            'shifts' => $shifts,
         ]);
     }
 
     public function create(): void
     {
-        $planId = $_GET['plan_id'] ?? null;
-        $plan = $planId ? $this->workshopPlanModel->findWithRelations($planId) : null;
+        $shiftId = $_GET['shift_id'] ?? null;
+        $workDate = $_GET['work_date'] ?? null;
+        $workshopPlanId = $_GET['workshop_plan_id'] ?? null;
+        $shift = $shiftId ? $this->workShiftModel->find($shiftId) : null;
         $employees = $this->employeeModel->getActiveEmployees();
+        $shifts = $this->workShiftModel->getShifts($workDate, $workshopPlanId);
 
         $this->render('timekeeping/create', [
             'title' => 'Ghi nhận chấm công',
-            'plan' => $plan,
-            'planId' => $planId,
+            'shift' => $shift,
+            'shiftId' => $shiftId,
+            'workDate' => $workDate,
+            'workshopPlanId' => $workshopPlanId,
+            'shifts' => $shifts,
             'employees' => $employees,
             'defaultCheckIn' => date('Y-m-d\TH:i'),
             'defaultCheckOut' => date('Y-m-d\TH:i'),
@@ -54,15 +62,22 @@ class TimekeepingController extends Controller
             return;
         }
 
-        $planId = trim($_POST['plan_id'] ?? '');
         $employeeId = trim($_POST['employee_id'] ?? '');
+        $shiftId = trim($_POST['shift_id'] ?? '');
         $checkIn = $_POST['check_in'] ?? '';
         $checkOut = $_POST['check_out'] ?? null;
         $note = trim($_POST['note'] ?? '');
 
-        if ($employeeId === '' || $checkIn === '') {
-            $this->setFlash('danger', 'Vui lòng chọn nhân viên và thời gian vào ca.');
-            $this->redirect($this->buildRedirect($planId));
+        if ($employeeId === '' || $checkIn === '' || $shiftId === '') {
+            $this->setFlash('danger', 'Vui lòng chọn ca làm việc, nhân viên và thời gian vào ca.');
+            $this->redirect($this->buildRedirect(null, null));
+            return;
+        }
+
+        $shift = $this->workShiftModel->find($shiftId);
+        if (!$shift) {
+            $this->setFlash('danger', 'Ca làm việc không hợp lệ.');
+            $this->redirect($this->buildRedirect(null, null));
             return;
         }
 
@@ -71,21 +86,20 @@ class TimekeepingController extends Controller
 
         if (!$normalizedCheckIn) {
             $this->setFlash('danger', 'Thời gian vào ca không hợp lệ.');
-            $this->redirect($this->buildRedirect($planId));
+            $this->redirect($this->buildRedirect(null, null));
             return;
         }
 
         try {
             $currentUser = $this->currentUser();
             $supervisorId = $currentUser['IdNhanVien'] ?? null;
-            $this->timekeepingModel->createForPlan(
+            $this->timekeepingModel->createForShift(
                 $employeeId,
                 $normalizedCheckIn,
                 $normalizedCheckOut,
-                $planId !== '' ? $planId : null,
+                $shiftId,
                 $note,
-                $supervisorId,
-                null
+                $supervisorId
             );
             $this->setFlash('success', 'Đã ghi nhận chấm công cho nhân sự.');
         } catch (Throwable $exception) {
@@ -93,7 +107,7 @@ class TimekeepingController extends Controller
             $this->setFlash('danger', 'Không thể ghi nhận chấm công. Vui lòng thử lại.');
         }
 
-        $this->redirect($this->buildRedirect($planId));
+        $this->redirect($this->buildRedirect($shiftId, null));
     }
 
     private function normalizeDateTime(string $value): ?string
@@ -106,12 +120,16 @@ class TimekeepingController extends Controller
         return date('Y-m-d H:i:s', $timestamp);
     }
 
-    private function buildRedirect(?string $planId): string
+    private function buildRedirect(?string $shiftId, ?string $workDate): string
     {
-        if ($planId) {
-            return '?controller=factory_plan&action=read&id=' . urlencode($planId);
+        if ($shiftId) {
+            return '?controller=timekeeping&action=index&shift_id=' . urlencode($shiftId);
         }
 
-        return '?controller=factory_plan&action=index';
+        if ($workDate) {
+            return '?controller=timekeeping&action=index&work_date=' . urlencode($workDate);
+        }
+
+        return '?controller=timekeeping&action=index';
     }
 }
