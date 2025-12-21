@@ -190,6 +190,16 @@ class WorkshopController extends Controller
     public function read(): void
     {
         $id = $_GET['id'] ?? null;
+        if (!$id) {
+            $this->setFlash('danger', 'Không xác định được xưởng cần xem.');
+            $this->redirect('?controller=workshop&action=index');
+        }
+
+        if (!$this->canViewWorkshop($id)) {
+            $this->setFlash('danger', 'Bạn không được phép xem thông tin xưởng này.');
+            $this->redirect('?controller=workshop&action=index');
+        }
+
         $workshop = $id ? $this->workshopModel->find($id) : null;
         $assignments = $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
 
@@ -197,6 +207,7 @@ class WorkshopController extends Controller
             'title' => 'Chi tiết xưởng sản xuất',
             'workshop' => $workshop,
             'assignments' => $assignments,
+            'isWorkshopManagerView' => $this->isWorkshopManager(),
         ]);
     }
 
@@ -386,6 +397,23 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
         return $role === 'VT_QUANLY_XUONG';
+    }
+
+    private function canViewWorkshop(string $workshopId): bool
+    {
+        if (!$this->isWorkshopManager()) {
+            return true;
+        }
+
+        $user = $this->currentUser();
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if (!$employeeId) {
+            return false;
+        }
+
+        $managedWorkshops = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
+
+        return in_array($workshopId, $managedWorkshops, true);
     }
 
     private function getVisibleWorkshops(): array
