@@ -18,17 +18,15 @@ class TimekeepingController extends Controller
     {
         $workDate = $_GET['work_date'] ?? null;
         $shiftId = $_GET['shift_id'] ?? null;
-        $workshopPlanId = $_GET['workshop_plan_id'] ?? null;
 
         $entries = $this->timekeepingModel->getRecentRecords(200, $shiftId, $workDate);
-        $shifts = $this->workShiftModel->getShifts($workDate, $workshopPlanId);
+        $shifts = $this->workShiftModel->getShifts($workDate);
 
         $this->render('timekeeping/index', [
             'title' => 'Nhật ký chấm công',
             'entries' => $entries,
             'workDate' => $workDate,
             'shiftId' => $shiftId,
-            'workshopPlanId' => $workshopPlanId,
             'shifts' => $shifts,
         ]);
     }
@@ -37,17 +35,15 @@ class TimekeepingController extends Controller
     {
         $shiftId = $_GET['shift_id'] ?? null;
         $workDate = $_GET['work_date'] ?? null;
-        $workshopPlanId = $_GET['workshop_plan_id'] ?? null;
         $shift = $shiftId ? $this->workShiftModel->find($shiftId) : null;
         $employees = $this->employeeModel->getActiveEmployees();
-        $shifts = $this->workShiftModel->getShifts($workDate, $workshopPlanId);
+        $shifts = $this->workShiftModel->getShifts($workDate);
 
         $this->render('timekeeping/create', [
             'title' => 'Ghi nhận chấm công',
             'shift' => $shift,
             'shiftId' => $shiftId,
             'workDate' => $workDate,
-            'workshopPlanId' => $workshopPlanId,
             'shifts' => $shifts,
             'employees' => $employees,
             'defaultCheckIn' => date('Y-m-d\TH:i'),

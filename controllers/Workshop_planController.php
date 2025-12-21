@@ -6,7 +6,6 @@ class Workshop_planController extends Controller
     private WorkshopPlanMaterialDetail $materialDetailModel;
     private WorkshopPlanHistory $historyModel;
     private WarehouseRequest $warehouseRequestModel;
-    private ProductComponentMaterial $componentMaterialModel;
     private Material $materialModel;
 
     public function __construct()
@@ -16,7 +15,6 @@ class Workshop_planController extends Controller
         $this->materialDetailModel = new WorkshopPlanMaterialDetail();
         $this->historyModel = new WorkshopPlanHistory();
         $this->warehouseRequestModel = new WarehouseRequest();
-        $this->componentMaterialModel = new ProductComponentMaterial();
         $this->materialModel = new Material();
     }
 
@@ -34,31 +32,7 @@ class Workshop_planController extends Controller
         $materialOptions = $this->materialModel->all(500);
 
         if ($plan && empty($materials)) {
-            $configurationId = $plan['AssignmentConfigurationId'] ?? null;
-            if ($configurationId) {
-                $materialSource = 'configuration';
-                $materials = $this->buildMaterialFromConfiguration(
-                    $configurationId,
-                    (int) ($plan['SoLuong'] ?? 0)
-                );
-                if (!empty($materials)) {
-                    $requirements = array_map(static function (array $material): array {
-                        return [
-                            'id' => $material['IdNguyenLieu'] ?? null,
-                            'required' => $material['SoLuongKeHoach'] ?? 0,
-                        ];
-                    }, $materials);
-                    try {
-                        $this->materialDetailModel->replaceForPlan($plan['IdKeHoachSanXuatXuong'], $requirements);
-                        $materials = $this->materialDetailModel->getByWorkshopPlan($plan['IdKeHoachSanXuatXuong']);
-                        $materialSource = 'plan';
-                    } catch (Throwable $exception) {
-                        Logger::error('Không thể tự động lưu nguyên liệu cho kế hoạch ' . $plan['IdKeHoachSanXuatXuong'] . ': ' . $exception->getMessage());
-                    }
-                }
-            } else {
-                $materialSource = 'custom';
-            }
+            $materialSource = 'custom';
         }
 
         $this->render('workshop_plan/read', [
@@ -153,31 +127,5 @@ class Workshop_planController extends Controller
         $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
     }
 
-    private function buildMaterialFromConfiguration(string $configurationId, int $quantity): array
-    {
-        $materials = $this->componentMaterialModel->getMaterialsForComponent($configurationId);
-        if (empty($materials)) {
-            return [];
-        }
-
-        $materialIds = array_column($materials, 'id');
-        $inventory = $this->materialModel->findMany($materialIds);
-
-        $result = [];
-        foreach ($materials as $material) {
-            $ratioValue = $material['quantity_per_unit'] ?? null;
-            $ratio = is_numeric($ratioValue) ? (float) $ratioValue : 1.0;
-            $required = (int) round(max(1, $quantity) * $ratio);
-            $stock = (int) ($inventory[$material['id']]['SoLuong'] ?? 0);
-            $result[] = [
-                'IdNguyenLieu' => $material['id'],
-                'TenNL' => $inventory[$material['id']]['TenNL'] ?? ($material['label'] ?? $material['id']),
-                'SoLuongKeHoach' => $required,
-                'DonVi' => $material['unit'] ?? ($inventory[$material['id']]['DonVi'] ?? null),
-                'SoLuongTonKho' => $stock,
-            ];
-        }
-
-        return $result;
-    }
+    
 }

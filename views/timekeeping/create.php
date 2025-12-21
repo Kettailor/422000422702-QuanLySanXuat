@@ -2,7 +2,6 @@
 $shift = $shift ?? null;
 $shiftId = $shiftId ?? null;
 $workDate = $workDate ?? null;
-$workshopPlanId = $workshopPlanId ?? null;
 $shifts = $shifts ?? [];
 $employees = $employees ?? [];
 $defaultCheckIn = $defaultCheckIn ?? '';

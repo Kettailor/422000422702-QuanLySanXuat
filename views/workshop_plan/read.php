@@ -112,9 +112,7 @@ foreach ($materialOptions as $option) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h5 class="fw-semibold mb-1">Nhu cầu nguyên liệu thực tế</h5>
-                <?php if ($materialSource === 'configuration'): ?>
-                    <div class="text-muted small">Đã tải định mức tự động từ cấu hình sản phẩm. Kiểm tra và điều chỉnh nếu cần.</div>
-                <?php elseif ($materialSource === 'custom'): ?>
+                <?php if ($materialSource === 'custom'): ?>
                     <div class="text-muted small">Sản phẩm mới chưa có định mức. Vui lòng chọn nguyên liệu phù hợp trước khi kiểm tra tồn kho.</div>
                 <?php endif; ?>
             </div>

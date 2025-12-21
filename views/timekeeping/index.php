@@ -2,7 +2,6 @@
 $entries = $entries ?? [];
 $workDate = $workDate ?? null;
 $shiftId = $shiftId ?? null;
-$workshopPlanId = $workshopPlanId ?? null;
 $shifts = $shifts ?? [];
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {

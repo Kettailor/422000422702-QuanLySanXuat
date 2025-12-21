@@ -5,7 +5,7 @@ class WorkShift extends BaseModel
     protected string $table = 'ca_lam';
     protected string $primaryKey = 'IdCaLamViec';
 
-    public function getShifts(?string $workDate = null, ?string $planId = null, int $limit = 200): array
+    public function getShifts(?string $workDate = null, int $limit = 200): array
     {
         $conditions = [];
         $bindings = [];
@@ -13,11 +13,6 @@ class WorkShift extends BaseModel
         if ($workDate) {
             $conditions[] = 'ca.NgayLamViec = :workDate';
             $bindings[':workDate'] = $workDate;
-        }
-
-        if ($planId) {
-            $conditions[] = 'ca.IdKeHoachSanXuatXuong = :planId';
-            $bindings[':planId'] = $planId;
         }
 
         $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
