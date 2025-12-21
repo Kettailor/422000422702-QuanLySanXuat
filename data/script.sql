@@ -221,11 +221,7 @@ CREATE TABLE `ca_lam` (
 -- Đang đổ dữ liệu cho bảng `ca_lam`
 --
 
-INSERT INTO `ca_lam` (`IdCaLamViec`, `TenCa`, `LoaiCa`, `NgayLamViec`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TongSL`, `IdKeHoachSanXuatXuong`, `LOIdLo`) VALUES
-('CA202311S1', 'Ca sáng lắp switch SV5TOT 87', 'Lắp ráp', '2023-11-11', '2023-11-11 07:30:00', '2023-11-11 15:30:00', 35, 'KHSXX202311A', 'LOSW202309'),
-('CA202311S2', 'Ca tối kiểm tra PCB SV5TOT', 'Kiểm thử', '2023-11-13', '2023-11-13 14:00:00', '2023-11-13 22:00:00', 28, 'KHSXX202311C', 'LOPCB202310'),
-('CA202311S3', 'Ca đêm hoàn thiện SV5TOT 87', 'Hoàn thiện', '2023-11-16', '2023-11-16 21:00:00', '2023-11-17 05:00:00', 24, 'KHSXX202311B', 'LOTP202309'),
-('CA202312S1', 'Ca sáng lắp ráp SV5TOT 108', 'Lắp ráp', '2023-12-12', '2023-12-12 07:30:00', '2023-12-12 15:30:00', 30, 'KHSXX202312A', 'LOTP202310');
+-- (Dữ liệu ca làm sẽ được sinh tự động theo kế hoạch xưởng)
 
 -- --------------------------------------------------------
 
@@ -247,12 +243,7 @@ CREATE TABLE `cham_cong` (
 -- Đang đổ dữ liệu cho bảng `cham_cong`
 --
 
-INSERT INTO `cham_cong` (`IdChamCong`, `NHANVIEN IdNhanVien`, `ThoiGIanRa`, `ThoiGianVao`, `XUONGTRUONG IdNhanVien`, `IdCaLamViec`) VALUES
-('CC2023111101', 'NV003', '2023-11-11 15:45:00', '2023-11-11 07:25:00', 'NV001', 'CA202311S1'),
-('CC2023111102', 'NV002', '2023-11-11 16:00:00', '2023-11-11 07:20:00', 'NV001', 'CA202311S1'),
-('CC2023111301', 'NV005', '2023-11-13 22:05:00', '2023-11-13 13:55:00', 'NV002', 'CA202311S2'),
-('CC2023111601', 'NV005', '2023-11-17 05:10:00', '2023-11-16 20:55:00', 'NV002', 'CA202311S3'),
-('CC2023121201', 'NV004', '2023-12-12 15:40:00', '2023-12-12 07:25:00', 'NV001', 'CA202312S1');
+-- (Không seed dữ liệu chấm công)
 
 -- --------------------------------------------------------
 
@@ -271,14 +262,7 @@ CREATE TABLE `chi_tiet_ke_hoach_san_xuat_xuong` (
 -- Đang đổ dữ liệu cho bảng `chi_tiet_ke_hoach_san_xuat_xuong`
 --
 
-INSERT INTO `chi_tiet_ke_hoach_san_xuat_xuong` (`IdCTKHSXX`, `SoLuong`, `IdKeHoachSanXuatXuong`, `IdNguyenLieu`) VALUES
-('CTKHSXX202311A', 15660, 'KHSXX202311A', 'NL001'),
-('CTKHSXX202311B', 180, 'KHSXX202311A', 'NL002'),
-('CTKHSXX202311C', 180, 'KHSXX202311B', 'NL003'),
-('CTKHSXX202311D', 120, 'KHSXX202311C', 'NL002'),
-('CTKHSXX202311E', 13050, 'KHSXX202311D', 'NL001'),
-('CTKHSXX202312A', 160, 'KHSXX202312A', 'NL003'),
-('CTKHSXX202312B', 140, 'KHSXX202312B', 'NL002');
+-- (Không seed dữ liệu chi tiết nguyên liệu kế hoạch xưởng)
 
 -- --------------------------------------------------------
 
