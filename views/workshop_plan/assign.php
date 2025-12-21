@@ -16,6 +16,14 @@ foreach ($planAssignments as $assignment) {
     $assignedMap[$shiftId][] = $assignment['IdNhanVien'];
 }
 
+$today = date('Y-m-d');
+$shiftsByDate = [];
+foreach ($workShifts as $shift) {
+    $dateKey = $shift['NgayLamViec'] ?? 'unknown';
+    $shiftsByDate[$dateKey][] = $shift;
+}
+ksort($shiftsByDate);
+
 $formatDate = static function (?string $value, string $format = 'd/m/Y'): string {
     if (!$value) {
         return '-';
@@ -68,44 +76,52 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y'): string
             </div>
         </div>
 
-        <div class="row g-4">
-            <?php foreach ($workShifts as $shift): ?>
-                <?php $shiftId = $shift['IdCaLamViec'] ?? ''; ?>
-                <div class="col-lg-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <div class="fw-semibold"><?= htmlspecialchars($shift['TenCa'] ?? $shiftId) ?></div>
-                                    <div class="text-muted small">
-                                        <?= htmlspecialchars($shift['NgayLamViec'] ?? '-') ?>
-                                        <?php if (!empty($shift['ThoiGianBatDau'])): ?>
-                                            • <?= htmlspecialchars($shift['ThoiGianBatDau']) ?>
-                                        <?php endif; ?>
-                                        <?php if (!empty($shift['ThoiGianKetThuc'])): ?>
-                                            → <?= htmlspecialchars($shift['ThoiGianKetThuc']) ?>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                                <span class="badge bg-light text-muted">
-                                    <?= htmlspecialchars($shiftId) ?>
-                                </span>
-                            </div>
-                            <label class="form-label fw-semibold">Nhân sự sản xuất</label>
-                            <select name="assignments[<?= htmlspecialchars($shiftId) ?>][]" class="form-select" multiple size="6">
-                                <?php foreach ($availableEmployees as $employee): ?>
-                                    <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
-                                    <option value="<?= htmlspecialchars($employeeId) ?>" <?= in_array($employeeId, $assignedMap[$shiftId] ?? [], true) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <div class="text-muted small mt-2">Giữ Ctrl/Cmd để chọn nhiều nhân sự.</div>
+        <?php foreach ($shiftsByDate as $dateKey => $shifts): ?>
+            <?php $isToday = $dateKey === $today; ?>
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">Ngày <?= htmlspecialchars($formatDate($dateKey)) ?></div>
+                        <div class="text-muted small">
+                            <?= $isToday ? 'Hôm nay: không chỉnh sửa phân công' : 'Có thể điều chỉnh phân công' ?>
                         </div>
                     </div>
+                    <span class="badge <?= $isToday ? 'bg-secondary-subtle text-secondary' : 'bg-success-subtle text-success' ?>">
+                        <?= $isToday ? 'Đã khóa' : 'Đang mở' ?>
+                    </span>
                 </div>
-            <?php endforeach; ?>
-        </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <?php foreach ($shifts as $shift): ?>
+                            <?php $shiftId = $shift['IdCaLamViec'] ?? ''; ?>
+                            <div class="col-lg-4">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="fw-semibold"><?= htmlspecialchars($shift['TenCa'] ?? $shiftId) ?></div>
+                                    <div class="text-muted small mb-2">
+                                        <?= htmlspecialchars($shift['ThoiGianBatDau'] ?? '-') ?>
+                                        <?= !empty($shift['ThoiGianKetThuc']) ? '→ ' . htmlspecialchars($shift['ThoiGianKetThuc']) : '' ?>
+                                    </div>
+                                    <label class="form-label fw-semibold">Nhân sự</label>
+                                    <select name="assignments[<?= htmlspecialchars($shiftId) ?>][]" class="form-select" multiple size="5" <?= $isToday ? 'disabled' : '' ?>>
+                                        <?php foreach ($availableEmployees as $employee): ?>
+                                            <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
+                                            <option value="<?= htmlspecialchars($employeeId) ?>" <?= in_array($employeeId, $assignedMap[$shiftId] ?? [], true) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <?php if ($isToday): ?>
+                                        <div class="text-muted small mt-2">Phân công hôm nay không chỉnh sửa.</div>
+                                    <?php else: ?>
+                                        <div class="text-muted small mt-2">Giữ Ctrl/Cmd để chọn nhiều nhân sự.</div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
         <div class="d-flex justify-content-end mt-4">
             <button type="submit" class="btn btn-primary px-4">
                 <i class="bi bi-people me-2"></i>Lưu phân công

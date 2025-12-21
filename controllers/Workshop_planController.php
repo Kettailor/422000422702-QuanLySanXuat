@@ -210,6 +210,19 @@ class Workshop_planController extends Controller
             $assignmentsInput = [];
         }
 
+        $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
+        $shiftDateMap = [];
+        foreach ($workShifts as $shift) {
+            $shiftId = $shift['IdCaLamViec'] ?? null;
+            $shiftDateMap[$shiftId] = $shift['NgayLamViec'] ?? null;
+        }
+        $today = date('Y-m-d');
+        foreach ($assignmentsInput as $shiftId => $employees) {
+            if (isset($shiftDateMap[$shiftId]) && $shiftDateMap[$shiftId] === $today) {
+                unset($assignmentsInput[$shiftId]);
+            }
+        }
+
         try {
             $this->planAssignmentModel->replaceForPlanWithShifts($planId, $assignmentsInput, 'nhan_vien_san_xuat');
             $this->setFlash('success', 'Đã cập nhật phân công nhân sự theo ca.');
