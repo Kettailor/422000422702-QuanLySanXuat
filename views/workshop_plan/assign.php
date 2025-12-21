@@ -49,6 +49,10 @@ foreach ($planDates as $dateKey) {
         $shiftsByDate[$dateKey] = [];
     }
 }
+if (!empty($planDates)) {
+    $allowedDates = array_flip($planDates);
+    $shiftsByDate = array_intersect_key($shiftsByDate, $allowedDates);
+}
 ksort($shiftsByDate);
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y'): string {
