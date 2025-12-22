@@ -10,9 +10,20 @@
     .warehouse-form-section {
         border: 1px solid rgba(15, 23, 42, 0.06);
         border-radius: 1rem;
-        padding: 1.25rem;
-        background: #f8fafc;
+        padding: 1.25rem 1.5rem;
+        background: linear-gradient(135deg, #ffffff, #f8fbff);
         height: 100%;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    }
+
+    .warehouse-edit-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .warehouse-form-section + .warehouse-form-section {
+        margin-top: 1rem;
     }
 </style>
 
@@ -28,11 +39,11 @@ $types = $types ?? [];
 <?php else: ?>
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-            <form action="?controller=warehouse&action=update" method="post" class="row g-4">
+            <form action="?controller=warehouse&action=update" method="post" class="warehouse-edit-grid">
                 <input type="hidden" name="IdKho" value="<?= htmlspecialchars($warehouse['IdKho']) ?>">
 
-                <div class="col-lg-8">
-                    <div class="warehouse-form-section mb-3">
+                <div>
+                    <div class="warehouse-form-section">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <div class="text-uppercase small text-muted">Thông tin kho</div>
