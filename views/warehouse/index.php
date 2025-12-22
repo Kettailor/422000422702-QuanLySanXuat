@@ -340,6 +340,15 @@ $lotPrefixMap = [
                                     <input type="text" class="form-control" value="<?= htmlspecialchars($form['document_type']) ?>" readonly>
                                 </div>
                                 <div class="col-md-6">
+                                    <label class="form-label">Loại đối tác <span class="text-danger">*</span></label>
+                                    <select name="LoaiDoiTac" class="form-select" required>
+                                        <option value="Nội bộ">Nội bộ</option>
+                                        <option value="Nhà cung cấp">Nhà cung cấp</option>
+                                        <option value="Khách hàng">Khách hàng</option>
+                                        <option value="Xưởng khác">Xưởng khác</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
                                     <label class="form-label">Mã phiếu <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <input type="text" name="IdPhieu" class="form-control" required placeholder="VD: PN20231101010101" data-field="IdPhieu" data-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>">
@@ -358,6 +367,10 @@ $lotPrefixMap = [
                                     </select>
                                 </div>
                                 <div class="col-md-6">
+                                    <label class="form-label">Đối tác/đơn vị <span class="text-danger">*</span></label>
+                                    <input type="text" name="DoiTac" class="form-control" required value="Nội bộ" placeholder="Ví dụ: Nhà cung cấp linh kiện/khách hàng">
+                                </div>
+                                <div class="col-md-6">
                                     <label class="form-label">Ngày lập phiếu <span class="text-danger">*</span></label>
                                     <input type="date" name="NgayLP" class="form-control" required value="<?= htmlspecialchars($defaultDate) ?>">
                                 </div>
@@ -368,6 +381,10 @@ $lotPrefixMap = [
                                 <div class="col-md-6">
                                     <label class="form-label">Tổng giá trị (đ)</label>
                                     <input type="number" name="TongTien" class="form-control" min="0" step="1000" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Số chứng từ tham chiếu</label>
+                                    <input type="text" name="SoThamChieu" class="form-control" placeholder="PO/Đơn yêu cầu liên quan">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Người lập phiếu <span class="text-danger">*</span></label>
@@ -398,6 +415,14 @@ $lotPrefixMap = [
                                             <option value="" selected>Chưa có nhân viên khả dụng</option>
                                         <?php endif; ?>
                                     </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Lý do/Nội dung nghiệp vụ <span class="text-danger">*</span></label>
+                                    <textarea name="LyDo" class="form-control" rows="2" required placeholder="Mô tả lý do nhập/xuất kho"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Ghi chú bổ sung</label>
+                                    <textarea name="GhiChu" class="form-control" rows="2" placeholder="Điều kiện bảo quản, người giao nhận..."></textarea>
                                 </div>
                                 <div class="col-12"><hr class="text-muted my-2"></div>
                                 <div class="col-12">
@@ -482,13 +507,18 @@ $lotPrefixMap = [
                         <tr>
                             <th>Mã phiếu</th>
                             <th>Loại phiếu</th>
+                            <th>Đối tác</th>
                             <th>Kho</th>
+                            <th>Sản phẩm</th>
                             <th>Ngày lập</th>
                             <th>Ngày xác nhận</th>
                             <th>Người lập</th>
                             <th>Người xác nhận</th>
+                            <th>Tham chiếu</th>
+                            <th>Lý do</th>
                             <th>Tổng tiền</th>
-                            <th>Tổng số lượng</th>
+                            <th>Mặt hàng</th>
+                            <th>Thực nhận</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
                         </thead>
@@ -733,6 +763,12 @@ $lotPrefixMap = [
             var container = document.createElement('div');
             container.className = 'd-flex justify-content-end gap-2';
 
+            var viewLink = document.createElement('a');
+            viewLink.className = 'btn btn-sm btn-outline-secondary';
+            viewLink.href = '?controller=warehouse_sheet&action=read&id=' + encodeURIComponent(id);
+            viewLink.textContent = 'Xem';
+            container.appendChild(viewLink);
+
             var editLink = document.createElement('a');
             editLink.className = 'btn btn-sm btn-outline-primary';
             editLink.href = '?controller=warehouse_sheet&action=edit&id=' + encodeURIComponent(id);
@@ -813,9 +849,19 @@ $lotPrefixMap = [
                 typeCell.textContent = doc.LoaiPhieu || '-';
                 row.appendChild(typeCell);
 
+                var partnerCell = document.createElement('td');
+                var partnerName = doc.DoiTac || '-';
+                var partnerType = doc.LoaiDoiTac || '';
+                partnerCell.innerHTML = '<div class="fw-semibold mb-0">' + partnerName + '</div><div class="text-muted small">' + partnerType + '</div>';
+                row.appendChild(partnerCell);
+
                 var warehouseCell = document.createElement('td');
                 warehouseCell.textContent = doc.TenKho || doc.IdKho || '-';
                 row.appendChild(warehouseCell);
+
+                var productCell = document.createElement('td');
+                productCell.innerHTML = doc.DanhSachSanPham ? ('<div class="text-truncate" style="max-width: 260px;">' + doc.DanhSachSanPham + '</div>') : '-';
+                row.appendChild(productCell);
 
                 var createdCell = document.createElement('td');
                 createdCell.textContent = formatDate(doc.NgayLP);
@@ -833,14 +879,26 @@ $lotPrefixMap = [
                 confirmerCell.textContent = doc.NguoiXacNhan || doc.NHAN_VIENIdNhanVien2 || '-';
                 row.appendChild(confirmerCell);
 
+                var refCell = document.createElement('td');
+                refCell.textContent = doc.SoThamChieu || '-';
+                row.appendChild(refCell);
+
+                var reasonCell = document.createElement('td');
+                reasonCell.textContent = doc.LyDo || '-';
+                row.appendChild(reasonCell);
+
                 var valueCell = document.createElement('td');
                 valueCell.className = 'text-primary fw-semibold';
                 valueCell.textContent = formatNumber(doc.TongTien || 0) + ' đ';
                 row.appendChild(valueCell);
 
                 var quantityCell = document.createElement('td');
-                quantityCell.textContent = formatNumber(doc.TongSoLuong || doc.TongMatHang || 0);
+                quantityCell.textContent = formatNumber(doc.TongMatHang || 0);
                 row.appendChild(quantityCell);
+
+                var receivedCell = document.createElement('td');
+                receivedCell.textContent = formatNumber(doc.TongThucNhan || doc.TongSoLuong || 0);
+                row.appendChild(receivedCell);
 
                 var actionsCell = document.createElement('td');
                 actionsCell.className = 'text-end';

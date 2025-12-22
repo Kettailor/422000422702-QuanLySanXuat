@@ -12,6 +12,45 @@ class InventorySheetDetail extends BaseModel
         return $this->create($payload);
     }
 
+    public function getDetailsByDocument(string $documentId): array
+    {
+        $stmt = $this->db->prepare('SELECT IdTTCTPhieu, DonViTinh, SoLuong, ThucNhan, IdPhieu, IdLo FROM CT_PHIEU WHERE IdPhieu = :id');
+        $stmt->bindValue(':id', $documentId);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    public function getDetailsWithMeta(string $documentId): array
+    {
+        $sql = 'SELECT
+                    CT.IdTTCTPhieu,
+                    CT.DonViTinh,
+                    CT.SoLuong,
+                    CT.ThucNhan,
+                    CT.IdPhieu,
+                    CT.IdLo,
+                    LO.TenLo,
+                    LO.LoaiLo,
+                    LO.IdKho,
+                    KHO.TenKho,
+                    LO.IdSanPham,
+                    SP.TenSanPham,
+                    SP.DonVi
+                FROM CT_PHIEU CT
+                LEFT JOIN LO ON LO.IdLo = CT.IdLo
+                LEFT JOIN KHO ON KHO.IdKho = LO.IdKho
+                LEFT JOIN SAN_PHAM SP ON SP.IdSanPham = LO.IdSanPham
+                WHERE CT.IdPhieu = :id
+                ORDER BY CT.IdTTCTPhieu';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id', $documentId);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
     private function sanitizeDetailPayload(array $data, bool $includeId = false): array
     {
         $fields = [

@@ -593,7 +593,12 @@ CREATE TABLE `phieu` (
   `LoaiPhieu` varchar(255) DEFAULT NULL,
   `IdKho` varchar(50) NOT NULL,
   `NHAN_VIENIdNhanVien` varchar(50) NOT NULL,
-  `NHAN_VIENIdNhanVien2` varchar(50) NOT NULL
+  `NHAN_VIENIdNhanVien2` varchar(50) NOT NULL,
+  `LoaiDoiTac` varchar(50) DEFAULT NULL,
+  `DoiTac` varchar(255) DEFAULT NULL,
+  `SoThamChieu` varchar(100) DEFAULT NULL,
+  `LyDo` varchar(255) DEFAULT NULL,
+  `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
