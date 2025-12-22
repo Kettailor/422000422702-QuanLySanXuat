@@ -142,7 +142,7 @@ $activeRate = $employeeCount > 0 ? round(($activeCount / $employeeCount) * 100, 
                         <div class="table-actions">
                             <a class="btn btn-sm btn-outline-secondary" href="?controller=human_resources&action=read&id=<?= urlencode($employee['IdNhanVien']) ?>">Chi tiết</a>
                             <a class="btn btn-sm btn-outline-primary" href="?controller=human_resources&action=edit&id=<?= urlencode($employee['IdNhanVien']) ?>">Sửa</a>
-                            <a class="btn btn-sm btn-outline-info" href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>">Liên kết</a>
+                            <a class="btn btn-sm btn-outline-info" href="?controller=human_resources&action=read&id=<?= urlencode($employee['IdNhanVien']) ?>">Chi tiết</a>
                             <a class="btn btn-sm btn-outline-danger" href="?controller=human_resources&action=delete&id=<?= urlencode($employee['IdNhanVien']) ?>" onclick="return confirm('Xác nhận xóa nhân sự này?');">Xóa</a>
                         </div>
                     </td>
