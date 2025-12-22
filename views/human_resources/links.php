@@ -37,7 +37,7 @@ $completionBadge = static function (?string $status): string {
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold mb-1">Liên kết nhân sự</h3>
-        <p class="text-muted mb-0">Giao diện tổng hợp lương, chấm công, kế hoạch và giờ làm của nhân sự.</p>
+        <p class="text-muted mb-0">Trung tâm điều phối dữ liệu nhân sự, lương, chấm công và kế hoạch sản xuất.</p>
     </div>
     <a href="?controller=human_resources&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
 </div>
@@ -48,10 +48,11 @@ $completionBadge = static function (?string $status): string {
     <div class="card p-4 mb-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
+                <p class="text-uppercase text-muted small mb-1">Hồ sơ nhân sự</p>
                 <h4 class="fw-bold mb-1"><?= htmlspecialchars($employee['HoTen']) ?></h4>
                 <div class="text-muted">Mã NV: <?= htmlspecialchars($employee['IdNhanVien']) ?> • <?= htmlspecialchars($employee['ChucVu'] ?? '-') ?></div>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
                 <a href="#salary" class="btn btn-outline-info btn-sm">Bảng lương</a>
                 <a href="#timekeeping" class="btn btn-outline-secondary btn-sm">Chấm công</a>
                 <a href="#plans" class="btn btn-outline-primary btn-sm">Kế hoạch</a>
@@ -99,7 +100,13 @@ $completionBadge = static function (?string $status): string {
     </div>
 
     <div class="card p-4 mb-4">
-        <h5 class="fw-semibold mb-3">Bảng lương theo kỳ</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-semibold mb-1">Bảng lương theo kỳ</h5>
+                <p class="text-muted mb-0">Theo dõi thu nhập và trạng thái phê duyệt.</p>
+            </div>
+            <span class="badge bg-light text-dark"><?= number_format($salarySummary['total']) ?> kỳ</span>
+        </div>
         <?php if (!$payrolls): ?>
             <div class="alert alert-light border mb-0">Chưa có dữ liệu bảng lương.</div>
         <?php else: ?>
@@ -141,7 +148,13 @@ $completionBadge = static function (?string $status): string {
     </div>
 
     <div class="card p-4 mb-4" id="timekeeping">
-        <h5 class="fw-semibold mb-3">Chấm công & giờ làm</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-semibold mb-1">Chấm công & giờ làm</h5>
+                <p class="text-muted mb-0">Theo dõi ca làm, tăng ca và ghi chú quản lý.</p>
+            </div>
+            <span class="badge bg-light text-dark"><?= number_format(count($timekeepingEntries)) ?> bản ghi</span>
+        </div>
         <?php if (!$timekeepingEntries): ?>
             <div class="alert alert-light border mb-0">Chưa có dữ liệu chấm công.</div>
         <?php else: ?>
@@ -175,7 +188,13 @@ $completionBadge = static function (?string $status): string {
     </div>
 
     <div class="card p-4" id="plans">
-        <h5 class="fw-semibold mb-3">Kế hoạch & phân công</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-semibold mb-1">Kế hoạch & phân công</h5>
+                <p class="text-muted mb-0">Tổng hợp hạng mục sản xuất được phân công.</p>
+            </div>
+            <span class="badge bg-light text-dark"><?= number_format(count($plans)) ?> hạng mục</span>
+        </div>
         <?php if (!$plans): ?>
             <div class="alert alert-light border mb-0">Chưa có kế hoạch được phân công.</div>
         <?php else: ?>

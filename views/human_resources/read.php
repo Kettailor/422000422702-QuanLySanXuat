@@ -39,7 +39,9 @@
             </div>
             <div class="col-md-4 text-md-end">
                 <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                    <a href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>" class="btn btn-outline-info"><i class="bi bi-link-45deg me-1"></i>Liên kết nghiệp vụ</a>
+                    <a href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>" class="btn btn-primary">
+                        <i class="bi bi-link-45deg me-1"></i>Liên kết nhân sự
+                    </a>
                 </div>
             </div>
         </div>
@@ -85,7 +87,7 @@
                     <dt class="col-sm-6">Đánh giá định kỳ</dt>
                     <dd class="col-sm-6">Cập nhật theo kỳ</dd>
                 </dl>
-                <a href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>" class="btn btn-sm btn-outline-info mt-3">Xem liên kết nghiệp vụ</a>
+                <a href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>" class="btn btn-sm btn-outline-info mt-3">Xem liên kết nhân sự</a>
             </div>
         </div>
     </div>
@@ -94,27 +96,10 @@
         <div class="row g-4">
             <div class="col-md-6">
                 <h6 class="fw-semibold mb-3">Liên kết vận hành</h6>
-                <div class="list-group">
-                    <a href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>#timekeeping" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="fw-semibold">Chấm công & giờ làm</div>
-                            <small class="text-muted">Theo dõi ca làm, tăng ca, nghỉ phép</small>
-                        </div>
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                    <a href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>#plans" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="fw-semibold">Kế hoạch công việc</div>
-                            <small class="text-muted">Liên kết phân bổ nhiệm vụ và mục tiêu</small>
-                        </div>
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                    <a href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>#salary" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="fw-semibold">Bảng lương & phúc lợi</div>
-                            <small class="text-muted">Kiểm soát thu nhập và khấu trừ</small>
-                        </div>
-                        <i class="bi bi-chevron-right"></i>
+                <div class="border rounded p-3 bg-light">
+                    <p class="mb-2 text-muted">Tất cả thông tin lương, chấm công và kế hoạch được gom trong một giao diện riêng.</p>
+                    <a href="?controller=human_resources&action=links&id=<?= urlencode($employee['IdNhanVien']) ?>" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-link-45deg me-1"></i>Mở liên kết nhân sự
                     </a>
                 </div>
             </div>
