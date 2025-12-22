@@ -4,6 +4,7 @@ class InventorySheet extends BaseModel
 {
     protected string $table = 'phieu';
     protected string $primaryKey = 'IdPhieu';
+    private ?array $columnCache = null;
 
     /**
      * Lấy danh sách phiếu nhập/xuất kho cùng thông tin bổ sung.
@@ -23,15 +24,10 @@ class InventorySheet extends BaseModel
 
         $whereClause = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
 
+        $selectFields = $this->buildSelectFields();
+
         $sql = 'SELECT
-                    PHIEU.IdPhieu,
-                    PHIEU.NgayLP,
-                    PHIEU.NgayXN,
-                    PHIEU.TongTien,
-                    PHIEU.LoaiPhieu,
-                    PHIEU.IdKho,
-                    PHIEU.NHAN_VIENIdNhanVien,
-                    PHIEU.NHAN_VIENIdNhanVien2,
+                    ' . implode(",\n                    ", $selectFields) . ',
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan,
@@ -62,7 +58,9 @@ class InventorySheet extends BaseModel
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
 
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll() ?: [];
+
+        return array_map(fn(array $row) => $this->hydrateOptionalColumns($row), $rows);
     }
 
     /**
@@ -101,15 +99,10 @@ class InventorySheet extends BaseModel
 
     public function findDocument(string $id): ?array
     {
+        $selectFields = $this->buildSelectFields();
+
         $sql = 'SELECT
-                    PHIEU.IdPhieu,
-                    PHIEU.NgayLP,
-                    PHIEU.NgayXN,
-                    PHIEU.TongTien,
-                    PHIEU.LoaiPhieu,
-                    PHIEU.IdKho,
-                    PHIEU.NHAN_VIENIdNhanVien,
-                    PHIEU.NHAN_VIENIdNhanVien2,
+                    ' . implode(",\n                    ", $selectFields) . ',
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan
@@ -125,12 +118,12 @@ class InventorySheet extends BaseModel
 
         $document = $stmt->fetch();
 
-        return $document ?: null;
+        return $document ? $this->hydrateOptionalColumns($document) : null;
     }
 
     public function getFormOptions(): array
     {
-        $warehouses = $this->db->query('SELECT IdKho, TenKho FROM KHO ORDER BY TenKho')->fetchAll();
+        $warehouses = $this->db->query('SELECT IdKho, TenKho, TenLoaiKho FROM KHO ORDER BY TenKho')->fetchAll();
         $employees = $this->db->query('SELECT IdNhanVien, HoTen FROM NHAN_VIEN ORDER BY HoTen')->fetchAll();
         $types = $this->db->query('SELECT DISTINCT LoaiPhieu FROM PHIEU ORDER BY LoaiPhieu')->fetchAll(PDO::FETCH_COLUMN) ?: [];
 
@@ -201,12 +194,22 @@ class InventorySheet extends BaseModel
             'IdKho',
             'NHAN_VIENIdNhanVien',
             'NHAN_VIENIdNhanVien2',
+            'LoaiDoiTac',
+            'DoiTac',
+            'SoThamChieu',
+            'LyDo',
+            'GhiChu',
         ];
 
         $payload = [];
+        $available = $this->getColumnMap();
 
         foreach ($fields as $field) {
             if (!$includeId && $field === 'IdPhieu') {
+                continue;
+            }
+
+            if (!isset($available[$field])) {
                 continue;
             }
 
@@ -233,5 +236,65 @@ class InventorySheet extends BaseModel
         }
 
         return $payload;
+    }
+
+    private function hydrateOptionalColumns(array $row): array
+    {
+        $optional = ['LoaiDoiTac', 'DoiTac', 'SoThamChieu', 'LyDo', 'GhiChu'];
+
+        foreach ($optional as $field) {
+            if (!array_key_exists($field, $row)) {
+                $row[$field] = null;
+            }
+        }
+
+        return $row;
+    }
+
+    private function buildSelectFields(): array
+    {
+        $base = [
+            'PHIEU.IdPhieu',
+            'PHIEU.NgayLP',
+            'PHIEU.NgayXN',
+            'PHIEU.TongTien',
+            'PHIEU.LoaiPhieu',
+            'PHIEU.IdKho',
+            'PHIEU.NHAN_VIENIdNhanVien',
+            'PHIEU.NHAN_VIENIdNhanVien2',
+        ];
+
+        $optionalColumns = ['LoaiDoiTac', 'DoiTac', 'SoThamChieu', 'LyDo', 'GhiChu'];
+        $available = $this->getColumnMap();
+
+        foreach ($optionalColumns as $col) {
+            if (isset($available[$col])) {
+                $base[] = 'PHIEU.' . $col;
+            }
+        }
+
+        return $base;
+    }
+
+    private function getColumnMap(): array
+    {
+        if ($this->columnCache !== null) {
+            return $this->columnCache;
+        }
+
+        $sql = 'SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = :table';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':table', $this->table);
+        $stmt->execute();
+
+        $columns = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        $map = [];
+        foreach ($columns as $column) {
+            $map[$column] = true;
+        }
+
+        $this->columnCache = $map;
+
+        return $this->columnCache;
     }
 }
