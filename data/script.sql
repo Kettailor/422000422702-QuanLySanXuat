@@ -1324,6 +1324,7 @@ COMMIT;
 --
 SET FOREIGN_KEY_CHECKS=0;
 INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`, `IdVaiTro`) VALUES
+(`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`, `IdVaiTro`),
 ('NV001', 'Nhân viên 001', '1981-02-02', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 001, Bình Dương', '2016-02-02 08:00:00', NULL, NULL, NULL),
 ('NV002', 'Nhân viên 002', '1982-03-03', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 002, Bình Dương', '2017-03-03 08:00:00', NULL, NULL, NULL),
 ('NV003', 'Nhân viên 003', '1983-04-04', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 003, Bình Dương', '2018-04-04 08:00:00', NULL, NULL, NULL),
@@ -1423,7 +1424,7 @@ INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`
 ('NV097', 'Nhân viên 097', '1997-02-14', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 097, Bình Dương', '2016-02-14 08:00:00', NULL, NULL, NULL),
 ('NV098', 'Nhân viên 098', '1998-03-15', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 098, Bình Dương', '2017-03-15 08:00:00', NULL, NULL, NULL),
 ('NV099', 'Nhân viên 099', '1999-04-16', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 099, Bình Dương', '2018-04-16 08:00:00', NULL, NULL, NULL),
-('NV100', 'Nhân viên 100', '1980-05-17', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 100, Bình Dương', '2019-05-17 08:00:00', NULL, NULL, NULL, NULL);
+('NV100', 'Nhân viên 100', '1980-05-17', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 100, Bình Dương', '2019-05-17 08:00:00', NULL, NULL, NULL);
 
 --
 -- Dữ liệu mẫu cho bảng `nguoi_dung`
