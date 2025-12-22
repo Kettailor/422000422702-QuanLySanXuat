@@ -47,6 +47,22 @@ class WorkShift extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function findShiftForTimestamp(string $timestamp): ?array
+    {
+        $sql = "SELECT ca.*
+                FROM ca_lam ca
+                WHERE :now BETWEEN ca.ThoiGianBatDau AND ca.ThoiGianKetThuc
+                ORDER BY ca.ThoiGianBatDau DESC
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':now', $timestamp);
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
     public function ensureDefaultShiftsForPlan(string $planId, ?string $startTime, ?string $endTime): void
     {
         $startDate = $this->normalizeDate($startTime) ?? date('Y-m-d');
