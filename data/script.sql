@@ -727,6 +727,7 @@ CREATE TABLE `vai_tro` (
 --
 
 INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
+('VT_ADMIN', 'Quản trị hệ thống'),
 ('VT_BAN_GIAM_DOC', 'Ban giám đốc'),
 ('VT_QUANLY_XUONG', 'Xưởng trưởng'),
 ('VT_KETOAN', 'Kế toán'),
@@ -1332,7 +1333,7 @@ COMMIT;
 --
 SET FOREIGN_KEY_CHECKS=0;
 INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`, `IdVaiTro`) VALUES
-('NV001', 'Nhân viên 001', '1981-02-02', 0, 'Quản trị hệ thống', 3, 'Đang làm việc', 'Khu vực 001, Bình Dương', '2016-02-02 08:00:00', NULL, NULL, 'VT_BAN_GIAM_DOC'),
+('NV001', 'Nhân viên 001', '1981-02-02', 0, 'Quản trị hệ thống', 3, 'Đang làm việc', 'Khu vực 001, Bình Dương', '2016-02-02 08:00:00', NULL, NULL, 'VT_ADMIN'),
 ('NV002', 'Nhân viên 002', '1982-03-03', 1, 'Giám đốc điều hành', 4, 'Đang làm việc', 'Khu vực 002, Bình Dương', '2017-03-03 08:00:00', NULL, NULL, 'VT_BAN_GIAM_DOC'),
 ('NV003', 'Nhân viên 003', '1983-04-04', 0, 'Quản lý xưởng', 5, 'Đang làm việc', 'Khu vực 003, Bình Dương', '2018-04-04 08:00:00', NULL, NULL, 'VT_QUANLY_XUONG'),
 ('NV004', 'Nhân viên 004', '1984-05-05', 1, 'Kỹ thuật viên sản xuất', 2, 'Đang làm việc', 'Khu vực 004, Bình Dương', '2019-05-05 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
@@ -1437,7 +1438,7 @@ INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`
 -- Dữ liệu mẫu cho bảng `nguoi_dung`
 --
 INSERT INTO `nguoi_dung` (`IdNguoiDung`, `TenDangNhap`, `MatKhau`, `TrangThai`, `IdNhanVien`, `IdVaiTro`) VALUES
-('ND001', 'user001', 'matkhau@123', 'Hoạt động', 'NV001', 'VT_BAN_GIAM_DOC'),
+('ND001', 'user001', 'matkhau@123', 'Hoạt động', 'NV001', 'VT_ADMIN'),
 ('ND002', 'user002', 'matkhau@123', 'Hoạt động', 'NV002', 'VT_BAN_GIAM_DOC'),
 ('ND003', 'user003', 'matkhau@123', 'Hoạt động', 'NV003', 'VT_NHANVIEN_KHO'),
 ('ND004', 'user004', 'matkhau@123', 'Hoạt động', 'NV004', 'VT_KETOAN'),

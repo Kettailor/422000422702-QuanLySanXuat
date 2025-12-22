@@ -8,7 +8,7 @@ class AccountController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_BAN_GIAM_DOC']);
+        $this->authorize(['VT_ADMIN', 'VT_BAN_GIAM_DOC']);
 
         $this->employeeModel = new Employee();
         $this->userModel = new User();

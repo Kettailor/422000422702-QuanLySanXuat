@@ -8,11 +8,11 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
         return false;
     }
 
-    if ($actualRole === 'VT_BAN_GIAM_DOC' && !$isImpersonating) {
+    if (in_array($actualRole, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true) && !$isImpersonating) {
         return true;
     }
 
-    if ($actualRole === 'VT_BAN_GIAM_DOC' && in_array('VT_BAN_GIAM_DOC', $roles, true)) {
+    if (in_array($actualRole, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true) && array_intersect(['VT_ADMIN', 'VT_BAN_GIAM_DOC'], $roles)) {
         return true;
     }
 
@@ -111,7 +111,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-cash-stack"></i> Bảng lương
             </a>
         <?php endif; ?>
-        <?php if ($actualRole === 'VT_BAN_GIAM_DOC'): ?>
+        <?php if ($actualRole === 'VT_ADMIN'): ?>
             <a class="nav-link <?= $currentController === 'adminImpersonation' ? 'active' : '' ?>" href="?controller=adminImpersonation&action=index">
                 <i class="bi bi-person-badge"></i> Giả lập vai trò
             </a>
@@ -144,7 +144,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                     Đang giả lập: <?= htmlspecialchars($user['TenVaiTro'] ?? $role ?? 'Không xác định') ?>
                 </span>
                 <a href="?impersonation=stop" class="btn btn-outline-warning btn-sm">Hủy giả lập</a>
-            <?php elseif ($actualRole === 'VT_BAN_GIAM_DOC'): ?>
+            <?php elseif ($actualRole === 'VT_ADMIN'): ?>
                 <a href="?controller=adminImpersonation&action=index" class="btn btn-outline-secondary btn-sm">Giả lập vai trò</a>
             <?php endif; ?>
             <div class="search-bar d-none d-md-block">
