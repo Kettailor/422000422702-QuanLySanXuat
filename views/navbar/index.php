@@ -59,7 +59,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             </a>
         <?php endif; ?>
         <?php if ($canAccess(['VT_BAN_GIAM_DOC'])): ?>
-            <a class="nav-link <?= $currentController === 'report' ? 'active' : '' ?>" href="?controller=report&action=i    ndex">
+            <a class="nav-link <?= $currentController === 'report' ? 'active' : '' ?>" href="?controller=report&action=index">
                 <i class="bi bi-file-earmark-bar-graph"></i> Thống Kê Báo Cáo
             </a>
         <?php endif; ?>

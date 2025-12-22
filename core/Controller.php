@@ -99,6 +99,46 @@ abstract class Controller
         include __DIR__ . '/../views/footer.php';
     }
 
+    protected function render_pdf(string $view , array $data = []) : void {
+        $viewFile = __DIR__ . '/../views/' . $view . '.php';
+
+        if (!file_exists($viewFile)) {
+            http_response_code(404);
+            echo '<h1>404 - View not found</h1>';
+            return;
+        }
+
+        extract($data);
+
+        $pageTitle = $data['title'] ?? 'Quản lý sản xuất';
+        $flash = $this->getFlash();
+        $currentUser = $this->currentUser();
+        $notifications = [];
+        if ($currentUser) {
+            $employeeId = $currentUser['IdNhanVien'] ?? null;
+            try {
+                $notificationStore = new NotificationStore();
+                $notifications = array_values(array_filter(
+                    $notificationStore->readAll(),
+                    static function ($entry) use ($employeeId): bool {
+                        if (!is_array($entry)) {
+                            return false;
+                        }
+                        $recipient = $entry['recipient'] ?? null;
+                        if (!$recipient) {
+                            return true;
+                        }
+                        return $employeeId !== null && $recipient === $employeeId;
+                    }
+                ));
+            } catch (Throwable $exception) {
+                $notifications = [];
+            }
+        }
+
+        include $viewFile;
+    }
+
     protected function redirect(string $url): void
     {
         header('Location: ' . $url);
