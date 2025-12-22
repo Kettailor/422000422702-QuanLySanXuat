@@ -348,14 +348,7 @@ $lotPrefixMap = [
                                         <option value="Xưởng khác">Xưởng khác</option>
                                     </select>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Mã phiếu <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <input type="text" name="IdPhieu" class="form-control" required placeholder="VD: PN20231101010101" data-field="IdPhieu" data-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>">
-                                        <button type="button" class="btn btn-outline-secondary" data-action="regenerate-id"><i class="bi bi-arrow-repeat me-1"></i>Tạo mã mới</button>
-                                    </div>
-                                    <div class="form-text">Hệ thống sẽ tự sinh mã theo thời gian khi mở biểu mẫu.</div>
-                                </div>
+                                <input type="hidden" name="IdPhieu" data-field="IdPhieu" data-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>">
                                 <div class="col-md-6">
                                     <label class="form-label">Kho áp dụng <span class="text-danger">*</span></label>
                                     <select name="IdKho" class="form-select" required>
@@ -542,7 +535,6 @@ $lotPrefixMap = [
 
             var idInput = form.querySelector('[data-field="IdPhieu"]');
             var prefix = idInput ? (idInput.dataset.prefix || modalEl.getAttribute('data-entry-prefix') || 'PN') : (modalEl.getAttribute('data-entry-prefix') || 'PN');
-            var regenerateButton = form.querySelector('[data-action="regenerate-id"]');
 
             var lotInput = form.querySelector('[data-field="IdLo"]');
             var lotPrefix = lotInput ? (lotInput.dataset.prefix || form.getAttribute('data-lot-prefix') || 'LO') : (form.getAttribute('data-lot-prefix') || 'LO');
@@ -634,17 +626,13 @@ $lotPrefixMap = [
                 lotInput.value = buildLotId(lotPrefix);
             };
 
-            if (regenerateButton) {
-                regenerateButton.addEventListener('click', function () {
-                    updateId();
-                });
-            }
-
             if (regenerateLotButton) {
                 regenerateLotButton.addEventListener('click', function () {
                     updateLotId();
                 });
             }
+
+            updateId();
 
             var dateInput = form.querySelector('input[name="NgayLP"]');
             var confirmInput = form.querySelector('input[name="NgayXN"]');
