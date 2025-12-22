@@ -18,19 +18,21 @@ $documentCodeText = $documentCode !== '' ? $documentCode : 'Sẽ được tự s
     <div class="card-body p-4">
         <form method="post" action="<?= $actionUrl ?>" class="row g-4">
             <input type="hidden" name="IdPhieu" value="<?= $documentCode ?>">
-            <div class="col-12">
-                <div class="d-flex flex-wrap justify-content-between align-items-start bg-light border rounded-3 p-3">
-                    <div>
-                        <div class="text-uppercase small text-muted mb-1">Mã phiếu</div>
-                        <div class="fw-bold fs-5 mb-1" data-sheet-code><?= $documentCodeText ?></div>
-                        <div class="text-muted small mb-0">Hệ thống tự sinh mã khi chọn loại phiếu hoặc khi lưu. Người dùng không cần nhập tay.</div>
-                    </div>
-                    <div class="text-end">
-                        <span class="badge bg-primary-subtle text-primary border">Tự động sinh mã</span>
-                        <div class="text-muted small mt-1">Phù hợp cho phiếu nhập nguyên liệu, thành phẩm và xử lý lỗi.</div>
+            <?php if ($isEdit): ?>
+                <div class="col-12">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start bg-light border rounded-3 p-3">
+                        <div>
+                            <div class="text-uppercase small text-muted mb-1">Mã phiếu</div>
+                            <div class="fw-bold fs-5 mb-1" data-sheet-code><?= $documentCodeText ?></div>
+                            <div class="text-muted small mb-0">Hệ thống tự sinh mã khi chọn loại phiếu hoặc khi lưu.</div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary-subtle text-primary border">Tự động sinh mã</span>
+                            <div class="text-muted small mt-1">Phù hợp cho phiếu nhập nguyên liệu, thành phẩm và xử lý lỗi.</div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            <?php endif; ?>
 
             <div class="col-lg-7">
                 <div class="border rounded-3 p-3 h-100">
