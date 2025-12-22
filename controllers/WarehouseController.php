@@ -11,7 +11,7 @@ class WarehouseController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_NHANVIEN_KHO', 'VT_QUANLY_XUONG']);
+        $this->authorize(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_QUANLY_XUONG']);
         $this->warehouseModel = new Warehouse();
         $this->lotModel = new InventoryLot();
         $this->sheetModel = new InventorySheet();

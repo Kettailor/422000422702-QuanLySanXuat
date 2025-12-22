@@ -1,6 +1,7 @@
 <?php
 $plans = $plans ?? [];
 $pendingOrders = $pendingOrders ?? [];
+$canManagePlan = $canManagePlan ?? false;
 $stats = array_merge([
     'total_plans' => 0,
     'pending_orders' => 0,
@@ -50,9 +51,11 @@ $badgeForStatus = static function (string $status): string {
         <p class="text-muted mb-0">Theo dõi tiến độ các kế hoạch hiện có và bắt đầu giao việc cho các xưởng dựa trên đơn hàng mới.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <a href="?controller=plan&action=create" class="btn btn-primary btn-lg">
-            <i class="bi bi-magic me-2"></i>Lập kế hoạch mới
-        </a>
+        <?php if ($canManagePlan): ?>
+            <a href="?controller=plan&action=create" class="btn btn-primary btn-lg">
+                <i class="bi bi-magic me-2"></i>Lập kế hoạch mới
+            </a>
+        <?php endif; ?>
         <a href="?controller=factory_plan&action=index" class="btn btn-outline-primary">
             <i class="bi bi-building-gear me-2"></i>Tiến độ xưởng
         </a>
@@ -109,7 +112,11 @@ $badgeForStatus = static function (string $status): string {
                 <span class="text-muted small">Lựa chọn một dòng sản phẩm để bắt đầu lập kế hoạch.</span>
             </div>
             <div class="card-body p-0">
-                <?php if (empty($pendingOrders)): ?>
+                <?php if (!$canManagePlan): ?>
+                    <div class="p-4 text-center text-muted">
+                        Vai trò của bạn chỉ được phép theo dõi kế hoạch sản xuất.
+                    </div>
+                <?php elseif (empty($pendingOrders)): ?>
                     <div class="p-4 text-center text-muted">
                         Tất cả đơn hàng đều đã có kế hoạch.
                     </div>
@@ -171,7 +178,7 @@ $badgeForStatus = static function (string $status): string {
                     </div>
                 <?php endif; ?>
             </div>
-            <?php if (!empty($pendingOrders)): ?>
+            <?php if ($canManagePlan && !empty($pendingOrders)): ?>
                 <div class="card-footer bg-white border-0 text-center">
                     <a class="btn btn-outline-primary w-100" href="?controller=plan&action=create">
                         Xem tất cả để lập kế hoạch

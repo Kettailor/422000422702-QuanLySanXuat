@@ -30,7 +30,7 @@ class Warehouse_sheetController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_NHANVIEN_KHO']);
+        $this->authorize(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG']);
         $this->sheetModel = new InventorySheet();
         $this->lotModel = new InventoryLot();
         $this->sheetDetailModel = new InventorySheetDetail();

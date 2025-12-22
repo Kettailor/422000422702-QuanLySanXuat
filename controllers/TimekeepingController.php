@@ -11,7 +11,7 @@ class TimekeepingController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG']);
+        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG']);
         $this->timekeepingModel = new Timekeeping();
         $this->employeeModel = new Employee();
         $this->workShiftModel = new WorkShift();
@@ -178,7 +178,7 @@ class TimekeepingController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
 
-        if (!in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
+        if (!in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG'], true)) {
             $this->setFlash('danger', 'Bạn không có quyền thực hiện chức năng chấm công.');
             $this->redirect('?controller=dashboard&action=index');
         }
@@ -190,6 +190,10 @@ class TimekeepingController extends Controller
     {
         if ($role === 'VT_BAN_GIAM_DOC') {
             return $this->employeeModel->getActiveEmployees();
+        }
+
+        if ($role === 'VT_KHO_TRUONG') {
+            return $this->employeeModel->getEmployeesByRoleIds(['VT_NHANVIEN_KHO'], 'Đang làm việc');
         }
 
         if (!$employeeId) {
@@ -232,7 +236,9 @@ class TimekeepingController extends Controller
         $user = $this->currentUser();
         $allowedEmployees = $this->getAssignableEmployees($role, $user['IdNhanVien'] ?? null);
         if (empty($allowedEmployees)) {
-            $this->setFlash('danger', 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.');
+            $this->setFlash('danger', $role === 'VT_KHO_TRUONG'
+                ? 'Bạn chỉ có thể chấm công cho nhân viên kho.'
+                : 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.');
             $this->redirect('?controller=timekeeping&action=index');
         }
 
@@ -242,7 +248,9 @@ class TimekeepingController extends Controller
         }));
 
         if (empty($filtered)) {
-            $this->setFlash('danger', 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.');
+            $this->setFlash('danger', $role === 'VT_KHO_TRUONG'
+                ? 'Bạn chỉ có thể chấm công cho nhân viên kho.'
+                : 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.');
             $this->redirect('?controller=timekeeping&action=index');
         }
 

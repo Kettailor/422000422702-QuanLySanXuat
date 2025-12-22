@@ -732,6 +732,7 @@ INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
 ('VT_QUANLY_XUONG', 'Quản lý xưởng'),
 ('VT_NHANVIEN_SANXUAT', 'Nhân viên sản xuất'),
 ('VT_NHANVIEN_KHO', 'Nhân viên kho'),
+('VT_KHO_TRUONG', 'Kho trưởng'),
 ('VT_KETOAN', 'Kế toán'),
 ('VT_KIEM_SOAT_CL', 'Kiểm soát chất lượng'),
 ('VT_KINH_DOANH', 'Nhân viên kinh doanh'),
