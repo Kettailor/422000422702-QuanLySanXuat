@@ -723,17 +723,22 @@ CREATE TABLE `phieu` (
   `LoaiPhieu` varchar(255) DEFAULT NULL,
   `IdKho` varchar(50) NOT NULL,
   `NHAN_VIENIdNhanVien` varchar(50) NOT NULL,
-  `NHAN_VIENIdNhanVien2` varchar(50) NOT NULL
+  `NHAN_VIENIdNhanVien2` varchar(50) NOT NULL,
+  `LoaiDoiTac` varchar(50) DEFAULT NULL,
+  `DoiTac` varchar(255) DEFAULT NULL,
+  `SoThamChieu` varchar(100) DEFAULT NULL,
+  `LyDo` varchar(255) DEFAULT NULL,
+  `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `phieu`
 --
 
-INSERT INTO `phieu` (`IdPhieu`, `NgayLP`, `NgayXN`, `TongTien`, `LoaiPhieu`, `IdKho`, `NHAN_VIENIdNhanVien`, `NHAN_VIENIdNhanVien2`) VALUES
-('PN20231101', '2023-11-05', '2023-11-05', 284000000, 'Phiếu nhập linh kiện switch & PCB', 'KHO01', 'NV004', 'NV006'),
-('PX20231102', '2023-11-12', '2023-11-12', 203850000, 'Phiếu xuất linh kiện cho lắp ráp', 'KHO01', 'NV004', 'NV001'),
-('PX20231103', '2023-11-18', '2023-11-18', 916500000, 'Phiếu xuất thành phẩm SV5TOT', 'KHO02', 'NV005', 'NV002');
+INSERT INTO `phieu` (`IdPhieu`, `NgayLP`, `NgayXN`, `TongTien`, `LoaiPhieu`, `IdKho`, `NHAN_VIENIdNhanVien`, `NHAN_VIENIdNhanVien2`, `LoaiDoiTac`, `DoiTac`, `SoThamChieu`, `LyDo`, `GhiChu`) VALUES
+('PN20231101', '2023-11-05', '2023-11-05', 284000000, 'Phiếu nhập linh kiện switch & PCB', 'KHO01', 'NV004', 'NV006', 'Nhà cung cấp', 'Lotus Components Ltd.', 'PO-LOTUS-1105', 'Nhập lô switch Lotus và PCB theo hợp đồng tháng 11', 'Yêu cầu kiểm tra ESD khi nhập kho'),
+('PX20231102', '2023-11-12', '2023-11-12', 203850000, 'Phiếu xuất linh kiện cho lắp ráp', 'KHO01', 'NV004', 'NV001', 'Xưởng khác', 'Xưởng lắp ráp 1', 'YEUCAU-LR-20231112', 'Xuất linh kiện cấp chuyền lắp ráp đơn SV5TOT 108', 'Ghi nhận giao ca sáng'),
+('PX20231103', '2023-11-18', '2023-11-18', 916500000, 'Phiếu xuất thành phẩm SV5TOT', 'KHO02', 'NV005', 'NV002', 'Khách hàng', 'GearStore VN', 'SO-DELIVERY-20231118', 'Xuất thành phẩm bàn phím SV5TOT theo đơn hàng tháng 11', 'Đóng gói kèm phiếu bảo hành');
 
 -- --------------------------------------------------------
 

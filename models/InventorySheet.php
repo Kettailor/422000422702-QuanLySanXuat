@@ -4,6 +4,8 @@ class InventorySheet extends BaseModel
 {
     protected string $table = 'phieu';
     protected string $primaryKey = 'IdPhieu';
+    private ?array $columnCache = null;
+    private bool $allowOptionalColumns = true;
 
     /**
      * Lấy danh sách phiếu nhập/xuất kho cùng thông tin bổ sung.
@@ -23,46 +25,66 @@ class InventorySheet extends BaseModel
 
         $whereClause = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
 
+        try {
+            $selectFields = $this->buildSelectFields();
+        } catch (PDOException $e) {
+            if ($this->shouldRetryWithoutOptional($e)) {
+                $this->disableOptionalColumns();
+                $selectFields = $this->buildSelectFields();
+            } else {
+                throw $e;
+            }
+        }
+
         $sql = 'SELECT
-                    PHIEU.IdPhieu,
-                    PHIEU.NgayLP,
-                    PHIEU.NgayXN,
-                    PHIEU.TongTien,
-                    PHIEU.LoaiPhieu,
-                    PHIEU.IdKho,
-                    PHIEU.NHAN_VIENIdNhanVien,
-                    PHIEU.NHAN_VIENIdNhanVien2,
+                    ' . implode(",\n                    ", $selectFields) . ',
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan,
                     COALESCE(item_stats.total_items, 0) AS TongMatHang,
                     COALESCE(item_stats.total_quantity, 0) AS TongSoLuong,
-                    COALESCE(item_stats.total_received, 0) AS TongThucNhan
+                    COALESCE(item_stats.total_received, 0) AS TongThucNhan,
+                    COALESCE(item_stats.product_names, "") AS DanhSachSanPham
                 FROM PHIEU
                 JOIN KHO ON KHO.IdKho = PHIEU.IdKho
                 LEFT JOIN NHAN_VIEN NV_LAP ON NV_LAP.IdNhanVien = PHIEU.NHAN_VIENIdNhanVien
                 LEFT JOIN NHAN_VIEN NV_XN ON NV_XN.IdNhanVien = PHIEU.NHAN_VIENIdNhanVien2
                 LEFT JOIN (
                     SELECT
-                        IdPhieu,
-                        COUNT(DISTINCT IdLo) AS total_items,
-                        SUM(SoLuong) AS total_quantity,
-                        SUM(ThucNhan) AS total_received
-                    FROM CT_PHIEU
-                    GROUP BY IdPhieu
+                        CT.IdPhieu,
+                        COUNT(DISTINCT CT.IdLo) AS total_items,
+                        SUM(CT.SoLuong) AS total_quantity,
+                        SUM(CT.ThucNhan) AS total_received,
+                        GROUP_CONCAT(DISTINCT COALESCE(SP.TenSanPham, "") ORDER BY SP.TenSanPham SEPARATOR ", ") AS product_names
+                    FROM CT_PHIEU CT
+                    LEFT JOIN LO ON LO.IdLo = CT.IdLo
+                    LEFT JOIN SAN_PHAM SP ON SP.IdSanPham = LO.IdSanPham
+                    GROUP BY CT.IdPhieu
                 ) AS item_stats ON item_stats.IdPhieu = PHIEU.IdPhieu
                 ' . $whereClause . '
                 ORDER BY PHIEU.NgayLP DESC, PHIEU.IdPhieu DESC
                 LIMIT :limit';
 
-        $stmt = $this->db->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
+        try {
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
 
-        return $stmt->fetchAll();
+            $rows = $stmt->fetchAll() ?: [];
+
+            return array_map(function (array $row): array {
+                return $this->hydrateOptionalColumns($row);
+            }, $rows);
+        } catch (PDOException $e) {
+            if ($this->shouldRetryWithoutOptional($e)) {
+                $this->disableOptionalColumns();
+                return $this->getDocuments($filterType, $limit);
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -101,15 +123,19 @@ class InventorySheet extends BaseModel
 
     public function findDocument(string $id): ?array
     {
+        try {
+            $selectFields = $this->buildSelectFields();
+        } catch (PDOException $e) {
+            if ($this->shouldRetryWithoutOptional($e)) {
+                $this->disableOptionalColumns();
+                $selectFields = $this->buildSelectFields();
+            } else {
+                throw $e;
+            }
+        }
+
         $sql = 'SELECT
-                    PHIEU.IdPhieu,
-                    PHIEU.NgayLP,
-                    PHIEU.NgayXN,
-                    PHIEU.TongTien,
-                    PHIEU.LoaiPhieu,
-                    PHIEU.IdKho,
-                    PHIEU.NHAN_VIENIdNhanVien,
-                    PHIEU.NHAN_VIENIdNhanVien2,
+                    ' . implode(",\n                    ", $selectFields) . ',
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan
@@ -119,18 +145,26 @@ class InventorySheet extends BaseModel
                 LEFT JOIN NHAN_VIEN NV_XN ON NV_XN.IdNhanVien = PHIEU.NHAN_VIENIdNhanVien2
                 WHERE PHIEU.IdPhieu = :id';
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $id);
-        $stmt->execute();
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':id', $id);
+            $stmt->execute();
 
-        $document = $stmt->fetch();
+            $document = $stmt->fetch();
 
-        return $document ?: null;
+            return $document ? $this->hydrateOptionalColumns($document) : null;
+        } catch (PDOException $e) {
+            if ($this->shouldRetryWithoutOptional($e)) {
+                $this->disableOptionalColumns();
+                return $this->findDocument($id);
+            }
+            throw $e;
+        }
     }
 
     public function getFormOptions(): array
     {
-        $warehouses = $this->db->query('SELECT IdKho, TenKho FROM KHO ORDER BY TenKho')->fetchAll();
+        $warehouses = $this->db->query('SELECT IdKho, TenKho, TenLoaiKho FROM KHO ORDER BY TenKho')->fetchAll();
         $employees = $this->db->query('SELECT IdNhanVien, HoTen FROM NHAN_VIEN ORDER BY HoTen')->fetchAll();
         $types = $this->db->query('SELECT DISTINCT LoaiPhieu FROM PHIEU ORDER BY LoaiPhieu')->fetchAll(PDO::FETCH_COLUMN) ?: [];
 
@@ -201,12 +235,22 @@ class InventorySheet extends BaseModel
             'IdKho',
             'NHAN_VIENIdNhanVien',
             'NHAN_VIENIdNhanVien2',
+            'LoaiDoiTac',
+            'DoiTac',
+            'SoThamChieu',
+            'LyDo',
+            'GhiChu',
         ];
 
         $payload = [];
+        $available = $this->getColumnMap();
 
         foreach ($fields as $field) {
             if (!$includeId && $field === 'IdPhieu') {
+                continue;
+            }
+
+            if (!isset($available[$field])) {
                 continue;
             }
 
@@ -233,5 +277,92 @@ class InventorySheet extends BaseModel
         }
 
         return $payload;
+    }
+
+    private function hydrateOptionalColumns(array $row): array
+    {
+        $optional = ['LoaiDoiTac', 'DoiTac', 'SoThamChieu', 'LyDo', 'GhiChu'];
+
+        foreach ($optional as $field) {
+            if (!array_key_exists($field, $row)) {
+                $row[$field] = null;
+            }
+        }
+
+        return $row;
+    }
+
+    private function buildSelectFields(): array
+    {
+        $base = [
+            'PHIEU.IdPhieu',
+            'PHIEU.NgayLP',
+            'PHIEU.NgayXN',
+            'PHIEU.TongTien',
+            'PHIEU.LoaiPhieu',
+            'PHIEU.IdKho',
+            'PHIEU.NHAN_VIENIdNhanVien',
+            'PHIEU.NHAN_VIENIdNhanVien2',
+        ];
+
+        $optionalColumns = ['LoaiDoiTac', 'DoiTac', 'SoThamChieu', 'LyDo', 'GhiChu'];
+        $available = $this->getColumnMap();
+
+        if ($this->allowOptionalColumns) {
+            foreach ($optionalColumns as $col) {
+                if (isset($available[$col])) {
+                    $base[] = 'PHIEU.' . $col;
+                }
+            }
+        }
+
+        return $base;
+    }
+
+    private function getColumnMap(): array
+    {
+        if ($this->columnCache !== null) {
+            return $this->columnCache;
+        }
+
+        $sql = 'SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = :table';
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':table', $this->table);
+            $stmt->execute();
+
+            $columns = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        } catch (Throwable $e) {
+            $columns = [];
+        }
+
+        $map = [];
+        foreach ($columns as $column) {
+            $map[$column] = true;
+        }
+
+        $this->columnCache = $map;
+
+        return $this->columnCache;
+    }
+
+    private function shouldRetryWithoutOptional(PDOException $e): bool
+    {
+        return $e->getCode() === '42S22'
+            || str_contains(strtolower($e->getMessage()), 'unknown column');
+    }
+
+    private function disableOptionalColumns(): void
+    {
+        $this->allowOptionalColumns = false;
+        if ($this->columnCache !== null) {
+            unset(
+                $this->columnCache['LoaiDoiTac'],
+                $this->columnCache['DoiTac'],
+                $this->columnCache['SoThamChieu'],
+                $this->columnCache['LyDo'],
+                $this->columnCache['GhiChu']
+            );
+        }
     }
 }
