@@ -63,12 +63,13 @@ class InventorySheet extends BaseModel
                 ORDER BY PHIEU.NgayLP DESC, PHIEU.IdPhieu DESC
                 LIMIT :limit';
 
-        $stmt = $this->db->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
+        try {
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
 
         $rows = $stmt->fetchAll() ?: [];
 
@@ -136,11 +137,12 @@ class InventorySheet extends BaseModel
                 LEFT JOIN NHAN_VIEN NV_XN ON NV_XN.IdNhanVien = PHIEU.NHAN_VIENIdNhanVien2
                 WHERE PHIEU.IdPhieu = :id';
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $id);
-        $stmt->execute();
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':id', $id);
+            $stmt->execute();
 
-        $document = $stmt->fetch();
+            $document = $stmt->fetch();
 
         return $document ? $this->hydrateOptionalColumns($document) : null;
     }
