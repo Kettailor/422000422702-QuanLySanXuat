@@ -7,7 +7,11 @@ class Self_timekeepingController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO']);
+        $user = $this->currentUser();
+        if (!$user) {
+            $this->setFlash('danger', 'Vui lòng đăng nhập để tiếp tục.');
+            $this->redirect('?controller=auth&action=login');
+        }
         $this->timekeepingModel = new Timekeeping();
         $this->workShiftModel = new WorkShift();
     }
