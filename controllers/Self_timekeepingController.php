@@ -1,0 +1,234 @@
+<?php
+
+class Self_timekeepingController extends Controller
+{
+    private Timekeeping $timekeepingModel;
+    private WorkShift $workShiftModel;
+
+    public function __construct()
+    {
+        $this->authorize(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO']);
+        $this->timekeepingModel = new Timekeeping();
+        $this->workShiftModel = new WorkShift();
+    }
+
+    public function index(): void
+    {
+        if ($this->isMobileRequest()) {
+            $this->redirect('?controller=self_timekeeping&action=mobile');
+            return;
+        }
+
+        $user = $this->currentUser();
+        $employeeId = $user['IdNhanVien'] ?? null;
+        $now = date('Y-m-d H:i:s');
+        $shift = $this->workShiftModel->findShiftForTimestamp($now);
+        $workDate = date('Y-m-d');
+        $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
+        $geofence = $this->getGeofenceConfig();
+
+        $this->render('self_timekeeping/index', [
+            'title' => 'Tự chấm công',
+            'currentUser' => $user,
+            'now' => $now,
+            'shift' => $shift,
+            'openRecord' => $openRecord,
+            'geofence' => $geofence,
+        ]);
+    }
+
+    public function mobile(): void
+    {
+        $user = $this->currentUser();
+        $employeeId = $user['IdNhanVien'] ?? null;
+        $workDate = date('Y-m-d');
+        $now = date('Y-m-d H:i:s');
+        $shift = $this->workShiftModel->findShiftForTimestamp($now);
+        $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
+        $geofence = $this->getGeofenceConfig();
+        $shifts = $this->workShiftModel->getShifts($workDate);
+        $notifications = $this->loadNotifications($employeeId);
+
+        $this->render('self_timekeeping/mobile', [
+            'title' => 'Tự chấm công (Mobile)',
+            'currentUser' => $user,
+            'now' => $now,
+            'shift' => $shift,
+            'openRecord' => $openRecord,
+            'geofence' => $geofence,
+            'shifts' => $shifts,
+            'notifications' => $notifications['all'],
+            'importantNotifications' => $notifications['important'],
+        ]);
+    }
+
+    public function store(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=self_timekeeping&action=index');
+            return;
+        }
+
+        $user = $this->currentUser();
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if (!$employeeId) {
+            $this->setFlash('danger', 'Không xác định được nhân sự để chấm công.');
+            $this->redirect('?controller=self_timekeeping&action=index');
+            return;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $shift = $this->workShiftModel->findShiftForTimestamp($now);
+        if (!$shift) {
+            $this->setFlash('danger', 'Hiện tại không nằm trong ca làm việc nào.');
+            $this->redirect('?controller=self_timekeeping&action=index');
+            return;
+        }
+
+        $latitude = trim($_POST['latitude'] ?? '');
+        $longitude = trim($_POST['longitude'] ?? '');
+        $accuracy = trim($_POST['accuracy'] ?? '');
+        $geofence = $this->getGeofenceConfig();
+
+        if ($geofence) {
+            if ($latitude === '' || $longitude === '' || !is_numeric($latitude) || !is_numeric($longitude)) {
+                $this->setFlash('danger', 'Không xác định được vị trí. Vui lòng bật định vị để chấm công.');
+                $this->redirect('?controller=self_timekeeping&action=index');
+                return;
+            }
+
+            $distance = $this->distanceMeters((float) $latitude, (float) $longitude, $geofence['lat'], $geofence['lng']);
+            if ($distance > $geofence['radius']) {
+                $this->setFlash('danger', 'Bạn đang ở ngoài phạm vi chấm công cho phép.');
+                $this->redirect('?controller=self_timekeeping&action=index');
+                return;
+            }
+        }
+
+        $noteParts = ['Tự chấm công'];
+        if ($latitude !== '' && $longitude !== '') {
+            $noteParts[] = sprintf('Vị trí: %s, %s', $latitude, $longitude);
+        }
+        if ($accuracy !== '') {
+            $noteParts[] = sprintf('Sai số: %sm', $accuracy);
+        }
+        $note = implode(' | ', $noteParts);
+
+        try {
+        $workDate = date('Y-m-d');
+        $openRecord = $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate);
+            if ($openRecord) {
+                $recordId = $openRecord['IdChamCong'] ?? null;
+                if (!$recordId) {
+                    throw new RuntimeException('Không thể xác định bản ghi chấm công.');
+                }
+                $this->timekeepingModel->updateCheckOut($recordId, $now);
+                $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
+            } else {
+                $this->timekeepingModel->createForShift(
+                    $employeeId,
+                    $now,
+                    null,
+                    $shift['IdCaLamViec'],
+                    $note,
+                    $employeeId
+                );
+                $this->setFlash('success', 'Đã ghi nhận giờ vào ca.');
+            }
+        } catch (Throwable $exception) {
+            Logger::error('Không thể tự chấm công: ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể ghi nhận chấm công. Vui lòng thử lại.');
+        }
+
+        $this->redirect('?controller=self_timekeeping&action=index');
+    }
+
+    private function getGeofenceConfig(): ?array
+    {
+        $lat = getenv('TIMEKEEPING_GEOFENCE_LAT');
+        $lng = getenv('TIMEKEEPING_GEOFENCE_LNG');
+        $radius = getenv('TIMEKEEPING_GEOFENCE_RADIUS');
+
+        if ($lat === false || $lng === false || $radius === false) {
+            return null;
+        }
+
+        if (!is_numeric($lat) || !is_numeric($lng) || !is_numeric($radius)) {
+            return null;
+        }
+
+        return [
+            'lat' => (float) $lat,
+            'lng' => (float) $lng,
+            'radius' => (float) $radius,
+        ];
+    }
+
+    private function distanceMeters(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371000;
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lonDelta = deg2rad($lon2 - $lon1);
+        $a = sin($latDelta / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lonDelta / 2) ** 2;
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return $earthRadius * $c;
+    }
+
+    private function loadNotifications(?string $employeeId): array
+    {
+        $store = new NotificationStore();
+        $entries = $store->readAll();
+
+        $filtered = array_values(array_filter($entries, static function ($entry) use ($employeeId): bool {
+            if (!is_array($entry)) {
+                return false;
+            }
+            $recipient = $entry['recipient'] ?? null;
+            if (!$recipient) {
+                return true;
+            }
+            return $employeeId !== null && $recipient === $employeeId;
+        }));
+
+        usort($filtered, static function ($a, $b): int {
+            $aTime = strtotime($a['created_at'] ?? '') ?: 0;
+            $bTime = strtotime($b['created_at'] ?? '') ?: 0;
+            return $bTime <=> $aTime;
+        });
+
+        $important = array_values(array_filter($filtered, static function ($entry): bool {
+            $metadata = $entry['metadata'] ?? [];
+            $priority = $metadata['priority'] ?? $metadata['level'] ?? null;
+            if (is_string($priority) && in_array(strtolower($priority), ['high', 'important', 'urgent'], true)) {
+                return true;
+            }
+            return !empty($metadata['important']);
+        }));
+
+        return [
+            'all' => $filtered,
+            'important' => $important,
+        ];
+    }
+
+    private function isMobileRequest(): bool
+    {
+        $userAgent = strtolower((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+        if ($userAgent === '') {
+            return false;
+        }
+
+        $keywords = [
+            'iphone', 'ipod', 'android', 'blackberry', 'nokia', 'opera mini',
+            'windows phone', 'mobile', 'tablet', 'ipad',
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($userAgent, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

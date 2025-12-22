@@ -43,10 +43,11 @@ class TimekeepingController extends Controller
     public function create(): void
     {
         $shiftId = $_GET['shift_id'] ?? null;
-        $workDate = $_GET['work_date'] ?? null;
+        $workDate = date('Y-m-d');
         $shift = $shiftId ? $this->workShiftModel->find($shiftId) : null;
         $employees = $this->employeeModel->getActiveEmployees();
         $shifts = $this->workShiftModel->getShifts($workDate);
+        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate);
 
         $this->render('timekeeping/create', [
             'title' => 'Ghi nhận chấm công',
@@ -55,6 +56,7 @@ class TimekeepingController extends Controller
             'workDate' => $workDate,
             'shifts' => $shifts,
             'employees' => $employees,
+            'entries' => $entries,
             'defaultCheckIn' => date('Y-m-d\TH:i'),
             'defaultCheckOut' => date('Y-m-d\TH:i'),
         ]);
@@ -67,13 +69,16 @@ class TimekeepingController extends Controller
             return;
         }
 
-        $employeeId = trim($_POST['employee_id'] ?? '');
+        $employeeInput = $_POST['employee_id'] ?? [];
         $shiftId = trim($_POST['shift_id'] ?? '');
         $checkIn = $_POST['check_in'] ?? '';
         $checkOut = $_POST['check_out'] ?? null;
         $note = trim($_POST['note'] ?? '');
 
-        if ($employeeId === '' || $checkIn === '' || $shiftId === '') {
+        $employeeIds = is_array($employeeInput) ? $employeeInput : [$employeeInput];
+        $employeeIds = array_values(array_filter(array_map('trim', $employeeIds), static fn($value) => $value !== ''));
+
+        if ($employeeIds === [] || $checkIn === '' || $shiftId === '') {
             $this->setFlash('danger', 'Vui lòng chọn ca làm việc, nhân viên và thời gian vào ca.');
             $this->redirect($this->buildRedirect(null, null));
             return;
@@ -95,18 +100,38 @@ class TimekeepingController extends Controller
             return;
         }
 
+        $workDate = date('Y-m-d');
+        $checkInTimestamp = strtotime($normalizedCheckIn);
+        $workDateTimestamp = strtotime($workDate . ' 00:00:00');
+        if ($checkInTimestamp === false || $workDateTimestamp === false) {
+            $this->setFlash('danger', 'Không thể xác định thời gian chấm công hợp lệ.');
+            $this->redirect($this->buildRedirect(null, null));
+            return;
+        }
+
+        if (date('Y-m-d', $checkInTimestamp) !== $workDate || $checkInTimestamp < $workDateTimestamp) {
+            $this->setFlash('danger', 'Giờ vào phải nằm trong khoảng từ 00:00 đến 23:59 của ngày hôm nay.');
+            $this->redirect($this->buildRedirect($shiftId, $workDate));
+            return;
+        }
+
         try {
             $currentUser = $this->currentUser();
             $supervisorId = $currentUser['IdNhanVien'] ?? null;
-            $this->timekeepingModel->createForShift(
-                $employeeId,
-                $normalizedCheckIn,
-                $normalizedCheckOut,
-                $shiftId,
-                $note,
-                $supervisorId
-            );
-            $this->setFlash('success', 'Đã ghi nhận chấm công cho nhân sự.');
+            foreach ($employeeIds as $employeeId) {
+                $created = $this->timekeepingModel->createForShift(
+                    $employeeId,
+                    $normalizedCheckIn,
+                    $normalizedCheckOut,
+                    $shiftId,
+                    $note,
+                    $supervisorId
+                );
+                if (!$created) {
+                    throw new RuntimeException('Không thể lưu chấm công cho nhân viên ' . $employeeId);
+                }
+            }
+            $this->setFlash('success', 'Đã ghi nhận chấm công cho ' . count($employeeIds) . ' nhân sự.');
         } catch (Throwable $exception) {
             Logger::error('Không thể ghi nhận chấm công: ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể ghi nhận chấm công. Vui lòng thử lại.');

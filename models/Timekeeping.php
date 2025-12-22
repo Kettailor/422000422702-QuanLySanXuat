@@ -120,4 +120,42 @@ class Timekeeping extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getOpenRecordForEmployee(string $employeeId, ?string $workDate = null): ?array
+    {
+        $conditions = ['cc.`NHANVIEN IdNhanVien` = :employeeId', 'cc.`ThoiGIanRa` IS NULL'];
+        $bindings = [':employeeId' => $employeeId];
+
+        if ($workDate) {
+            $conditions[] = 'DATE(cc.`ThoiGianVao`) = :workDate';
+            $bindings[':workDate'] = $workDate;
+        }
+
+        $where = 'WHERE ' . implode(' AND ', $conditions);
+        $sql = "SELECT cc.*
+                FROM cham_cong cc
+                {$where}
+                ORDER BY cc.`ThoiGianVao` DESC
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
+    public function updateCheckOut(string $recordId, string $checkOut): bool
+    {
+        $sql = "UPDATE cham_cong
+                SET `ThoiGIanRa` = :checkOut
+                WHERE `IdChamCong` = :recordId";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':checkOut', $checkOut);
+        $stmt->bindValue(':recordId', $recordId);
+        return $stmt->execute();
+    }
+
 }
