@@ -25,6 +25,18 @@ class WorkshopPlanAssignment extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getPlanIdsByEmployee(string $employeeId): array
+    {
+        $sql = 'SELECT DISTINCT IdKeHoachSanXuatXuong
+                FROM phan_cong_ke_hoach_xuong
+                WHERE IdNhanVien = :employeeId';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employeeId', $employeeId);
+        $stmt->execute();
+
+        return array_values(array_filter(array_column($stmt->fetchAll(), 'IdKeHoachSanXuatXuong')));
+    }
+
     public function replaceForPlanWithShifts(string $planId, array $assignmentsByShift, string $role = 'nhan_vien_san_xuat'): void
     {
         $this->db->beginTransaction();

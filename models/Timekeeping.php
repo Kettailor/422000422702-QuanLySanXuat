@@ -62,7 +62,8 @@ class Timekeeping extends BaseModel
         ?string $shiftId = null,
         ?string $workDate = null,
         ?string $workshopId = null,
-        ?string $planId = null
+        ?string $planId = null,
+        ?string $employeeId = null
     ): array
     {
         $conditions = [];
@@ -86,6 +87,11 @@ class Timekeeping extends BaseModel
         if ($planId) {
             $conditions[] = 'kx.IdKeHoachSanXuatXuong = :planId';
             $bindings[':planId'] = $planId;
+        }
+
+        if ($employeeId) {
+            $conditions[] = 'cc.`NHANVIEN IdNhanVien` = :employeeId';
+            $bindings[':employeeId'] = $employeeId;
         }
 
         $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';

@@ -2,6 +2,7 @@
 $summary = $summary ?? ['total' => 0, 'pending' => 0, 'approved' => 0, 'paid' => 0, 'total_amount' => 0.0];
 $pending = $pending ?? [];
 $permissions = $permissions ?? ['canManage' => false, 'canApprove' => false];
+$employeeFilter = $employeeFilter ?? null;
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -18,6 +19,17 @@ $permissions = $permissions ?? ['canManage' => false, 'canApprove' => false];
         </div>
     <?php endif; ?>
 </div>
+
+<?php if ($employeeFilter): ?>
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="bi bi-person-badge me-2"></i>
+        <div>
+            Đang xem bảng lương của <strong><?= htmlspecialchars($employeeFilter['HoTen'] ?? '') ?></strong>
+            (<?= htmlspecialchars($employeeFilter['IdNhanVien'] ?? '') ?>).
+            <a href="?controller=salary&action=index" class="alert-link ms-2">Xóa bộ lọc</a>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-sm-6">

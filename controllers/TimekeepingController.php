@@ -7,26 +7,31 @@ class TimekeepingController extends Controller
     private WorkShift $workShiftModel;
     private Workshop $workshopModel;
     private WorkshopPlan $workshopPlanModel;
+    private WorkshopAssignment $assignmentModel;
 
     public function __construct()
     {
-        $this->authorize(['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG']);
+        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG']);
         $this->timekeepingModel = new Timekeeping();
         $this->employeeModel = new Employee();
         $this->workShiftModel = new WorkShift();
         $this->workshopModel = new Workshop();
         $this->workshopPlanModel = new WorkshopPlan();
+        $this->assignmentModel = new WorkshopAssignment();
     }
 
     public function index(): void
     {
+        $this->requireTimekeepingPermission();
         $workDate = $_GET['work_date'] ?? null;
         $workshopId = $_GET['workshop_id'] ?? null;
         $planId = $_GET['plan_id'] ?? null;
-        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, $workshopId, $planId);
+        $employeeId = $_GET['employee_id'] ?? null;
+        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, $workshopId, $planId, $employeeId);
         $shifts = $this->workShiftModel->getShifts($workDate);
         $workshops = $this->workshopModel->getAllWithManagers();
         $plans = $this->workshopPlanModel->getDetailedPlans(200);
+        $employee = $employeeId ? $this->employeeModel->find($employeeId) : null;
 
         $this->render('timekeeping/index', [
             'title' => 'Nhật ký chấm công',
@@ -35,6 +40,7 @@ class TimekeepingController extends Controller
             'shifts' => $shifts,
             'workshopId' => $workshopId,
             'planId' => $planId,
+            'employeeFilter' => $employee,
             'workshops' => $workshops,
             'plans' => $plans,
         ]);
@@ -42,12 +48,14 @@ class TimekeepingController extends Controller
 
     public function create(): void
     {
+        $role = $this->requireTimekeepingPermission();
         $shiftId = $_GET['shift_id'] ?? null;
         $workDate = date('Y-m-d');
         $shift = $shiftId ? $this->workShiftModel->find($shiftId) : null;
-        $employees = $this->employeeModel->getActiveEmployees();
+        $user = $this->currentUser();
+        $employees = $this->getAssignableEmployees($role, $user['IdNhanVien'] ?? null);
         $shifts = $this->workShiftModel->getShifts($workDate);
-        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate);
+        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, null, null, null);
 
         $this->render('timekeeping/create', [
             'title' => 'Ghi nhận chấm công',
@@ -69,6 +77,7 @@ class TimekeepingController extends Controller
             return;
         }
 
+        $role = $this->requireTimekeepingPermission();
         $employeeInput = $_POST['employee_id'] ?? [];
         $shiftId = trim($_POST['shift_id'] ?? '');
         $checkIn = $_POST['check_in'] ?? '';
@@ -77,6 +86,7 @@ class TimekeepingController extends Controller
 
         $employeeIds = is_array($employeeInput) ? $employeeInput : [$employeeInput];
         $employeeIds = array_values(array_filter(array_map('trim', $employeeIds), static fn($value) => $value !== ''));
+        $employeeIds = $this->filterAssignableEmployeeIds($employeeIds, $role);
 
         if ($employeeIds === [] || $checkIn === '' || $shiftId === '') {
             $this->setFlash('danger', 'Vui lòng chọn ca làm việc, nhân viên và thời gian vào ca.');
@@ -161,5 +171,81 @@ class TimekeepingController extends Controller
         }
 
         return '?controller=timekeeping&action=index';
+    }
+
+    private function requireTimekeepingPermission(): string
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+
+        if (!in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
+            $this->setFlash('danger', 'Bạn không có quyền thực hiện chức năng chấm công.');
+            $this->redirect('?controller=dashboard&action=index');
+        }
+
+        return $role ?? '';
+    }
+
+    private function getAssignableEmployees(string $role, ?string $employeeId): array
+    {
+        if ($role === 'VT_BAN_GIAM_DOC') {
+            return $this->employeeModel->getActiveEmployees();
+        }
+
+        if (!$employeeId) {
+            return [];
+        }
+
+        $managedWorkshops = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
+        if (empty($managedWorkshops)) {
+            return [];
+        }
+
+        $employees = [];
+        foreach ($managedWorkshops as $workshopId) {
+            $assignments = $this->assignmentModel->getAssignmentsByWorkshop($workshopId);
+            foreach (['nhan_vien_kho', 'nhan_vien_san_xuat'] as $group) {
+                foreach ($assignments[$group] ?? [] as $employee) {
+                    $id = $employee['IdNhanVien'] ?? null;
+                    if (!$id) {
+                        continue;
+                    }
+                    $employees[$id] = $employee;
+                }
+            }
+        }
+
+        $employees = array_values($employees);
+        usort($employees, static function (array $a, array $b): int {
+            return strcmp($a['HoTen'] ?? '', $b['HoTen'] ?? '');
+        });
+
+        return $employees;
+    }
+
+    private function filterAssignableEmployeeIds(array $employeeIds, string $role): array
+    {
+        if ($role === 'VT_BAN_GIAM_DOC') {
+            return $employeeIds;
+        }
+
+        $user = $this->currentUser();
+        $allowedEmployees = $this->getAssignableEmployees($role, $user['IdNhanVien'] ?? null);
+        if (empty($allowedEmployees)) {
+            $this->setFlash('danger', 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.');
+            $this->redirect('?controller=timekeeping&action=index');
+        }
+
+        $allowedIds = array_fill_keys(array_column($allowedEmployees, 'IdNhanVien'), true);
+        $filtered = array_values(array_filter($employeeIds, static function (string $id) use ($allowedIds): bool {
+            return isset($allowedIds[$id]);
+        }));
+
+        if (empty($filtered)) {
+            $this->setFlash('danger', 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.');
+            $this->redirect('?controller=timekeeping&action=index');
+        }
+
+        return $filtered;
     }
 }

@@ -11,9 +11,15 @@ class Impersonation
             return;
         }
 
+        $resolved = self::resolveRole($role['IdVaiTro']);
+        if (!$resolved) {
+            unset($_SESSION[self::SESSION_KEY]);
+            return;
+        }
+
         $_SESSION[self::SESSION_KEY] = [
-            'IdVaiTro' => $role['IdVaiTro'],
-            'TenVaiTro' => $role['TenVaiTro'] ?? null,
+            'IdVaiTro' => $resolved['IdVaiTro'],
+            'TenVaiTro' => $resolved['TenVaiTro'] ?? null,
         ];
     }
 
@@ -24,11 +30,16 @@ class Impersonation
             return null;
         }
 
-        if (!array_key_exists('TenVaiTro', $role)) {
-            $role['TenVaiTro'] = null;
+        $resolved = self::resolveRole($role['IdVaiTro']);
+        if (!$resolved) {
+            self::clear();
+            return null;
         }
 
-        return $role;
+        return [
+            'IdVaiTro' => $resolved['IdVaiTro'],
+            'TenVaiTro' => $resolved['TenVaiTro'] ?? null,
+        ];
     }
 
     public static function clear(): void
@@ -73,5 +84,19 @@ class Impersonation
         $user['IsImpersonating'] = true;
 
         return $user;
+    }
+
+    private static function resolveRole(string $roleId): ?array
+    {
+        $roleModel = new Role();
+        $role = $roleModel->find($roleId);
+        if (!$role) {
+            return null;
+        }
+
+        return [
+            'IdVaiTro' => $role['IdVaiTro'] ?? $roleId,
+            'TenVaiTro' => $role['TenVaiTro'] ?? $roleId,
+        ];
     }
 }

@@ -2,6 +2,7 @@
 $groupedPlans = $groupedPlans ?? [];
 $workshops = $workshops ?? [];
 $selectedWorkshop = $selectedWorkshop ?? null;
+$employeeFilter = $employeeFilter ?? null;
 
 $totalWorkshops = count($groupedPlans);
 $totalItems = array_reduce($groupedPlans, static function (int $carry, array $group): int {
@@ -57,6 +58,9 @@ $statusBadge = static function (string $status): string {
     <form class="d-flex align-items-center gap-2 bg-white shadow-sm border rounded-3 px-3 py-2" method="get">
         <input type="hidden" name="controller" value="factory_plan">
         <input type="hidden" name="action" value="index">
+        <?php if ($employeeFilter): ?>
+            <input type="hidden" name="employee_id" value="<?= htmlspecialchars($employeeFilter['IdNhanVien'] ?? '') ?>">
+        <?php endif; ?>
         <label class="text-muted small mb-0">Lọc xưởng</label>
         <select name="workshop_id" class="form-select" onchange="this.form.submit()">
             <option value="">Tất cả</option>
@@ -69,6 +73,17 @@ $statusBadge = static function (string $status): string {
         </select>
     </form>
 </div>
+
+<?php if ($employeeFilter): ?>
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="bi bi-person-badge me-2"></i>
+        <div>
+            Đang theo dõi kế hoạch của <strong><?= htmlspecialchars($employeeFilter['HoTen'] ?? '') ?></strong>
+            (<?= htmlspecialchars($employeeFilter['IdNhanVien'] ?? '') ?>).
+            <a href="?controller=factory_plan&action=index" class="alert-link ms-2">Xóa bộ lọc</a>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div class="row g-3 mb-4">
     <div class="col-lg-3 col-sm-6">

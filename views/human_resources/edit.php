@@ -32,6 +32,18 @@
                 <input type="text" name="ChucVu" class="form-control" value="<?= htmlspecialchars($employee['ChucVu']) ?>">
             </div>
             <div class="col-md-6">
+                <label class="form-label">Vai trò hệ thống</label>
+                <select name="IdVaiTro" class="form-select">
+                    <option value="">Chọn vai trò</option>
+                    <?php foreach ($roles ?? [] as $role): ?>
+                        <?php $roleId = $role['IdVaiTro'] ?? ''; ?>
+                        <option value="<?= htmlspecialchars($roleId) ?>" <?= $roleId === ($employee['IdVaiTro'] ?? '') ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($role['TenVaiTro'] ?? $roleId) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-6">
                 <label class="form-label">Hệ số lương</label>
                 <input type="number" name="HeSoLuong" class="form-control" value="<?= $employee['HeSoLuong'] ?>">
             </div>
