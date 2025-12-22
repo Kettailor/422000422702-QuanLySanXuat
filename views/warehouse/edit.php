@@ -7,13 +7,20 @@
 </div>
 
 <style>
+    .warehouse-edit-wrapper {
+        background: #f3f6fb;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
     .warehouse-form-section {
         border: 1px solid rgba(15, 23, 42, 0.06);
         border-radius: 1rem;
         padding: 1.25rem 1.5rem;
-        background: linear-gradient(135deg, #ffffff, #f8fbff);
+        background: linear-gradient(135deg, #ffffff, #f9fbff);
         height: 100%;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
     }
 
     .warehouse-edit-grid {
@@ -39,7 +46,8 @@ $types = $types ?? [];
 <?php else: ?>
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-            <form action="?controller=warehouse&action=update" method="post" class="warehouse-edit-grid">
+            <div class="warehouse-edit-wrapper">
+                <form action="?controller=warehouse&action=update" method="post" class="warehouse-edit-grid">
                 <input type="hidden" name="IdKho" value="<?= htmlspecialchars($warehouse['IdKho']) ?>">
 
                 <div>
@@ -145,7 +153,8 @@ $types = $types ?? [];
                 <div class="col-12 text-end">
                     <button class="btn btn-primary px-4" type="submit">Cập nhật kho SV5TOT</button>
                 </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 <?php endif; ?>
