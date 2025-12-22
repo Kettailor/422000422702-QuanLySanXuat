@@ -22,6 +22,7 @@
     $birthDate = $employee['NgaySinh'] ? date('d/m/Y', strtotime($employee['NgaySinh'])) : '-';
     $salaryCoefficient = number_format((float) ($employee['HeSoLuong'] ?? 0), 2, ',', '.');
     $address = $employee['DiaChi'] ? htmlspecialchars($employee['DiaChi']) : '-';
+    $roleName = $role['TenVaiTro'] ?? ($employee['IdVaiTro'] ?? 'Chưa phân quyền');
     ?>
 
     <div class="card p-4 mb-4">
@@ -66,6 +67,8 @@
                 <dl class="row mb-0">
                     <dt class="col-sm-5">Chức vụ</dt>
                     <dd class="col-sm-7"><?= htmlspecialchars($employee['ChucVu']) ?></dd>
+                    <dt class="col-sm-5">Vai trò hệ thống</dt>
+                    <dd class="col-sm-7"><?= htmlspecialchars($roleName) ?></dd>
                     <dt class="col-sm-5">Ngày vào làm</dt>
                     <dd class="col-sm-7"><?= $startDate ?></dd>
                     <dt class="col-sm-5">Trạng thái</dt>

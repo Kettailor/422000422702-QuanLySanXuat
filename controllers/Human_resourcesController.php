@@ -3,11 +3,13 @@
 class Human_resourcesController extends Controller
 {
     private Employee $employeeModel;
+    private Role $roleModel;
 
     public function __construct()
     {
         $this->authorize(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU']);
         $this->employeeModel = new Employee();
+        $this->roleModel = new Role();
     }
 
     public function index(): void
@@ -23,6 +25,7 @@ class Human_resourcesController extends Controller
     {
         $this->render('human_resources/create', [
             'title' => 'Thêm nhân sự',
+            'roles' => $this->roleModel->all(200),
         ]);
     }
 
@@ -42,6 +45,7 @@ class Human_resourcesController extends Controller
             'TrangThai' => $_POST['TrangThai'] ?? 'Đang làm việc',
             'DiaChi' => $_POST['DiaChi'] ?? null,
             'ThoiGianLamViec' => $_POST['ThoiGianLamViec'] ?? date('Y-m-d H:i:s'),
+            'IdVaiTro' => $_POST['IdVaiTro'] ?? null,
             'ChuKy' => null,
         ];
 
@@ -65,6 +69,7 @@ class Human_resourcesController extends Controller
         $this->render('human_resources/edit', [
             'title' => 'Cập nhật nhân sự',
             'employee' => $employee,
+            'roles' => $this->roleModel->all(200),
         ]);
     }
 
@@ -84,6 +89,7 @@ class Human_resourcesController extends Controller
             'TrangThai' => $_POST['TrangThai'] ?? 'Đang làm việc',
             'DiaChi' => $_POST['DiaChi'] ?? null,
             'ThoiGianLamViec' => $_POST['ThoiGianLamViec'] ?? date('Y-m-d H:i:s'),
+            'IdVaiTro' => $_POST['IdVaiTro'] ?? null,
         ];
 
         try {
@@ -119,9 +125,14 @@ class Human_resourcesController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $employee = $id ? $this->employeeModel->find($id) : null;
+        $role = null;
+        if ($employee && !empty($employee['IdVaiTro'])) {
+            $role = $this->roleModel->find($employee['IdVaiTro']);
+        }
         $this->render('human_resources/read', [
             'title' => 'Chi tiết nhân sự',
             'employee' => $employee,
+            'role' => $role,
         ]);
     }
 }
