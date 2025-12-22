@@ -5,12 +5,13 @@ class Timekeeping extends BaseModel
     protected string $table = 'cham_cong';
     protected string $primaryKey = 'IdChamCong';
 
-    public function createForPlan(
+    public function createForShift(
         string $employeeId,
         string $checkIn,
         ?string $checkOut,
-        ?string $planId,
-        ?string $note = null
+        string $shiftId,
+        ?string $note = null,
+        ?string $supervisorId = null
     ): bool {
         $recordId = uniqid('CC');
         $payload = [
@@ -18,7 +19,9 @@ class Timekeeping extends BaseModel
             'NHANVIEN IdNhanVien' => $employeeId,
             'ThoiGianVao' => $checkIn,
             'ThoiGIanRa' => $checkOut,
-            'GhiChu' => $this->buildNote($planId, $note),
+            'IdCaLamViec' => $shiftId,
+            'GhiChu' => $note ? trim($note) : null,
+            'XUONGTRUONG IdNhanVien' => $supervisorId,
         ];
 
         return $this->create($payload);
@@ -30,14 +33,15 @@ class Timekeeping extends BaseModel
         $bindings = [];
 
         if ($planId) {
-            $conditions[] = 'GhiChu LIKE :planPattern';
-            $bindings[':planPattern'] = '%PLAN:' . $planId . '%';
+            $conditions[] = 'ca.`IdKeHoachSanXuatXuong` = :planId';
+            $bindings[':planId'] = $planId;
         }
 
         $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
 
-        $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien
+        $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien, ca.TenCa, ca.NgayLamViec
                 FROM cham_cong cc
+                LEFT JOIN ca_lam ca ON ca.IdCaLamViec = cc.`IdCaLamViec`
                 LEFT JOIN nhan_vien nv ON nv.IdNhanVien = cc.`NHANVIEN IdNhanVien`
                 {$where}
                 ORDER BY cc.`ThoiGianVao` DESC
@@ -53,20 +57,44 @@ class Timekeeping extends BaseModel
         return $stmt->fetchAll();
     }
 
-    private function buildNote(?string $planId, ?string $note): ?string
+    public function getRecentRecords(int $limit = 100, ?string $shiftId = null, ?string $workDate = null): array
     {
-        $segments = [];
-        if ($planId) {
-            $segments[] = 'PLAN:' . $planId;
-        }
-        if ($note) {
-            $segments[] = trim($note);
+        $conditions = [];
+        $bindings = [];
+
+        if ($shiftId) {
+            $conditions[] = 'cc.`IdCaLamViec` = :shiftId';
+            $bindings[':shiftId'] = $shiftId;
         }
 
-        if (empty($segments)) {
-            return null;
+        if ($workDate) {
+            $conditions[] = 'ca.NgayLamViec = :workDate';
+            $bindings[':workDate'] = $workDate;
         }
 
-        return implode(' | ', $segments);
+        $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
+
+        $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien,
+                       ca.TenCa,
+                       ca.LoaiCa,
+                       ca.NgayLamViec,
+                       ca.ThoiGianBatDau,
+                       ca.ThoiGianKetThuc
+                FROM cham_cong cc
+                LEFT JOIN nhan_vien nv ON nv.IdNhanVien = cc.`NHANVIEN IdNhanVien`
+                LEFT JOIN ca_lam ca ON ca.IdCaLamViec = cc.`IdCaLamViec`
+                {$where}
+                ORDER BY cc.`ThoiGianVao` DESC
+                LIMIT :limit";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
     }
+
 }

@@ -70,6 +70,29 @@ abstract class Controller
 
         $pageTitle = $data['title'] ?? 'Quản lý sản xuất';
         $flash = $this->getFlash();
+        $currentUser = $this->currentUser();
+        $notifications = [];
+        if ($currentUser) {
+            $employeeId = $currentUser['IdNhanVien'] ?? null;
+            try {
+                $notificationStore = new NotificationStore();
+                $notifications = array_values(array_filter(
+                    $notificationStore->readAll(),
+                    static function ($entry) use ($employeeId): bool {
+                        if (!is_array($entry)) {
+                            return false;
+                        }
+                        $recipient = $entry['recipient'] ?? null;
+                        if (!$recipient) {
+                            return true;
+                        }
+                        return $employeeId !== null && $recipient === $employeeId;
+                    }
+                ));
+            } catch (Throwable $exception) {
+                $notifications = [];
+            }
+        }
         include __DIR__ . '/../views/header.php';
         include __DIR__ . '/../views/navbar/index.php';
         include $viewFile;

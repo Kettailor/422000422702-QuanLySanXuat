@@ -196,6 +196,29 @@ class Warehouse extends BaseModel
         return ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
     }
 
+    public function findFinishedWarehouseByWorkshop(?string $workshopId): ?array
+    {
+        if (!$workshopId) {
+            return null;
+        }
+
+        $sql = 'SELECT *
+                FROM kho
+                WHERE IdXuong = :workshopId
+                  AND TenLoaiKho LIKE :type
+                ORDER BY IdKho
+                LIMIT 1';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':workshopId', $workshopId);
+        $stmt->bindValue(':type', '%Thành phẩm%');
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+
+        return $result ?: null;
+    }
+
     public function getFormOptions(): array
     {
         $workshops = $this->db->query('SELECT IdXuong, TenXuong FROM XUONG ORDER BY TenXuong')->fetchAll();

@@ -27,7 +27,19 @@ class InventorySheet extends BaseModel
         $selectFields = $this->buildSelectFields();
 
         $sql = 'SELECT
-                    ' . implode(",\n                    ", $selectFields) . ',
+                    PHIEU.IdPhieu,
+                    PHIEU.NgayLP,
+                    PHIEU.NgayXN,
+                    PHIEU.TongTien,
+                    PHIEU.LoaiPhieu,
+                    PHIEU.IdKho,
+                    PHIEU.NHAN_VIENIdNhanVien,
+                    PHIEU.NHAN_VIENIdNhanVien2,
+                    PHIEU.LoaiDoiTac,
+                    PHIEU.DoiTac,
+                    PHIEU.SoThamChieu,
+                    PHIEU.LyDo,
+                    PHIEU.GhiChu,
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan,
@@ -102,7 +114,19 @@ class InventorySheet extends BaseModel
         $selectFields = $this->buildSelectFields();
 
         $sql = 'SELECT
-                    ' . implode(",\n                    ", $selectFields) . ',
+                    PHIEU.IdPhieu,
+                    PHIEU.NgayLP,
+                    PHIEU.NgayXN,
+                    PHIEU.TongTien,
+                    PHIEU.LoaiPhieu,
+                    PHIEU.IdKho,
+                    PHIEU.NHAN_VIENIdNhanVien,
+                    PHIEU.NHAN_VIENIdNhanVien2,
+                    PHIEU.LoaiDoiTac,
+                    PHIEU.DoiTac,
+                    PHIEU.SoThamChieu,
+                    PHIEU.LyDo,
+                    PHIEU.GhiChu,
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan
