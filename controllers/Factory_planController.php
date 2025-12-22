@@ -5,8 +5,6 @@ class Factory_planController extends Controller
     private WorkshopPlan $workshopPlanModel;
     private Workshop $workshopModel;
     private WorkshopAssignment $assignmentModel;
-    private Attendance $attendanceModel;
-    private Timekeeping $timekeepingModel;
 
     public function __construct()
     {
@@ -14,8 +12,6 @@ class Factory_planController extends Controller
         $this->workshopPlanModel = new WorkshopPlan();
         $this->workshopModel = new Workshop();
         $this->assignmentModel = new WorkshopAssignment();
-        $this->attendanceModel = new Attendance();
-        $this->timekeepingModel = new Timekeeping();
     }
 
     public function index(): void
@@ -54,10 +50,8 @@ class Factory_planController extends Controller
             'plan' => $plan,
             'stock_list_need' =>  $stockList,
             'assignments' => $plan ? $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong']) : [],
-            'attendance' => $plan ? $this->buildAttendanceSummary($plan) : [],
             'progress' => $plan ? $this->calculateProgress($plan['ThoiGianBatDau'] ?? null, $plan['ThoiGianKetThuc'] ?? null, $plan['TrangThai'] ?? null) : null,
             'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
-            'timekeeping' => $plan ? $this->timekeepingModel->getRecentByPlan($plan['IdKeHoachSanXuatXuong'] ?? null) : [],
         ]);
     }
 
@@ -303,25 +297,6 @@ class Factory_planController extends Controller
         }
 
         return false;
-    }
-
-    private function buildAttendanceSummary(array $plan): array
-    {
-        $assignments = $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong']);
-        $employeeIds = [];
-        foreach ($assignments as $group) {
-            foreach ($group as $employee) {
-                if (!empty($employee['IdNhanVien'])) {
-                    $employeeIds[] = $employee['IdNhanVien'];
-                }
-            }
-        }
-
-        return $this->attendanceModel->getSummaryForEmployees(
-            $employeeIds,
-            $plan['ThoiGianBatDau'] ?? null,
-            $plan['ThoiGianKetThuc'] ?? null
-        );
     }
 
     private function calculateProgress(?string $start, ?string $end, ?string $status): array
