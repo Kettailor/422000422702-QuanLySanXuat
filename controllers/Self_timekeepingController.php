@@ -32,6 +32,31 @@ class Self_timekeepingController extends Controller
         ]);
     }
 
+    public function mobile(): void
+    {
+        $user = $this->currentUser();
+        $employeeId = $user['IdNhanVien'] ?? null;
+        $workDate = date('Y-m-d');
+        $now = date('Y-m-d H:i:s');
+        $shift = $this->workShiftModel->findShiftForTimestamp($now);
+        $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
+        $geofence = $this->getGeofenceConfig();
+        $shifts = $this->workShiftModel->getShifts($workDate);
+        $notifications = $this->loadNotifications($employeeId);
+
+        $this->render('self_timekeeping/mobile', [
+            'title' => 'Tự chấm công (Mobile)',
+            'currentUser' => $user,
+            'now' => $now,
+            'shift' => $shift,
+            'openRecord' => $openRecord,
+            'geofence' => $geofence,
+            'shifts' => $shifts,
+            'notifications' => $notifications['all'],
+            'importantNotifications' => $notifications['important'],
+        ]);
+    }
+
     public function store(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -142,5 +167,42 @@ class Self_timekeepingController extends Controller
         $a = sin($latDelta / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lonDelta / 2) ** 2;
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         return $earthRadius * $c;
+    }
+
+    private function loadNotifications(?string $employeeId): array
+    {
+        $store = new NotificationStore();
+        $entries = $store->readAll();
+
+        $filtered = array_values(array_filter($entries, static function ($entry) use ($employeeId): bool {
+            if (!is_array($entry)) {
+                return false;
+            }
+            $recipient = $entry['recipient'] ?? null;
+            if (!$recipient) {
+                return true;
+            }
+            return $employeeId !== null && $recipient === $employeeId;
+        }));
+
+        usort($filtered, static function ($a, $b): int {
+            $aTime = strtotime($a['created_at'] ?? '') ?: 0;
+            $bTime = strtotime($b['created_at'] ?? '') ?: 0;
+            return $bTime <=> $aTime;
+        });
+
+        $important = array_values(array_filter($filtered, static function ($entry): bool {
+            $metadata = $entry['metadata'] ?? [];
+            $priority = $metadata['priority'] ?? $metadata['level'] ?? null;
+            if (is_string($priority) && in_array(strtolower($priority), ['high', 'important', 'urgent'], true)) {
+                return true;
+            }
+            return !empty($metadata['important']);
+        }));
+
+        return [
+            'all' => $filtered,
+            'important' => $important,
+        ];
     }
 }
