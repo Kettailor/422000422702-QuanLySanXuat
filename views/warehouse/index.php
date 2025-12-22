@@ -61,12 +61,13 @@ $lotPrefixMap = [
         transform: translateY(-2px);
     }
 
-    .warehouse-section + .warehouse-section {
-        margin-top: 3rem;
+    .warehouse-section {
+        margin-top: 2.5rem;
     }
 
     .warehouse-section .section-header {
-        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(15, 23, 42, 0.05);
+        background: linear-gradient(135deg, #f8fafc, #fdfdff);
     }
 
     .warehouse-section .section-header h4 {
@@ -86,6 +87,26 @@ $lotPrefixMap = [
     .warehouse-stats-card .stat-value {
         font-size: 1.5rem;
         font-weight: 700;
+    }
+
+    .warehouse-surface {
+        background: #f8fafc;
+        border: 1px solid rgba(15, 23, 42, 0.05);
+        border-radius: 1rem;
+        padding: 1.5rem;
+    }
+
+    .warehouse-surface + .warehouse-surface {
+        margin-top: 1.5rem;
+    }
+
+    .table-modern {
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    .table-modern thead {
+        background: #f3f6fb;
     }
 </style>
 
@@ -154,7 +175,7 @@ $lotPrefixMap = [
 <?php endif; ?>
 
 <?php if (!empty($summary['by_type'])): ?>
-    <div class="row g-3 mb-5">
+    <div class="row g-4 mb-5">
         <?php foreach ($summary['by_type'] as $typeKey => $typeSummary): ?>
             <?php $group = $warehouseGroups[$typeKey] ?? ['label' => $typeSummary['label'] ?? '', 'description' => '', 'warehouses' => [], 'statistics' => $typeSummary]; ?>
             <?php $form = $warehouseEntryForms[$typeKey] ?? null; ?>
@@ -216,31 +237,29 @@ $lotPrefixMap = [
     <?php $lotInfo = $lotMeta[$typeKey] ?? $lotMetaDefault; ?>
     <?php $lotPrefix = $lotPrefixMap[$typeKey] ?? 'LONL'; ?>
     <section class="warehouse-section" id="warehouse-group-<?= htmlspecialchars($typeKey) ?>">
-        <div class="section-header d-flex justify-content-between align-items-start mb-3">
-            <div>
-                <h4 class="fw-semibold mb-1"><?= htmlspecialchars($group['label']) ?></h4>
-                <?php if (!empty($group['description'])): ?>
-                    <p class="text-muted small mb-0"><?= htmlspecialchars($group['description']) ?></p>
+        <div class="warehouse-surface shadow-sm mb-3">
+            <div class="section-header d-flex justify-content-between align-items-start rounded-3 p-3">
+                <div>
+                    <h4 class="fw-semibold mb-1"><?= htmlspecialchars($group['label']) ?></h4>
+                    <?php if (!empty($group['description'])): ?>
+                        <p class="text-muted small mb-0"><?= htmlspecialchars($group['description']) ?></p>
+                    <?php endif; ?>
+                </div>
+                <?php if ($form): ?>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>">
+                        <i class="bi bi-plus-lg me-2"></i><?= htmlspecialchars($form['submit_label']) ?>
+                    </button>
                 <?php endif; ?>
             </div>
-            <?php if ($form): ?>
-                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>">
-                    <i class="bi bi-plus-lg me-2"></i><?= htmlspecialchars($form['submit_label']) ?>
-                </button>
-            <?php endif; ?>
-        </div>
 
-        <div class="card border-0 shadow-sm">
             <?php if (empty($group['warehouses'])): ?>
-                <div class="card-body">
-                    <div class="alert alert-light border mb-0">
-                        Chưa có kho nào thuộc nhóm "<?= htmlspecialchars($group['label']) ?>". Vui lòng thêm kho mới để bắt đầu quản lý.
-                    </div>
+                <div class="alert alert-light border mb-0 rounded-3 mt-3">
+                    Chưa có kho nào thuộc nhóm "<?= htmlspecialchars($group['label']) ?>". Vui lòng thêm kho mới để bắt đầu quản lý.
                 </div>
             <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light">
+                <div class="table-responsive table-modern mt-3">
+                    <table class="table align-middle mb-0 table-hover">
+                        <thead>
                         <tr>
                             <th>Mã kho</th>
                             <th>Tên kho</th>
