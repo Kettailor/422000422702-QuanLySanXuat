@@ -726,7 +726,18 @@ CREATE TABLE `vai_tro` (
 -- Đang đổ dữ liệu cho bảng `vai_tro`
 --
 
--- (Dữ liệu đã được lược bỏ)
+INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
+('VT_ADMIN', 'Quản trị hệ thống'),
+('VT_BAN_GIAM_DOC', 'Ban giám đốc'),
+('VT_QUANLY_XUONG', 'Quản lý xưởng'),
+('VT_NHANVIEN_SANXUAT', 'Nhân viên sản xuất'),
+('VT_NHANVIEN_KHO', 'Nhân viên kho'),
+('VT_KETOAN', 'Kế toán'),
+('VT_KIEM_SOAT_CL', 'Kiểm soát chất lượng'),
+('VT_KINH_DOANH', 'Nhân viên kinh doanh'),
+('VT_NHAN_SU', 'Nhân sự'),
+('VT_DOI_TAC_VAN_TAI', 'Điều phối vận tải/đối tác'),
+('VT_KHACH', 'Khách nội bộ');
 
 -- --------------------------------------------------------
 
