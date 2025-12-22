@@ -20,6 +20,8 @@ class WorkshopPlan extends BaseModel
                        xuong.TenXuong,
                        ksx.TrangThai AS TrangThaiTong,
                        san.TenSanPham,
+                       san.IdSanPham,
+                       san.IdSanPham,
                        COALESCE(cau.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh,
                        xcfg.IdCauHinh AS AssignmentConfigurationId,
                        xcfg.TenPhanCong,

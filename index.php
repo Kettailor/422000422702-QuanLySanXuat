@@ -18,6 +18,11 @@ if (file_exists($envFile)) {
 
 session_start();
 
+// Load Composer's autoloader if it exists
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+}
+
 spl_autoload_register(function ($class) {
     $paths = [
         __DIR__ . '/core/' . $class . '.php',
