@@ -51,15 +51,15 @@ class InventorySheet extends BaseModel
                 LEFT JOIN NHAN_VIEN NV_XN ON NV_XN.IdNhanVien = PHIEU.NHAN_VIENIdNhanVien2
                 LEFT JOIN (
                     SELECT
-                        IdPhieu,
-                        COUNT(DISTINCT IdLo) AS total_items,
-                        SUM(SoLuong) AS total_quantity,
-                        SUM(ThucNhan) AS total_received,
+                        CT.IdPhieu,
+                        COUNT(DISTINCT CT.IdLo) AS total_items,
+                        SUM(CT.SoLuong) AS total_quantity,
+                        SUM(CT.ThucNhan) AS total_received,
                         GROUP_CONCAT(DISTINCT COALESCE(SP.TenSanPham, "") ORDER BY SP.TenSanPham SEPARATOR ", ") AS product_names
-                    FROM CT_PHIEU
-                    LEFT JOIN LO ON LO.IdLo = CT_PHIEU.IdLo
+                    FROM CT_PHIEU CT
+                    LEFT JOIN LO ON LO.IdLo = CT.IdLo
                     LEFT JOIN SAN_PHAM SP ON SP.IdSanPham = LO.IdSanPham
-                    GROUP BY IdPhieu
+                    GROUP BY CT.IdPhieu
                 ) AS item_stats ON item_stats.IdPhieu = PHIEU.IdPhieu
                 ' . $whereClause . '
                 ORDER BY PHIEU.NgayLP DESC, PHIEU.IdPhieu DESC
