@@ -116,6 +116,8 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                 <th>Mã phiếu</th>
                 <th>Kho</th>
                 <th>Loại phiếu</th>
+                <th>Đối tác</th>
+                <th>Lý do</th>
                 <th>Ngày lập</th>
                 <th>Ngày xác nhận</th>
                 <th>Tổng tiền</th>
@@ -148,6 +150,16 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                         <td class="fw-semibold"><?= htmlspecialchars($document['IdPhieu']) ?></td>
                         <td><?= htmlspecialchars($document['TenKho']) ?></td>
                         <td><span class="badge <?= $typeClass ?>"><?= htmlspecialchars($document['LoaiPhieu']) ?></span></td>
+                        <td>
+                            <div class="fw-semibold mb-0"><?= htmlspecialchars($document['DoiTac'] ?? '-') ?></div>
+                            <small class="text-muted"><?= htmlspecialchars($document['LoaiDoiTac'] ?? '') ?></small>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 220px;"><?= htmlspecialchars($document['LyDo'] ?? '-') ?></div>
+                            <?php if (!empty($document['SoThamChieu'])): ?>
+                                <small class="text-muted">Tham chiếu: <?= htmlspecialchars($document['SoThamChieu']) ?></small>
+                            <?php endif; ?>
+                        </td>
                         <td><?= $document['NgayLP'] ? date('d/m/Y', strtotime($document['NgayLP'])) : '-' ?></td>
                         <td><?= $document['NgayXN'] ? date('d/m/Y', strtotime($document['NgayXN'])) : '-' ?></td>
                         <td class="fw-semibold text-primary"><?= number_format($document['TongTien'], 0, ',', '.') ?> đ</td>

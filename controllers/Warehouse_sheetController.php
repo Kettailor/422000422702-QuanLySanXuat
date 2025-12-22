@@ -105,6 +105,11 @@ class Warehouse_sheetController extends Controller
             'IdKho' => $_POST['IdKho'] ?? null,
             'NHAN_VIENIdNhanVien' => $_POST['NguoiLap'] ?? null,
             'NHAN_VIENIdNhanVien2' => $_POST['NguoiXacNhan'] ?? null,
+            'LoaiDoiTac' => $_POST['LoaiDoiTac'] ?? null,
+            'DoiTac' => $_POST['DoiTac'] ?? null,
+            'SoThamChieu' => $_POST['SoThamChieu'] ?? null,
+            'LyDo' => $_POST['LyDo'] ?? null,
+            'GhiChu' => $_POST['GhiChu'] ?? null,
         ];
 
         $redirectTo = trim((string) ($_POST['redirect'] ?? ''));
@@ -237,6 +242,11 @@ class Warehouse_sheetController extends Controller
             'IdKho' => $_POST['IdKho'] ?? null,
             'NHAN_VIENIdNhanVien' => $_POST['NguoiLap'] ?? null,
             'NHAN_VIENIdNhanVien2' => $_POST['NguoiXacNhan'] ?? null,
+            'LoaiDoiTac' => $_POST['LoaiDoiTac'] ?? null,
+            'DoiTac' => $_POST['DoiTac'] ?? null,
+            'SoThamChieu' => $_POST['SoThamChieu'] ?? null,
+            'LyDo' => $_POST['LyDo'] ?? null,
+            'GhiChu' => $_POST['GhiChu'] ?? null,
         ];
 
         if (!$this->validateRequired(array_merge($data, ['IdPhieu' => $id]))) {
@@ -333,7 +343,7 @@ class Warehouse_sheetController extends Controller
 
     private function validateRequired(array $data): bool
     {
-        $required = ['IdPhieu', 'LoaiPhieu', 'IdKho', 'NHAN_VIENIdNhanVien'];
+        $required = ['IdPhieu', 'LoaiPhieu', 'IdKho', 'NHAN_VIENIdNhanVien', 'LyDo', 'LoaiDoiTac'];
 
         foreach ($required as $field) {
             if (!array_key_exists($field, $data)) {
@@ -348,6 +358,10 @@ class Warehouse_sheetController extends Controller
             if ($value === null || $value === '') {
                 return false;
             }
+        }
+
+        if (!empty($data['LoaiDoiTac']) && empty($data['DoiTac'])) {
+            return false;
         }
 
         return true;
@@ -430,6 +444,7 @@ class Warehouse_sheetController extends Controller
                 'ThucNhan' => $received,
                 'IdPhieu' => $document['IdPhieu'],
                 'IdLo' => $lotId,
+                'is_new_lot' => true,
             ],
         ];
     }

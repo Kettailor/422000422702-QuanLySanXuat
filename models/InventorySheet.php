@@ -32,6 +32,11 @@ class InventorySheet extends BaseModel
                     PHIEU.IdKho,
                     PHIEU.NHAN_VIENIdNhanVien,
                     PHIEU.NHAN_VIENIdNhanVien2,
+                    PHIEU.LoaiDoiTac,
+                    PHIEU.DoiTac,
+                    PHIEU.SoThamChieu,
+                    PHIEU.LyDo,
+                    PHIEU.GhiChu,
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan,
@@ -110,6 +115,11 @@ class InventorySheet extends BaseModel
                     PHIEU.IdKho,
                     PHIEU.NHAN_VIENIdNhanVien,
                     PHIEU.NHAN_VIENIdNhanVien2,
+                    PHIEU.LoaiDoiTac,
+                    PHIEU.DoiTac,
+                    PHIEU.SoThamChieu,
+                    PHIEU.LyDo,
+                    PHIEU.GhiChu,
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan
@@ -201,6 +211,11 @@ class InventorySheet extends BaseModel
             'IdKho',
             'NHAN_VIENIdNhanVien',
             'NHAN_VIENIdNhanVien2',
+            'LoaiDoiTac',
+            'DoiTac',
+            'SoThamChieu',
+            'LyDo',
+            'GhiChu',
         ];
 
         $payload = [];

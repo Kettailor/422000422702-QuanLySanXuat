@@ -31,6 +31,20 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
                 <div class="form-text">Ví dụ: Phiếu nhập nguyên liệu, Phiếu xuất thành phẩm...</div>
             </div>
             <div class="col-md-4">
+                <label class="form-label fw-semibold">Loại đối tác <span class="text-danger">*</span></label>
+                <?php $partnerType = $document['LoaiDoiTac'] ?? 'Nội bộ'; ?>
+                <select name="LoaiDoiTac" class="form-select" required>
+                    <?php foreach (['Nội bộ', 'Nhà cung cấp', 'Khách hàng', 'Xưởng khác'] as $option): ?>
+                        <option value="<?= htmlspecialchars($option) ?>" <?= $partnerType === $option ? 'selected' : '' ?>><?= htmlspecialchars($option) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="form-text">Xác định đối tượng liên quan để kiểm soát luồng chứng từ.</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Đối tác/đơn vị <span class="text-danger">*</span></label>
+                <input type="text" name="DoiTac" class="form-control" required value="<?= htmlspecialchars($document['DoiTac'] ?? 'Nội bộ') ?>" placeholder="Ví dụ: Nhà cung cấp switch Lotus">
+            </div>
+            <div class="col-md-4">
                 <label class="form-label fw-semibold">Kho áp dụng <span class="text-danger">*</span></label>
                 <select class="form-select" name="IdKho" required>
                     <option value="">-- Chọn kho --</option>
@@ -57,6 +71,11 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
                     <span class="input-group-text">đ</span>
                 </div>
             </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Số chứng từ tham chiếu</label>
+                <input type="text" name="SoThamChieu" class="form-control" value="<?= htmlspecialchars($document['SoThamChieu'] ?? '') ?>" placeholder="PO/PR/Đơn hàng liên quan">
+                <div class="form-text">Nhập số PO/ĐH hoặc chứng từ liên quan để truy vết.</div>
+            </div>
 
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Người lập phiếu <span class="text-danger">*</span></label>
@@ -81,6 +100,15 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
                         </option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-semibold">Lý do/Nội dung nghiệp vụ <span class="text-danger">*</span></label>
+                <textarea name="LyDo" class="form-control" rows="2" required placeholder="Ví dụ: Nhập lô switch theo hợp đồng, xuất cấp cho chuyền lắp ráp"><?= htmlspecialchars($document['LyDo'] ?? '') ?></textarea>
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Ghi chú bổ sung</label>
+                <textarea name="GhiChu" class="form-control" rows="2" placeholder="Ghi chú điều kiện bảo quản, người giao/nhận, biển số xe..."><?= htmlspecialchars($document['GhiChu'] ?? '') ?></textarea>
             </div>
 
             <div class="col-12 d-flex justify-content-between">

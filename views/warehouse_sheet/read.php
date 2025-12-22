@@ -26,6 +26,11 @@ $warehouse = $warehouse ?? null;
                         <dd class="col-sm-7 fw-semibold"><?= htmlspecialchars($document['IdPhieu']) ?></dd>
                         <dt class="col-sm-5">Loại phiếu</dt>
                         <dd class="col-sm-7"><span class="badge badge-soft-primary"><?= htmlspecialchars($document['LoaiPhieu']) ?></span></dd>
+                        <dt class="col-sm-5">Đối tác</dt>
+                        <dd class="col-sm-7">
+                            <?= htmlspecialchars($document['DoiTac'] ?? '-') ?>
+                            <div class="text-muted small"><?= htmlspecialchars($document['LoaiDoiTac'] ?? '') ?></div>
+                        </dd>
                         <dt class="col-sm-5">Kho</dt>
                         <dd class="col-sm-7">
                             <?= htmlspecialchars($document['TenKho'] ?? ($document['IdKho'] ?? '-')) ?>
