@@ -55,6 +55,31 @@ class InventoryLot extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getSelectableLots(int $limit = 300): array
+    {
+        $sql = 'SELECT
+                    LO.IdLo,
+                    LO.TenLo,
+                    LO.SoLuong,
+                    LO.LoaiLo,
+                    LO.IdKho,
+                    KHO.TenKho,
+                    LO.IdSanPham,
+                    SAN_PHAM.TenSanPham,
+                    SAN_PHAM.DonVi
+                FROM LO
+                JOIN KHO ON KHO.IdKho = LO.IdKho
+                LEFT JOIN SAN_PHAM ON SAN_PHAM.IdSanPham = LO.IdSanPham
+                ORDER BY LO.NgayTao DESC, LO.IdLo DESC
+                LIMIT :limit';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
     public function createLot(array $data): bool
     {
         $payload = $this->sanitizeLotPayload($data, true);
