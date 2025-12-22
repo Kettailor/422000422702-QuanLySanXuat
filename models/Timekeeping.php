@@ -11,7 +11,10 @@ class Timekeeping extends BaseModel
         ?string $checkOut,
         string $shiftId,
         ?string $note = null,
-        ?string $supervisorId = null
+        ?string $supervisorId = null,
+        ?float $checkInLat = null,
+        ?float $checkInLng = null,
+        ?float $checkInAccuracy = null
     ): bool {
         $recordId = uniqid('CC');
         $payload = [
@@ -19,6 +22,9 @@ class Timekeeping extends BaseModel
             'NHANVIEN IdNhanVien' => $employeeId,
             'ThoiGianVao' => $checkIn,
             'ThoiGIanRa' => $checkOut,
+            'ViTriVaoLat' => $checkInLat,
+            'ViTriVaoLng' => $checkInLng,
+            'ViTriVaoAccuracy' => $checkInAccuracy,
             'IdCaLamViec' => $shiftId,
             'GhiChu' => $note ? trim($note) : null,
             'XUONGTRUONG IdNhanVien' => $supervisorId,
@@ -153,13 +159,25 @@ class Timekeeping extends BaseModel
         return $result ?: null;
     }
 
-    public function updateCheckOut(string $recordId, string $checkOut): bool
+    public function updateCheckOut(
+        string $recordId,
+        string $checkOut,
+        ?float $checkOutLat = null,
+        ?float $checkOutLng = null,
+        ?float $checkOutAccuracy = null
+    ): bool
     {
         $sql = "UPDATE cham_cong
-                SET `ThoiGIanRa` = :checkOut
+                SET `ThoiGIanRa` = :checkOut,
+                    `ViTriRaLat` = :checkOutLat,
+                    `ViTriRaLng` = :checkOutLng,
+                    `ViTriRaAccuracy` = :checkOutAccuracy
                 WHERE `IdChamCong` = :recordId";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':checkOut', $checkOut);
+        $stmt->bindValue(':checkOutLat', $checkOutLat);
+        $stmt->bindValue(':checkOutLng', $checkOutLng);
+        $stmt->bindValue(':checkOutAccuracy', $checkOutAccuracy);
         $stmt->bindValue(':recordId', $recordId);
         return $stmt->execute();
     }

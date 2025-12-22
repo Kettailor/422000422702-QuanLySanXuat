@@ -196,6 +196,12 @@ CREATE TABLE `cham_cong` (
   `NHANVIEN IdNhanVien` varchar(50) NOT NULL,
   `ThoiGIanRa` datetime DEFAULT NULL,
   `ThoiGianVao` datetime DEFAULT NULL,
+  `ViTriVaoLat` decimal(10,6) DEFAULT NULL,
+  `ViTriVaoLng` decimal(10,6) DEFAULT NULL,
+  `ViTriVaoAccuracy` decimal(10,2) DEFAULT NULL,
+  `ViTriRaLat` decimal(10,6) DEFAULT NULL,
+  `ViTriRaLng` decimal(10,6) DEFAULT NULL,
+  `ViTriRaAccuracy` decimal(10,2) DEFAULT NULL,
   `XUONGTRUONG IdNhanVien` varchar(50) DEFAULT NULL,
   `IdCaLamViec` varchar(50) NOT NULL,
   `GhiChu` text DEFAULT NULL
