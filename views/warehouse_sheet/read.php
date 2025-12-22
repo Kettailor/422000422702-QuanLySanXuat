@@ -54,8 +54,18 @@ $warehouse = $warehouse ?? null;
                         <dd class="col-sm-7 text-primary fw-semibold"><?= number_format($document['TongTien'] ?? 0, 0, ',', '.') ?> đ</dd>
                         <dt class="col-sm-5">Tổng số lượng</dt>
                         <dd class="col-sm-7"><?= number_format($document['TongSoLuong'] ?? $document['TongMatHang'] ?? 0) ?></dd>
+                        <dt class="col-sm-5">Số tham chiếu</dt>
+                        <dd class="col-sm-7"><?= htmlspecialchars($document['SoThamChieu'] ?? '-') ?></dd>
                     </dl>
                 </div>
+            </div>
+            <div class="mt-3">
+                <div class="fw-semibold mb-1">Lý do/Nội dung</div>
+                <p class="mb-1"><?= nl2br(htmlspecialchars($document['LyDo'] ?? '-')) ?></p>
+                <?php if (!empty($document['GhiChu'])): ?>
+                    <div class="fw-semibold mb-1">Ghi chú</div>
+                    <p class="mb-0 text-muted"><?= nl2br(htmlspecialchars($document['GhiChu'])) ?></p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
