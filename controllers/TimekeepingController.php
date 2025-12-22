@@ -11,7 +11,7 @@ class TimekeepingController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG']);
+        $this->authorize(['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG']);
         $this->timekeepingModel = new Timekeeping();
         $this->employeeModel = new Employee();
         $this->workShiftModel = new WorkShift();
@@ -178,7 +178,7 @@ class TimekeepingController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
 
-        if (!in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG'], true)) {
+        if (!in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG'], true)) {
             $this->setFlash('danger', 'Bạn không có quyền thực hiện chức năng chấm công.');
             $this->redirect('?controller=dashboard&action=index');
         }
