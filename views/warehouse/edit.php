@@ -90,12 +90,12 @@ $types = $types ?? [];
                             </div>
                             <span class="section-chip"><i class="bi bi-pencil-square"></i> Đang cập nhật</span>
                         </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
+                        <div class="row g-3 row-cols-1 row-cols-md-2 align-items-start">
+                            <div class="col">
                                 <label class="form-label">Tên kho <span class="text-danger">*</span></label>
                                 <input type="text" name="TenKho" class="form-control" value="<?= htmlspecialchars($warehouse['TenKho']) ?>" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col">
                                 <label class="form-label">Loại kho <span class="text-danger">*</span></label>
                                 <select name="TenLoaiKho" class="form-select" required>
                                     <?php foreach ($types as $typeLabel): ?>
@@ -110,11 +110,11 @@ $types = $types ?? [];
                                     <?php endif; ?>
                                 </select>
                             </div>
-                            <div class="col-12">
+                            <div class="col">
                                 <label class="form-label">Địa chỉ</label>
                                 <input type="text" name="DiaChi" class="form-control" value="<?= htmlspecialchars($warehouse['DiaChi']) ?>">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col">
                                 <label class="form-label">Trạng thái</label>
                                 <select name="TrangThai" class="form-select">
                                     <?php foreach ($statuses as $status): ?>
@@ -122,7 +122,7 @@ $types = $types ?? [];
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col">
                                 <label class="form-label">Xưởng phụ trách <span class="text-danger">*</span></label>
                                 <select name="IdXuong" class="form-select" required>
                                     <?php foreach ($workshops as $workshop): ?>
