@@ -444,6 +444,7 @@ class Warehouse_sheetController extends Controller
                 'ThucNhan' => $received,
                 'IdPhieu' => $document['IdPhieu'],
                 'IdLo' => $lotId,
+                'is_new_lot' => true,
             ],
         ];
     }
