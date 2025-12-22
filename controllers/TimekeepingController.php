@@ -43,10 +43,11 @@ class TimekeepingController extends Controller
     public function create(): void
     {
         $shiftId = $_GET['shift_id'] ?? null;
-        $workDate = $_GET['work_date'] ?? null;
+        $workDate = date('Y-m-d');
         $shift = $shiftId ? $this->workShiftModel->find($shiftId) : null;
         $employees = $this->employeeModel->getActiveEmployees();
         $shifts = $this->workShiftModel->getShifts($workDate);
+        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate);
 
         $this->render('timekeeping/create', [
             'title' => 'Ghi nhận chấm công',
@@ -55,6 +56,7 @@ class TimekeepingController extends Controller
             'workDate' => $workDate,
             'shifts' => $shifts,
             'employees' => $employees,
+            'entries' => $entries,
             'defaultCheckIn' => date('Y-m-d\TH:i'),
             'defaultCheckOut' => date('Y-m-d\TH:i'),
         ]);
