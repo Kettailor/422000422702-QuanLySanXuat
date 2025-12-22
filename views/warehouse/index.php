@@ -422,14 +422,7 @@ $lotPrefixMap = [
                                     <h6 class="fw-semibold mb-1"><?= htmlspecialchars($lotInfo['title']) ?></h6>
                                     <p class="text-muted small mb-3"><?= htmlspecialchars($lotInfo['description']) ?></p>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label"><?= htmlspecialchars($formUi['lot_code_label'] ?? 'Mã lô') ?> <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <input type="text" name="Quick_IdLo" class="form-control" required data-field="IdLo" placeholder="VD: <?= htmlspecialchars($lotPrefix) ?>202312010930" data-prefix="<?= htmlspecialchars($lotPrefix) ?>">
-                                        <button type="button" class="btn btn-outline-secondary" data-action="regenerate-lot-id"><i class="bi bi-arrow-repeat me-1"></i>Tạo mã lô</button>
-                                    </div>
-                                    <div class="form-text"><?= htmlspecialchars($formUi['lot_code_hint'] ?? 'Mã lô sẽ tự sinh dựa trên loại kho khi mở biểu mẫu.') ?></div>
-                                </div>
+                                <input type="hidden" name="Quick_IdLo" data-field="IdLo" data-prefix="<?= htmlspecialchars($lotPrefix) ?>">
                                 <div class="col-md-6">
                                     <label class="form-label"><?= htmlspecialchars($formUi['lot_name_label'] ?? 'Tên lô') ?> <span class="text-danger">*</span></label>
                                     <input type="text" name="Quick_TenLo" class="form-control" required placeholder="<?= htmlspecialchars($formUi['lot_name_label'] ?? 'Tên lô nhập kho') ?>">
@@ -538,7 +531,6 @@ $lotPrefixMap = [
 
             var lotInput = form.querySelector('[data-field="IdLo"]');
             var lotPrefix = lotInput ? (lotInput.dataset.prefix || form.getAttribute('data-lot-prefix') || 'LO') : (form.getAttribute('data-lot-prefix') || 'LO');
-            var regenerateLotButton = form.querySelector('[data-action="regenerate-lot-id"]');
 
             var productMap = {};
             try {
@@ -626,11 +618,7 @@ $lotPrefixMap = [
                 lotInput.value = buildLotId(lotPrefix);
             };
 
-            if (regenerateLotButton) {
-                regenerateLotButton.addEventListener('click', function () {
-                    updateLotId();
-                });
-            }
+            updateLotId();
 
             updateId();
 
