@@ -4,6 +4,8 @@ $materialOptions = $materialOptions ?? [];
 $materials = $materials ?? [];
 $prefillPersist = $materialSource !== 'plan';
 $materialsForRender = !empty($materials) ? $materials : [['IdNguyenLieu' => '', 'SoLuongKeHoach' => 0, 'DonVi' => '', 'SoLuongTonKho' => null]];
+$canUpdateProgress = $canUpdateProgress ?? false;
+$planAssignments = $planAssignments ?? [];
 
 $materialOptionHtml = '<option value="">Chọn nguyên liệu</option>';
 foreach ($materialOptions as $option) {
@@ -112,17 +114,13 @@ foreach ($materialOptions as $option) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h5 class="fw-semibold mb-1">Nhu cầu nguyên liệu thực tế</h5>
-                <?php if ($materialSource === 'configuration'): ?>
-                    <div class="text-muted small">Đã tải định mức tự động từ cấu hình sản phẩm. Kiểm tra và điều chỉnh nếu cần.</div>
-                <?php elseif ($materialSource === 'custom'): ?>
+                <?php if ($materialSource === 'custom'): ?>
                     <div class="text-muted small">Sản phẩm mới chưa có định mức. Vui lòng chọn nguyên liệu phù hợp trước khi kiểm tra tồn kho.</div>
                 <?php endif; ?>
             </div>
-            <?php if ($materialSource !== 'plan'): ?>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row">
-                    <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
-                </button>
-            <?php endif; ?>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row">
+                <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
+            </button>
         </div>
         <form method="post" action="?controller=workshop_plan&action=checkMaterials">
             <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
@@ -140,21 +138,15 @@ foreach ($materialOptions as $option) {
                     <?php foreach ($materialsForRender as $index => $material): ?>
                         <tr>
                             <td>
-                                <?php if ($materialSource === 'plan'): ?>
-                                    <div class="fw-semibold mb-1"><?= htmlspecialchars($material['TenNL'] ?? $material['IdNguyenLieu']) ?></div>
-                                    <div class="text-muted small">Mã: <?= htmlspecialchars($material['IdNguyenLieu']) ?></div>
-                                    <input type="hidden" name="materials[<?= $index ?>][IdNguyenLieu]" value="<?= htmlspecialchars($material['IdNguyenLieu'] ?? '') ?>">
-                                <?php else: ?>
-                                    <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required>
-                                        <option value="">Chọn nguyên liệu</option>
-                                        <?php foreach ($materialOptions as $option): ?>
-                                            <?php $value = $option['IdNguyenLieu'] ?? ''; ?>
-                                            <option value="<?= htmlspecialchars($value) ?>" <?= ($value === ($material['IdNguyenLieu'] ?? null)) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars(($option['TenNL'] ?? $value) . (!empty($option['DonVi']) ? ' (' . $option['DonVi'] . ')' : '')) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                <?php endif; ?>
+                                <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required>
+                                    <option value="">Chọn nguyên liệu</option>
+                                    <?php foreach ($materialOptions as $option): ?>
+                                        <?php $value = $option['IdNguyenLieu'] ?? ''; ?>
+                                        <option value="<?= htmlspecialchars($value) ?>" <?= ($value === ($material['IdNguyenLieu'] ?? null)) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars(($option['TenNL'] ?? $value) . (!empty($option['DonVi']) ? ' (' . $option['DonVi'] . ')' : '')) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </td>
                             <td class="text-end">
                                 <?= number_format((int) ($material['SoLuongKeHoach'] ?? 0)) ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
@@ -179,15 +171,6 @@ foreach ($materialOptions as $option) {
                 <div class="col-md-8">
                     <label for="note" class="form-label">Ghi chú điều chỉnh / lý do</label>
                     <textarea name="note" id="note" rows="3" class="form-control" placeholder="Ghi chú cho Ban giám đốc theo dõi..."></textarea>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-check mt-4">
-                        <input class="form-check-input" type="checkbox" value="1" id="persistMaterials" name="persist_materials" <?= $prefillPersist ? 'checked' : '' ?>>
-                        <label class="form-check-label" for="persistMaterials">
-                            Lưu lại danh sách nguyên liệu cho kế hoạch này
-                        </label>
-                        <div class="text-muted small mt-1">Bật để lưu cấu hình cho sản phẩm mới hoặc thay đổi định mức.</div>
-                    </div>
                 </div>
             </div>
             <div class="d-flex justify-content-end">
@@ -265,9 +248,17 @@ foreach ($materialOptions as $option) {
             </div>
         </div>
     </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+            <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca
+        </a>
+        <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress ? '' : 'disabled' ?>">
+            <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ cuối ca
+        </a>
+    </div>
 <?php endif; ?>
 
-<?php if ($materialSource !== 'plan'): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const addRowBtn = document.getElementById('add-material-row');
@@ -297,4 +288,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-<?php endif; ?>

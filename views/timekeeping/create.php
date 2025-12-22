@@ -1,6 +1,8 @@
 <?php
-$plan = $plan ?? null;
-$planId = $planId ?? null;
+$shift = $shift ?? null;
+$shiftId = $shiftId ?? null;
+$workDate = $workDate ?? null;
+$shifts = $shifts ?? [];
 $employees = $employees ?? [];
 $defaultCheckIn = $defaultCheckIn ?? '';
 $defaultCheckOut = $defaultCheckOut ?? '';
@@ -9,13 +11,9 @@ $defaultCheckOut = $defaultCheckOut ?? '';
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="fw-bold mb-1">Ghi nhận chấm công</h2>
-        <?php if ($plan): ?>
-            <p class="text-muted mb-0">Liên kết kế hoạch xưởng <?= htmlspecialchars($plan['IdKeHoachSanXuatXuong'] ?? '') ?> - <?= htmlspecialchars($plan['TenThanhThanhPhanSP'] ?? '') ?>.</p>
-        <?php else: ?>
-            <p class="text-muted mb-0">Thêm bản ghi chấm công mới cho nhân sự sản xuất.</p>
-        <?php endif; ?>
+        <p class="text-muted mb-0">Chọn ca làm việc đã được phân công để ghi nhận chấm công.</p>
     </div>
-    <a href="<?= $plan ? '?controller=factory_plan&action=read&id=' . urlencode($planId) : '?controller=factory_plan&action=index' ?>" class="btn btn-outline-secondary">
+    <a href="?controller=timekeeping&action=index" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-2"></i>Quay lại
     </a>
 </div>
@@ -23,7 +21,24 @@ $defaultCheckOut = $defaultCheckOut ?? '';
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         <form method="post" action="?controller=timekeeping&action=store" class="row g-4">
-            <input type="hidden" name="plan_id" value="<?= htmlspecialchars((string) $planId) ?>">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Ca làm việc</label>
+                <select name="shift_id" class="form-select" required>
+                    <option value="">Chọn ca làm việc</option>
+                    <?php foreach ($shifts as $item): ?>
+                        <?php $id = $item['IdCaLamViec'] ?? ''; ?>
+                        <option value="<?= htmlspecialchars($id) ?>" <?= $id === $shiftId ? 'selected' : '' ?>>
+                            <?= htmlspecialchars(($item['TenCa'] ?? $id) . ' • ' . ($item['NgayLamViec'] ?? '')) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if ($shift): ?>
+                    <div class="text-muted small mt-2">
+                        <?= htmlspecialchars($shift['LoaiCa'] ?? '') ?> • <?= htmlspecialchars($shift['ThoiGianBatDau'] ?? '-') ?>
+                        <?= !empty($shift['ThoiGianKetThuc']) ? '→ ' . htmlspecialchars($shift['ThoiGianKetThuc']) : '' ?>
+                    </div>
+                <?php endif; ?>
+            </div>
 
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Nhân viên</label>
