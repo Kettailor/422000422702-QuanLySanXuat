@@ -122,6 +122,8 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
     </div>
 </div>
 
+<div id="assignment-feedback" class="border rounded-3 bg-light-subtle text-muted p-3 d-none" role="status"></div>
+
 <?php if (!$plan): ?>
     <div class="alert alert-warning">Không tìm thấy kế hoạch xưởng.</div>
 <?php elseif (empty($workShifts)): ?>
@@ -370,17 +372,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const feedback = document.getElementById('assignment-feedback');
+    const showFeedback = (message) => {
+        if (!feedback) {
+            return;
+        }
+        feedback.textContent = message;
+        feedback.classList.remove('d-none');
+        feedback.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     if (bulkAssignBtn) {
         bulkAssignBtn.addEventListener('click', function() {
             const selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked')).map(cb => cb.value);
             if (selectedEmployees.length === 0) {
-                alert('Vui lòng chọn nhân viên để thêm.');
+                showFeedback('Vui lòng chọn ít nhất một nhân viên trước khi thêm vào ca.');
                 return;
             }
 
             const activeCards = Array.from(shiftCards).filter(card => card.style.display !== 'none' && card.dataset.editable === '1');
             if (activeCards.length === 0) {
-                alert('Không có ca nào đang được chọn để phân công.');
+                showFeedback('Không có ca nào đủ điều kiện để phân công. Hãy kiểm tra lại bộ lọc hoặc chọn ngày hợp lệ.');
                 return;
             }
 

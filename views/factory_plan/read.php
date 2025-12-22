@@ -195,6 +195,7 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
             <h5 class="mb-0">Quản Lý Nguyên Liệu</h5>
         </div>
         <div class="card-body">
+            <div id="material-feedback" class="border rounded-3 bg-light-subtle text-muted p-3 d-none" role="status"></div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -258,16 +259,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('Thông báo đã được gửi thành công: ' + result.message);
+                    showMaterialFeedback('Đã gửi thông báo nguyên liệu. ' + result.message, 'success');
                 } else {
-                    alert('Lỗi khi gửi thông báo: ' + result.message);
+                    showMaterialFeedback('Không thể gửi thông báo nguyên liệu. ' + result.message, 'warning');
                 }
             } catch (error) {
                 console.error('Lỗi mạng hoặc lỗi khác:', error);
-                alert('Đã xảy ra lỗi khi gửi thông báo.');
+                showMaterialFeedback('Đã xảy ra lỗi khi gửi thông báo. Vui lòng thử lại.', 'warning');
             }
         });
     });
+
+    function showMaterialFeedback(message, variant) {
+        const feedback = document.getElementById('material-feedback');
+        if (!feedback) {
+            return;
+        }
+        feedback.textContent = message;
+        feedback.classList.remove('d-none', 'text-muted', 'text-success', 'text-warning');
+        feedback.classList.add(variant === 'success' ? 'text-success' : 'text-warning');
+        feedback.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 });
 </script>
 <?php endif; ?>
