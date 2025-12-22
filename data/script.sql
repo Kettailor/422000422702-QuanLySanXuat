@@ -51,10 +51,7 @@ CREATE TABLE `bang_luong` (
 -- Đang đổ dữ liệu cho bảng `bang_luong`
 --
 
-INSERT INTO `bang_luong` (`IdBangLuong`, `KETOAN IdNhanVien2`, `NHAN_VIENIdNhanVien`, `ThangNam`, `LuongCoBan`, `PhuCap`, `DonGiaNgayCong`, `SoNgayCong`, `TongLuongNgayCong`, `Thuong`, `KhauTru`, `TongBaoHiem`, `ThueTNCN`, `TongThuNhap`, `TrangThai`, `NgayLap`, `ChuKy`) VALUES
-('BL202311NV003', 'NV006', 'NV003', 202311, 8500000, 1200000, 350000, 22, 7700000, 500000, 500000, 500000, 700000, 16700000, 'Chờ duyệt', '2023-11-28', 'admin.minh'),
-('BL202311NV004', 'NV006', 'NV004', 202311, 9000000, 1000000, 380000, 21.5, 8170000, 450000, 600000, 600000, 750000, 17270000, 'Chờ duyệt', '2023-11-28', 'admin.minh'),
-('BL202311NV005', 'NV006', 'NV005', 202311, 9500000, 1300000, 400000, 23, 9200000, 600000, 650000, 650000, 780000, 19170000, 'Chờ duyệt', '2023-11-28', 'admin.minh');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -76,9 +73,7 @@ CREATE TABLE `bien_ban_danh_gia_dot_xuat` (
 -- Đang đổ dữ liệu cho bảng `bien_ban_danh_gia_dot_xuat`
 --
 
-INSERT INTO `bien_ban_danh_gia_dot_xuat` (`IdBienBanDanhGiaDX`, `ThoiGian`, `TongTCD`, `TongTCKD`, `KetQua`, `IdXuong`, `IdNhanVien`) VALUES
-('BBDX20231101', '2023-11-14 10:00:00', 92, 8, 'Đạt chuẩn ESD', 'XU001', 'NV001'),
-('BBDX20231102', '2023-11-20 09:00:00', 90, 10, 'Đạt yêu cầu kiểm thử', 'XU002', 'NV002');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -99,11 +94,7 @@ CREATE TABLE `bien_ban_danh_gia_thanh_pham` (
 -- Đang đổ dữ liệu cho bảng `bien_ban_danh_gia_thanh_pham`
 --
 
-INSERT INTO `bien_ban_danh_gia_thanh_pham` (`IdBienBanDanhGiaSP`, `ThoiGian`, `TongTCD`, `TongTCKD`, `KetQua`, `IdLo`) VALUES
-('BBTP20231101', '2023-11-18 09:30:00', 95, 5, 'Đạt', 'LOTP202309'),
-('BBTP20231102', '2023-11-24 14:00:00', 93, 7, 'Đạt', 'LOTP202310'),
-('BBTP20231103', '2023-11-28 10:15:00', 91, 9, 'Đạt có điều kiện', 'LOTP202311'),
-('BBTP2025102901', '2025-10-29 12:15:00', 1, 9, 'Không đạt', 'LOPACK202311');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -125,26 +116,7 @@ CREATE TABLE `cau_hinh_nguyen_lieu` (
 -- Đang đổ dữ liệu cho bảng `cau_hinh_nguyen_lieu`
 --
 
-INSERT INTO `cau_hinh_nguyen_lieu` (`IdCauHinhNguyenLieu`, `IdCauHinh`, `IdNguyenLieu`, `TyLeSoLuong`, `DinhMuc`, `Nhan`, `DonVi`) VALUES
-('CFG87RGBSW', 'CFGKB87RGB', 'NL001', 87, 87, 'Switch Lotus Linear', 'switch'),
-('CFG87RGBPCB', 'CFGKB87RGB', 'NL002', 1, 1, 'PCB SV5TOT R3', 'bo mạch'),
-('CFG87RGBCASE', 'CFGKB87RGB', 'NL004', 1, 1, 'Vỏ RGB anodized', 'bộ vỏ'),
-('CFG87RGBKEY', 'CFGKB87RGB', 'NL003', 1, 1, 'Keycap Glacier', 'bộ keycap'),
-('CFG87RGBPACK', 'CFGKB87RGB', 'NL007', 1, 1, 'Đóng gói RGB', 'bộ'),
-('CFG87DLXSW', 'CFGKB87DELUXE', 'NL001', 87, 87, 'Switch Lotus tune', 'switch'),
-('CFG87DLXFOAM', 'CFGKB87DELUXE', 'NL005', 1, 1, 'Foam Poron', 'bộ foam'),
-('CFG87DLXCASE', 'CFGKB87DELUXE', 'NL004', 1, 1, 'Vỏ Deluxe', 'bộ vỏ'),
-('CFG87DLXPACK', 'CFGKB87DELUXE', 'NL007', 1, 1, 'Đóng gói Deluxe', 'bộ'),
-('CFG108SILSW', 'CFGKB108SILENT', 'NL006', 108, 108, 'Switch Silent Lavender', 'switch'),
-('CFG108SILPCB', 'CFGKB108SILENT', 'NL002', 1, 1, 'PCB 108 Silent', 'bo mạch'),
-('CFG108SILCASE', 'CFGKB108SILENT', 'NL004', 1, 1, 'Vỏ Silent', 'bộ vỏ'),
-('CFG108SILPACK', 'CFGKB108SILENT', 'NL007', 1, 1, 'Đóng gói Silent', 'bộ'),
-('CFGKITRETAILPCB', 'CFGKITRETAIL', 'NL002', 1, 1, 'PCB kit Retail', 'bo mạch'),
-('CFGKITRETAILKEY', 'CFGKITRETAIL', 'NL003', 1, 1, 'Keycap kit Retail', 'bộ keycap'),
-('CFGKITRETAILPACK', 'CFGKITRETAIL', 'NL007', 1, 1, 'Đóng gói kit Retail', 'bộ'),
-('CFGKITTECHPCB', 'CFGKITTECH', 'NL002', 1, 1, 'PCB kit TechHub', 'bo mạch'),
-('CFGKITTECHKEY', 'CFGKITTECH', 'NL003', 1, 1, 'Keycap kit TechHub', 'bộ keycap'),
-('CFGKITTECHPACK', 'CFGKITTECH', 'NL007', 1, 1, 'Đóng gói kit TechHub', 'bộ');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -169,12 +141,7 @@ CREATE TABLE `cau_hinh_san_pham` (
 -- Đang đổ dữ liệu cho bảng `cau_hinh_san_pham`
 --
 
-INSERT INTO `cau_hinh_san_pham` (`IdCauHinh`, `TenCauHinh`, `MoTa`, `GiaBan`, `IdSanPham`, `IdBOM`, `Layout`, `SwitchType`, `CaseType`, `Foam`) VALUES
-('CFGKB108SILENT', 'Layout 108 Silent phòng thu', 'Switch Silent và stabilizer bôi trơn', 2680000, 'SPKB108', 'BOMKB108SILENT', 'Fullsize 108', 'Silent tactile', 'ABS foam tiêu âm', 'Silicone đúc khuôn'),
-('CFGKB87DELUXE', 'Layout 87 tape mod', 'Tape mod và foam bổ sung cho bản 87', 2480000, 'SPKB87', 'BOMKB87DELUXE', '87% TKL', 'Lotus Linear', 'Nhôm + tape mod', 'Poron + PE film'),
-('CFGKB87RGB', 'Layout 87 RGB tiêu chuẩn', 'Foam tiêu âm, switch Lotus lube sẵn', 2450000, 'SPKB87', 'BOMKB87FULL', '87% TKL', 'Lotus Linear', 'Nhôm anod xước hairline', 'Poron 3 lớp'),
-('CFGKITRETAIL', 'Kit DIY bán lẻ', 'Đóng gói đầy đủ phụ kiện retail', 1950000, 'SPKBCUSTOM', 'BOMKITRETAIL', '75% compact', 'Không kèm switch', 'Nhôm CNC phủ sơn', 'EVA 2 lớp'),
-('CFGKITTECH', 'Kit TechHub branding', 'Keycap và plate in logo TechHub', 1950000, 'SPKBCUSTOM', 'BOMKITTECH', '75% compact', 'Không kèm switch', 'Nhôm CNC in logo TechHub', 'EVA 2 lớp + badge đồng');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -192,12 +159,7 @@ CREATE TABLE `cau_hinh_thong_bao` (
 -- Đang đổ dữ liệu cho bảng `cau_hinh_thong_bao`
 --
 
-INSERT INTO `cau_hinh_thong_bao` (`MaCauHinh`, `GiaTri`, `MoTa`) VALUES
-('inventory_alert_channel', 'inventory_alert', 'Kênh cảnh báo thiếu hụt vật tư'),
-('inventory_alert_recipients', '[\"VT_QUANLY_XUONG\",\"VT_NHANVIEN_KHO\"]', 'Các vai trò nhận cảnh báo tồn kho'),
-('warehouse_channel', 'warehouse', 'Kênh thông báo đẩy tới kho vận'),
-('warehouse_recipients', '[\"VT_NHANVIEN_KHO\",\"VT_DOI_TAC_VAN_TAI\"]', 'Các vai trò nhận thông báo kho vận'),
-('workshop_channel', 'workshop', 'Kênh thông báo đẩy tới xưởng');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -288,14 +250,7 @@ CREATE TABLE `ct_don_hang` (
 -- Đang đổ dữ liệu cho bảng `ct_don_hang`
 --
 
-INSERT INTO `ct_don_hang` (`IdTTCTDonHang`, `SoLuong`, `NgayGiao`, `YeuCau`, `DonGia`, `ThanhTien`, `GhiChu`, `VAT`, `IdSanPham`, `IdCauHinh`, `IdDonHang`) VALUES
-('CTDH20231101A', 180, '2023-11-25 09:00:00', 'Lắp sẵn switch Lotus và lube stab', 2450000, 441000000, 'Đóng gói pallet chống sốc', 0.08, 'SPKB87', 'CFGKB87RGB', 'DH20231101'),
-('CTDH20231101B', 120, '2023-11-26 13:30:00', 'Thay keycap Glacier theo brand', 2680000, 321600000, 'Ưu tiên kiểm tra RGB 100%', 0.08, 'SPKB108', 'CFGKB108SILENT', 'DH20231101'),
-('CTDH20231105A', 150, '2023-11-28 08:00:00', 'Tuỳ chỉnh foam và tape mod', 2450000, 367500000, 'Đóng gói theo từng bộ gear', 0.08, 'SPKB87', 'CFGKB87DELUXE', 'DH20231105'),
-('CTDH20231105B', 90, '2023-11-29 14:00:00', 'Đóng gói kèm bộ keycap bổ sung', 1950000, 175500000, 'Đính kèm checklist bảo hành', 0.08, 'SPKBCUSTOM', 'CFGKITRETAIL', 'DH20231105'),
-('CTDH20231202A', 140, '2023-12-20 10:00:00', 'In logo TechHub lên plate', 2680000, 375200000, 'Giao buổi sáng bằng xe kín', 0.08, 'SPKB108', 'CFGKB108SILENT', 'DH20231202'),
-('CTDH20231202B', 160, '2023-12-22 15:00:00', 'Chuẩn bị kit custom phối màu riêng', 1950000, 312000000, 'Yêu cầu kèm hướng dẫn dựng phím', 0.08, 'SPKBCUSTOM', 'CFGKITTECH', 'DH20231202'),
-('CTDH68feda7214d43', 1000, '2025-10-31 09:34:00', '', 2680000, 2894400000, '{\"note\":null,\"configuration\":{\"keycap\":\"Switch Silent và stabilizer bôi trơn\",\"switch\":\"Silent tactile\",\"case\":\"ABS foam tiêu âm\",\"main\":\"Fullsize 108\",\"others\":\"Silicone đúc khuôn\"},\"source\":{\"product\":\"existing\",\"configuration\":\"existing\"}}', 0.08, 'SPKB108', 'CFGKB108SILENT', 'DH68feda7214656');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -317,13 +272,7 @@ CREATE TABLE `ct_hoa_don` (
 -- Đang đổ dữ liệu cho bảng `ct_hoa_don`
 --
 
-INSERT INTO `ct_hoa_don` (`IdCTHoaDon`, `SoLuong`, `ThueVAT`, `TongTien`, `PhuongThucTT`, `IdHoaDon`, `IdLo`) VALUES
-('CTHD20231101A', 180, 8, 476280000, 'Chuyển khoản', 'HD20231101', 'LOTP202309'),
-('CTHD20231101B', 120, 8, 347328000, 'Chuyển khoản', 'HD20231101', 'LOTP202310'),
-('CTHD20231105A', 150, 8, 396900000, 'Chuyển khoản', 'HD20231105', 'LOTP202309'),
-('CTHD20231105B', 90, 8, 189540000, 'Chuyển khoản', 'HD20231105', 'LOTP202311'),
-('CTHD20231202A', 140, 8, 405216000, 'Chuyển khoản', 'HD20231202', 'LOTP202310'),
-('CTHD20231202B', 160, 8, 336960000, 'Chuyển khoản', 'HD20231202', 'LOTP202311');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -344,13 +293,7 @@ CREATE TABLE `ct_phieu` (
 -- Đang đổ dữ liệu cho bảng `ct_phieu`
 --
 
-INSERT INTO `ct_phieu` (`IdTTCTPhieu`, `DonViTinh`, `SoLuong`, `ThucNhan`, `IdPhieu`, `IdLo`) VALUES
-('CTP20231101A', 'Hộp', 400, 400, 'PN20231101', 'LOSW202309'),
-('CTP20231101B', 'Tấm', 200, 200, 'PN20231101', 'LOPCB202310'),
-('CTP20231102A', 'Hộp', 250, 245, 'PX20231102', 'LOSW202309'),
-('CTP20231102B', 'Tấm', 180, 180, 'PX20231102', 'LOPCB202310'),
-('CTP20231103A', 'Bộ', 210, 210, 'PX20231103', 'LOTP202309'),
-('CTP20231103B', 'Bộ', 150, 148, 'PX20231103', 'LOTP202310');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -372,11 +315,7 @@ CREATE TABLE `don_hang` (
 -- Đang đổ dữ liệu cho bảng `don_hang`
 --
 
-INSERT INTO `don_hang` (`IdDonHang`, `YeuCau`, `TongTien`, `NgayLap`, `TrangThai`, `EmailLienHe`, `IdKhachHang`) VALUES
-('DH20231101', 'Lô SV5TOT 87 & 108 phục vụ mùa lễ hội cuối năm', 762600000, '2023-11-10', 'Đang xử lý', 'contact@gearzone.vn', 'KH001'),
-('DH20231105', 'Bổ sung combo SV5TOT custom cho chương trình Noel', 543000000, '2023-11-15', 'Đang xử lý', 'orders@techhub.vn', 'KH002'),
-('DH20231202', 'Đơn chuẩn bị Tết Dương lịch cho TechHub', 687200000, '2023-12-02', 'Đang xử lý', 'sales@customvn.vn', 'KH003'),
-('DH68feda7214656', '', 2894400000, '2025-10-27', 'Mới tạo', 'lekiet2409@gmail.com', 'KH001');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -395,10 +334,7 @@ CREATE TABLE `hoat_dong_he_thong` (
 -- Đang đổ dữ liệu cho bảng `hoat_dong_he_thong`
 --
 
-INSERT INTO `hoat_dong_he_thong` (`IdHoatDong`, `HanhDong`, `ThoiGian`, `IdNguoiDung`) VALUES
-('HDHT2023110101', 'Tạo kế hoạch lắp ráp SV5TOT 87 KHSX20231101', '2023-11-09 08:15:00', 'ND001'),
-('HDHT2023111201', 'Duyệt phiếu xuất switch PX20231102', '2023-11-12 09:45:00', 'ND002'),
-('HDHT2023112001', 'Cập nhật tiến độ kiểm thử SV5TOT 108 lô LOTP202310', '2023-11-20 16:20:00', 'ND003');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -418,10 +354,7 @@ CREATE TABLE `hoa_don` (
 -- Đang đổ dữ liệu cho bảng `hoa_don`
 --
 
-INSERT INTO `hoa_don` (`IdHoaDon`, `NgayLap`, `TrangThai`, `LoaiHD`, `IdDonHang`) VALUES
-('HD20231101', '2023-11-20', 'Đã phát hành', 'Hóa đơn GTGT', 'DH20231101'),
-('HD20231105', '2023-11-25', 'Đã phát hành', 'Hóa đơn GTGT', 'DH20231105'),
-('HD20231202', '2023-12-05', 'Đang đối soát', 'Hóa đơn GTGT', 'DH20231202');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -443,13 +376,7 @@ CREATE TABLE `ke_hoach_san_xuat` (
 -- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat`
 --
 
-INSERT INTO `ke_hoach_san_xuat` (`IdKeHoachSanXuat`, `SoLuong`, `ThoiGianKetThuc`, `TrangThai`, `ThoiGianBD`, `IdNguoiLap`, `IdTTCTDonHang`) VALUES
-('KH68feddc3cb52d', 90, '2023-11-29 14:00:00', 'Đã lập kế hoạch', '2025-10-27 03:49:00', 'NV002', 'CTDH20231105B'),
-('KHSX20231101', 180, '2023-11-19 17:00:00', 'Đang lắp ráp SV5TOT 87', '2023-11-10 07:30:00', 'NV001', 'CTDH20231101A'),
-('KHSX20231102', 120, '2023-11-22 17:30:00', 'Đang kiểm thử SV5TOT 108', '2023-11-14 08:00:00', 'NV001', 'CTDH20231101B'),
-('KHSX20231105', 150, '2023-11-26 16:00:00', 'Đang hoàn thiện đơn custom', '2023-11-18 07:30:00', 'NV001', 'CTDH20231105A'),
-('KHSX20231202', 160, '2023-12-20 16:30:00', 'Đang chuẩn bị kit TechHub', '2023-12-10 08:00:00', 'NV001', 'CTDH20231202B'),
-('KHSX20231202A', 140, '2023-12-22 17:00:00', 'Chuẩn bị SV5TOT 108 TechHub', '2023-12-12 07:45:00', 'NV001', 'CTDH20231202A');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -474,20 +401,7 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
 -- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat_xuong`
 --
 
-INSERT INTO `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`, `TenThanhThanhPhanSP`, `SoLuong`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TrangThai`, `TinhTrangVatTu`, `IdCongDoan`, `IdKeHoachSanXuat`, `IdXuong`) VALUES
-('KHSXX202311A', 'Lắp switch SV5TOT 87', 180, '2023-11-10 08:00:00', '2023-11-12 17:00:00', 'Đang làm', 'Chưa kiểm tra', 'PCFGKB87RGB_ASM', 'KHSX20231101', 'XU001'),
-('KHSXX202311B', 'Hoàn thiện & đóng gói SV5TOT 87', 180, '2023-11-13 08:00:00', '2023-11-16 21:30:00', 'Đang làm', 'Chưa kiểm tra', 'PCFGKB87RGB_PACK', 'KHSX20231101', 'XU002'),
-('KHSXX202311C', 'Kiểm thử PCB SV5TOT 108', 120, '2023-11-14 08:30:00', '2023-11-18 17:30:00', 'Chuẩn bị', 'Chưa kiểm tra', 'PCFGKB108SILENT_QC', 'KHSX20231102', 'XU002'),
-('KHSXX202311D', 'Lắp ráp SV5TOT custom cho Noel', 150, '2023-11-18 08:00:00', '2023-11-23 16:30:00', 'Đang làm', 'Chưa kiểm tra', 'PCFGKITTECH_KIT', 'KHSX20231105', 'XU001'),
-('KHSXX202312A', 'Đóng gói kit custom TechHub', 160, '2023-12-12 08:00:00', '2023-12-18 17:00:00', 'Lập kế hoạch', 'Chưa kiểm tra', 'PCFGKITTECH_PACK', 'KHSX20231202', 'XU002'),
-('KHSXX202312B', 'Lắp ráp SV5TOT 108 TechHub', 140, '2023-12-12 09:00:00', '2023-12-20 18:00:00', 'Chuẩn bị', 'Chưa kiểm tra', 'PCFGKB108SILENT_ASM', 'KHSX20231202A', 'XU001'),
-('KXX68feddc3cbdf5', 'Chuẩn bị kit DIY bán lẻ', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_KIT', 'KH68feddc3cb52d', 'XU001'),
-('KXX68feddc3cc1b1', 'Rà soát phụ kiện kit Retail', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_QC', 'KH68feddc3cb52d', 'XU002'),
-('KXX68feddc3cc53b', 'Đóng gói kit Retail', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chờ xác nhận', 'Chưa kiểm tra', 'PCFGKITRETAIL_PACK', 'KH68feddc3cb52d', 'XU002'),
-('KXX68feddc3cc8bd', 'Layout: 75% compact', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
-('KXX68feddc3ccc24', 'Switch: Không kèm switch', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
-('KXX68feddc3ccea1', 'Case: Nhôm CNC phủ sơn', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001'),
-('KXX68feddc3cd147', 'Foam: EVA 2 lớp', 90, '2025-10-27 03:49:00', '2023-11-29 14:00:00', 'Đang chuẩn bị', 'Chưa kiểm tra', NULL, 'KH68feddc3cb52d', 'XU001');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -512,10 +426,7 @@ CREATE TABLE `khach_hang` (
 -- Đang đổ dữ liệu cho bảng `khach_hang`
 --
 
-INSERT INTO `khach_hang` (`IdKhachHang`, `HoTen`, `TenCongTy`, `GioiTinh`, `DiaChi`, `SoLuongDonHang`, `SoDienThoai`, `Email`, `TongTien`, `LoaiKhachHang`) VALUES
-('KH001', 'Công ty GearZone Việt Nam', NULL, 1, 'Số 25 Nguyễn Huệ, Quận 1, TP.HCM', 12, '0283899123', 'contact@gearzone.vn', 1526000000, 'Đại lý phân phối'),
-('KH002', 'Chuỗi cửa hàng TechHub', NULL, 1, 'Quốc lộ 13, phường Hiệp Bình Phước, TP.Thủ Đức', 18, '02837261111', 'orders@techhub.vn', 1268000000, 'Bán lẻ chiến lược'),
-('KH003', 'Cửa hàng CustomVN', NULL, 0, 'Ấp Phú Hòa, xã An Tây, Bến Cát', 9, '0913123456', 'sales@customvn.vn', 732000000, 'Đại lý custom gear');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -540,9 +451,7 @@ CREATE TABLE `kho` (
 -- Đang đổ dữ liệu cho bảng `kho`
 --
 
-INSERT INTO `kho` (`IdKho`, `TenKho`, `TenLoaiKho`, `DiaChi`, `TongSLLo`, `ThanhTien`, `TrangThai`, `TongSL`, `IdXuong`, `NHAN_VIEN_KHO_IdNhanVien`) VALUES
-('KHO01', 'Kho Linh Kiện Bàn Phím', 'Linh kiện', 'Lô A2, KCN Phúc An, Bến Cát', 3, 2147483647, 'Đang sử dụng', 1400, 'XU001', 'NV004'),
-('KHO02', 'Kho Thành Phẩm SV5TOT', 'Thành phẩm', 'Lô B1, KCN Phúc An, Bến Cát', 3, 2147483647, 'Đang sử dụng', 1150, 'XU002', 'NV005');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -597,20 +506,7 @@ CREATE TABLE `lo` (
 -- Đang đổ dữ liệu cho bảng `lo`
 --
 
-INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `IdSanPham`, `IdKho`) VALUES
-('LOBADGE202311', 'Lô badge TechHub 11/2023', 300, '2023-11-05 09:25:00', 'Linh kiện', 'SPCOMP06', 'KHO01'),
-('LOCASE202309', 'Lô vỏ CNC anodized 09/2023', 420, '2023-09-15 08:10:00', 'Linh kiện', 'SPCOMP07', 'KHO01'),
-('LOFOAM202308', 'Lô foam Poron 08/2023', 520, '2023-08-20 07:40:00', 'Linh kiện', 'SPCOMP04', 'KHO01'),
-('LOFOAM202310', 'Lô foam Poron 10/2023', 400, '2023-10-08 09:15:00', 'Linh kiện', 'SPCOMP04', 'KHO01'),
-('LOKEY202311', 'Lô keycap PBT Glacier 11/2023', 600, '2023-11-04 09:20:00', 'Linh kiện', 'SPCOMP03', 'KHO01'),
-('LOPACK202311', 'Lô hộp đóng gói premium 11/2023', 550, '2023-11-18 08:45:00', 'Phụ kiện', 'SPCOMP08', 'KHO01'),
-('LOPCB202310', 'Lô PCB SV5TOT R3 10/2023', 800, '2023-10-03 08:15:00', 'Linh kiện', 'SPCOMP02', 'KHO01'),
-('LOSW202307', 'Lô switch Lotus 07/2023', 900, '2023-07-10 09:00:00', 'Linh kiện', 'SPCOMP01', 'KHO01'),
-('LOSW202309', 'Lô switch Lotus 09/2023', 1000, '2023-09-01 07:45:00', 'Linh kiện', 'SPCOMP01', 'KHO01'),
-('LOTAPE202310', 'Lô băng keo 3M 10/2023', 350, '2023-10-08 09:20:00', 'Linh kiện', 'SPCOMP05', 'KHO01'),
-('LOTP202309', 'Lô SV5TOT 87 hoàn thiện 09/2023', 500, '2023-09-10 08:00:00', 'Thành phẩm', 'SPKB87', 'KHO02'),
-('LOTP202310', 'Lô SV5TOT 108 hoàn thiện 10/2023', 600, '2023-10-05 09:00:00', 'Thành phẩm', 'SPKB108', 'KHO02'),
-('LOTP202311', 'Lô SV5TOT DIY kit 11/2023', 450, '2023-11-02 08:30:00', 'Thành phẩm', 'SPKBCUSTOM', 'KHO02');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -631,16 +527,7 @@ CREATE TABLE `nguoi_dung` (
 -- Đang đổ dữ liệu cho bảng `nguoi_dung`
 --
 
-INSERT INTO `nguoi_dung` (`IdNguoiDung`, `TenDangNhap`, `MatKhau`, `TrangThai`, `IdNhanVien`, `IdVaiTro`) VALUES
-('ND001', 'ql.lan', 'matkhau@123', 'Hoạt động', 'NV001', 'VT_QUANLY_XUONG'),
-('ND002', 'ketoan.tai', 'matkhau@123', 'Hoạt động', 'NV006', 'VT_KETOAN'),
-('ND003', 'admin.minh', 'Matkhau!2023', 'Hoạt động', 'NV002', 'VT_ADMIN'),
-('ND004', 'sx.anh', 'matkhau@123', 'Hoạt động', 'NV003', 'VT_NHANVIEN_SANXUAT'),
-('ND005', 'kho.trang', 'matkhau@123', 'Hoạt động', 'NV004', 'VT_NHANVIEN_KHO'),
-('ND006', 'cl.hanh', 'matkhau@123', 'Hoạt động', 'NV007', 'VT_KIEM_SOAT_CL'),
-('ND007', 'kd.long', 'matkhau@123', 'Hoạt động', 'NV008', 'VT_KINH_DOANH'),
-('ND008', 'nhansu.mai', 'matkhau@123', 'Hoạt động', 'NV010', 'VT_NHAN_SU'),
-('ND009', 'vantai.nam', 'matkhau@123', 'Hoạt động', 'NV009', 'VT_DOI_TAC_VAN_TAI');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -664,14 +551,7 @@ CREATE TABLE `nguyen_lieu` (
 -- Đang đổ dữ liệu cho bảng `nguyen_lieu`
 --
 
-INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonVi`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
-('NL001', 'Switch Lotus Linear', 400, 'switch', 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
-('NL002', 'PCB SV5TOT R3', 300, 'bo mạch', 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
-('NL003', 'Keycap PBT Glacier', 280, 'bộ', 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311'),
-('NL004', 'Bộ vỏ CNC anodized', 150, 'bộ', 820000, 'Đang sử dụng', '2023-09-15 08:20:00', '2026-09-15 00:00:00', 'LOCASE202309'),
-('NL005', 'Foam Poron định hình', 520, 'tấm', 120000, 'Đang sử dụng', '2023-08-20 07:45:00', '2025-08-20 00:00:00', 'LOFOAM202308'),
-('NL006', 'Switch Silent Lavender', 260, 'switch', 520000, 'Đang sử dụng', '2023-07-10 09:10:00', '2025-07-10 00:00:00', 'LOSW202307'),
-('NL007', 'Bộ hộp đóng gói premium', 320, 'bộ', 90000, 'Đang sử dụng', '2023-11-18 08:50:00', '2024-11-18 00:00:00', 'LOPACK202311');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -697,17 +577,7 @@ CREATE TABLE `nhan_vien` (
 -- Đang đổ dữ liệu cho bảng `nhan_vien`
 --
 
-INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`) VALUES
-('NV001', 'Nguyễn Thị Lan', '1985-05-10', 0, 'Quản đốc xưởng lắp ráp', 5, 'Đang làm việc', 'Khu phố 3, phường Phú Lợi, TP.Thủ Dầu Một', '2020-01-15 07:30:00', NULL, 'XU001'),
-('NV002', 'Trần Văn Minh', '1982-11-22', 1, 'Kỹ sư vận hành dây chuyền SMT', 4, 'Đang làm việc', 'Đường N4, KCN VSIP 1, Bình Dương', '2019-07-01 07:30:00', NULL, 'XU002'),
-('NV003', 'Lê Hoàng Anh', '1990-03-18', 1, 'Tổ trưởng lắp ráp switch', 3, 'Đang làm việc', 'Ấp 2, xã Phú An, Bến Cát', '2021-03-10 07:45:00', NULL, 'XU001'),
-('NV004', 'Phạm Thu Trang', '1992-08-05', 0, 'Thủ kho linh kiện', 3, 'Đang làm việc', 'Khu phố Đông, phường Hòa Phú, TP.Thủ Dầu Một', '2020-09-01 08:00:00', NULL, 'XU001'),
-('NV005', 'Đặng Quốc Việt', '1988-01-26', 1, 'Tổ trưởng hoàn thiện & QA', 3, 'Đang làm việc', 'Phường Chánh Nghĩa, TP.Thủ Dầu Một', '2021-06-21 07:20:00', NULL, 'XU002'),
-('NV006', 'Vũ Hữu Tài', '1983-09-14', 1, 'Kế toán trưởng', 4, 'Đang làm việc', 'Khu phố 5, thị trấn Mỹ Phước, Bến Cát', '2018-04-02 08:05:00', NULL, NULL),
-('NV007', 'Đào Ngọc Hạnh', '1987-04-19', 0, 'Trưởng nhóm QA bàn phím', 4, 'Đang làm việc', 'Phường Hiệp Thành, TP.Thủ Dầu Một', '2019-02-11 08:00:00', NULL, 'XU002'),
-('NV008', 'Phạm Đức Long', '1989-12-02', 1, 'Chuyên viên kinh doanh thiết bị', 3, 'Đang làm việc', 'Phường Hưng Định, TP.Thuận An', '2020-05-05 08:15:00', NULL, NULL),
-('NV009', 'Nguyễn Hải Nam', '1991-07-23', 1, 'Điều phối logistics', 3, 'Đang làm việc', 'Phường Mỹ Phước, TX.Bến Cát', '2021-08-09 07:50:00', NULL, 'XU002'),
-('NV010', 'Võ Thị Mai', '1986-03-30', 0, 'Chuyên viên nhân sự sản xuất', 4, 'Đang làm việc', 'Phường Phú Tân, TP.Thủ Dầu Một', '2018-09-17 08:10:00', NULL, NULL);
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -735,10 +605,7 @@ CREATE TABLE `phieu` (
 -- Đang đổ dữ liệu cho bảng `phieu`
 --
 
-INSERT INTO `phieu` (`IdPhieu`, `NgayLP`, `NgayXN`, `TongTien`, `LoaiPhieu`, `IdKho`, `NHAN_VIENIdNhanVien`, `NHAN_VIENIdNhanVien2`, `LoaiDoiTac`, `DoiTac`, `SoThamChieu`, `LyDo`, `GhiChu`) VALUES
-('PN20231101', '2023-11-05', '2023-11-05', 284000000, 'Phiếu nhập linh kiện switch & PCB', 'KHO01', 'NV004', 'NV006', 'Nhà cung cấp', 'Lotus Components Ltd.', 'PO-LOTUS-1105', 'Nhập lô switch Lotus và PCB theo hợp đồng tháng 11', 'Yêu cầu kiểm tra ESD khi nhập kho'),
-('PX20231102', '2023-11-12', '2023-11-12', 203850000, 'Phiếu xuất linh kiện cho lắp ráp', 'KHO01', 'NV004', 'NV001', 'Xưởng khác', 'Xưởng lắp ráp 1', 'YEUCAU-LR-20231112', 'Xuất linh kiện cấp chuyền lắp ráp đơn SV5TOT 108', 'Ghi nhận giao ca sáng'),
-('PX20231103', '2023-11-18', '2023-11-18', 916500000, 'Phiếu xuất thành phẩm SV5TOT', 'KHO02', 'NV005', 'NV002', 'Khách hàng', 'GearStore VN', 'SO-DELIVERY-20231118', 'Xuất thành phẩm bàn phím SV5TOT theo đơn hàng tháng 11', 'Đóng gói kèm phiếu bảo hành');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -757,12 +624,7 @@ CREATE TABLE `product_components` (
 -- Đang đổ dữ liệu cho bảng `product_components`
 --
 
-INSERT INTO `product_components` (`IdBOM`, `TenBOM`, `MoTa`, `IdSanPham`) VALUES
-('BOMKB108SILENT', 'BOM SV5TOT 108 Silent', 'BOM 108 phím sử dụng switch Silent và foam silicone', 'SPKB108'),
-('BOMKB87DELUXE', 'BOM SV5TOT 87 Tape mod', 'BOM tape mod bổ sung foam PE và băng keo cho plate', 'SPKB87'),
-('BOMKB87FULL', 'BOM SV5TOT 87 Full kit', 'BOM chuẩn 87% gồm foam Poron và switch Lotus lube sẵn', 'SPKB87'),
-('BOMKITRETAIL', 'BOM kit DIY bán lẻ', 'BOM đóng gói retail đầy đủ phụ kiện custom', 'SPKBCUSTOM'),
-('BOMKITTECH', 'BOM kit TechHub branding', 'BOM in logo TechHub, kèm keycap và plate branding', 'SPKBCUSTOM');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -782,18 +644,7 @@ CREATE TABLE `san_pham` (
 -- Đang đổ dữ liệu cho bảng `san_pham`
 --
 
-INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VALUES
-('SPCOMP01', 'Switch Lotus Linear', 'Hộp', 450000, 'Hộp 90 switch linear Lotus được bôi trơn sẵn'),
-('SPCOMP02', 'PCB SV5TOT R3', 'Tấm', 520000, 'PCB hotswap hỗ trợ layout 87/88 phím'),
-('SPCOMP03', 'Keycap PBT Glacier', 'Bộ', 690000, 'Keycap PBT double-shot profile Cherry màu Glacier'),
-('SPCOMP04', 'Foam Poron 87%', 'Bộ', 120000, 'Foam Poron 3 lớp cho layout 87%'),
-('SPCOMP05', 'Băng keo 3M 9495LE', 'Cuộn', 90000, 'Băng keo 3M 9495LE cho tape mod plate'),
-('SPCOMP06', 'Badge TechHub đồng', 'Chiếc', 150000, 'Badge đồng khắc laser logo TechHub'),
-('SPCOMP07', 'Vỏ CNC anodized', 'Bộ', 820000, 'Bộ vỏ nhôm CNC anodized dành cho dòng SV5TOT'),
-('SPCOMP08', 'Hộp đóng gói premium', 'Bộ', 90000, 'Bộ hộp đóng gói premium in thương hiệu TechHub'),
-('SPKB108', 'SV5TOT 108 Silent', 'Bộ', 2680000, 'Bàn phím cơ full-size switch Silent bôi trơn sẵn'),
-('SPKB87', 'SV5TOT 87 RGB', 'Bộ', 2450000, 'Bàn phím cơ TKL với foam tiêu âm và switch Lotus'),
-('SPKBCUSTOM', 'SV5TOT DIY Kit', 'Bộ', 1950000, 'Bộ kit custom layout 75% với PCB hotswap');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -814,10 +665,7 @@ CREATE TABLE `thanh_pham` (
 -- Đang đổ dữ liệu cho bảng `thanh_pham`
 --
 
-INSERT INTO `thanh_pham` (`IdThanhPham`, `TenThanhPham`, `YeuCau`, `DonGia`, `LoaiTP`, `IdLo`) VALUES
-('TP20231101', 'SV5TOT 87 bản RGB', 'Lắp ráp hoàn thiện kèm foam tiêu âm', 2550000, 'Loại A', 'LOTP202309'),
-('TP20231102', 'SV5TOT 108 bản Silent', 'Dán tem theo nhận diện GearZone', 2780000, 'Loại A', 'LOTP202310'),
-('TP20231103', 'SV5TOT DIY kit tùy chỉnh', 'Đóng gói đủ phụ kiện custom theo yêu cầu', 2050000, 'Loại B', 'LOTP202311');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -839,11 +687,7 @@ CREATE TABLE `ttct_bien_ban_danh_gia_dot_xuat` (
 -- Đang đổ dữ liệu cho bảng `ttct_bien_ban_danh_gia_dot_xuat`
 --
 
-INSERT INTO `ttct_bien_ban_danh_gia_dot_xuat` (`IdTTCTBBDGDX`, `LoaiTieuChi`, `TieuChi`, `DiemDG`, `GhiChu`, `HinhAnh`, `IdBienBanDanhGiaDX`) VALUES
-('CTBBDX20231101A', 'An toàn điện', 'Kiểm tra tiếp địa workstation', 92, 'Đảm bảo điện trở nối đất < 1Ω', 'kiem_tra_tiep_dia.jpg', 'BBDX20231101'),
-('CTBBDX20231101B', 'Vệ sinh công nghiệp', 'Dọn sạch bàn lắp ráp', 90, 'Cần bổ sung checklist vệ sinh cuối ca', 've_sinh_workbench.jpg', 'BBDX20231101'),
-('CTBBDX20231102A', 'Kiểm soát linh kiện', 'Quản lý số serial PCB', 91, 'Serial được cập nhật đầy đủ trong MES', 'quan_ly_serial.jpg', 'BBDX20231102'),
-('CTBBDX20231102B', 'Hồ sơ truy xuất', 'Nhật ký thay switch lỗi', 89, 'Đề nghị bổ sung ảnh minh chứng switch lỗi', 'nhat_ky_switch.jpg', 'BBDX20231102');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -864,23 +708,7 @@ CREATE TABLE `ttct_bien_ban_danh_gia_thanh_pham` (
 -- Đang đổ dữ liệu cho bảng `ttct_bien_ban_danh_gia_thanh_pham`
 --
 
-INSERT INTO `ttct_bien_ban_danh_gia_thanh_pham` (`IdTTCTBBDGTP`, `Tieuchi`, `DiemD`, `GhiChu`, `HinhAnh`, `IdBienBanDanhGiaSP`) VALUES
-('CTBBTP20231101A', 'Độ đồng đều lực nhấn phím', 95, 'Sai số lực nhấn ±5g', 'force_test.jpg', 'BBTP20231101'),
-('CTBBTP20231101B', 'Chất lượng LED RGB', 94, 'LED sáng đều, không chết điểm', 'led_rgb.jpg', 'BBTP20231101'),
-('CTBBTP20231102A', 'Độ ồn switch Silent', 93, 'Đạt 42dB tại 10cm', 'do_on_silent.jpg', 'BBTP20231102'),
-('CTBBTP20231102B', 'Sai số layout', 92, 'Khoảng cách phím đúng chuẩn ANSI', 'layout_ansi.jpg', 'BBTP20231102'),
-('CTBBTP20231103A', 'Độ hoàn thiện bề mặt', 91, 'Anod nhôm đều màu, không xước', 'be_mat_vo.jpg', 'BBTP20231103'),
-('CTBBTP20231103B', 'Đóng gói phụ kiện', 90, 'Đủ keycap, cable, tool tháo key', 'phu_kien_day_du.jpg', 'BBTP20231103'),
-('CTBBTP2025102901A', 'Kiểm tra đầy đủ linh kiện trước lắp ráp', 10, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901B', 'Độ khớp chính xác giữa các bộ phận', 0, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901C', 'Không thiếu ốc/vít trong quá trình lắp', 0, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901D', 'Dây cáp kết nối đúng vị trí, không gấp khúc', 0, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901E', 'Kiểm tra cố định bo mạch chắc chắn', 0, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901F', 'Kiểm tra hoạt động LED và phím cơ', 0, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901G', 'Không cong, vênh khung bàn phím', 0, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901H', 'Độ bám của keo và ron cao su', 0, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901I', 'Không trầy xước sau lắp ráp', 0, '', NULL, 'BBTP2025102901'),
-('CTBBTP2025102901J', 'Kiểm tra lần cuối trước bàn giao QC', 0, '', NULL, 'BBTP2025102901');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -897,18 +725,7 @@ CREATE TABLE `vai_tro` (
 -- Đang đổ dữ liệu cho bảng `vai_tro`
 --
 
-INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
-('VT_ADMIN', 'Quản trị hệ thống'),
-('VT_BAN_GIAM_DOC', 'Ban giám đốc'),
-('VT_DOI_TAC_VAN_TAI', 'Đối tác vận tải'),
-('VT_KETOAN', 'Kế toán'),
-('VT_KHACH', 'Khách hàng nội bộ'),
-('VT_KIEM_SOAT_CL', 'Kiểm soát chất lượng'),
-('VT_KINH_DOANH', 'Kinh doanh'),
-('VT_NHANVIEN_KHO', 'Nhân viên kho'),
-('VT_NHANVIEN_SANXUAT', 'Nhân viên sản xuất'),
-('VT_NHAN_SU', 'Nhân sự'),
-('VT_QUANLY_XUONG', 'Quản lý xưởng');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -936,9 +753,7 @@ CREATE TABLE `xuong` (
 -- Đang đổ dữ liệu cho bảng `xuong`
 --
 
-INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietBi`, `SlNhanVien`, `SoLuongCongNhan`, `TenQuyTrinh`, `CongSuatToiDa`, `CongSuatDangSuDung`, `TrangThai`, `MoTa`, `XUONGTRUONG_IdNhanVien`) VALUES
-('XU001', 'Xưởng Lắp Ráp SV5TOT', 'KCN Phúc An, Bến Cát', '2019-03-01', 25, 40, 42, 'Lắp ráp & hiệu chỉnh bàn phím', 12000, 8400, 'Đang hoạt động', 'Tập trung dây chuyền lắp ráp switch và hoàn thiện bàn phím.', 'NV001'),
-('XU002', 'Xưởng Kiểm Định & Đóng Gói', 'KCN Phúc An, Bến Cát', '2020-06-15', 18, 28, 30, 'Kiểm thử & đóng gói thành phẩm', 9500, 6200, 'Đang hoạt động', 'Đảm nhiệm kiểm thử, đóng gói và kiểm soát chất lượng thành phẩm.', 'NV002');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -958,14 +773,7 @@ CREATE TABLE `xuong_nhan_vien` (
 -- Đang đổ dữ liệu cho bảng `xuong_nhan_vien`
 --
 
-INSERT INTO `xuong_nhan_vien` (`IdXuong`, `IdNhanVien`, `VaiTro`) VALUES
-('XU001', 'NV001', 'truong_xuong'),
-('XU001', 'NV003', 'nhan_vien_san_xuat'),
-('XU001', 'NV004', 'nhan_vien_kho'),
-('XU002', 'NV002', 'truong_xuong'),
-('XU002', 'NV005', 'nhan_vien_san_xuat'),
-('XU002', 'NV007', 'nhan_vien_san_xuat'),
-('XU002', 'NV009', 'nhan_vien_kho');
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -992,24 +800,7 @@ CREATE TABLE `xuong_cau_hinh_san_pham` (
 -- Đang đổ dữ liệu cho bảng `xuong_cau_hinh_san_pham`
 --
 
-INSERT INTO `xuong_cau_hinh_san_pham` (`IdPhanCong`, `IdSanPham`, `IdCauHinh`, `IdXuong`, `TenPhanCong`, `TyLeSoLuong`, `DonVi`, `TrangThaiMacDinh`, `LogisticsKey`, `LogisticsLabel`, `IncludeYeuCau`, `ThuTu`) VALUES
-('PCFGKB108SILENT_ASM', 'SPKB108', 'CFGKB108SILENT', 'XU001', 'Lắp ráp SV5TOT 108 Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg108_silent_assembly', 'Lắp ráp Silent', 1, 1),
-('PCFGKB108SILENT_PACK', 'SPKB108', 'CFGKB108SILENT', 'XU002', 'Đóng gói thành phẩm SV5TOT 108 Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg108_silent_pack', 'Đóng gói Silent', 0, 3),
-('PCFGKB108SILENT_QC', 'SPKB108', 'CFGKB108SILENT', 'XU002', 'Kiểm thử tiếng ồn SV5TOT 108 Silent', 1, 'bộ', 'Đang chờ xác nhận', 'cfg108_silent_qc', 'QC Silent', 0, 2),
-('PCFGKB87DELUXE_ASM', 'SPKB87', 'CFGKB87DELUXE', 'XU001', 'Gia công foam & lắp ráp SV5TOT 87 Deluxe', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_deluxe_assembly', 'Lắp ráp Deluxe', 1, 1),
-('PCFGKB87DELUXE_PACK', 'SPKB87', 'CFGKB87DELUXE', 'XU002', 'Đóng gói Deluxe cùng phụ kiện', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_deluxe_pack', 'Đóng gói Deluxe', 0, 3),
-('PCFGKB87DELUXE_QC', 'SPKB87', 'CFGKB87DELUXE', 'XU002', 'Kiểm tra tape mod SV5TOT 87 Deluxe', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_deluxe_qc', 'QC Deluxe', 0, 2),
-('PCFGKB87RGB_ASM', 'SPKB87', 'CFGKB87RGB', 'XU001', 'Lắp ráp khung & switch SV5TOT 87 RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_rgb_assembly', 'Lắp ráp RGB', 1, 1),
-('PCFGKB87RGB_PACK', 'SPKB87', 'CFGKB87RGB', 'XU002', 'Đóng gói thành phẩm SV5TOT 87 RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_rgb_pack', 'Đóng gói RGB', 0, 3),
-('PCFGKB87RGB_QC', 'SPKB87', 'CFGKB87RGB', 'XU002', 'Kiểm định hiệu năng SV5TOT 87 RGB', 1, 'bộ', 'Đang chờ xác nhận', 'cfg87_rgb_qc', 'QC RGB', 0, 2),
-('PCFGKITRETAIL_KIT', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU001', 'Chuẩn bị kit DIY bán lẻ', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail_prepare', 'Chuẩn bị kit Retail', 1, 1),
-('PCFGKITRETAIL_PACK', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU002', 'Đóng gói kit Retail', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail_pack', 'Đóng gói Kit Retail', 0, 3),
-('PCFGKITRETAIL_QC', 'SPKBCUSTOM', 'CFGKITRETAIL', 'XU002', 'Rà soát phụ kiện kit Retail', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_retail_qc', 'QC kit Retail', 0, 2),
-('PCFGKITTECH_KIT', 'SPKBCUSTOM', 'CFGKITTECH', 'XU001', 'Chuẩn bị kit TechHub branding', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech_prepare', 'Chuẩn bị kit TechHub', 1, 1),
-('PCFGKITTECH_PACK', 'SPKBCUSTOM', 'CFGKITTECH', 'XU002', 'Đóng gói kit TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech_pack', 'Đóng gói Kit TechHub', 0, 3),
-('PCFGKITTECH_QC', 'SPKBCUSTOM', 'CFGKITTECH', 'XU002', 'Kiểm tra badge & keycap TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'cfg_tech_qc', 'QC kit TechHub', 0, 2),
-('PDEFAULT_PACK', NULL, NULL, 'XU002', 'Đóng gói dự phòng', 1, 'bộ', 'Đang chờ xác nhận', 'default_pack', 'Đóng gói dự phòng', 0, 95),
-('PDEFAULT_QC', NULL, NULL, 'XU002', 'Kiểm định tiêu chuẩn TechHub', 1, 'bộ', 'Đang chờ xác nhận', 'default_qc', 'QC mặc định', 0, 90);
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -1524,3 +1315,215 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+--
+-- Dữ liệu mẫu cho bảng `nhan_vien`
+--
+SET FOREIGN_KEY_CHECKS=0;
+INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`) VALUES
+('NV001', 'Nhân viên 001', '1981-02-02', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 001, Bình Dương', '2016-02-02 08:00:00', NULL, NULL),
+('NV002', 'Nhân viên 002', '1982-03-03', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 002, Bình Dương', '2017-03-03 08:00:00', NULL, NULL),
+('NV003', 'Nhân viên 003', '1983-04-04', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 003, Bình Dương', '2018-04-04 08:00:00', NULL, NULL),
+('NV004', 'Nhân viên 004', '1984-05-05', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 004, Bình Dương', '2019-05-05 08:00:00', NULL, NULL),
+('NV005', 'Nhân viên 005', '1985-06-06', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 005, Bình Dương', '2020-06-06 08:00:00', NULL, NULL),
+('NV006', 'Nhân viên 006', '1986-07-07', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 006, Bình Dương', '2021-07-07 08:00:00', NULL, NULL),
+('NV007', 'Nhân viên 007', '1987-08-08', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 007, Bình Dương', '2022-08-08 08:00:00', NULL, NULL),
+('NV008', 'Nhân viên 008', '1988-09-09', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 008, Bình Dương', '2015-09-09 08:00:00', NULL, NULL),
+('NV009', 'Nhân viên 009', '1989-10-10', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 009, Bình Dương', '2016-10-10 08:00:00', NULL, NULL),
+('NV010', 'Nhân viên 010', '1990-11-11', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 010, Bình Dương', '2017-11-11 08:00:00', NULL, NULL),
+('NV011', 'Nhân viên 011', '1991-12-12', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 011, Bình Dương', '2018-12-12 08:00:00', NULL, NULL),
+('NV012', 'Nhân viên 012', '1992-01-13', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 012, Bình Dương', '2019-01-13 08:00:00', NULL, NULL),
+('NV013', 'Nhân viên 013', '1993-02-14', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 013, Bình Dương', '2020-02-14 08:00:00', NULL, NULL),
+('NV014', 'Nhân viên 014', '1994-03-15', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 014, Bình Dương', '2021-03-15 08:00:00', NULL, NULL),
+('NV015', 'Nhân viên 015', '1995-04-16', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 015, Bình Dương', '2022-04-16 08:00:00', NULL, NULL),
+('NV016', 'Nhân viên 016', '1996-05-17', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 016, Bình Dương', '2015-05-17 08:00:00', NULL, NULL),
+('NV017', 'Nhân viên 017', '1997-06-18', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 017, Bình Dương', '2016-06-18 08:00:00', NULL, NULL),
+('NV018', 'Nhân viên 018', '1998-07-19', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 018, Bình Dương', '2017-07-19 08:00:00', NULL, NULL),
+('NV019', 'Nhân viên 019', '1999-08-20', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 019, Bình Dương', '2018-08-20 08:00:00', NULL, NULL),
+('NV020', 'Nhân viên 020', '1980-09-21', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 020, Bình Dương', '2019-09-21 08:00:00', NULL, NULL),
+('NV021', 'Nhân viên 021', '1981-10-22', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 021, Bình Dương', '2020-10-22 08:00:00', NULL, NULL),
+('NV022', 'Nhân viên 022', '1982-11-23', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 022, Bình Dương', '2021-11-23 08:00:00', NULL, NULL),
+('NV023', 'Nhân viên 023', '1983-12-24', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 023, Bình Dương', '2022-12-24 08:00:00', NULL, NULL),
+('NV024', 'Nhân viên 024', '1984-01-25', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 024, Bình Dương', '2015-01-25 08:00:00', NULL, NULL),
+('NV025', 'Nhân viên 025', '1985-02-26', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 025, Bình Dương', '2016-02-26 08:00:00', NULL, NULL),
+('NV026', 'Nhân viên 026', '1986-03-27', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 026, Bình Dương', '2017-03-27 08:00:00', NULL, NULL),
+('NV027', 'Nhân viên 027', '1987-04-28', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 027, Bình Dương', '2018-04-28 08:00:00', NULL, NULL),
+('NV028', 'Nhân viên 028', '1988-05-01', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 028, Bình Dương', '2019-05-01 08:00:00', NULL, NULL),
+('NV029', 'Nhân viên 029', '1989-06-02', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 029, Bình Dương', '2020-06-02 08:00:00', NULL, NULL),
+('NV030', 'Nhân viên 030', '1990-07-03', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 030, Bình Dương', '2021-07-03 08:00:00', NULL, NULL),
+('NV031', 'Nhân viên 031', '1991-08-04', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 031, Bình Dương', '2022-08-04 08:00:00', NULL, NULL),
+('NV032', 'Nhân viên 032', '1992-09-05', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 032, Bình Dương', '2015-09-05 08:00:00', NULL, NULL),
+('NV033', 'Nhân viên 033', '1993-10-06', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 033, Bình Dương', '2016-10-06 08:00:00', NULL, NULL),
+('NV034', 'Nhân viên 034', '1994-11-07', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 034, Bình Dương', '2017-11-07 08:00:00', NULL, NULL),
+('NV035', 'Nhân viên 035', '1995-12-08', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 035, Bình Dương', '2018-12-08 08:00:00', NULL, NULL),
+('NV036', 'Nhân viên 036', '1996-01-09', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 036, Bình Dương', '2019-01-09 08:00:00', NULL, NULL),
+('NV037', 'Nhân viên 037', '1997-02-10', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 037, Bình Dương', '2020-02-10 08:00:00', NULL, NULL),
+('NV038', 'Nhân viên 038', '1998-03-11', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 038, Bình Dương', '2021-03-11 08:00:00', NULL, NULL),
+('NV039', 'Nhân viên 039', '1999-04-12', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 039, Bình Dương', '2022-04-12 08:00:00', NULL, NULL),
+('NV040', 'Nhân viên 040', '1980-05-13', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 040, Bình Dương', '2015-05-13 08:00:00', NULL, NULL),
+('NV041', 'Nhân viên 041', '1981-06-14', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 041, Bình Dương', '2016-06-14 08:00:00', NULL, NULL),
+('NV042', 'Nhân viên 042', '1982-07-15', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 042, Bình Dương', '2017-07-15 08:00:00', NULL, NULL),
+('NV043', 'Nhân viên 043', '1983-08-16', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 043, Bình Dương', '2018-08-16 08:00:00', NULL, NULL),
+('NV044', 'Nhân viên 044', '1984-09-17', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 044, Bình Dương', '2019-09-17 08:00:00', NULL, NULL),
+('NV045', 'Nhân viên 045', '1985-10-18', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 045, Bình Dương', '2020-10-18 08:00:00', NULL, NULL),
+('NV046', 'Nhân viên 046', '1986-11-19', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 046, Bình Dương', '2021-11-19 08:00:00', NULL, NULL),
+('NV047', 'Nhân viên 047', '1987-12-20', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 047, Bình Dương', '2022-12-20 08:00:00', NULL, NULL),
+('NV048', 'Nhân viên 048', '1988-01-21', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 048, Bình Dương', '2015-01-21 08:00:00', NULL, NULL),
+('NV049', 'Nhân viên 049', '1989-02-22', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 049, Bình Dương', '2016-02-22 08:00:00', NULL, NULL),
+('NV050', 'Nhân viên 050', '1990-03-23', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 050, Bình Dương', '2017-03-23 08:00:00', NULL, NULL),
+('NV051', 'Nhân viên 051', '1991-04-24', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 051, Bình Dương', '2018-04-24 08:00:00', NULL, NULL),
+('NV052', 'Nhân viên 052', '1992-05-25', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 052, Bình Dương', '2019-05-25 08:00:00', NULL, NULL),
+('NV053', 'Nhân viên 053', '1993-06-26', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 053, Bình Dương', '2020-06-26 08:00:00', NULL, NULL),
+('NV054', 'Nhân viên 054', '1994-07-27', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 054, Bình Dương', '2021-07-27 08:00:00', NULL, NULL),
+('NV055', 'Nhân viên 055', '1995-08-28', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 055, Bình Dương', '2022-08-28 08:00:00', NULL, NULL),
+('NV056', 'Nhân viên 056', '1996-09-01', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 056, Bình Dương', '2015-09-01 08:00:00', NULL, NULL),
+('NV057', 'Nhân viên 057', '1997-10-02', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 057, Bình Dương', '2016-10-02 08:00:00', NULL, NULL),
+('NV058', 'Nhân viên 058', '1998-11-03', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 058, Bình Dương', '2017-11-03 08:00:00', NULL, NULL),
+('NV059', 'Nhân viên 059', '1999-12-04', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 059, Bình Dương', '2018-12-04 08:00:00', NULL, NULL),
+('NV060', 'Nhân viên 060', '1980-01-05', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 060, Bình Dương', '2019-01-05 08:00:00', NULL, NULL),
+('NV061', 'Nhân viên 061', '1981-02-06', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 061, Bình Dương', '2020-02-06 08:00:00', NULL, NULL),
+('NV062', 'Nhân viên 062', '1982-03-07', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 062, Bình Dương', '2021-03-07 08:00:00', NULL, NULL),
+('NV063', 'Nhân viên 063', '1983-04-08', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 063, Bình Dương', '2022-04-08 08:00:00', NULL, NULL),
+('NV064', 'Nhân viên 064', '1984-05-09', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 064, Bình Dương', '2015-05-09 08:00:00', NULL, NULL),
+('NV065', 'Nhân viên 065', '1985-06-10', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 065, Bình Dương', '2016-06-10 08:00:00', NULL, NULL),
+('NV066', 'Nhân viên 066', '1986-07-11', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 066, Bình Dương', '2017-07-11 08:00:00', NULL, NULL),
+('NV067', 'Nhân viên 067', '1987-08-12', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 067, Bình Dương', '2018-08-12 08:00:00', NULL, NULL),
+('NV068', 'Nhân viên 068', '1988-09-13', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 068, Bình Dương', '2019-09-13 08:00:00', NULL, NULL),
+('NV069', 'Nhân viên 069', '1989-10-14', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 069, Bình Dương', '2020-10-14 08:00:00', NULL, NULL),
+('NV070', 'Nhân viên 070', '1990-11-15', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 070, Bình Dương', '2021-11-15 08:00:00', NULL, NULL),
+('NV071', 'Nhân viên 071', '1991-12-16', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 071, Bình Dương', '2022-12-16 08:00:00', NULL, NULL),
+('NV072', 'Nhân viên 072', '1992-01-17', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 072, Bình Dương', '2015-01-17 08:00:00', NULL, NULL),
+('NV073', 'Nhân viên 073', '1993-02-18', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 073, Bình Dương', '2016-02-18 08:00:00', NULL, NULL),
+('NV074', 'Nhân viên 074', '1994-03-19', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 074, Bình Dương', '2017-03-19 08:00:00', NULL, NULL),
+('NV075', 'Nhân viên 075', '1995-04-20', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 075, Bình Dương', '2018-04-20 08:00:00', NULL, NULL),
+('NV076', 'Nhân viên 076', '1996-05-21', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 076, Bình Dương', '2019-05-21 08:00:00', NULL, NULL),
+('NV077', 'Nhân viên 077', '1997-06-22', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 077, Bình Dương', '2020-06-22 08:00:00', NULL, NULL),
+('NV078', 'Nhân viên 078', '1998-07-23', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 078, Bình Dương', '2021-07-23 08:00:00', NULL, NULL),
+('NV079', 'Nhân viên 079', '1999-08-24', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 079, Bình Dương', '2022-08-24 08:00:00', NULL, NULL),
+('NV080', 'Nhân viên 080', '1980-09-25', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 080, Bình Dương', '2015-09-25 08:00:00', NULL, NULL),
+('NV081', 'Nhân viên 081', '1981-10-26', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 081, Bình Dương', '2016-10-26 08:00:00', NULL, NULL),
+('NV082', 'Nhân viên 082', '1982-11-27', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 082, Bình Dương', '2017-11-27 08:00:00', NULL, NULL),
+('NV083', 'Nhân viên 083', '1983-12-28', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 083, Bình Dương', '2018-12-28 08:00:00', NULL, NULL),
+('NV084', 'Nhân viên 084', '1984-01-01', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 084, Bình Dương', '2019-01-01 08:00:00', NULL, NULL),
+('NV085', 'Nhân viên 085', '1985-02-02', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 085, Bình Dương', '2020-02-02 08:00:00', NULL, NULL),
+('NV086', 'Nhân viên 086', '1986-03-03', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 086, Bình Dương', '2021-03-03 08:00:00', NULL, NULL),
+('NV087', 'Nhân viên 087', '1987-04-04', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 087, Bình Dương', '2022-04-04 08:00:00', NULL, NULL),
+('NV088', 'Nhân viên 088', '1988-05-05', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 088, Bình Dương', '2015-05-05 08:00:00', NULL, NULL),
+('NV089', 'Nhân viên 089', '1989-06-06', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 089, Bình Dương', '2016-06-06 08:00:00', NULL, NULL),
+('NV090', 'Nhân viên 090', '1990-07-07', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 090, Bình Dương', '2017-07-07 08:00:00', NULL, NULL),
+('NV091', 'Nhân viên 091', '1991-08-08', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 091, Bình Dương', '2018-08-08 08:00:00', NULL, NULL),
+('NV092', 'Nhân viên 092', '1992-09-09', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 092, Bình Dương', '2019-09-09 08:00:00', NULL, NULL),
+('NV093', 'Nhân viên 093', '1993-10-10', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 093, Bình Dương', '2020-10-10 08:00:00', NULL, NULL),
+('NV094', 'Nhân viên 094', '1994-11-11', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 094, Bình Dương', '2021-11-11 08:00:00', NULL, NULL),
+('NV095', 'Nhân viên 095', '1995-12-12', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 095, Bình Dương', '2022-12-12 08:00:00', NULL, NULL),
+('NV096', 'Nhân viên 096', '1996-01-13', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 096, Bình Dương', '2015-01-13 08:00:00', NULL, NULL),
+('NV097', 'Nhân viên 097', '1997-02-14', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Khu vực 097, Bình Dương', '2016-02-14 08:00:00', NULL, NULL),
+('NV098', 'Nhân viên 098', '1998-03-15', 1, 'Nhân viên sản xuất', 4, 'Đang làm việc', 'Khu vực 098, Bình Dương', '2017-03-15 08:00:00', NULL, NULL),
+('NV099', 'Nhân viên 099', '1999-04-16', 0, 'Nhân viên sản xuất', 5, 'Đang làm việc', 'Khu vực 099, Bình Dương', '2018-04-16 08:00:00', NULL, NULL),
+('NV100', 'Nhân viên 100', '1980-05-17', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Khu vực 100, Bình Dương', '2019-05-17 08:00:00', NULL, NULL);
+
+--
+-- Dữ liệu mẫu cho bảng `nguoi_dung`
+--
+INSERT INTO `nguoi_dung` (`IdNguoiDung`, `TenDangNhap`, `MatKhau`, `TrangThai`, `IdNhanVien`, `IdVaiTro`) VALUES
+('ND001', 'user001', 'matkhau@123', 'Hoạt động', 'NV001', 'VT_ADMIN'),
+('ND002', 'user002', 'matkhau@123', 'Hoạt động', 'NV002', 'VT_BAN_GIAM_DOC'),
+('ND003', 'user003', 'matkhau@123', 'Hoạt động', 'NV003', 'VT_DOI_TAC_VAN_TAI'),
+('ND004', 'user004', 'matkhau@123', 'Hoạt động', 'NV004', 'VT_KETOAN'),
+('ND005', 'user005', 'matkhau@123', 'Hoạt động', 'NV005', 'VT_KHACH'),
+('ND006', 'user006', 'matkhau@123', 'Hoạt động', 'NV006', 'VT_KIEM_SOAT_CL'),
+('ND007', 'user007', 'matkhau@123', 'Hoạt động', 'NV007', 'VT_KINH_DOANH'),
+('ND008', 'user008', 'matkhau@123', 'Hoạt động', 'NV008', 'VT_NHANVIEN_KHO'),
+('ND009', 'user009', 'matkhau@123', 'Hoạt động', 'NV009', 'VT_NHANVIEN_SANXUAT'),
+('ND010', 'user010', 'matkhau@123', 'Hoạt động', 'NV010', 'VT_NHAN_SU'),
+('ND011', 'user011', 'matkhau@123', 'Hoạt động', 'NV011', 'VT_QUANLY_XUONG'),
+('ND012', 'user012', 'matkhau@123', 'Hoạt động', 'NV012', 'VT_ADMIN'),
+('ND013', 'user013', 'matkhau@123', 'Hoạt động', 'NV013', 'VT_BAN_GIAM_DOC'),
+('ND014', 'user014', 'matkhau@123', 'Hoạt động', 'NV014', 'VT_DOI_TAC_VAN_TAI'),
+('ND015', 'user015', 'matkhau@123', 'Hoạt động', 'NV015', 'VT_KETOAN'),
+('ND016', 'user016', 'matkhau@123', 'Hoạt động', 'NV016', 'VT_KHACH'),
+('ND017', 'user017', 'matkhau@123', 'Hoạt động', 'NV017', 'VT_KIEM_SOAT_CL'),
+('ND018', 'user018', 'matkhau@123', 'Hoạt động', 'NV018', 'VT_KINH_DOANH'),
+('ND019', 'user019', 'matkhau@123', 'Hoạt động', 'NV019', 'VT_NHANVIEN_KHO'),
+('ND020', 'user020', 'matkhau@123', 'Hoạt động', 'NV020', 'VT_NHANVIEN_SANXUAT'),
+('ND021', 'user021', 'matkhau@123', 'Hoạt động', 'NV021', 'VT_NHAN_SU'),
+('ND022', 'user022', 'matkhau@123', 'Hoạt động', 'NV022', 'VT_QUANLY_XUONG'),
+('ND023', 'user023', 'matkhau@123', 'Hoạt động', 'NV023', 'VT_ADMIN'),
+('ND024', 'user024', 'matkhau@123', 'Hoạt động', 'NV024', 'VT_BAN_GIAM_DOC'),
+('ND025', 'user025', 'matkhau@123', 'Hoạt động', 'NV025', 'VT_DOI_TAC_VAN_TAI'),
+('ND026', 'user026', 'matkhau@123', 'Hoạt động', 'NV026', 'VT_KETOAN'),
+('ND027', 'user027', 'matkhau@123', 'Hoạt động', 'NV027', 'VT_KHACH'),
+('ND028', 'user028', 'matkhau@123', 'Hoạt động', 'NV028', 'VT_KIEM_SOAT_CL'),
+('ND029', 'user029', 'matkhau@123', 'Hoạt động', 'NV029', 'VT_KINH_DOANH'),
+('ND030', 'user030', 'matkhau@123', 'Hoạt động', 'NV030', 'VT_NHANVIEN_KHO'),
+('ND031', 'user031', 'matkhau@123', 'Hoạt động', 'NV031', 'VT_NHANVIEN_SANXUAT'),
+('ND032', 'user032', 'matkhau@123', 'Hoạt động', 'NV032', 'VT_NHAN_SU'),
+('ND033', 'user033', 'matkhau@123', 'Hoạt động', 'NV033', 'VT_QUANLY_XUONG'),
+('ND034', 'user034', 'matkhau@123', 'Hoạt động', 'NV034', 'VT_ADMIN'),
+('ND035', 'user035', 'matkhau@123', 'Hoạt động', 'NV035', 'VT_BAN_GIAM_DOC'),
+('ND036', 'user036', 'matkhau@123', 'Hoạt động', 'NV036', 'VT_DOI_TAC_VAN_TAI'),
+('ND037', 'user037', 'matkhau@123', 'Hoạt động', 'NV037', 'VT_KETOAN'),
+('ND038', 'user038', 'matkhau@123', 'Hoạt động', 'NV038', 'VT_KHACH'),
+('ND039', 'user039', 'matkhau@123', 'Hoạt động', 'NV039', 'VT_KIEM_SOAT_CL'),
+('ND040', 'user040', 'matkhau@123', 'Hoạt động', 'NV040', 'VT_KINH_DOANH'),
+('ND041', 'user041', 'matkhau@123', 'Hoạt động', 'NV041', 'VT_NHANVIEN_KHO'),
+('ND042', 'user042', 'matkhau@123', 'Hoạt động', 'NV042', 'VT_NHANVIEN_SANXUAT'),
+('ND043', 'user043', 'matkhau@123', 'Hoạt động', 'NV043', 'VT_NHAN_SU'),
+('ND044', 'user044', 'matkhau@123', 'Hoạt động', 'NV044', 'VT_QUANLY_XUONG'),
+('ND045', 'user045', 'matkhau@123', 'Hoạt động', 'NV045', 'VT_ADMIN'),
+('ND046', 'user046', 'matkhau@123', 'Hoạt động', 'NV046', 'VT_BAN_GIAM_DOC'),
+('ND047', 'user047', 'matkhau@123', 'Hoạt động', 'NV047', 'VT_DOI_TAC_VAN_TAI'),
+('ND048', 'user048', 'matkhau@123', 'Hoạt động', 'NV048', 'VT_KETOAN'),
+('ND049', 'user049', 'matkhau@123', 'Hoạt động', 'NV049', 'VT_KHACH'),
+('ND050', 'user050', 'matkhau@123', 'Hoạt động', 'NV050', 'VT_KIEM_SOAT_CL'),
+('ND051', 'user051', 'matkhau@123', 'Hoạt động', 'NV051', 'VT_KINH_DOANH'),
+('ND052', 'user052', 'matkhau@123', 'Hoạt động', 'NV052', 'VT_NHANVIEN_KHO'),
+('ND053', 'user053', 'matkhau@123', 'Hoạt động', 'NV053', 'VT_NHANVIEN_SANXUAT'),
+('ND054', 'user054', 'matkhau@123', 'Hoạt động', 'NV054', 'VT_NHAN_SU'),
+('ND055', 'user055', 'matkhau@123', 'Hoạt động', 'NV055', 'VT_QUANLY_XUONG'),
+('ND056', 'user056', 'matkhau@123', 'Hoạt động', 'NV056', 'VT_ADMIN'),
+('ND057', 'user057', 'matkhau@123', 'Hoạt động', 'NV057', 'VT_BAN_GIAM_DOC'),
+('ND058', 'user058', 'matkhau@123', 'Hoạt động', 'NV058', 'VT_DOI_TAC_VAN_TAI'),
+('ND059', 'user059', 'matkhau@123', 'Hoạt động', 'NV059', 'VT_KETOAN'),
+('ND060', 'user060', 'matkhau@123', 'Hoạt động', 'NV060', 'VT_KHACH'),
+('ND061', 'user061', 'matkhau@123', 'Hoạt động', 'NV061', 'VT_KIEM_SOAT_CL'),
+('ND062', 'user062', 'matkhau@123', 'Hoạt động', 'NV062', 'VT_KINH_DOANH'),
+('ND063', 'user063', 'matkhau@123', 'Hoạt động', 'NV063', 'VT_NHANVIEN_KHO'),
+('ND064', 'user064', 'matkhau@123', 'Hoạt động', 'NV064', 'VT_NHANVIEN_SANXUAT'),
+('ND065', 'user065', 'matkhau@123', 'Hoạt động', 'NV065', 'VT_NHAN_SU'),
+('ND066', 'user066', 'matkhau@123', 'Hoạt động', 'NV066', 'VT_QUANLY_XUONG'),
+('ND067', 'user067', 'matkhau@123', 'Hoạt động', 'NV067', 'VT_ADMIN'),
+('ND068', 'user068', 'matkhau@123', 'Hoạt động', 'NV068', 'VT_BAN_GIAM_DOC'),
+('ND069', 'user069', 'matkhau@123', 'Hoạt động', 'NV069', 'VT_DOI_TAC_VAN_TAI'),
+('ND070', 'user070', 'matkhau@123', 'Hoạt động', 'NV070', 'VT_KETOAN'),
+('ND071', 'user071', 'matkhau@123', 'Hoạt động', 'NV071', 'VT_KHACH'),
+('ND072', 'user072', 'matkhau@123', 'Hoạt động', 'NV072', 'VT_KIEM_SOAT_CL'),
+('ND073', 'user073', 'matkhau@123', 'Hoạt động', 'NV073', 'VT_KINH_DOANH'),
+('ND074', 'user074', 'matkhau@123', 'Hoạt động', 'NV074', 'VT_NHANVIEN_KHO'),
+('ND075', 'user075', 'matkhau@123', 'Hoạt động', 'NV075', 'VT_NHANVIEN_SANXUAT'),
+('ND076', 'user076', 'matkhau@123', 'Hoạt động', 'NV076', 'VT_NHAN_SU'),
+('ND077', 'user077', 'matkhau@123', 'Hoạt động', 'NV077', 'VT_QUANLY_XUONG'),
+('ND078', 'user078', 'matkhau@123', 'Hoạt động', 'NV078', 'VT_ADMIN'),
+('ND079', 'user079', 'matkhau@123', 'Hoạt động', 'NV079', 'VT_BAN_GIAM_DOC'),
+('ND080', 'user080', 'matkhau@123', 'Hoạt động', 'NV080', 'VT_DOI_TAC_VAN_TAI'),
+('ND081', 'user081', 'matkhau@123', 'Hoạt động', 'NV081', 'VT_KETOAN'),
+('ND082', 'user082', 'matkhau@123', 'Hoạt động', 'NV082', 'VT_KHACH'),
+('ND083', 'user083', 'matkhau@123', 'Hoạt động', 'NV083', 'VT_KIEM_SOAT_CL'),
+('ND084', 'user084', 'matkhau@123', 'Hoạt động', 'NV084', 'VT_KINH_DOANH'),
+('ND085', 'user085', 'matkhau@123', 'Hoạt động', 'NV085', 'VT_NHANVIEN_KHO'),
+('ND086', 'user086', 'matkhau@123', 'Hoạt động', 'NV086', 'VT_NHANVIEN_SANXUAT'),
+('ND087', 'user087', 'matkhau@123', 'Hoạt động', 'NV087', 'VT_NHAN_SU'),
+('ND088', 'user088', 'matkhau@123', 'Hoạt động', 'NV088', 'VT_QUANLY_XUONG'),
+('ND089', 'user089', 'matkhau@123', 'Hoạt động', 'NV089', 'VT_ADMIN'),
+('ND090', 'user090', 'matkhau@123', 'Hoạt động', 'NV090', 'VT_BAN_GIAM_DOC'),
+('ND091', 'user091', 'matkhau@123', 'Hoạt động', 'NV091', 'VT_DOI_TAC_VAN_TAI'),
+('ND092', 'user092', 'matkhau@123', 'Hoạt động', 'NV092', 'VT_KETOAN'),
+('ND093', 'user093', 'matkhau@123', 'Hoạt động', 'NV093', 'VT_KHACH'),
+('ND094', 'user094', 'matkhau@123', 'Hoạt động', 'NV094', 'VT_KIEM_SOAT_CL'),
+('ND095', 'user095', 'matkhau@123', 'Hoạt động', 'NV095', 'VT_KINH_DOANH'),
+('ND096', 'user096', 'matkhau@123', 'Hoạt động', 'NV096', 'VT_NHANVIEN_KHO'),
+('ND097', 'user097', 'matkhau@123', 'Hoạt động', 'NV097', 'VT_NHANVIEN_SANXUAT'),
+('ND098', 'user098', 'matkhau@123', 'Hoạt động', 'NV098', 'VT_NHAN_SU'),
+('ND099', 'user099', 'matkhau@123', 'Hoạt động', 'NV099', 'VT_QUANLY_XUONG'),
+('ND100', 'user100', 'matkhau@123', 'Hoạt động', 'NV100', 'VT_ADMIN');
+SET FOREIGN_KEY_CHECKS=1;

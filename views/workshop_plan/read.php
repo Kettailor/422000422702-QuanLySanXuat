@@ -249,14 +249,6 @@ foreach ($materialOptions as $option) {
         </div>
     </div>
 
-    <div class="d-flex gap-2 mt-3">
-        <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
-            <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca
-        </a>
-        <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress ? '' : 'disabled' ?>">
-            <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ cuối ca
-        </a>
-    </div>
 <?php endif; ?>
 
 <script>

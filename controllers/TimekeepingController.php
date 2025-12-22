@@ -5,6 +5,8 @@ class TimekeepingController extends Controller
     private Timekeeping $timekeepingModel;
     private Employee $employeeModel;
     private WorkShift $workShiftModel;
+    private Workshop $workshopModel;
+    private WorkshopPlan $workshopPlanModel;
 
     public function __construct()
     {
@@ -12,19 +14,29 @@ class TimekeepingController extends Controller
         $this->timekeepingModel = new Timekeeping();
         $this->employeeModel = new Employee();
         $this->workShiftModel = new WorkShift();
+        $this->workshopModel = new Workshop();
+        $this->workshopPlanModel = new WorkshopPlan();
     }
 
     public function index(): void
     {
-        $workDate = $_GET['work_date'] ?? date('Y-m-d');
-        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate);
+        $workDate = $_GET['work_date'] ?? null;
+        $workshopId = $_GET['workshop_id'] ?? null;
+        $planId = $_GET['plan_id'] ?? null;
+        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, $workshopId, $planId);
         $shifts = $this->workShiftModel->getShifts($workDate);
+        $workshops = $this->workshopModel->getAllWithManagers();
+        $plans = $this->workshopPlanModel->getDetailedPlans(200);
 
         $this->render('timekeeping/index', [
             'title' => 'Nhật ký chấm công',
             'entries' => $entries,
             'workDate' => $workDate,
             'shifts' => $shifts,
+            'workshopId' => $workshopId,
+            'planId' => $planId,
+            'workshops' => $workshops,
+            'plans' => $plans,
         ]);
     }
 

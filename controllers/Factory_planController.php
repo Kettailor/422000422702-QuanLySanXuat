@@ -5,6 +5,7 @@ class Factory_planController extends Controller
     private WorkshopPlan $workshopPlanModel;
     private Workshop $workshopModel;
     private WorkshopAssignment $assignmentModel;
+    private WorkshopPlanAssignment $planAssignmentModel;
 
     public function __construct()
     {
@@ -12,6 +13,7 @@ class Factory_planController extends Controller
         $this->workshopPlanModel = new WorkshopPlan();
         $this->workshopModel = new Workshop();
         $this->assignmentModel = new WorkshopAssignment();
+        $this->planAssignmentModel = new WorkshopPlanAssignment();
     }
 
     public function index(): void
@@ -44,6 +46,8 @@ class Factory_planController extends Controller
         $plan = $this->filterPlanByAccess($plan);
 
         $stockList = $plan ? ($this->workshopPlanModel->getMaterialStock($id) ?? []) : [];
+        $planAssignments = $plan ? $this->planAssignmentModel->getByPlan($plan['IdKeHoachSanXuatXuong']) : [];
+        $canUpdateProgress = $plan && $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null) && !empty($planAssignments);
 
         $this->render('factory_plan/read', [
             'title' => 'Chi tiết hạng mục xưởng',
@@ -52,6 +56,7 @@ class Factory_planController extends Controller
             'assignments' => $plan ? $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong']) : [],
             'progress' => $plan ? $this->calculateProgress($plan['ThoiGianBatDau'] ?? null, $plan['ThoiGianKetThuc'] ?? null, $plan['TrangThai'] ?? null) : null,
             'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
+            'canUpdateProgress' => $canUpdateProgress,
         ]);
     }
 
@@ -310,7 +315,11 @@ class Factory_planController extends Controller
 
         if ($startTs && $endTs && $endTs > $startTs) {
             $percent = (int) round(min(1, max(0, ($now - $startTs) / ($endTs - $startTs))) * 100);
-            $label = $percent >= 100 ? 'Đến hạn' : 'Đang thực hiện';
+            if ($now > $endTs) {
+                $label = 'Quá hạn';
+            } else {
+                $label = $percent >= 100 ? 'Đến hạn' : 'Đang thực hiện';
+            }
         } elseif ($startTs && !$endTs) {
             $percent = $now >= $startTs ? 10 : 0;
             $label = $now >= $startTs ? 'Đang thực hiện' : 'Chưa bắt đầu';
@@ -340,5 +349,15 @@ class Factory_planController extends Controller
         }
 
         return empty($stocks) ? 'Chưa cấu hình' : 'Đủ nguyên liệu';
+    }
+
+    private function isMaterialSufficient(?string $status): bool
+    {
+        if (!$status) {
+            return false;
+        }
+
+        $normalized = mb_strtolower(trim($status));
+        return str_contains($normalized, 'đủ');
     }
 }

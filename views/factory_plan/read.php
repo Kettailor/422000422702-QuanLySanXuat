@@ -4,6 +4,7 @@ $stockNeed = $stock_list_need;
 $assignments = $assignments ?? [];
 $progress = $progress ?? null;
 $materialStatus = $materialStatus ?? null;
+$canUpdateProgress = $canUpdateProgress ?? false;
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -66,6 +67,12 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                     <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
                 </button>
             </form>
+            <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+                <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca
+            </a>
+            <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress ? '' : 'disabled' ?>">
+                <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ cuối ca
+            </a>
             <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
                 <i class="bi bi-basket me-2"></i>Chọn thêm nguyên liệu
             </a>
@@ -188,6 +195,7 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
             <h5 class="mb-0">Quản Lý Nguyên Liệu</h5>
         </div>
         <div class="card-body">
+            <div id="material-feedback" class="border rounded-3 bg-light-subtle text-muted p-3 d-none" role="status"></div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -251,16 +259,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('Thông báo đã được gửi thành công: ' + result.message);
+                    showMaterialFeedback('Đã gửi thông báo nguyên liệu. ' + result.message, 'success');
                 } else {
-                    alert('Lỗi khi gửi thông báo: ' + result.message);
+                    showMaterialFeedback('Không thể gửi thông báo nguyên liệu. ' + result.message, 'warning');
                 }
             } catch (error) {
                 console.error('Lỗi mạng hoặc lỗi khác:', error);
-                alert('Đã xảy ra lỗi khi gửi thông báo.');
+                showMaterialFeedback('Đã xảy ra lỗi khi gửi thông báo. Vui lòng thử lại.', 'warning');
             }
         });
     });
+
+    function showMaterialFeedback(message, variant) {
+        const feedback = document.getElementById('material-feedback');
+        if (!feedback) {
+            return;
+        }
+        feedback.textContent = message;
+        feedback.classList.remove('d-none', 'text-muted', 'text-success', 'text-warning');
+        feedback.classList.add(variant === 'success' ? 'text-success' : 'text-warning');
+        feedback.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 });
 </script>
 <?php endif; ?>
