@@ -123,6 +123,9 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
     const submitButton = document.getElementById('submit-button');
     const accuracyThreshold = 100;
     const baseDisabled = submitButton ? submitButton.hasAttribute('disabled') : true;
+    let bestAccuracy = null;
+    let consecutiveGood = 0;
+    let watchId = null;
 
     if (!navigator.geolocation) {
         status.textContent = 'Trình duyệt không hỗ trợ định vị.';
@@ -153,14 +156,28 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         lngInput.value = longitude.toFixed(6);
         accuracyInput.value = Math.round(accuracy);
 
+        if (bestAccuracy === null || accuracy < bestAccuracy) {
+            bestAccuracy = accuracy;
+        }
+
         if (accuracy > accuracyThreshold) {
-            status.textContent = `Đang tăng độ chính xác vị trí (±${accuracyInput.value}m)...`;
+            consecutiveGood = 0;
+            status.textContent = `Đang tăng độ chính xác vị trí (tốt nhất ±${Math.round(bestAccuracy)}m, hiện ±${accuracyInput.value}m)...`;
             updateSubmitState(false);
             return;
         }
 
+        consecutiveGood += 1;
         status.textContent = `Vị trí: ${latInput.value}, ${lngInput.value} (±${accuracyInput.value}m)`;
-        updateSubmitState(true);
+        if (consecutiveGood >= 2) {
+            updateSubmitState(true);
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        } else {
+            updateSubmitState(false);
+        }
     };
 
     const handlePositionError = () => {
@@ -168,7 +185,7 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         updateSubmitState(false);
     };
 
-    navigator.geolocation.watchPosition(
+    watchId = navigator.geolocation.watchPosition(
         handlePosition,
         handlePositionError,
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
