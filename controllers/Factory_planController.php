@@ -6,6 +6,7 @@ class Factory_planController extends Controller
     private Workshop $workshopModel;
     private WorkshopAssignment $assignmentModel;
     private WorkshopPlanAssignment $planAssignmentModel;
+    private Employee $employeeModel;
 
     public function __construct()
     {
@@ -14,11 +15,13 @@ class Factory_planController extends Controller
         $this->workshopModel = new Workshop();
         $this->assignmentModel = new WorkshopAssignment();
         $this->planAssignmentModel = new WorkshopPlanAssignment();
+        $this->employeeModel = new Employee();
     }
 
     public function index(): void
     {
         $selectedWorkshop = $_GET['workshop_id'] ?? null;
+        $employeeId = $_GET['employee_id'] ?? null;
         $workshops = $this->getVisibleWorkshops();
         $selectedWorkshop = $this->normalizeSelectedWorkshop($selectedWorkshop, $workshops);
         $workshopMap = [];
@@ -27,15 +30,29 @@ class Factory_planController extends Controller
         }
 
         $plans = $this->workshopPlanModel->getDetailedPlans(200);
+        if ($employeeId) {
+            $employeePlanIds = $this->planAssignmentModel->getPlanIdsByEmployee($employeeId);
+            if ($employeePlanIds) {
+                $allowed = array_fill_keys($employeePlanIds, true);
+                $plans = array_values(array_filter($plans, static function (array $plan) use ($allowed): bool {
+                    $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
+                    return $planId !== null && isset($allowed[$planId]);
+                }));
+            } else {
+                $plans = [];
+            }
+        }
         $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops, $selectedWorkshop);
 
         $groupedPlans = $this->groupPlansByWorkshop($plans, $workshopMap);
+        $employee = $employeeId ? $this->employeeModel->find($employeeId) : null;
 
         $this->render('factory_plan/index', [
             'title' => 'Tiến độ sản xuất xưởng',
             'groupedPlans' => $groupedPlans,
             'workshops' => $workshops,
             'selectedWorkshop' => $selectedWorkshop,
+            'employeeFilter' => $employee,
         ]);
     }
 

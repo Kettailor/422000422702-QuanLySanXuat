@@ -50,16 +50,20 @@ class SalaryController extends Controller
 
     public function index(): void
     {
-        $payrolls = $this->salaryModel->getPayrolls();
-        $summary = $this->salaryModel->getPayrollSummary();
-        $pending = $this->salaryModel->getPendingPayrolls();
+        $employeeId = $_GET['employee_id'] ?? null;
+        $payrolls = $this->salaryModel->getPayrolls(50, $employeeId);
+        $summary = $this->salaryModel->getPayrollSummary($employeeId);
+        $pending = $this->salaryModel->getPendingPayrolls(5, $employeeId);
         $user = $this->currentUser();
         $role = $user['IdVaiTro'] ?? null;
+        $employee = $employeeId ? $this->employeeModel->find($employeeId) : null;
+
         $this->render('salary/index', [
             'title' => 'Bảng lương',
             'payrolls' => $payrolls,
             'summary' => $summary,
             'pending' => $pending,
+            'employeeFilter' => $employee,
             'permissions' => [
                 'canManage' => $this->canManagePayrolls($role),
                 'canApprove' => $this->canApprovePayrolls($role),

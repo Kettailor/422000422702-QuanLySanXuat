@@ -23,10 +23,12 @@ class TimekeepingController extends Controller
         $workDate = $_GET['work_date'] ?? null;
         $workshopId = $_GET['workshop_id'] ?? null;
         $planId = $_GET['plan_id'] ?? null;
-        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, $workshopId, $planId);
+        $employeeId = $_GET['employee_id'] ?? null;
+        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, $workshopId, $planId, $employeeId);
         $shifts = $this->workShiftModel->getShifts($workDate);
         $workshops = $this->workshopModel->getAllWithManagers();
         $plans = $this->workshopPlanModel->getDetailedPlans(200);
+        $employee = $employeeId ? $this->employeeModel->find($employeeId) : null;
 
         $this->render('timekeeping/index', [
             'title' => 'Nhật ký chấm công',
@@ -35,6 +37,7 @@ class TimekeepingController extends Controller
             'shifts' => $shifts,
             'workshopId' => $workshopId,
             'planId' => $planId,
+            'employeeFilter' => $employee,
             'workshops' => $workshops,
             'plans' => $plans,
         ]);
@@ -47,7 +50,7 @@ class TimekeepingController extends Controller
         $shift = $shiftId ? $this->workShiftModel->find($shiftId) : null;
         $employees = $this->employeeModel->getActiveEmployees();
         $shifts = $this->workShiftModel->getShifts($workDate);
-        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate);
+        $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, null, null, null);
 
         $this->render('timekeeping/create', [
             'title' => 'Ghi nhận chấm công',

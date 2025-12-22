@@ -132,8 +132,9 @@ $activeRate = $employeeCount > 0 ? round(($activeCount / $employeeCount) * 100, 
                         <div class="table-actions">
                             <a class="btn btn-sm btn-outline-secondary" href="?controller=human_resources&action=read&id=<?= urlencode($employee['IdNhanVien']) ?>">Chi tiết</a>
                             <a class="btn btn-sm btn-outline-primary" href="?controller=human_resources&action=edit&id=<?= urlencode($employee['IdNhanVien']) ?>">Sửa</a>
-                            <a class="btn btn-sm btn-outline-info" href="?controller=salary&action=index">Lương</a>
-                            <a class="btn btn-sm btn-outline-secondary" href="?controller=timekeeping&action=index">Chấm công</a>
+                            <a class="btn btn-sm btn-outline-info" href="?controller=salary&action=index&employee_id=<?= urlencode($employee['IdNhanVien']) ?>">Lương</a>
+                            <a class="btn btn-sm btn-outline-secondary" href="?controller=timekeeping&action=index&employee_id=<?= urlencode($employee['IdNhanVien']) ?>">Chấm công</a>
+                            <a class="btn btn-sm btn-outline-dark" href="?controller=factory_plan&action=index&employee_id=<?= urlencode($employee['IdNhanVien']) ?>">Kế hoạch</a>
                             <a class="btn btn-sm btn-outline-danger" href="?controller=human_resources&action=delete&id=<?= urlencode($employee['IdNhanVien']) ?>" onclick="return confirm('Xác nhận xóa nhân sự này?');">Xóa</a>
                         </div>
                     </td>
