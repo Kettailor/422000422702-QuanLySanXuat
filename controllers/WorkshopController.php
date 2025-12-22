@@ -426,13 +426,7 @@ class WorkshopController extends Controller
         }
 
         if ($role === 'VT_QUANLY_XUONG') {
-            $employeeId = $user['IdNhanVien'] ?? null;
-            if (!$employeeId) {
-                return false;
-            }
-
-            $workshop = $this->workshopModel->find($workshopId);
-            return $workshop && ($workshop['XUONGTRUONG_IdNhanVien'] ?? null) === $employeeId;
+            return true;
         }
 
         return false;
