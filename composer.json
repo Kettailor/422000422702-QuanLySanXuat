@@ -6,7 +6,10 @@
       "core/"
     ]
   },
+  "require": {
+    "dompdf/dompdf": "^3.1"
+  },
   "require-dev": {
-    "phpunit/phpunit": "^12.4"
+    "phpunit/phpunit": "^10.5"
   }
 }

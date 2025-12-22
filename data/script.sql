@@ -221,11 +221,7 @@ CREATE TABLE `ca_lam` (
 -- Đang đổ dữ liệu cho bảng `ca_lam`
 --
 
-INSERT INTO `ca_lam` (`IdCaLamViec`, `TenCa`, `LoaiCa`, `NgayLamViec`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TongSL`, `IdKeHoachSanXuatXuong`, `LOIdLo`) VALUES
-('CA202311S1', 'Ca sáng lắp switch SV5TOT 87', 'Lắp ráp', '2023-11-11', '2023-11-11 07:30:00', '2023-11-11 15:30:00', 35, 'KHSXX202311A', 'LOSW202309'),
-('CA202311S2', 'Ca tối kiểm tra PCB SV5TOT', 'Kiểm thử', '2023-11-13', '2023-11-13 14:00:00', '2023-11-13 22:00:00', 28, 'KHSXX202311C', 'LOPCB202310'),
-('CA202311S3', 'Ca đêm hoàn thiện SV5TOT 87', 'Hoàn thiện', '2023-11-16', '2023-11-16 21:00:00', '2023-11-17 05:00:00', 24, 'KHSXX202311B', 'LOTP202309'),
-('CA202312S1', 'Ca sáng lắp ráp SV5TOT 108', 'Lắp ráp', '2023-12-12', '2023-12-12 07:30:00', '2023-12-12 15:30:00', 30, 'KHSXX202312A', 'LOTP202310');
+-- (Dữ liệu ca làm sẽ được sinh tự động theo kế hoạch xưởng)
 
 -- --------------------------------------------------------
 
@@ -238,20 +234,16 @@ CREATE TABLE `cham_cong` (
   `NHANVIEN IdNhanVien` varchar(50) NOT NULL,
   `ThoiGIanRa` datetime DEFAULT NULL,
   `ThoiGianVao` datetime DEFAULT NULL,
-  `XUONGTRUONG IdNhanVien` varchar(50) NOT NULL,
-  `IdCaLamViec` varchar(50) NOT NULL
+  `XUONGTRUONG IdNhanVien` varchar(50) DEFAULT NULL,
+  `IdCaLamViec` varchar(50) NOT NULL,
+  `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `cham_cong`
 --
 
-INSERT INTO `cham_cong` (`IdChamCong`, `NHANVIEN IdNhanVien`, `ThoiGIanRa`, `ThoiGianVao`, `XUONGTRUONG IdNhanVien`, `IdCaLamViec`) VALUES
-('CC2023111101', 'NV003', '2023-11-11 15:45:00', '2023-11-11 07:25:00', 'NV001', 'CA202311S1'),
-('CC2023111102', 'NV002', '2023-11-11 16:00:00', '2023-11-11 07:20:00', 'NV001', 'CA202311S1'),
-('CC2023111301', 'NV005', '2023-11-13 22:05:00', '2023-11-13 13:55:00', 'NV002', 'CA202311S2'),
-('CC2023111601', 'NV005', '2023-11-17 05:10:00', '2023-11-16 20:55:00', 'NV002', 'CA202311S3'),
-('CC2023121201', 'NV004', '2023-12-12 15:40:00', '2023-12-12 07:25:00', 'NV001', 'CA202312S1');
+-- (Không seed dữ liệu chấm công)
 
 -- --------------------------------------------------------
 
@@ -270,14 +262,7 @@ CREATE TABLE `chi_tiet_ke_hoach_san_xuat_xuong` (
 -- Đang đổ dữ liệu cho bảng `chi_tiet_ke_hoach_san_xuat_xuong`
 --
 
-INSERT INTO `chi_tiet_ke_hoach_san_xuat_xuong` (`IdCTKHSXX`, `SoLuong`, `IdKeHoachSanXuatXuong`, `IdNguyenLieu`) VALUES
-('CTKHSXX202311A', 15660, 'KHSXX202311A', 'NL001'),
-('CTKHSXX202311B', 180, 'KHSXX202311A', 'NL002'),
-('CTKHSXX202311C', 180, 'KHSXX202311B', 'NL003'),
-('CTKHSXX202311D', 120, 'KHSXX202311C', 'NL002'),
-('CTKHSXX202311E', 13050, 'KHSXX202311D', 'NL001'),
-('CTKHSXX202312A', 160, 'KHSXX202312A', 'NL003'),
-('CTKHSXX202312B', 140, 'KHSXX202312B', 'NL002');
+-- (Không seed dữ liệu chi tiết nguyên liệu kế hoạch xưởng)
 
 -- --------------------------------------------------------
 
@@ -580,6 +565,21 @@ CREATE TABLE `lich_su_ke_hoach_xuong` (
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `phan_cong_ke_hoach_xuong`
+--
+
+CREATE TABLE `phan_cong_ke_hoach_xuong` (
+  `IdPhanCong` varchar(50) NOT NULL,
+  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
+  `IdNhanVien` varchar(50) NOT NULL,
+  `IdCaLamViec` varchar(50) NOT NULL,
+  `VaiTro` varchar(255) DEFAULT NULL,
+  `NgayPhanCong` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `lo`
 --
 
@@ -652,6 +652,7 @@ CREATE TABLE `nguyen_lieu` (
   `IdNguyenLieu` varchar(50) NOT NULL,
   `TenNL` varchar(255) DEFAULT NULL,
   `SoLuong` int(10) DEFAULT NULL,
+  `DonVi` varchar(50) DEFAULT NULL,
   `DonGian` float DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
   `NgaySanXuat` datetime DEFAULT NULL,
@@ -663,14 +664,14 @@ CREATE TABLE `nguyen_lieu` (
 -- Đang đổ dữ liệu cho bảng `nguyen_lieu`
 --
 
-INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
-('NL001', 'Switch Lotus Linear', 400, 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
-('NL002', 'PCB SV5TOT R3', 300, 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
-('NL003', 'Keycap PBT Glacier', 280, 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311'),
-('NL004', 'Bộ vỏ CNC anodized', 150, 820000, 'Đang sử dụng', '2023-09-15 08:20:00', '2026-09-15 00:00:00', 'LOCASE202309'),
-('NL005', 'Foam Poron định hình', 520, 120000, 'Đang sử dụng', '2023-08-20 07:45:00', '2025-08-20 00:00:00', 'LOFOAM202308'),
-('NL006', 'Switch Silent Lavender', 260, 520000, 'Đang sử dụng', '2023-07-10 09:10:00', '2025-07-10 00:00:00', 'LOSW202307'),
-('NL007', 'Bộ hộp đóng gói premium', 320, 90000, 'Đang sử dụng', '2023-11-18 08:50:00', '2024-11-18 00:00:00', 'LOPACK202311');
+INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonVi`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
+('NL001', 'Switch Lotus Linear', 400, 'switch', 450000, 'Đang sử dụng', '2023-09-01 09:00:00', '2025-09-01 00:00:00', 'LOSW202309'),
+('NL002', 'PCB SV5TOT R3', 300, 'bo mạch', 520000, 'Đang sử dụng', '2023-10-03 09:30:00', '2025-10-03 00:00:00', 'LOPCB202310'),
+('NL003', 'Keycap PBT Glacier', 280, 'bộ', 690000, 'Đang sử dụng', '2023-11-04 10:15:00', '2025-11-04 00:00:00', 'LOKEY202311'),
+('NL004', 'Bộ vỏ CNC anodized', 150, 'bộ', 820000, 'Đang sử dụng', '2023-09-15 08:20:00', '2026-09-15 00:00:00', 'LOCASE202309'),
+('NL005', 'Foam Poron định hình', 520, 'tấm', 120000, 'Đang sử dụng', '2023-08-20 07:45:00', '2025-08-20 00:00:00', 'LOFOAM202308'),
+('NL006', 'Switch Silent Lavender', 260, 'switch', 520000, 'Đang sử dụng', '2023-07-10 09:10:00', '2025-07-10 00:00:00', 'LOSW202307'),
+('NL007', 'Bộ hộp đóng gói premium', 320, 'bộ', 90000, 'Đang sử dụng', '2023-11-18 08:50:00', '2024-11-18 00:00:00', 'LOPACK202311');
 
 -- --------------------------------------------------------
 
@@ -941,6 +942,8 @@ INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietB
 
 -- --------------------------------------------------------
 
+-- --------------------------------------------------------
+
 --
 -- Cấu trúc bảng cho bảng `xuong_nhan_vien`
 --
@@ -1183,6 +1186,15 @@ ALTER TABLE `lich_su_ke_hoach_xuong`
   ADD KEY `FKLSKHX_YeuCauKho` (`IdYeuCauKho`);
 
 --
+-- Chỉ mục cho bảng `phan_cong_ke_hoach_xuong`
+--
+ALTER TABLE `phan_cong_ke_hoach_xuong`
+  ADD PRIMARY KEY (`IdPhanCong`),
+  ADD KEY `FKPCKHX_KeHoach` (`IdKeHoachSanXuatXuong`),
+  ADD KEY `FKPCKHX_NhanVien` (`IdNhanVien`),
+  ADD KEY `FKPCKHX_CaLam` (`IdCaLamViec`);
+
+--
 -- Chỉ mục cho bảng `lo`
 --
 ALTER TABLE `lo`
@@ -1420,6 +1432,14 @@ ALTER TABLE `lich_su_ke_hoach_xuong`
   ADD CONSTRAINT `FKLSKHX_KeHoach` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
   ADD CONSTRAINT `FKLSKHX_NhanVien` FOREIGN KEY (`NguoiThucHien`) REFERENCES `nhan_vien` (`IdNhanVien`),
   ADD CONSTRAINT `FKLSKHX_YeuCauKho` FOREIGN KEY (`IdYeuCauKho`) REFERENCES `yeu_cau_xuat_kho` (`IdYeuCau`);
+
+--
+-- Các ràng buộc cho bảng `phan_cong_ke_hoach_xuong`
+--
+ALTER TABLE `phan_cong_ke_hoach_xuong`
+  ADD CONSTRAINT `FKPCKHX_KeHoach` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
+  ADD CONSTRAINT `FKPCKHX_NhanVien` FOREIGN KEY (`IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`),
+  ADD CONSTRAINT `FKPCKHX_CaLam` FOREIGN KEY (`IdCaLamViec`) REFERENCES `ca_lam` (`IdCaLamViec`);
 
 --
 -- Các ràng buộc cho bảng `lo`
