@@ -53,7 +53,7 @@ class ReportController extends Controller
         ];
 
         ob_start();
-        $this->render('report/pdf_template', $data);
+        $this->render_pdf('report/pdf_template', $data);
         $html = ob_get_clean();
 
         $dompdf = new Dompdf();
