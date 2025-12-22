@@ -208,7 +208,8 @@ class TimekeepingController extends Controller
         $employees = [];
         foreach ($managedWorkshops as $workshopId) {
             $assignments = $this->assignmentModel->getAssignmentsByWorkshop($workshopId);
-            foreach (['nhan_vien_kho', 'nhan_vien_san_xuat'] as $group) {
+            $groups = $role === 'VT_QUANLY_XUONG' ? ['nhan_vien_kho'] : ['nhan_vien_kho', 'nhan_vien_san_xuat'];
+            foreach ($groups as $group) {
                 foreach ($assignments[$group] ?? [] as $employee) {
                     $id = $employee['IdNhanVien'] ?? null;
                     if (!$id) {
@@ -238,7 +239,9 @@ class TimekeepingController extends Controller
         if (empty($allowedEmployees)) {
             $this->setFlash('danger', $role === 'VT_KHO_TRUONG'
                 ? 'Bạn chỉ có thể chấm công cho nhân viên kho.'
-                : 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.');
+                : ($role === 'VT_QUANLY_XUONG'
+                    ? 'Bạn chỉ có thể chấm công cho nhân viên kho thuộc xưởng mình quản lý.'
+                    : 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.'));
             $this->redirect('?controller=timekeeping&action=index');
         }
 
@@ -250,7 +253,9 @@ class TimekeepingController extends Controller
         if (empty($filtered)) {
             $this->setFlash('danger', $role === 'VT_KHO_TRUONG'
                 ? 'Bạn chỉ có thể chấm công cho nhân viên kho.'
-                : 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.');
+                : ($role === 'VT_QUANLY_XUONG'
+                    ? 'Bạn chỉ có thể chấm công cho nhân viên kho thuộc xưởng mình quản lý.'
+                    : 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.'));
             $this->redirect('?controller=timekeeping&action=index');
         }
 
