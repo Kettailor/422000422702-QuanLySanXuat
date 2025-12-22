@@ -10,71 +10,103 @@ $lots = $lots ?? [];
 $details = $details ?? [];
 $productsJson = htmlspecialchars(json_encode($products, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
+$documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8');
+$documentCodeText = $documentCode !== '' ? $documentCode : 'Sẽ được tự sinh khi chọn loại phiếu';
 ?>
 
 <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
         <form method="post" action="<?= $actionUrl ?>" class="row g-4">
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Mã phiếu <span class="text-danger">*</span></label>
-                <input type="text" name="IdPhieu" class="form-control" value="<?= htmlspecialchars($document['IdPhieu'] ?? '') ?>" <?= $isEdit ? 'readonly' : 'required' ?> placeholder="Ví dụ: PN20231101">
-                <div class="form-text">Định danh duy nhất của phiếu kho.</div>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Loại phiếu <span class="text-danger">*</span></label>
-                <input type="text" name="LoaiPhieu" class="form-control" list="sheet-types" value="<?= htmlspecialchars($document['LoaiPhieu'] ?? '') ?>" required placeholder="Phiếu nhập nguyên liệu">
-                <datalist id="sheet-types">
-                    <?php foreach ($types as $type): ?>
-                        <option value="<?= htmlspecialchars($type) ?>"></option>
-                    <?php endforeach; ?>
-                </datalist>
-                <div class="form-text">Ví dụ: Phiếu nhập nguyên liệu, Phiếu xuất thành phẩm...</div>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Loại đối tác <span class="text-danger">*</span></label>
-                <?php $partnerType = $document['LoaiDoiTac'] ?? 'Nội bộ'; ?>
-                <select name="LoaiDoiTac" class="form-select" required>
-                    <?php foreach (['Nội bộ', 'Nhà cung cấp', 'Khách hàng', 'Xưởng khác'] as $option): ?>
-                        <option value="<?= htmlspecialchars($option) ?>" <?= $partnerType === $option ? 'selected' : '' ?>><?= htmlspecialchars($option) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <div class="form-text">Xác định đối tượng liên quan để kiểm soát luồng chứng từ.</div>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Đối tác/đơn vị <span class="text-danger">*</span></label>
-                <input type="text" name="DoiTac" class="form-control" required value="<?= htmlspecialchars($document['DoiTac'] ?? 'Nội bộ') ?>" placeholder="Ví dụ: Nhà cung cấp switch Lotus">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Kho áp dụng <span class="text-danger">*</span></label>
-                <select class="form-select" name="IdKho" required>
-                    <option value="">-- Chọn kho --</option>
-                    <?php foreach ($warehouses as $warehouse): ?>
-                        <option value="<?= htmlspecialchars($warehouse['IdKho']) ?>" data-type="<?= htmlspecialchars($warehouse['TenLoaiKho'] ?? '') ?>" <?= ($document['IdKho'] ?? '') === $warehouse['IdKho'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($warehouse['TenKho']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Ngày lập phiếu</label>
-                <input type="date" name="NgayLP" class="form-control" value="<?= htmlspecialchars($document['NgayLP'] ?? '') ?>">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Ngày xác nhận</label>
-                <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($document['NgayXN'] ?? '') ?>">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Tổng giá trị</label>
-                <div class="input-group">
-                    <input type="number" min="0" step="1000" name="TongTien" class="form-control" value="<?= htmlspecialchars($document['TongTien'] ?? 0) ?>">
-                    <span class="input-group-text">đ</span>
+            <input type="hidden" name="IdPhieu" value="<?= $documentCode ?>">
+            <div class="col-12">
+                <div class="d-flex flex-wrap justify-content-between align-items-start bg-light border rounded-3 p-3">
+                    <div>
+                        <div class="text-uppercase small text-muted mb-1">Mã phiếu</div>
+                        <div class="fw-bold fs-5 mb-1" data-sheet-code><?= $documentCodeText ?></div>
+                        <div class="text-muted small mb-0">Hệ thống tự sinh mã khi chọn loại phiếu hoặc khi lưu. Người dùng không cần nhập tay.</div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-primary-subtle text-primary border">Tự động sinh mã</span>
+                        <div class="text-muted small mt-1">Phù hợp cho phiếu nhập nguyên liệu, thành phẩm và xử lý lỗi.</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Số chứng từ tham chiếu</label>
-                <input type="text" name="SoThamChieu" class="form-control" value="<?= htmlspecialchars($document['SoThamChieu'] ?? '') ?>" placeholder="PO/PR/Đơn hàng liên quan">
-                <div class="form-text">Nhập số PO/ĐH hoặc chứng từ liên quan để truy vết.</div>
+
+            <div class="col-lg-7">
+                <div class="border rounded-3 p-3 h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-info-subtle text-info border">Thông tin phiếu</span>
+                        <span class="ms-2 text-muted small">Chọn loại phiếu và đối tác tương ứng.</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Loại phiếu <span class="text-danger">*</span></label>
+                            <input type="text" name="LoaiPhieu" class="form-control" list="sheet-types" value="<?= htmlspecialchars($document['LoaiPhieu'] ?? '') ?>" required placeholder="Phiếu nhập nguyên liệu">
+                            <datalist id="sheet-types">
+                                <?php foreach ($types as $type): ?>
+                                    <option value="<?= htmlspecialchars($type) ?>"></option>
+                                <?php endforeach; ?>
+                            </datalist>
+                            <div class="form-text">Ví dụ: Phiếu nhập nguyên liệu, Phiếu xuất thành phẩm, Phiếu nhập xử lý lỗi...</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Loại đối tác <span class="text-danger">*</span></label>
+                            <?php $partnerType = $document['LoaiDoiTac'] ?? 'Nội bộ'; ?>
+                            <select name="LoaiDoiTac" class="form-select" required>
+                                <?php foreach (['Nội bộ', 'Nhà cung cấp', 'Khách hàng', 'Xưởng khác'] as $option): ?>
+                                    <option value="<?= htmlspecialchars($option) ?>" <?= $partnerType === $option ? 'selected' : '' ?>><?= htmlspecialchars($option) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Đối tác/đơn vị <span class="text-danger">*</span></label>
+                            <input type="text" name="DoiTac" class="form-control" required value="<?= htmlspecialchars($document['DoiTac'] ?? 'Nội bộ') ?>" placeholder="Ví dụ: Nhà cung cấp switch Lotus">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Số chứng từ tham chiếu</label>
+                            <input type="text" name="SoThamChieu" class="form-control" value="<?= htmlspecialchars($document['SoThamChieu'] ?? '') ?>" placeholder="PO/PR/Đơn hàng liên quan">
+                            <div class="form-text">Nhập số PO/ĐH hoặc chứng từ liên quan để truy vết.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="border rounded-3 p-3 h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-success-subtle text-success border">Kho & lịch trình</span>
+                        <span class="ms-2 text-muted small">Chọn kho, ngày lập và xác nhận.</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Kho áp dụng <span class="text-danger">*</span></label>
+                            <select class="form-select" name="IdKho" required>
+                                <option value="">-- Chọn kho --</option>
+                                <?php foreach ($warehouses as $warehouse): ?>
+                                    <option value="<?= htmlspecialchars($warehouse['IdKho']) ?>" data-type="<?= htmlspecialchars($warehouse['TenLoaiKho'] ?? '') ?>" <?= ($document['IdKho'] ?? '') === $warehouse['IdKho'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($warehouse['TenKho']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">Ngày lập phiếu</label>
+                            <input type="date" name="NgayLP" class="form-control" value="<?= htmlspecialchars($document['NgayLP'] ?? '') ?>">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">Ngày xác nhận</label>
+                            <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($document['NgayXN'] ?? '') ?>">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Tổng giá trị</label>
+                            <div class="input-group">
+                                <input type="number" min="0" step="1000" name="TongTien" class="form-control" value="<?= htmlspecialchars($document['TongTien'] ?? 0) ?>">
+                                <span class="input-group-text">đ</span>
+                            </div>
+                            <div class="form-text">Giá trị dự kiến hoặc thực tế của phiếu.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="col-md-6">
@@ -90,8 +122,6 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Người xác nhận <span class="text-danger">*</span></label>
-                <!-- <select class="form-select" name="NguoiXacNhan" required> -->
-                <!-- <label class="form-label fw-semibold">Người xác nhận</label> -->
                 <select class="form-select" name="NguoiXacNhan">
                     <option value="">-- Chọn nhân viên --</option>
                     <?php foreach ($employees as $employee): ?>
@@ -104,11 +134,11 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
 
             <div class="col-12">
                 <label class="form-label fw-semibold">Lý do/Nội dung nghiệp vụ <span class="text-danger">*</span></label>
-                <textarea name="LyDo" class="form-control" rows="2" required placeholder="Ví dụ: Nhập lô switch theo hợp đồng, xuất cấp cho chuyền lắp ráp"><?= htmlspecialchars($document['LyDo'] ?? '') ?></textarea>
+                <textarea name="LyDo" class="form-control" rows="3" required placeholder="Ví dụ: Nhập lô switch theo hợp đồng, xuất cấp cho chuyền lắp ráp"><?= htmlspecialchars($document['LyDo'] ?? '') ?></textarea>
             </div>
             <div class="col-12">
                 <label class="form-label fw-semibold">Ghi chú bổ sung</label>
-                <textarea name="GhiChu" class="form-control" rows="2" placeholder="Ghi chú điều kiện bảo quản, người giao/nhận, biển số xe..."><?= htmlspecialchars($document['GhiChu'] ?? '') ?></textarea>
+                <textarea name="GhiChu" class="form-control" rows="3" placeholder="Ghi chú điều kiện bảo quản, người giao/nhận, biển số xe..."><?= htmlspecialchars($document['GhiChu'] ?? '') ?></textarea>
             </div>
 
             <div class="col-12 d-flex justify-content-between">
@@ -178,14 +208,16 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-semibold mb-0">Chi tiết phiếu & cập nhật tồn kho</h6>
+                <div>
+                    <h6 class="fw-semibold mb-0">Chi tiết phiếu & cập nhật tồn kho</h6>
+                    <p class="text-muted small mb-0">Thêm nhanh các lô nguyên liệu, thành phẩm hoặc lô lỗi để hệ thống tự động tính tồn.</p>
+                </div>
                 <button type="button" class="btn btn-sm btn-outline-primary" data-action="add-detail-row">
                     <i class="bi bi-plus-lg me-1"></i> Thêm dòng chi tiết
                 </button>
             </div>
-            <p class="text-muted small">Chọn kho, loại phiếu, sau đó thêm các dòng lô xuất/nhập để hệ thống tự động cập nhật tồn kho.</p>
             <div class="table-responsive">
-                <table class="table align-middle" id="detail-table">
+                <table class="table align-middle table-hover" id="detail-table">
                     <thead class="table-light">
                     <tr>
                         <th class="text-nowrap">Hình thức</th>
@@ -201,7 +233,7 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
                     <tbody data-detail-rows></tbody>
                 </table>
             </div>
-            <div class="alert alert-info small mb-0">
+            <div class="bg-light border rounded-3 p-3 small mb-0">
                 <div class="fw-semibold mb-1">Lưu ý nghiệp vụ</div>
                 <ul class="mb-0">
                     <li>Phiếu nhập có thể tạo lô mới hoặc cập nhật lô sẵn có.</li>
@@ -229,9 +261,9 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
             });
 
             const tableBody = document.querySelector('[data-detail-rows]');
-            const addRowBtn = document.querySelector('[data-action=\"add-detail-row\"]');
-            const warehouseSelect = document.querySelector('select[name=\"IdKho\"]');
-            const typeInput = document.querySelector('input[name=\"LoaiPhieu\"]');
+            const addRowBtn = document.querySelector('[data-action="add-detail-row"]');
+            const warehouseSelect = document.querySelector('select[name="IdKho"]');
+            const typeInput = document.querySelector('input[name="LoaiPhieu"]');
 
             const resolveWarehouseType = () => {
                 const selectedOption = warehouseSelect ? warehouseSelect.options[warehouseSelect.selectedIndex] : null;
@@ -260,16 +292,16 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
             };
 
             const updateRowMode = (row) => {
-                const modeSelect = row.querySelector('[data-field=\"mode\"]');
+                const modeSelect = row.querySelector('[data-field="mode"]');
                 let isNew = modeSelect && modeSelect.value === 'new';
-                const lotInput = row.querySelector('[data-field=\"lot-id\"]');
-                const lotNameInput = row.querySelector('[data-field=\"lot-name\"]');
-                const productSelect = row.querySelector('[data-field=\"product\"]');
-                const lotSelect = row.querySelector('[data-field=\"existing-lot\"]');
-                const quantityInput = row.querySelector('[data-field=\"quantity\"]');
-                const receivedInput = row.querySelector('[data-field=\"received\"]');
-                const unitInput = row.querySelector('[data-field=\"unit\"]');
-                const modeHidden = row.querySelector('[data-field=\"mode-hidden\"]');
+                const lotInput = row.querySelector('[data-field="lot-id"]');
+                const lotNameInput = row.querySelector('[data-field="lot-name"]');
+                const productSelect = row.querySelector('[data-field="product"]');
+                const lotSelect = row.querySelector('[data-field="existing-lot"]');
+                const quantityInput = row.querySelector('[data-field="quantity"]');
+                const receivedInput = row.querySelector('[data-field="received"]');
+                const unitInput = row.querySelector('[data-field="unit"]');
+                const modeHidden = row.querySelector('[data-field="mode-hidden"]');
 
                 if (!modeSelect) return;
 
@@ -358,7 +390,7 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
             };
 
             const buildLotSelectOptions = (selectEl) => {
-                selectEl.innerHTML = '<option value=\"\">-- Chọn lô --</option>';
+                selectEl.innerHTML = '<option value="">-- Chọn lô --</option>';
                 buildLotOptions().forEach(lot => {
                     const option = document.createElement('option');
                     option.value = lot.IdLo;
@@ -370,8 +402,8 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
             };
 
             const updateProductUnit = (row) => {
-                const productSelect = row.querySelector('[data-field=\"product\"]');
-                const unitInput = row.querySelector('[data-field=\"unit\"]');
+                const productSelect = row.querySelector('[data-field="product"]');
+                const unitInput = row.querySelector('[data-field="unit"]');
                 if (!productSelect || !unitInput) return;
                 const option = productSelect.options[productSelect.selectedIndex];
                 unitInput.value = option ? (option.dataset.unit || '') : '';
@@ -395,37 +427,37 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
-                        <input type=\"hidden\" name=\"Detail_Mode[]\" value=\"existing\" data-field=\"mode-hidden\">
-                        <select class=\"form-select form-select-sm\" data-field=\"mode\">
-                            <option value=\"existing\">Dùng lô sẵn</option>
-                            <option value=\"new\">Tạo lô mới</option>
+                        <input type="hidden" name="Detail_Mode[]" value="existing" data-field="mode-hidden">
+                        <select class="form-select form-select-sm" data-field="mode">
+                            <option value="existing">Dùng lô sẵn</option>
+                            <option value="new">Tạo lô mới</option>
                         </select>
                     </td>
                     <td>
-                        <input type=\"text\" name=\"Detail_IdLo[]\" class=\"form-control form-control-sm mb-2\" placeholder=\"Mã lô\" data-field=\"lot-id\">
-                        <select class=\"form-select form-select-sm d-none\" name=\"Detail_IdLo[]\" data-field=\"existing-lot\"></select>
+                        <input type="text" name="Detail_IdLo[]" class="form-control form-control-sm mb-2" placeholder="Mã lô" data-field="lot-id">
+                        <select class="form-select form-select-sm d-none" name="Detail_IdLo[]" data-field="existing-lot"></select>
                     </td>
-                    <td><input type=\"text\" name=\"Detail_TenLo[]\" class=\"form-control form-control-sm\" placeholder=\"Tên lô\" data-field=\"lot-name\"></td>
+                    <td><input type="text" name="Detail_TenLo[]" class="form-control form-control-sm" placeholder="Tên lô" data-field="lot-name"></td>
                     <td>
-                        <select class=\"form-select form-select-sm\" name=\"Detail_IdSanPham[]\" data-field=\"product\">
-                            <option value=\"\">-- Chọn sản phẩm --</option>
+                        <select class="form-select form-select-sm" name="Detail_IdSanPham[]" data-field="product">
+                            <option value="">-- Chọn sản phẩm --</option>
                         </select>
                     </td>
-                    <td><input type=\"number\" min=\"1\" class=\"form-control form-control-sm\" name=\"Detail_SoLuong[]\" data-field=\"quantity\" required></td>
-                    <td><input type=\"number\" min=\"0\" class=\"form-control form-control-sm\" name=\"Detail_ThucNhan[]\" data-field=\"received\"></td>
-                    <td><input type=\"text\" class=\"form-control form-control-sm\" name=\"Detail_DonVi[]\" data-field=\"unit\" placeholder=\"Đơn vị\"></td>
-                    <td class=\"text-end\">
-                        <button type=\"button\" class=\"btn btn-sm btn-outline-danger\" data-action=\"remove-row\"><i class=\"bi bi-x\"></i></button>
+                    <td><input type="number" min="1" class="form-control form-control-sm" name="Detail_SoLuong[]" data-field="quantity" required></td>
+                    <td><input type="number" min="0" class="form-control form-control-sm" name="Detail_ThucNhan[]" data-field="received"></td>
+                    <td><input type="text" class="form-control form-control-sm" name="Detail_DonVi[]" data-field="unit" placeholder="Đơn vị"></td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-action="remove-row"><i class="bi bi-x"></i></button>
                     </td>
                 `;
 
-                const modeSelect = row.querySelector('[data-field=\"mode\"]');
-                const modeHidden = row.querySelector('[data-field=\"mode-hidden\"]');
-                const productSelect = row.querySelector('[data-field=\"product\"]');
-                const lotSelect = row.querySelector('[data-field=\"existing-lot\"]');
-                const lotIdInput = row.querySelector('[data-field=\"lot-id\"]');
-                const lotNameInput = row.querySelector('[data-field=\"lot-name\"]');
-                const unitInput = row.querySelector('[data-field=\"unit\"]');
+                const modeSelect = row.querySelector('[data-field="mode"]');
+                const modeHidden = row.querySelector('[data-field="mode-hidden"]');
+                const productSelect = row.querySelector('[data-field="product"]');
+                const lotSelect = row.querySelector('[data-field="existing-lot"]');
+                const lotIdInput = row.querySelector('[data-field="lot-id"]');
+                const lotNameInput = row.querySelector('[data-field="lot-name"]');
+                const unitInput = row.querySelector('[data-field="unit"]');
 
                 if (productSelect) {
                     productSelect.appendChild(buildProductOptions());
@@ -449,7 +481,7 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
                     });
                 }
 
-                const removeBtn = row.querySelector('[data-action=\"remove-row\"]');
+                const removeBtn = row.querySelector('[data-action="remove-row"]');
                 if (removeBtn) {
                     removeBtn.addEventListener('click', () => row.remove());
                 }
@@ -465,7 +497,7 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
             if (warehouseSelect) {
                 warehouseSelect.addEventListener('change', () => {
                     tableBody.querySelectorAll('tr').forEach(row => {
-                        const lotSelect = row.querySelector('[data-field=\"existing-lot\"]');
+                        const lotSelect = row.querySelector('[data-field="existing-lot"]');
                         if (lotSelect) {
                             buildLotSelectOptions(lotSelect);
                         }
@@ -490,6 +522,7 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
         document.addEventListener('DOMContentLoaded', () => {
             const typeInput = document.querySelector('input[name="LoaiPhieu"]');
             const idInput = document.querySelector('input[name="IdPhieu"]');
+            const codeDisplay = document.querySelector('[data-sheet-code]');
 
             if (!typeInput || !idInput) {
                 return;
@@ -509,6 +542,12 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
                 ].join('');
             };
 
+            const syncDisplay = () => {
+                if (codeDisplay) {
+                    codeDisplay.textContent = idInput.value || 'Sẽ được tự sinh khi chọn loại phiếu';
+                }
+            };
+
             typeInput.addEventListener('change', () => {
                 if (idInput.dataset.userEdited === '1') {
                     return;
@@ -523,11 +562,15 @@ $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UN
                 }
 
                 idInput.value = buildId(prefix);
+                syncDisplay();
             });
 
             idInput.addEventListener('input', () => {
                 idInput.dataset.userEdited = '1';
+                syncDisplay();
             });
+
+            syncDisplay();
         });
     </script>
 <?php endif; ?>
