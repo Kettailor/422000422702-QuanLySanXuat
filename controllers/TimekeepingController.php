@@ -69,13 +69,16 @@ class TimekeepingController extends Controller
             return;
         }
 
-        $employeeId = trim($_POST['employee_id'] ?? '');
+        $employeeInput = $_POST['employee_id'] ?? [];
         $shiftId = trim($_POST['shift_id'] ?? '');
         $checkIn = $_POST['check_in'] ?? '';
         $checkOut = $_POST['check_out'] ?? null;
         $note = trim($_POST['note'] ?? '');
 
-        if ($employeeId === '' || $checkIn === '' || $shiftId === '') {
+        $employeeIds = is_array($employeeInput) ? $employeeInput : [$employeeInput];
+        $employeeIds = array_values(array_filter(array_map('trim', $employeeIds), static fn($value) => $value !== ''));
+
+        if ($employeeIds === [] || $checkIn === '' || $shiftId === '') {
             $this->setFlash('danger', 'Vui lòng chọn ca làm việc, nhân viên và thời gian vào ca.');
             $this->redirect($this->buildRedirect(null, null));
             return;
@@ -100,15 +103,20 @@ class TimekeepingController extends Controller
         try {
             $currentUser = $this->currentUser();
             $supervisorId = $currentUser['IdNhanVien'] ?? null;
-            $this->timekeepingModel->createForShift(
-                $employeeId,
-                $normalizedCheckIn,
-                $normalizedCheckOut,
-                $shiftId,
-                $note,
-                $supervisorId
-            );
-            $this->setFlash('success', 'Đã ghi nhận chấm công cho nhân sự.');
+            foreach ($employeeIds as $employeeId) {
+                $created = $this->timekeepingModel->createForShift(
+                    $employeeId,
+                    $normalizedCheckIn,
+                    $normalizedCheckOut,
+                    $shiftId,
+                    $note,
+                    $supervisorId
+                );
+                if (!$created) {
+                    throw new RuntimeException('Không thể lưu chấm công cho nhân viên ' . $employeeId);
+                }
+            }
+            $this->setFlash('success', 'Đã ghi nhận chấm công cho ' . count($employeeIds) . ' nhân sự.');
         } catch (Throwable $exception) {
             Logger::error('Không thể ghi nhận chấm công: ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể ghi nhận chấm công. Vui lòng thử lại.');

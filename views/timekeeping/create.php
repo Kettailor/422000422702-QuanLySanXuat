@@ -77,8 +77,7 @@ $formattedWorkDate = $workDate ? date('d/m/Y', strtotime($workDate)) : 'Hôm nay
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nhân viên</label>
-                        <select name="employee_id" class="form-select" required>
-                            <option value="">Chọn nhân viên</option>
+                        <select name="employee_id[]" class="form-select" multiple size="8" required>
                             <?php foreach ($employees as $employee): ?>
                                 <?php $id = $employee['IdNhanVien'] ?? ''; ?>
                                 <option value="<?= htmlspecialchars($id) ?>">
@@ -86,6 +85,7 @@ $formattedWorkDate = $workDate ? date('d/m/Y', strtotime($workDate)) : 'Hôm nay
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <div class="text-muted small mt-2">Giữ Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều nhân viên.</div>
                     </div>
 
                     <div class="col-md-6">
