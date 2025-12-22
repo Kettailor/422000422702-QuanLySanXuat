@@ -43,7 +43,8 @@ class InventorySheet extends BaseModel
                     NV_XN.HoTen AS NguoiXacNhan,
                     COALESCE(item_stats.total_items, 0) AS TongMatHang,
                     COALESCE(item_stats.total_quantity, 0) AS TongSoLuong,
-                    COALESCE(item_stats.total_received, 0) AS TongThucNhan
+                    COALESCE(item_stats.total_received, 0) AS TongThucNhan,
+                    COALESCE(item_stats.product_names, "") AS DanhSachSanPham
                 FROM PHIEU
                 JOIN KHO ON KHO.IdKho = PHIEU.IdKho
                 LEFT JOIN NHAN_VIEN NV_LAP ON NV_LAP.IdNhanVien = PHIEU.NHAN_VIENIdNhanVien
@@ -53,8 +54,11 @@ class InventorySheet extends BaseModel
                         IdPhieu,
                         COUNT(DISTINCT IdLo) AS total_items,
                         SUM(SoLuong) AS total_quantity,
-                        SUM(ThucNhan) AS total_received
+                        SUM(ThucNhan) AS total_received,
+                        GROUP_CONCAT(DISTINCT COALESCE(SP.TenSanPham, "") ORDER BY SP.TenSanPham SEPARATOR ", ") AS product_names
                     FROM CT_PHIEU
+                    LEFT JOIN LO ON LO.IdLo = CT_PHIEU.IdLo
+                    LEFT JOIN SAN_PHAM SP ON SP.IdSanPham = LO.IdSanPham
                     GROUP BY IdPhieu
                 ) AS item_stats ON item_stats.IdPhieu = PHIEU.IdPhieu
                 ' . $whereClause . '
