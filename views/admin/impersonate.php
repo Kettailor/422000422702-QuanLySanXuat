@@ -19,7 +19,7 @@
                         </div>
                     <?php else: ?>
                         <div class="alert alert-info" role="alert">
-                            Hiện tại bạn đang sử dụng quyền quản trị mặc định.
+                            Hiện tại bạn đang sử dụng quyền ban giám đốc mặc định.
                         </div>
                     <?php endif; ?>
 

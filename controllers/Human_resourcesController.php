@@ -11,7 +11,7 @@ class Human_resourcesController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU', 'VT_KHO_TRUONG']);
+        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG']);
         $this->employeeModel = new Employee();
         $this->roleModel = new Role();
         $this->salaryModel = new Salary();
@@ -41,8 +41,8 @@ class Human_resourcesController extends Controller
             'scopeNote' => $this->isWarehouseManager($currentRole)
                 ? 'Bạn đang quản lý danh sách nhân sự kho tổng. Chỉ nhân viên kho được phép cập nhật.'
                 : null,
-            'showSalaryLink' => in_array($currentRole, ['VT_BAN_GIAM_DOC', 'VT_NHAN_SU'], true),
-            'showTimekeepingLink' => in_array($currentRole, ['VT_BAN_GIAM_DOC', 'VT_NHAN_SU', 'VT_KHO_TRUONG'], true),
+            'showSalaryLink' => in_array($currentRole, ['VT_BAN_GIAM_DOC'], true),
+            'showTimekeepingLink' => in_array($currentRole, ['VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG'], true),
         ]);
     }
 

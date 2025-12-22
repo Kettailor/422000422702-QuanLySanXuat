@@ -8,11 +8,11 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
         return false;
     }
 
-    if ($actualRole === 'VT_ADMIN' && !$isImpersonating) {
+    if ($actualRole === 'VT_BAN_GIAM_DOC' && !$isImpersonating) {
         return true;
     }
 
-    if ($actualRole === 'VT_ADMIN' && in_array('VT_ADMIN', $roles, true)) {
+    if ($actualRole === 'VT_BAN_GIAM_DOC' && in_array('VT_BAN_GIAM_DOC', $roles, true)) {
         return true;
     }
 
@@ -48,7 +48,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-houses"></i> Quản lý xưởng
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG', 'VT_ADMIN'])): ?>
+        <?php if ($canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG'])): ?>
             <a class="nav-link <?= $currentController === 'timekeeping' ? 'active' : '' ?>" href="?controller=timekeeping&action=index">
                 <i class="bi bi-stopwatch"></i> Chấm công
             </a>
@@ -58,7 +58,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-fingerprint"></i> Tự chấm công
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU', 'VT_KHO_TRUONG'])): ?>
+        <?php if ($canAccess(['VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG'])): ?>
             <a class="nav-link <?= $currentController === 'human_resources' ? 'active' : '' ?>" href="?controller=human_resources&action=index">
                 <i class="bi bi-people"></i> Nhân sự
             </a>
@@ -111,7 +111,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-cash-stack"></i> Bảng lương
             </a>
         <?php endif; ?>
-        <?php if ($actualRole === 'VT_ADMIN'): ?>
+        <?php if ($actualRole === 'VT_BAN_GIAM_DOC'): ?>
             <a class="nav-link <?= $currentController === 'adminImpersonation' ? 'active' : '' ?>" href="?controller=adminImpersonation&action=index">
                 <i class="bi bi-person-badge"></i> Giả lập vai trò
             </a>
@@ -144,7 +144,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                     Đang giả lập: <?= htmlspecialchars($user['TenVaiTro'] ?? $role ?? 'Không xác định') ?>
                 </span>
                 <a href="?impersonation=stop" class="btn btn-outline-warning btn-sm">Hủy giả lập</a>
-            <?php elseif ($actualRole === 'VT_ADMIN'): ?>
+            <?php elseif ($actualRole === 'VT_BAN_GIAM_DOC'): ?>
                 <a href="?controller=adminImpersonation&action=index" class="btn btn-outline-secondary btn-sm">Giả lập vai trò</a>
             <?php endif; ?>
             <div class="search-bar d-none d-md-block">

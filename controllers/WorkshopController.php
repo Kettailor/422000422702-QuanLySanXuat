@@ -387,7 +387,7 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        return in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true);
+        return in_array($role, ['VT_BAN_GIAM_DOC'], true);
     }
 
     private function canAssignStaff(string $workshopId): bool
@@ -421,7 +421,7 @@ class WorkshopController extends Controller
         }
 
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
             return true;
         }
 
@@ -442,7 +442,7 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
             return $this->workshopModel->getAllWithManagers();
         }
 

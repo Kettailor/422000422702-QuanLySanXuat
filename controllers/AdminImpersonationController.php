@@ -11,10 +11,10 @@ class AdminImpersonationController extends Controller
 
     public function index(): void
     {
-        $this->authorize(['VT_ADMIN']);
+        $this->authorize(['VT_BAN_GIAM_DOC']);
 
         $roles = $this->roleModel->all(200);
-        $roles = array_filter($roles, fn (array $role) => $role['IdVaiTro'] !== 'VT_ADMIN');
+        $roles = array_filter($roles, fn (array $role) => $role['IdVaiTro'] !== 'VT_BAN_GIAM_DOC');
         $impersonatedRole = Impersonation::getImpersonatedRole();
 
         $this->render('admin/impersonate', [
@@ -26,7 +26,7 @@ class AdminImpersonationController extends Controller
 
     public function store(): void
     {
-        $this->authorize(['VT_ADMIN']);
+        $this->authorize(['VT_BAN_GIAM_DOC']);
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('?controller=adminImpersonation&action=index');
@@ -35,7 +35,7 @@ class AdminImpersonationController extends Controller
         $roleId = trim($_POST['role_id'] ?? '');
         if ($roleId === '') {
             $username = $_SESSION['user']['TenDangNhap'] ?? 'unknown';
-            error_log(sprintf('[Impersonation] Admin %s cleared impersonation via form submission', $username));
+            error_log(sprintf('[Impersonation] Executive %s cleared impersonation via form submission', $username));
             Impersonation::clear();
             $this->setFlash('success', 'Đã tắt chế độ giả lập.');
             $this->redirect('?controller=adminImpersonation&action=index');
@@ -47,17 +47,17 @@ class AdminImpersonationController extends Controller
             $this->redirect('?controller=adminImpersonation&action=index');
         }
 
-        if ($role['IdVaiTro'] === 'VT_ADMIN') {
+        if ($role['IdVaiTro'] === 'VT_BAN_GIAM_DOC') {
             $username = $_SESSION['user']['TenDangNhap'] ?? 'unknown';
-            error_log(sprintf('[Impersonation] Admin %s reverted to original administrator privileges', $username));
+            error_log(sprintf('[Impersonation] Executive %s reverted to original privileges', $username));
             Impersonation::clear();
-            $this->setFlash('info', 'Đang sử dụng quyền quản trị gốc.');
+            $this->setFlash('info', 'Đang sử dụng quyền ban giám đốc gốc.');
             $this->redirect('?controller=adminImpersonation&action=index');
         }
 
         Impersonation::setImpersonatedRole($role);
         $username = $_SESSION['user']['TenDangNhap'] ?? 'unknown';
-        error_log(sprintf('[Impersonation] Admin %s started impersonating role %s', $username, $role['IdVaiTro']));
+        error_log(sprintf('[Impersonation] Executive %s started impersonating role %s', $username, $role['IdVaiTro']));
 
         $roleName = $role['TenVaiTro'] ?? $role['IdVaiTro'];
         $this->setFlash('success', 'Đang giả lập vai trò: ' . $roleName . '.');
