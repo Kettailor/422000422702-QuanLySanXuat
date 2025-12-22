@@ -62,6 +62,13 @@
         font-weight: 600;
         font-size: 0.85rem;
     }
+
+    .warehouse-subpanel {
+        border: 1px dashed rgba(15, 23, 42, 0.08);
+        border-radius: 0.9rem;
+        padding: 1rem 1.25rem;
+        background: #f8fbff;
+    }
 </style>
 
 <?php
@@ -133,30 +140,30 @@ $types = $types ?? [];
                                 </select>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="warehouse-form-section">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <div class="text-uppercase small text-muted">Sức chứa & số liệu</div>
-                                <h6 class="fw-semibold mb-0">Quy mô kho</h6>
+                        <div class="warehouse-subpanel mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <div class="text-uppercase small text-muted">Sức chứa & số liệu</div>
+                                    <h6 class="fw-semibold mb-0">Quy mô kho</h6>
+                                </div>
+                                <span class="section-chip text-success" style="background: rgba(25, 135, 84, 0.12); color: #198754;">
+                                    <i class="bi bi-archive"></i> Tồn kho
+                                </span>
                             </div>
-                            <span class="section-chip text-success" style="background: rgba(25, 135, 84, 0.12); color: #198754;">
-                                <i class="bi bi-archive"></i> Tồn kho
-                            </span>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Tổng số lô</label>
-                                <input type="number" name="TongSLLo" class="form-control" value="<?= (int) $warehouse['TongSLLo'] ?>" min="0">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Tổng sức chứa</label>
-                                <input type="number" name="TongSL" class="form-control" value="<?= (int) $warehouse['TongSL'] ?>" min="0">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Tổng giá trị hàng tồn (đ)</label>
-                                <input type="number" name="ThanhTien" class="form-control" value="<?= (float) $warehouse['ThanhTien'] ?>" min="0">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Tổng số lô</label>
+                                    <input type="number" name="TongSLLo" class="form-control" value="<?= (int) $warehouse['TongSLLo'] ?>" min="0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tổng sức chứa</label>
+                                    <input type="number" name="TongSL" class="form-control" value="<?= (int) $warehouse['TongSL'] ?>" min="0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tổng giá trị hàng tồn (đ)</label>
+                                    <input type="number" name="ThanhTien" class="form-control" value="<?= (float) $warehouse['ThanhTien'] ?>" min="0">
+                                </div>
                             </div>
                         </div>
                     </div>
