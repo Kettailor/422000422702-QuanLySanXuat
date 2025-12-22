@@ -20,6 +20,8 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
 };
 
 $formattedWorkDate = $workDate ? date('d/m/Y', strtotime($workDate)) : 'Hôm nay';
+$dayStart = $workDate ? ($workDate . 'T00:00') : '';
+$dayEnd = $workDate ? ($workDate . 'T23:59') : '';
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
@@ -77,25 +79,41 @@ $formattedWorkDate = $workDate ? date('d/m/Y', strtotime($workDate)) : 'Hôm nay
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nhân viên</label>
-                        <select name="employee_id[]" class="form-select" multiple size="8" required>
-                            <?php foreach ($employees as $employee): ?>
-                                <?php $id = $employee['IdNhanVien'] ?? ''; ?>
-                                <option value="<?= htmlspecialchars($id) ?>">
-                                    <?= htmlspecialchars($employee['HoTen'] ?? $id) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <div class="text-muted small mt-2">Giữ Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều nhân viên.</div>
+                        <div class="border rounded-3 p-2 bg-light" style="max-height: 320px; overflow: auto;">
+                            <div class="row g-2">
+                                <?php foreach ($employees as $employee): ?>
+                                    <?php $id = $employee['IdNhanVien'] ?? ''; ?>
+                                    <?php $name = $employee['HoTen'] ?? $id; ?>
+                                    <div class="col-12 col-lg-6">
+                                        <label class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body py-2">
+                                                <div class="form-check mb-0">
+                                                    <input class="form-check-input" type="checkbox" name="employee_id[]"
+                                                           value="<?= htmlspecialchars($id) ?>" id="employee-<?= htmlspecialchars($id) ?>">
+                                                    <span class="fw-semibold"><?= htmlspecialchars($name) ?></span>
+                                                </div>
+                                                <div class="text-muted small">Mã NV: <?= htmlspecialchars($id) ?></div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div class="text-muted small mt-2">Chọn nhiều nhân viên để ghi nhận chấm công cùng lúc.</div>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Giờ vào</label>
-                        <input type="datetime-local" name="check_in" class="form-control" value="<?= htmlspecialchars($defaultCheckIn) ?>" required>
+                        <input type="datetime-local" name="check_in" class="form-control"
+                               value="<?= htmlspecialchars($defaultCheckIn) ?>" min="<?= htmlspecialchars($dayStart) ?>"
+                               max="<?= htmlspecialchars($dayEnd) ?>" required>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Giờ ra (tuỳ chọn)</label>
-                        <input type="datetime-local" name="check_out" class="form-control" value="<?= htmlspecialchars($defaultCheckOut) ?>">
+                        <input type="datetime-local" name="check_out" class="form-control"
+                               value="<?= htmlspecialchars($defaultCheckOut) ?>" min="<?= htmlspecialchars($dayStart) ?>"
+                               max="<?= htmlspecialchars($dayEnd) ?>">
                     </div>
 
                     <div class="col-12">

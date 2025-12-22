@@ -100,6 +100,21 @@ class TimekeepingController extends Controller
             return;
         }
 
+        $workDate = date('Y-m-d');
+        $checkInTimestamp = strtotime($normalizedCheckIn);
+        $workDateTimestamp = strtotime($workDate . ' 00:00:00');
+        if ($checkInTimestamp === false || $workDateTimestamp === false) {
+            $this->setFlash('danger', 'Không thể xác định thời gian chấm công hợp lệ.');
+            $this->redirect($this->buildRedirect(null, null));
+            return;
+        }
+
+        if (date('Y-m-d', $checkInTimestamp) !== $workDate || $checkInTimestamp < $workDateTimestamp) {
+            $this->setFlash('danger', 'Giờ vào phải nằm trong khoảng từ 00:00 đến 23:59 của ngày hôm nay.');
+            $this->redirect($this->buildRedirect($shiftId, $workDate));
+            return;
+        }
+
         try {
             $currentUser = $this->currentUser();
             $supervisorId = $currentUser['IdNhanVien'] ?? null;
