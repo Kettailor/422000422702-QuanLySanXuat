@@ -4,12 +4,20 @@ class Human_resourcesController extends Controller
 {
     private Employee $employeeModel;
     private Role $roleModel;
+    private Salary $salaryModel;
+    private Timekeeping $timekeepingModel;
+    private WorkshopPlanAssignment $planAssignmentModel;
+    private WorkshopPlan $workshopPlanModel;
 
     public function __construct()
     {
         $this->authorize(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU']);
         $this->employeeModel = new Employee();
         $this->roleModel = new Role();
+        $this->salaryModel = new Salary();
+        $this->timekeepingModel = new Timekeeping();
+        $this->planAssignmentModel = new WorkshopPlanAssignment();
+        $this->workshopPlanModel = new WorkshopPlan();
     }
 
     public function index(): void
@@ -142,6 +150,51 @@ class Human_resourcesController extends Controller
             'title' => 'Chi tiết nhân sự',
             'employee' => $employee,
             'role' => $role,
+        ]);
+    }
+
+    public function links(): void
+    {
+        $id = $_GET['id'] ?? null;
+        $employee = $id ? $this->employeeModel->find($id) : null;
+        if (!$employee) {
+            $this->render('human_resources/links', [
+                'title' => 'Liên kết nhân sự',
+                'employee' => null,
+            ]);
+            return;
+        }
+
+        $payrolls = $this->salaryModel->getPayrolls(50, $employee['IdNhanVien']);
+        $salarySummary = $this->salaryModel->getPayrollSummary($employee['IdNhanVien']);
+        $timekeepingEntries = $this->timekeepingModel->getRecentRecords(
+            200,
+            null,
+            null,
+            null,
+            null,
+            $employee['IdNhanVien']
+        );
+
+        $planIds = $this->planAssignmentModel->getPlanIdsByEmployee($employee['IdNhanVien']);
+        $plans = $this->workshopPlanModel->getDetailedPlans(200);
+        if ($planIds) {
+            $allowed = array_fill_keys($planIds, true);
+            $plans = array_values(array_filter($plans, static function (array $plan) use ($allowed): bool {
+                $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
+                return $planId !== null && isset($allowed[$planId]);
+            }));
+        } else {
+            $plans = [];
+        }
+
+        $this->render('human_resources/links', [
+            'title' => 'Liên kết nhân sự',
+            'employee' => $employee,
+            'payrolls' => $payrolls,
+            'salarySummary' => $salarySummary,
+            'timekeepingEntries' => $timekeepingEntries,
+            'plans' => $plans,
         ]);
     }
 }
