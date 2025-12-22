@@ -29,9 +29,6 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         <span class="badge rounded-pill text-bg-light px-3 py-2">
             <i class="bi bi-calendar-event me-1"></i><?= htmlspecialchars($formatDate($now, 'd/m/Y')) ?>
         </span>
-        <a href="?controller=self_timekeeping&action=mobile" class="btn btn-outline-primary d-none d-md-inline-flex">
-            <i class="bi bi-phone me-2"></i>Giao diện di động
-        </a>
     </div>
 </div>
 

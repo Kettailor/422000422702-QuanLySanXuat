@@ -14,6 +14,11 @@ class Self_timekeepingController extends Controller
 
     public function index(): void
     {
+        if ($this->isMobileRequest()) {
+            $this->redirect('?controller=self_timekeeping&action=mobile');
+            return;
+        }
+
         $user = $this->currentUser();
         $employeeId = $user['IdNhanVien'] ?? null;
         $now = date('Y-m-d H:i:s');
@@ -204,5 +209,26 @@ class Self_timekeepingController extends Controller
             'all' => $filtered,
             'important' => $important,
         ];
+    }
+
+    private function isMobileRequest(): bool
+    {
+        $userAgent = strtolower((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+        if ($userAgent === '') {
+            return false;
+        }
+
+        $keywords = [
+            'iphone', 'ipod', 'android', 'blackberry', 'nokia', 'opera mini',
+            'windows phone', 'mobile', 'tablet', 'ipad',
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($userAgent, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
