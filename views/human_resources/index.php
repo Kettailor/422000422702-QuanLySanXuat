@@ -1,5 +1,6 @@
 <?php
 $employeeCount = count($employees);
+$roleMap = $roleMap ?? [];
 $activeEmployees = array_filter($employees, static function ($employee) {
     return ($employee['TrangThai'] ?? '') === 'Đang làm việc';
 });
@@ -120,7 +121,16 @@ $activeRate = $employeeCount > 0 ? round(($activeCount / $employeeCount) * 100, 
                         <div class="fw-medium"><?= htmlspecialchars($employee['HoTen']) ?></div>
                         <div class="text-muted small">Hệ số: <?= htmlspecialchars($employee['HeSoLuong']) ?></div>
                     </td>
-                    <td><?= htmlspecialchars($employee['ChucVu']) ?></td>
+                    <td>
+                        <div class="fw-medium"><?= htmlspecialchars($employee['ChucVu']) ?></div>
+                        <div class="text-muted small">
+                            <?php
+                            $roleId = $employee['IdVaiTro'] ?? '';
+                            $roleName = $roleMap[$roleId]['TenVaiTro'] ?? $roleId;
+                            ?>
+                            <?= $roleName ? htmlspecialchars($roleName) : 'Chưa phân quyền' ?>
+                        </div>
+                    </td>
                     <td><?= $employee['NgaySinh'] ? date('d/m/Y', strtotime($employee['NgaySinh'])) : '-' ?></td>
                     <td><?= $employee['ThoiGianLamViec'] ? date('d/m/Y', strtotime($employee['ThoiGianLamViec'])) : '-' ?></td>
                     <td>

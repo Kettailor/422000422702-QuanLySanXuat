@@ -15,9 +15,18 @@ class Human_resourcesController extends Controller
     public function index(): void
     {
         $employees = $this->employeeModel->all(200);
+        $roles = $this->roleModel->all(200);
+        $roleMap = [];
+        foreach ($roles as $role) {
+            $roleId = $role['IdVaiTro'] ?? null;
+            if ($roleId) {
+                $roleMap[$roleId] = $role;
+            }
+        }
         $this->render('human_resources/index', [
             'title' => 'Quản lý nhân sự',
             'employees' => $employees,
+            'roleMap' => $roleMap,
         ]);
     }
 
