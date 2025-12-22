@@ -5,6 +5,11 @@ $employees = $employees ?? [];
 $types = $types ?? [];
 $actionUrl = $actionUrl ?? '?controller=warehouse_sheet&action=store';
 $isEdit = $isEdit ?? false;
+$products = $products ?? [];
+$lots = $lots ?? [];
+$details = $details ?? [];
+$productsJson = htmlspecialchars(json_encode($products, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
+$lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 ?>
 
 <div class="card border-0 shadow-sm">
@@ -30,7 +35,7 @@ $isEdit = $isEdit ?? false;
                 <select class="form-select" name="IdKho" required>
                     <option value="">-- Chọn kho --</option>
                     <?php foreach ($warehouses as $warehouse): ?>
-                        <option value="<?= htmlspecialchars($warehouse['IdKho']) ?>" <?= ($document['IdKho'] ?? '') === $warehouse['IdKho'] ? 'selected' : '' ?>>
+                        <option value="<?= htmlspecialchars($warehouse['IdKho']) ?>" data-type="<?= htmlspecialchars($warehouse['TenLoaiKho'] ?? '') ?>" <?= ($document['IdKho'] ?? '') === $warehouse['IdKho'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($warehouse['TenKho']) ?>
                         </option>
                     <?php endforeach; ?>
@@ -97,6 +102,360 @@ $isEdit = $isEdit ?? false;
         </form>
     </div>
 </div>
+
+<?php if ($isEdit): ?>
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-semibold mb-0">Chi tiết phiếu (chỉ xem)</h6>
+                <a class="btn btn-sm btn-outline-secondary" href="?controller=warehouse_sheet&action=read&id=<?= urlencode($document['IdPhieu'] ?? '') ?>">Xem đầy đủ</a>
+            </div>
+            <?php if (empty($details)): ?>
+                <p class="text-muted mb-0">Phiếu chưa có chi tiết nào.</p>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>Mã lô</th>
+                            <th>Tên lô</th>
+                            <th>Mặt hàng</th>
+                            <th>Số lượng</th>
+                            <th>Thực nhận</th>
+                            <th>Đơn vị</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($details as $detail): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($detail['IdLo']) ?></td>
+                                <td><?= htmlspecialchars($detail['TenLo'] ?? '') ?></td>
+                                <td>
+                                    <div class="fw-semibold mb-0"><?= htmlspecialchars($detail['TenSanPham'] ?? '-') ?></div>
+                                    <small class="text-muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></small>
+                                </td>
+                                <td><?= number_format($detail['SoLuong'] ?? 0) ?></td>
+                                <td><?= number_format($detail['ThucNhan'] ?? 0) ?></td>
+                                <td><?= htmlspecialchars($detail['DonViTinh'] ?? $detail['DonVi'] ?? '') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+            <p class="text-muted small mb-0 mt-2">Cập nhật chi tiết lô bằng cách xóa và tạo phiếu mới để đảm bảo số liệu chính xác.</p>
+        </div>
+    </div>
+<?php else: ?>
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-semibold mb-0">Chi tiết phiếu & cập nhật tồn kho</h6>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-action="add-detail-row">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm dòng chi tiết
+                </button>
+            </div>
+            <p class="text-muted small">Chọn kho, loại phiếu, sau đó thêm các dòng lô xuất/nhập để hệ thống tự động cập nhật tồn kho.</p>
+            <div class="table-responsive">
+                <table class="table align-middle" id="detail-table">
+                    <thead class="table-light">
+                    <tr>
+                        <th class="text-nowrap">Hình thức</th>
+                        <th class="text-nowrap">Mã lô</th>
+                        <th>Tên lô</th>
+                        <th>Mặt hàng</th>
+                        <th class="text-nowrap">Số lượng</th>
+                        <th class="text-nowrap">Thực nhận</th>
+                        <th class="text-nowrap">Đơn vị</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody data-detail-rows></tbody>
+                </table>
+            </div>
+            <div class="alert alert-info small mb-0">
+                <div class="fw-semibold mb-1">Lưu ý nghiệp vụ</div>
+                <ul class="mb-0">
+                    <li>Phiếu nhập có thể tạo lô mới hoặc cập nhật lô sẵn có.</li>
+                    <li>Phiếu xuất chỉ được chọn lô đã tồn tại trong kho.</li>
+                    <li>Số lượng thực nhận để trống sẽ mặc định bằng số lượng kế hoạch.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const products = JSON.parse('<?= $productsJson ?>');
+            const lots = JSON.parse('<?= $lotsJson ?>');
+            const lotMap = {};
+            lots.forEach(lot => {
+                lotMap[lot.IdLo] = lot;
+            });
+
+            const productMap = {};
+            products.forEach(product => {
+                if (product.IdSanPham) {
+                    productMap[product.IdSanPham] = product;
+                }
+            });
+
+            const tableBody = document.querySelector('[data-detail-rows]');
+            const addRowBtn = document.querySelector('[data-action=\"add-detail-row\"]');
+            const warehouseSelect = document.querySelector('select[name=\"IdKho\"]');
+            const typeInput = document.querySelector('input[name=\"LoaiPhieu\"]');
+
+            const resolveWarehouseType = () => {
+                const selectedOption = warehouseSelect ? warehouseSelect.options[warehouseSelect.selectedIndex] : null;
+                const typeValue = selectedOption ? (selectedOption.dataset.type || '') : '';
+                const normalized = typeValue.toLowerCase();
+                if (normalized.includes('thành phẩm') || normalized.includes('thanh pham')) return 'finished';
+                if (normalized.includes('lỗi') || normalized.includes('loi') || normalized.includes('xử lý') || normalized.includes('xu ly')) return 'quality';
+                return 'material';
+            };
+
+            const resolveLotPrefix = () => {
+                const type = resolveWarehouseType();
+                if (type === 'finished') return 'LOTP';
+                if (type === 'quality') return 'LOXL';
+                return 'LONL';
+            };
+
+            const buildLotOptions = () => {
+                const warehouseId = warehouseSelect ? warehouseSelect.value : '';
+                return lots.filter(lot => !warehouseId || lot.IdKho === warehouseId);
+            };
+
+            const isOutbound = () => {
+                const value = typeInput ? typeInput.value.toLowerCase() : '';
+                return value.includes('xuất');
+            };
+
+            const updateRowMode = (row) => {
+                const modeSelect = row.querySelector('[data-field=\"mode\"]');
+                let isNew = modeSelect && modeSelect.value === 'new';
+                const lotInput = row.querySelector('[data-field=\"lot-id\"]');
+                const lotNameInput = row.querySelector('[data-field=\"lot-name\"]');
+                const productSelect = row.querySelector('[data-field=\"product\"]');
+                const lotSelect = row.querySelector('[data-field=\"existing-lot\"]');
+                const quantityInput = row.querySelector('[data-field=\"quantity\"]');
+                const receivedInput = row.querySelector('[data-field=\"received\"]');
+                const unitInput = row.querySelector('[data-field=\"unit\"]');
+                const modeHidden = row.querySelector('[data-field=\"mode-hidden\"]');
+
+                if (!modeSelect) return;
+
+                if (isOutbound()) {
+                    modeSelect.value = 'existing';
+                    modeSelect.disabled = true;
+                    if (modeHidden) {
+                        modeHidden.value = 'existing';
+                    }
+                } else {
+                    modeSelect.disabled = false;
+                }
+
+                if (modeHidden) {
+                    modeHidden.value = modeSelect.value;
+                }
+
+                isNew = modeSelect && modeSelect.value === 'new';
+
+                if (isNew) {
+                    lotInput.classList.remove('d-none');
+                    lotNameInput.classList.remove('d-none');
+                    productSelect.classList.remove('d-none');
+                    lotSelect.classList.add('d-none');
+                    lotInput.disabled = false;
+                    lotNameInput.disabled = false;
+                    productSelect.disabled = false;
+                    lotSelect.disabled = true;
+                    if (lotInput.value.trim() === '') {
+                        lotInput.value = generateId(resolveLotPrefix());
+                    }
+                } else {
+                    lotInput.classList.add('d-none');
+                    lotNameInput.classList.add('d-none');
+                    productSelect.classList.add('d-none');
+                    lotSelect.classList.remove('d-none');
+                    lotInput.disabled = true;
+                    lotNameInput.disabled = true;
+                    productSelect.disabled = true;
+                    lotSelect.disabled = false;
+                    lotInput.value = '';
+                    lotNameInput.value = '';
+                    if (productSelect) {
+                        productSelect.value = '';
+                    }
+                }
+
+                const syncReceived = () => {
+                    if (!receivedInput.value || receivedInput.dataset.synced === '1') {
+                        receivedInput.value = quantityInput.value;
+                        receivedInput.dataset.synced = '1';
+                    }
+                };
+
+                if (quantityInput && receivedInput) {
+                    quantityInput.removeEventListener('input', quantityInput._syncHandler || (() => {}));
+                    quantityInput._syncHandler = () => syncReceived();
+                    quantityInput.addEventListener('input', quantityInput._syncHandler);
+                    syncReceived();
+                }
+
+                if (!isNew && lotSelect) {
+                    const selectedLot = lotMap[lotSelect.value] || null;
+                    if (selectedLot) {
+                        unitInput.value = selectedLot.DonVi || '';
+                        if (quantityInput && quantityInput.value === '') {
+                            quantityInput.value = selectedLot.SoLuong || 0;
+                        }
+                        if (receivedInput && receivedInput.value === '') {
+                            receivedInput.value = selectedLot.SoLuong || 0;
+                        }
+                    }
+                }
+            };
+
+            const buildProductOptions = () => {
+                const fragment = document.createDocumentFragment();
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.IdSanPham;
+                    option.textContent = `${product.TenSanPham || product.IdSanPham} (${product.IdSanPham})`;
+                    option.dataset.unit = product.DonVi || '';
+                    fragment.appendChild(option);
+                });
+                return fragment;
+            };
+
+            const buildLotSelectOptions = (selectEl) => {
+                selectEl.innerHTML = '<option value=\"\">-- Chọn lô --</option>';
+                buildLotOptions().forEach(lot => {
+                    const option = document.createElement('option');
+                    option.value = lot.IdLo;
+                    const available = lot.SoLuong ? ` · SL: ${lot.SoLuong}` : '';
+                    option.textContent = `${lot.IdLo} - ${lot.TenLo || ''} (${lot.TenKho || ''})${available}`;
+                    option.dataset.unit = lot.DonVi || '';
+                    selectEl.appendChild(option);
+                });
+            };
+
+            const updateProductUnit = (row) => {
+                const productSelect = row.querySelector('[data-field=\"product\"]');
+                const unitInput = row.querySelector('[data-field=\"unit\"]');
+                if (!productSelect || !unitInput) return;
+                const option = productSelect.options[productSelect.selectedIndex];
+                unitInput.value = option ? (option.dataset.unit || '') : '';
+            };
+
+            const generateId = (prefix) => {
+                const now = new Date();
+                const pad = (v) => v.toString().padStart(2, '0');
+                return [
+                    prefix,
+                    now.getFullYear(),
+                    pad(now.getMonth() + 1),
+                    pad(now.getDate()),
+                    pad(now.getHours()),
+                    pad(now.getMinutes()),
+                    pad(now.getSeconds())
+                ].join('');
+            };
+
+            const addRow = () => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type=\"hidden\" name=\"Detail_Mode[]\" value=\"existing\" data-field=\"mode-hidden\">
+                        <select class=\"form-select form-select-sm\" data-field=\"mode\">
+                            <option value=\"existing\">Dùng lô sẵn</option>
+                            <option value=\"new\">Tạo lô mới</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type=\"text\" name=\"Detail_IdLo[]\" class=\"form-control form-control-sm mb-2\" placeholder=\"Mã lô\" data-field=\"lot-id\">
+                        <select class=\"form-select form-select-sm d-none\" name=\"Detail_IdLo[]\" data-field=\"existing-lot\"></select>
+                    </td>
+                    <td><input type=\"text\" name=\"Detail_TenLo[]\" class=\"form-control form-control-sm\" placeholder=\"Tên lô\" data-field=\"lot-name\"></td>
+                    <td>
+                        <select class=\"form-select form-select-sm\" name=\"Detail_IdSanPham[]\" data-field=\"product\">
+                            <option value=\"\">-- Chọn sản phẩm --</option>
+                        </select>
+                    </td>
+                    <td><input type=\"number\" min=\"1\" class=\"form-control form-control-sm\" name=\"Detail_SoLuong[]\" data-field=\"quantity\" required></td>
+                    <td><input type=\"number\" min=\"0\" class=\"form-control form-control-sm\" name=\"Detail_ThucNhan[]\" data-field=\"received\"></td>
+                    <td><input type=\"text\" class=\"form-control form-control-sm\" name=\"Detail_DonVi[]\" data-field=\"unit\" placeholder=\"Đơn vị\"></td>
+                    <td class=\"text-end\">
+                        <button type=\"button\" class=\"btn btn-sm btn-outline-danger\" data-action=\"remove-row\"><i class=\"bi bi-x\"></i></button>
+                    </td>
+                `;
+
+                const modeSelect = row.querySelector('[data-field=\"mode\"]');
+                const modeHidden = row.querySelector('[data-field=\"mode-hidden\"]');
+                const productSelect = row.querySelector('[data-field=\"product\"]');
+                const lotSelect = row.querySelector('[data-field=\"existing-lot\"]');
+                const lotIdInput = row.querySelector('[data-field=\"lot-id\"]');
+                const lotNameInput = row.querySelector('[data-field=\"lot-name\"]');
+                const unitInput = row.querySelector('[data-field=\"unit\"]');
+
+                if (productSelect) {
+                    productSelect.appendChild(buildProductOptions());
+                    productSelect.addEventListener('change', () => updateProductUnit(row));
+                }
+
+                if (lotSelect) {
+                    buildLotSelectOptions(lotSelect);
+                    lotSelect.addEventListener('change', () => {
+                        const lotInfo = lotMap[lotSelect.value] || null;
+                        if (lotInfo && unitInput) {
+                            unitInput.value = lotInfo.DonVi || '';
+                        }
+                    });
+                }
+
+                if (modeSelect) {
+                    modeSelect.addEventListener('change', () => {
+                        modeHidden.value = modeSelect.value;
+                        updateRowMode(row);
+                    });
+                }
+
+                const removeBtn = row.querySelector('[data-action=\"remove-row\"]');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => row.remove());
+                }
+
+                tableBody.appendChild(row);
+                updateRowMode(row);
+            };
+
+            if (addRowBtn) {
+                addRowBtn.addEventListener('click', addRow);
+            }
+
+            if (warehouseSelect) {
+                warehouseSelect.addEventListener('change', () => {
+                    tableBody.querySelectorAll('tr').forEach(row => {
+                        const lotSelect = row.querySelector('[data-field=\"existing-lot\"]');
+                        if (lotSelect) {
+                            buildLotSelectOptions(lotSelect);
+                        }
+                        updateRowMode(row);
+                    });
+                });
+            }
+
+            if (typeInput) {
+                typeInput.addEventListener('input', () => {
+                    tableBody.querySelectorAll('tr').forEach(row => updateRowMode(row));
+                });
+            }
+
+            addRow();
+        });
+    </script>
+<?php endif; ?>
 
 <?php if (!$isEdit): ?>
     <script>
