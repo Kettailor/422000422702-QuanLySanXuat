@@ -158,6 +158,9 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                         <td><?= number_format($document['TongThucNhan']) ?></td>
                         <td class="text-end">
                             <div class="btn-group" role="group">
+                                <a href="?controller=warehouse_sheet&action=read&id=<?= urlencode($document['IdPhieu']) ?>" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                                 <a href="?controller=warehouse_sheet&action=edit&id=<?= urlencode($document['IdPhieu']) ?>" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
