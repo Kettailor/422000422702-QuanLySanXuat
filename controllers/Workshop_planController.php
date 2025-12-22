@@ -212,7 +212,9 @@ class Workshop_planController extends Controller
 
         $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
         $now = time();
+        $today = date('Y-m-d');
         $editableShiftIds = [];
+        $addOnlyShiftIds = [];
         foreach ($workShifts as $shift) {
             $shiftId = $shift['IdCaLamViec'] ?? null;
             if (!$shiftId) {
@@ -222,21 +224,45 @@ class Workshop_planController extends Controller
             $end = $shift['ThoiGianKetThuc'] ?? null;
             $startTs = $start ? strtotime($start) : null;
             $endTs = $end ? strtotime($end) : null;
-            $isToday = ($shift['NgayLamViec'] ?? '') === date('Y-m-d');
-            $inProgress = $isToday && $startTs && $endTs && $now >= $startTs && $now <= $endTs;
-            if (!$inProgress) {
+            $shiftDate = $shift['NgayLamViec'] ?? '';
+            $isToday = $shiftDate === $today;
+            $isPastDate = $shiftDate !== '' && strcmp($shiftDate, $today) < 0;
+            $isFutureDate = $shiftDate !== '' && strcmp($shiftDate, $today) > 0;
+            $isInProgress = $isToday && $startTs && $endTs && $now >= $startTs && $now <= $endTs;
+            $isAfterEnd = $isToday && $endTs && $now > $endTs;
+
+            if ($isPastDate || $isAfterEnd) {
+                continue;
+            }
+
+            if ($isFutureDate) {
                 $editableShiftIds[$shiftId] = true;
+                continue;
+            }
+
+            if ($isToday && !$isAfterEnd) {
+                $addOnlyShiftIds[$shiftId] = true;
             }
         }
         foreach ($assignmentsInput as $shiftId => $employees) {
-            if (!isset($editableShiftIds[$shiftId])) {
+            if (!isset($editableShiftIds[$shiftId]) && !isset($addOnlyShiftIds[$shiftId])) {
                 unset($assignmentsInput[$shiftId]);
             }
         }
 
         try {
-            $this->planAssignmentModel->replaceForPlanWithShifts($planId, $assignmentsInput, 'nhan_vien_san_xuat');
-            $this->setFlash('success', 'Đã cập nhật phân công nhân sự theo ca.');
+            if (empty($assignmentsInput)) {
+                $this->setFlash('warning', 'Không có ca nào hợp lệ để cập nhật phân công.');
+            } else {
+                $this->planAssignmentModel->syncByShiftPolicy(
+                    $planId,
+                    $assignmentsInput,
+                    $editableShiftIds,
+                    $addOnlyShiftIds,
+                    'nhan_vien_san_xuat'
+                );
+                $this->setFlash('success', 'Đã cập nhật phân công nhân sự theo ca.');
+            }
         } catch (Throwable $exception) {
             Logger::error('Không thể cập nhật phân công kế hoạch ' . $planId . ': ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể lưu phân công, vui lòng kiểm tra log.');

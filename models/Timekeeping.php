@@ -57,7 +57,13 @@ class Timekeeping extends BaseModel
         return $stmt->fetchAll();
     }
 
-    public function getRecentRecords(int $limit = 100, ?string $shiftId = null, ?string $workDate = null): array
+    public function getRecentRecords(
+        int $limit = 100,
+        ?string $shiftId = null,
+        ?string $workDate = null,
+        ?string $workshopId = null,
+        ?string $planId = null
+    ): array
     {
         $conditions = [];
         $bindings = [];
@@ -72,6 +78,16 @@ class Timekeeping extends BaseModel
             $bindings[':workDate'] = $workDate;
         }
 
+        if ($workshopId) {
+            $conditions[] = 'kx.IdXuong = :workshopId';
+            $bindings[':workshopId'] = $workshopId;
+        }
+
+        if ($planId) {
+            $conditions[] = 'kx.IdKeHoachSanXuatXuong = :planId';
+            $bindings[':planId'] = $planId;
+        }
+
         $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
 
         $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien,
@@ -79,10 +95,17 @@ class Timekeeping extends BaseModel
                        ca.LoaiCa,
                        ca.NgayLamViec,
                        ca.ThoiGianBatDau,
-                       ca.ThoiGianKetThuc
+                       ca.ThoiGianKetThuc,
+                       kx.IdKeHoachSanXuatXuong,
+                       kx.IdKeHoachSanXuat,
+                       kx.TenThanhThanhPhanSP,
+                       kx.IdXuong,
+                       xuong.TenXuong
                 FROM cham_cong cc
                 LEFT JOIN nhan_vien nv ON nv.IdNhanVien = cc.`NHANVIEN IdNhanVien`
                 LEFT JOIN ca_lam ca ON ca.IdCaLamViec = cc.`IdCaLamViec`
+                LEFT JOIN ke_hoach_san_xuat_xuong kx ON kx.IdKeHoachSanXuatXuong = ca.IdKeHoachSanXuatXuong
+                LEFT JOIN xuong ON xuong.IdXuong = kx.IdXuong
                 {$where}
                 ORDER BY cc.`ThoiGianVao` DESC
                 LIMIT :limit";

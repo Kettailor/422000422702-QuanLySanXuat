@@ -254,14 +254,19 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                 $isFutureDate = $shiftDateCompare > 0;
                                 $isInProgress = $isTodayShift && $startTs && $endTs && $nowTimestamp >= $startTs && $nowTimestamp <= $endTs;
                                 $isAfterEnd = $isTodayShift && $endTs && $nowTimestamp > $endTs;
-                                $isEditable = $isFutureDate || ($isTodayShift && $startTs && $nowTimestamp < $startTs);
+                                $isAddOnly = $isTodayShift && !$isAfterEnd;
+                                $isEditable = $isFutureDate;
                                 if ($isPastDate || $isAfterEnd) {
                                     $isEditable = false;
+                                    $isAddOnly = false;
                                 }
 
                                 if ($isPastDate || $isAfterEnd) {
                                     $statusLabel = 'Đã khóa';
                                     $statusClass = 'bg-secondary-subtle text-secondary';
+                                } elseif ($isAddOnly) {
+                                    $statusLabel = 'Chỉ thêm nhân sự';
+                                    $statusClass = 'bg-info-subtle text-info';
                                 } elseif ($isInProgress) {
                                     $statusLabel = 'Đang diễn ra';
                                     $statusClass = 'bg-warning-subtle text-warning';
@@ -271,7 +276,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                 }
                             ?>
                             <div class="col-lg-4">
-                                <div class="border rounded-3 p-3 h-100 shift-card" data-date="<?= htmlspecialchars($dateKey) ?>" data-shift-type="<?= htmlspecialchars($typeLabel) ?>" data-shift-id="<?= htmlspecialchars($shiftId) ?>" data-editable="<?= $isEditable ? '1' : '0' ?>">
+                                <div class="border rounded-3 p-3 h-100 shift-card" data-date="<?= htmlspecialchars($dateKey) ?>" data-shift-type="<?= htmlspecialchars($typeLabel) ?>" data-shift-id="<?= htmlspecialchars($shiftId) ?>" data-editable="<?= ($isEditable || $isAddOnly) ? '1' : '0' ?>">
                                     <div class="fw-semibold"><?= htmlspecialchars($shift['TenCa'] ?? $shiftId) ?></div>
                                     <div class="text-muted small mb-2">
                                         <?= htmlspecialchars($shift['ThoiGianBatDau'] ?? '-') ?>
@@ -281,18 +286,24 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                         </span>
                                     </div>
                                     <label class="form-label fw-semibold">Nhân sự</label>
-                                    <select name="assignments[<?= htmlspecialchars($shiftId) ?>][]" class="form-select assignment-select" multiple size="5" <?= $isEditable ? '' : 'disabled' ?>>
+                                    <select name="assignments[<?= htmlspecialchars($shiftId) ?>][]" class="form-select assignment-select" multiple size="5" <?= ($isEditable || $isAddOnly) ? '' : 'disabled' ?>>
                                         <?php foreach ($availableEmployees as $employee): ?>
                                             <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
-                                            <option value="<?= htmlspecialchars($employeeId) ?>" <?= in_array($employeeId, $assignedMap[$shiftId] ?? [], true) ? 'selected' : '' ?>>
+                                            <?php
+                                                $isAssigned = in_array($employeeId, $assignedMap[$shiftId] ?? [], true);
+                                                $optionDisabled = $isAddOnly && $isAssigned ? 'disabled' : '';
+                                            ?>
+                                            <option value="<?= htmlspecialchars($employeeId) ?>" <?= $isAssigned ? 'selected' : '' ?> <?= $optionDisabled ?>>
                                                 <?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <?php if (!$isEditable): ?>
+                                    <?php if (!($isEditable || $isAddOnly)): ?>
                                         <div class="text-muted small mt-2">
                                             <?= $isInProgress ? 'Không thể chỉnh sửa trong khung giờ đang diễn ra.' : 'Ca đã khóa sau giờ chấm công.' ?>
                                         </div>
+                                    <?php elseif ($isAddOnly): ?>
+                                        <div class="text-muted small mt-2">Chỉ được thêm nhân sự cho ca hôm nay, không thể gỡ bỏ.</div>
                                     <?php else: ?>
                                         <div class="text-muted small mt-2">Giữ Ctrl/Cmd để chọn nhiều nhân sự.</div>
                                     <?php endif; ?>
