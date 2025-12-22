@@ -32,6 +32,11 @@ class InventorySheet extends BaseModel
                     PHIEU.IdKho,
                     PHIEU.NHAN_VIENIdNhanVien,
                     PHIEU.NHAN_VIENIdNhanVien2,
+                    PHIEU.LoaiDoiTac,
+                    PHIEU.DoiTac,
+                    PHIEU.SoThamChieu,
+                    PHIEU.LyDo,
+                    PHIEU.GhiChu,
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan,
@@ -110,6 +115,11 @@ class InventorySheet extends BaseModel
                     PHIEU.IdKho,
                     PHIEU.NHAN_VIENIdNhanVien,
                     PHIEU.NHAN_VIENIdNhanVien2,
+                    PHIEU.LoaiDoiTac,
+                    PHIEU.DoiTac,
+                    PHIEU.SoThamChieu,
+                    PHIEU.LyDo,
+                    PHIEU.GhiChu,
                     KHO.TenKho,
                     NV_LAP.HoTen AS NguoiLap,
                     NV_XN.HoTen AS NguoiXacNhan
@@ -130,7 +140,7 @@ class InventorySheet extends BaseModel
 
     public function getFormOptions(): array
     {
-        $warehouses = $this->db->query('SELECT IdKho, TenKho FROM KHO ORDER BY TenKho')->fetchAll();
+        $warehouses = $this->db->query('SELECT IdKho, TenKho, TenLoaiKho FROM KHO ORDER BY TenKho')->fetchAll();
         $employees = $this->db->query('SELECT IdNhanVien, HoTen FROM NHAN_VIEN ORDER BY HoTen')->fetchAll();
         $types = $this->db->query('SELECT DISTINCT LoaiPhieu FROM PHIEU ORDER BY LoaiPhieu')->fetchAll(PDO::FETCH_COLUMN) ?: [];
 
@@ -201,6 +211,11 @@ class InventorySheet extends BaseModel
             'IdKho',
             'NHAN_VIENIdNhanVien',
             'NHAN_VIENIdNhanVien2',
+            'LoaiDoiTac',
+            'DoiTac',
+            'SoThamChieu',
+            'LyDo',
+            'GhiChu',
         ];
 
         $payload = [];
