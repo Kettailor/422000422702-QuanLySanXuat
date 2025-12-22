@@ -10,27 +10,57 @@
     .warehouse-edit-wrapper {
         background: #f3f6fb;
         border-radius: 1rem;
-        padding: 1.5rem;
+        padding: 1.75rem;
         border: 1px solid rgba(15, 23, 42, 0.05);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
     }
 
     .warehouse-form-section {
         border: 1px solid rgba(15, 23, 42, 0.06);
         border-radius: 1rem;
-        padding: 1.25rem 1.5rem;
-        background: linear-gradient(135deg, #ffffff, #f9fbff);
+        padding: 1.5rem;
+        background: linear-gradient(145deg, #ffffff 0%, #f7fbff 100%);
         height: 100%;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .warehouse-form-section:before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 15% 20%, rgba(25, 118, 210, 0.08), transparent 35%),
+                    radial-gradient(circle at 85% 10%, rgba(76, 175, 80, 0.08), transparent 30%);
+        opacity: 0.8;
+    }
+
+    .warehouse-form-section > * {
+        position: relative;
+        z-index: 1;
     }
 
     .warehouse-edit-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 1.75rem;
     }
 
     .warehouse-form-section + .warehouse-form-section {
         margin-top: 1rem;
+    }
+
+    .section-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(25, 118, 210, 0.08);
+        color: #0d6efd;
+        font-weight: 600;
+        font-size: 0.85rem;
     }
 </style>
 
@@ -55,9 +85,10 @@ $types = $types ?? [];
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <div class="text-uppercase small text-muted">Thông tin kho</div>
-                                <h5 class="fw-semibold mb-0"><?= htmlspecialchars($warehouse['TenKho']) ?></h5>
+                                <h5 class="fw-semibold mb-1"><?= htmlspecialchars($warehouse['TenKho']) ?></h5>
+                                <div class="text-muted small">Mã: <?= htmlspecialchars($warehouse['IdKho']) ?></div>
                             </div>
-                            <span class="badge bg-primary-subtle text-primary border">Đang cập nhật</span>
+                            <span class="section-chip"><i class="bi bi-pencil-square"></i> Đang cập nhật</span>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -110,6 +141,9 @@ $types = $types ?? [];
                                 <div class="text-uppercase small text-muted">Sức chứa & số liệu</div>
                                 <h6 class="fw-semibold mb-0">Quy mô kho</h6>
                             </div>
+                            <span class="section-chip text-success" style="background: rgba(25, 135, 84, 0.12); color: #198754;">
+                                <i class="bi bi-archive"></i> Tồn kho
+                            </span>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -130,8 +164,15 @@ $types = $types ?? [];
 
                 <div class="col-lg-4">
                     <div class="warehouse-form-section h-100">
-                        <div class="text-uppercase small text-muted mb-2">Người phụ trách</div>
-                        <h6 class="fw-semibold mb-3">Thông tin quản lý kho</h6>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <div class="text-uppercase small text-muted mb-1">Người phụ trách</div>
+                                <h6 class="fw-semibold mb-0">Thông tin quản lý kho</h6>
+                            </div>
+                            <span class="section-chip" style="background: rgba(121, 80, 242, 0.12); color: #6f42c1;">
+                                <i class="bi bi-person-check"></i> Quản kho
+                            </span>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
                             <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required>
