@@ -71,7 +71,7 @@
                             <?php if (!$canAssign): ?>
                                 <div class="alert alert-info py-2 mb-3 d-flex align-items-center gap-2">
                                     <i class="bi bi-shield-lock text-primary"></i>
-                                    <span>Chỉ quản trị hệ thống hoặc ban giám đốc được phép thay đổi phân công nhân sự. Bạn đang xem ở chế độ chỉ đọc.</span>
+                                    <span>Quản trị hệ thống, ban giám đốc hoặc quản lý xưởng mới được phép thay đổi phân công nhân sự. Bạn đang xem ở chế độ chỉ đọc.</span>
                                 </div>
                             <?php endif; ?>
                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
