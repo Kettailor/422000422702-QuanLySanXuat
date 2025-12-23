@@ -30,7 +30,7 @@
                     <dd class="col-sm-8 text-muted"><?= htmlspecialchars($workshop['DiaDiem'] ?? '-') ?></dd>
                     <dt class="col-sm-4">Trạng thái</dt>
                     <dd class="col-sm-8">
-                        <span class="badge bg-light text-dark px-3">
+                        <span class="badge <?= ($workshop['TrangThai'] ?? '') === 'Đang hoạt động' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' ?>">
                             <?= htmlspecialchars($workshop['TrangThai'] ?? 'Không xác định') ?>
                         </span>
                     </dd>
@@ -51,10 +51,10 @@
                     <dt class="col-sm-6">Tỷ lệ sử dụng</dt>
                     <?php
                     $usage = 0;
-                    if (!empty($workshop['CongSuatToiDa'])) {
-                        $usage = round((($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0) / $workshop['CongSuatToiDa']) * 100, 2);
-                    }
-                    ?>
+    if (!empty($workshop['CongSuatToiDa'])) {
+        $usage = round((($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0) / $workshop['CongSuatToiDa']) * 100, 2);
+    }
+    ?>
                     <dd class="col-sm-6"><?= $usage ?>%</dd>
                 </dl>
             </div>
@@ -158,8 +158,8 @@
                     </div>
                     <?php
                     $warehouseCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Kho'));
-                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
-                    ?>
+        $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
+        ?>
                     <div class="d-flex gap-2 flex-wrap">
                         <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
                         <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>

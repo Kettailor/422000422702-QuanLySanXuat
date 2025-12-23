@@ -22,6 +22,7 @@ Thumbs.db
 .cache/
 .vscode/
 .idea/
+.php-cs-fixer.*
 *.cache
 *.swp
 *.swo

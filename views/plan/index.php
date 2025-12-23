@@ -56,7 +56,7 @@ $badgeForStatus = static function (string $status): string {
                 <i class="bi bi-magic me-2"></i>Lập kế hoạch mới
             </a>
         <?php endif; ?>
-        <a href="?controller=factory_plan&action=index" class="btn btn-outline-primary">
+        <a href="?controller=factory_plan&action=index" class="btn btn-outline-primary btn-lg">
             <i class="bi bi-building-gear me-2"></i>Tiến độ xưởng
         </a>
     </div>
@@ -132,10 +132,10 @@ $badgeForStatus = static function (string $status): string {
                                         <?php endif; ?>
                                         <?php
                                         $orderEmail = $order['EmailLienHe'] ?? null;
-                                        if (!$orderEmail && !empty($order['details'][0]['Email'])) {
-                                            $orderEmail = $order['details'][0]['Email'];
-                                        }
-                                        ?>
+                            if (!$orderEmail && !empty($order['details'][0]['Email'])) {
+                                $orderEmail = $order['details'][0]['Email'];
+                            }
+                            ?>
                                         <?php if (!empty($orderEmail)): ?>
                                             <div class="text-muted small">Email: <?= htmlspecialchars($orderEmail) ?></div>
                                         <?php endif; ?>

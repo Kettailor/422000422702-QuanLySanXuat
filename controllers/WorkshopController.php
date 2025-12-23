@@ -46,9 +46,11 @@ class WorkshopController extends Controller
             $this->redirect('?controller=workshop&action=index');
         }
 
+        $managers = $this->employeeModel->getEmployeesByRoleIds(['VT_QUANLY_XUONG']);
         $employees = $this->employeeModel->getActiveEmployees();
         $this->render('workshop/create', [
             'title' => 'Thêm xưởng mới',
+            'managers' => $managers,
             'employees' => $employees,
             'employeeGroups' => $this->groupEmployeesByRole($employees),
             'selectedWarehouse' => [],
@@ -77,7 +79,7 @@ class WorkshopController extends Controller
             $this->assignmentModel->syncAssignments(
                 $data['IdXuong'],
                 $assignments['warehouse'],
-                $assignments['production']
+                $assignments['production'],
             );
             $this->setFlash('success', 'Đã thêm xưởng sản xuất mới.');
         } catch (Throwable $exception) {
@@ -149,7 +151,7 @@ class WorkshopController extends Controller
                 $this->assignmentModel->syncAssignments(
                     $id,
                     $assignments['warehouse'],
-                    $assignments['production']
+                    $assignments['production'],
                 );
             }
             $this->setFlash('success', 'Cập nhật thông tin xưởng thành công.');
@@ -221,8 +223,8 @@ class WorkshopController extends Controller
         $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops);
 
         $configurationIds = array_values(array_filter(array_map(
-            fn ($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
-            $plans
+            fn($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
+            $plans,
         )));
         $materialsByComponent = $this->componentMaterialModel->getMaterialsForComponents($configurationIds);
 
@@ -612,6 +614,7 @@ class WorkshopController extends Controller
     {
         return [
             'IdXuong' => trim($input['IdXuong'] ?? ''),
+            'XUONGTRUONG_IdNhanVien' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
             'TenXuong' => trim($input['TenXuong'] ?? ''),
             'DiaDiem' => trim($input['DiaDiem'] ?? ''),
             'XUONGTRUONG_IdNhanVien' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
@@ -665,7 +668,7 @@ class WorkshopController extends Controller
             ];
         }
 
-        usort($list, fn ($a, $b) => strcmp($a['name'], $b['name']));
+        usort($list, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         return $list;
     }

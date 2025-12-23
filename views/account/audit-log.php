@@ -36,9 +36,9 @@ $resolveBadge = static function (?string $level): array {
             <?php [$badgeClass, $label] = $resolveBadge($log['level'] ?? null); ?>
             <?php
               $actionText = (string) ($log['action'] ?? '');
-              $shortText = mb_strimwidth($actionText, 0, 120, '…', 'UTF-8');
+              $shortText = mb_strimwidth($actionText, 0, 50, '…', 'UTF-8');
               $collapseId = 'log-detail-' . ($log['id'] ?? ($logs['page'] ?? 1) . '-' . $index);
-            ?>
+              ?>
             <div class="border rounded-4 p-3 bg-white">
               <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                 <div>
@@ -135,9 +135,9 @@ if (!empty($loginLogs['data']) && is_array($loginLogs['data'])) {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const loginData = <?php echo json_encode([
-            'labels' => array_keys($loginCounts),
-            'counts' => array_values($loginCounts)
-        ]); ?>;
+    'labels' => array_keys($loginCounts),
+    'counts' => array_values($loginCounts),
+]); ?>;
 
 const ctx = document.getElementById('loginAttemptsChart').getContext('2d');
 new Chart(ctx, {

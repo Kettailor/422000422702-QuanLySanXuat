@@ -29,7 +29,7 @@
             <label class="form-label">Ngày thành lập</label>
             <input type="date" name="NgayThanhLap" class="form-control">
         </div>
-        <div class="col-md-6">
+        <div class="col-md-8">
             <label class="form-label">Địa điểm</label>
             <input type="text" name="DiaDiem" class="form-control" placeholder="Khu công nghiệp, tỉnh/thành...">
         </div>
@@ -48,6 +48,17 @@
         <div class="col-md-4">
             <label class="form-label">Nhân sự hiện tại</label>
             <input type="number" name="SoLuongCongNhan" class="form-control" min="0" placeholder="Ví dụ: 42">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Xưởng trưởng</label>
+            <select name="XUONGTRUONG_IdNhanVien" class="form-select">
+                <option value="">-- Chọn xưởng trưởng --</option>
+                <?php foreach ($managers as $manager): ?>
+                    <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>">
+                        <?= htmlspecialchars($manager['HoTen']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Trạng thái</label>
