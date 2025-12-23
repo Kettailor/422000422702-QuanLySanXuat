@@ -33,6 +33,25 @@ abstract class Controller
         $isImpersonating = !empty($user['IsImpersonating']);
         $adminFlow = $_SESSION['admin_flow'] ?? 'main';
         $adminBypassEnabled = $adminFlow === 'test';
+        $adminMainRestricted = $isAdmin && !$isImpersonating && $adminFlow === 'main';
+
+        if ($adminMainRestricted) {
+            $allowedControllers = [
+                'dashboard',
+                'auth',
+                'setting',
+                'notifications',
+                'self_salary',
+                'admin',
+                'adminImpersonation',
+                'account',
+            ];
+            $currentController = $_GET['controller'] ?? 'dashboard';
+            if (!in_array($currentController, $allowedControllers, true)) {
+                $this->setFlash('danger', 'Luồng chính chỉ cho phép chức năng cá nhân và quản trị.');
+                $this->redirect('?controller=dashboard&action=index');
+            }
+        }
 
         if ($isAdmin && $adminBypassEnabled) {
             if ($isImpersonating) {
