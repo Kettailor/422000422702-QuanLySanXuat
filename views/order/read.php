@@ -100,6 +100,8 @@
                                 <div class="fw-medium"><?= htmlspecialchars($detail['TenCauHinh'] ?? 'Cấu hình tùy chỉnh') ?></div>
                                 <ul class="list-unstyled text-muted small mb-0">
                                     <?php if (!empty($config['description'])): ?><li>Mô tả: <?= htmlspecialchars($config['description']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['keycap'])): ?><li>Keycap: <?= htmlspecialchars($config['keycap']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['mainboard'])): ?><li>Mainboard: <?= htmlspecialchars($config['mainboard']) ?></li><?php endif; ?>
                                     <?php if (!empty($config['layout'])): ?><li>Layout: <?= htmlspecialchars($config['layout']) ?></li><?php endif; ?>
                                     <?php if (!empty($config['switch_type'])): ?><li>Switch: <?= htmlspecialchars($config['switch_type']) ?></li><?php endif; ?>
                                     <?php if (!empty($config['case_type'])): ?><li>Case: <?= htmlspecialchars($config['case_type']) ?></li><?php endif; ?>

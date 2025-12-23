@@ -8,6 +8,7 @@ class PlanController extends Controller
     private ProductComponent $componentModel;
     private Workshop $workshopModel;
     private  WorkshopPlanMaterialDetail $workShopPlanDetail;
+    private Order $orderModel;
 
     public function __construct()
     {
@@ -18,6 +19,7 @@ class PlanController extends Controller
         $this->componentModel = new ProductComponent();
         $this->workshopModel = new Workshop();
         $this->workShopPlanDetail = new WorkshopPlanMaterialDetail();
+        $this->orderModel = new Order();
     }
 
     public function index(): void
@@ -168,6 +170,11 @@ class PlanController extends Controller
                         $assignment['SoLuong'] // <-- Nên dùng số lượng phân cho xưởng đó
                     );
                 }
+            }
+
+            $orderId = $orderDetail['IdDonHang'] ?? null;
+            if ($orderId) {
+                $this->orderModel->update($orderId, ['TrangThai' => 'Đang xử lý']);
             }
 
 

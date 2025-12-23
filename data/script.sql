@@ -131,6 +131,8 @@ CREATE TABLE `cau_hinh_san_pham` (
   `GiaBan` float DEFAULT NULL,
   `IdSanPham` varchar(50) NOT NULL,
   `IdBOM` varchar(50) NOT NULL,
+  `Keycap` varchar(100) DEFAULT NULL,
+  `Mainboard` varchar(100) DEFAULT NULL,
   `Layout` varchar(100) DEFAULT NULL,
   `SwitchType` varchar(100) DEFAULT NULL,
   `CaseType` varchar(100) DEFAULT NULL,

@@ -2,24 +2,27 @@
 $selectedCustomerId = $selectedCustomerId ?? null;
 $customerFormData = $customerFormData ?? ['name' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
 $customerMode = $customerMode ?? 'existing';
+$isCustomerLocked = $isCustomerLocked ?? false;
 ?>
-<div class="col-lg-6" data-customer-selector>
+<div class="col-lg-6" data-customer-selector <?= $isCustomerLocked ? 'data-customer-locked="1"' : '' ?>>
     <label class="form-label">Khách hàng</label>
     <div class="btn-group w-100 mb-2" role="group" aria-label="Lựa chọn khách hàng">
         <button type="button"
                 class="btn btn-outline-primary customer-mode-btn <?= $customerMode === 'existing' ? 'active' : '' ?>"
-                data-mode="existing">
+                data-mode="existing"
+                <?= $isCustomerLocked ? 'disabled' : '' ?>>
             Chọn từ danh sách
         </button>
         <button type="button"
                 class="btn btn-outline-primary customer-mode-btn <?= $customerMode === 'new' ? 'active' : '' ?>"
-                data-mode="new">
+                data-mode="new"
+                <?= $isCustomerLocked ? 'disabled' : '' ?>>
             Thêm khách hàng mới
         </button>
     </div>
     <input type="hidden" name="customer_mode" value="<?= htmlspecialchars($customerMode) ?>" data-customer-field="mode">
     <div class="existing-customer-fields" data-customer-field="existing">
-        <select name="customer_existing_id" class="form-select" <?= $customerMode === 'existing' ? 'required' : '' ?>>
+        <select name="customer_existing_id" class="form-select" <?= $customerMode === 'existing' ? 'required' : '' ?> <?= $isCustomerLocked ? 'disabled' : '' ?>>
             <option value="">-- Chọn khách hàng/đối tác --</option>
             <?php foreach ($customers as $customer): ?>
                 <option value="<?= htmlspecialchars($customer['IdKhachHang']) ?>"
@@ -34,6 +37,9 @@ $customerMode = $customerMode ?? 'existing';
                 </option>
             <?php endforeach; ?>
         </select>
+        <?php if ($isCustomerLocked): ?>
+            <input type="hidden" name="customer_existing_id" value="<?= htmlspecialchars((string) $selectedCustomerId) ?>">
+        <?php endif; ?>
         <div class="border rounded p-3 bg-light mt-3" data-customer-field="existing-info">
             <div class="row g-3">
                 <div class="col-12">
@@ -120,6 +126,7 @@ $customerMode = $customerMode ?? 'existing';
                 const existingSelect = existingSection.querySelector('select');
                 const existingInfoWrapper = existingSection.querySelector('[data-customer-field="existing-info"]');
                 const newInputs = newSection.querySelectorAll('input, textarea');
+                const isLocked = wrapper.getAttribute('data-customer-locked') === '1';
 
                 function fillExistingInfo() {
                     if (!existingInfoWrapper) {
@@ -176,6 +183,9 @@ $customerMode = $customerMode ?? 'existing';
 
                 wrapper.querySelectorAll('.customer-mode-btn').forEach(function (button) {
                     button.addEventListener('click', function () {
+                        if (isLocked) {
+                            return;
+                        }
                         setMode(button.getAttribute('data-mode'));
                     });
                 });

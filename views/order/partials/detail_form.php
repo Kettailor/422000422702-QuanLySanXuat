@@ -2,6 +2,7 @@
 $detailItems = $orderDetails ?? [];
 $products = $products ?? [];
 $configurations = $configurations ?? [];
+$isEditMode = $isEditMode ?? false;
 
 if (empty($detailItems)) {
     $detailItems = [[]];
@@ -29,6 +30,8 @@ foreach ($configurations as $configuration) {
         'name' => $configuration['TenCauHinh'] ?? 'Cấu hình',
         'price' => isset($configuration['GiaBan']) ? (float) $configuration['GiaBan'] : 0.0,
         'description' => $configuration['MoTa'] ?? '',
+        'keycap' => $configuration['Keycap'] ?? '',
+        'mainboard' => $configuration['Mainboard'] ?? '',
         'layout' => $configuration['Layout'] ?? '',
         'switch' => $configuration['SwitchType'] ?? '',
         'case' => $configuration['CaseType'] ?? '',
@@ -50,16 +53,21 @@ $initialDetails = array_map(static function ($detail) {
             'new_configuration_price' => '',
             'new_configuration_description' => '',
             'config_description' => '',
+            'config_keycap' => '',
+            'config_mainboard' => '',
             'config_layout' => '',
             'config_switch_type' => '',
             'config_case_type' => '',
             'config_foam' => '',
             'quantity' => 1,
+            'min_quantity' => 1,
             'unit_price' => 0,
             'vat' => 8,
             'delivery_date' => '',
+            'min_delivery_date' => '',
             'requirement' => '',
             'note' => '',
+            'detail_id' => '',
         ];
     }
 
@@ -75,16 +83,21 @@ $initialDetails = array_map(static function ($detail) {
         'new_configuration_price' => $detail['new_configuration_price'] ?? '',
         'new_configuration_description' => $detail['new_configuration_description'] ?? '',
         'config_description' => $detail['config_description'] ?? '',
+        'config_keycap' => $detail['config_keycap'] ?? '',
+        'config_mainboard' => $detail['config_mainboard'] ?? '',
         'config_layout' => $detail['config_layout'] ?? '',
         'config_switch_type' => $detail['config_switch_type'] ?? '',
         'config_case_type' => $detail['config_case_type'] ?? '',
         'config_foam' => $detail['config_foam'] ?? '',
         'quantity' => (int) ($detail['quantity'] ?? 1),
+        'min_quantity' => (int) ($detail['min_quantity'] ?? ($detail['quantity'] ?? 1)),
         'unit_price' => (float) ($detail['unit_price'] ?? 0),
         'vat' => isset($detail['vat']) ? (float) $detail['vat'] : 8,
         'delivery_date' => $detail['delivery_date'] ?? '',
+        'min_delivery_date' => $detail['min_delivery_date'] ?? '',
         'requirement' => $detail['requirement'] ?? '',
         'note' => $detail['note'] ?? '',
+        'detail_id' => $detail['detail_id'] ?? '',
     ];
 }, $detailItems);
 
@@ -101,16 +114,21 @@ if (empty($initialDetails)) {
         'new_configuration_price' => '',
         'new_configuration_description' => '',
         'config_description' => '',
+        'config_keycap' => '',
+        'config_mainboard' => '',
         'config_layout' => '',
         'config_switch_type' => '',
         'config_case_type' => '',
         'config_foam' => '',
         'quantity' => 1,
+        'min_quantity' => 1,
         'unit_price' => 0,
         'vat' => 8,
         'delivery_date' => '',
+        'min_delivery_date' => '',
         'requirement' => '',
         'note' => '',
+        'detail_id' => '',
     ];
 }
 ?>
@@ -118,9 +136,11 @@ if (empty($initialDetails)) {
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <label class="form-label fw-semibold">Danh sách sản phẩm & cấu hình</label>
-            <p class="text-muted small mb-0">Chọn sản phẩm có sẵn hoặc nhập mới, sau đó điền các cấu hình chi tiết (mô tả, layout, switch, case, foam...).</p>
+            <p class="text-muted small mb-0">Chọn sản phẩm có sẵn hoặc nhập mới, sau đó điền cấu hình gồm mô tả, keycap, mainboard, layout, switch, case, foam.</p>
         </div>
-        <button class="btn btn-outline-primary" type="button" id="add-detail-row"><i class="bi bi-plus-lg me-2"></i>Thêm dòng</button>
+        <?php if (!$isEditMode): ?>
+            <button class="btn btn-outline-primary" type="button" id="add-detail-row"><i class="bi bi-plus-lg me-2"></i>Thêm dòng</button>
+        <?php endif; ?>
     </div>
     <div id="order-detail-container" class="mt-3"></div>
     <div class="d-flex justify-content-end mt-3">
@@ -137,6 +157,7 @@ if (empty($initialDetails)) {
     const initialDetails = <?= json_encode($initialDetails, JSON_UNESCAPED_UNICODE) ?>;
     const detailContainer = document.getElementById('order-detail-container');
     const addRowButton = document.getElementById('add-detail-row');
+    const isEditMode = <?= $isEditMode ? 'true' : 'false' ?>;
     let detailIndex = 0;
 
     function buildProductOptions(selectedId) {
@@ -201,10 +222,14 @@ if (empty($initialDetails)) {
         }
     }
 
-    function getMinDeliveryDate() {
+    function getMinDeliveryDate(baseValue) {
         const now = new Date();
         const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-        return local.toISOString().slice(0, 16);
+        const nowValue = local.toISOString().slice(0, 16);
+        if (baseValue && baseValue > nowValue) {
+            return baseValue;
+        }
+        return nowValue;
     }
 
     function applyDeliveryMin(row) {
@@ -212,13 +237,15 @@ if (empty($initialDetails)) {
         if (!input) {
             return;
         }
-        const minValue = getMinDeliveryDate();
+        const baseValue = input.getAttribute('data-min-base') || '';
+        const minValue = getMinDeliveryDate(baseValue);
         input.setAttribute('min', minValue);
         if (input.value && input.value < minValue) {
             input.value = minValue;
         }
         input.addEventListener('change', () => {
-            const currentMin = getMinDeliveryDate();
+            const currentBase = input.getAttribute('data-min-base') || '';
+            const currentMin = getMinDeliveryDate(currentBase);
             input.setAttribute('min', currentMin);
             if (input.value && input.value < currentMin) {
                 input.value = currentMin;
@@ -323,6 +350,8 @@ if (empty($initialDetails)) {
 
     function fillConfigurationFields(row, productId, configurationId) {
         const configuration = productId && configurationId ? getConfiguration(productId, configurationId) : null;
+        const keycapInput = row.querySelector('[data-field="config_keycap"]');
+        const mainboardInput = row.querySelector('[data-field="config_mainboard"]');
         const layoutInput = row.querySelector('[data-field="config_layout"]');
         const switchInput = row.querySelector('[data-field="config_switch_type"]');
         const caseInput = row.querySelector('[data-field="config_case_type"]');
@@ -344,6 +373,12 @@ if (empty($initialDetails)) {
         if (descriptionInput && !descriptionInput.value && description) {
             descriptionInput.value = description;
         }
+        if (keycapInput && !keycapInput.value) {
+            keycapInput.value = configuration ? (configuration.keycap || '') : keycapInput.value;
+        }
+        if (mainboardInput && !mainboardInput.value) {
+            mainboardInput.value = configuration ? (configuration.mainboard || '') : mainboardInput.value;
+        }
 
         const hint = row.querySelector('[data-field="configuration_hint"]');
         if (hint) {
@@ -353,6 +388,12 @@ if (empty($initialDetails)) {
                     lines.push(configuration.description);
                 }
                 const specs = [];
+                if (configuration.keycap) {
+                    specs.push(`Keycap: ${configuration.keycap}`);
+                }
+                if (configuration.mainboard) {
+                    specs.push(`Mainboard: ${configuration.mainboard}`);
+                }
                 if (configuration.layout) {
                     specs.push(`Layout: ${configuration.layout}`);
                 }
@@ -462,8 +503,9 @@ if (empty($initialDetails)) {
         row.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-semibold mb-0">Sản phẩm #<span data-field="row_index"></span></h6>
-                <button class="btn btn-link text-danger p-0" type="button" data-action="remove"><i class="bi bi-x-lg"></i></button>
+                ${isEditMode ? '' : '<button class="btn btn-link text-danger p-0" type="button" data-action="remove"><i class="bi bi-x-lg"></i></button>'}
             </div>
+            <input type="hidden" name="details[${index}][detail_id]" value="${data.detail_id || ''}">
             <div class="row g-3">
                 <div class="col-lg-6">
                     <label class="form-label">Sản phẩm</label>
@@ -473,7 +515,7 @@ if (empty($initialDetails)) {
                         <button type="button" class="btn btn-outline-primary ${productMode === 'new' ? 'active' : ''}" data-action="toggle-product-mode" data-mode="new">Nhập sản phẩm mới</button>
                     </div>
                     <div data-product-section="existing" class="${productMode === 'existing' ? '' : 'd-none'}">
-                        <select class="form-select" name="details[${index}][product_id]" data-field="product_id" ${productMode === 'existing' ? 'required' : ''}>
+                        <select class="form-select" name="details[${index}][product_id]" data-field="product_id" ${productMode === 'existing' ? 'required' : ''} ${isEditMode ? 'disabled' : ''}>
                             ${buildProductOptions(productId)}
                         </select>
                         <div class="form-text text-muted" data-field="product_hint"></div>
@@ -481,13 +523,13 @@ if (empty($initialDetails)) {
                     <div data-product-section="new" class="${productMode === 'new' ? '' : 'd-none'} border rounded p-3 mt-2">
                         <div class="row g-2">
                             <div class="col-12">
-                                <input class="form-control" name="details[${index}][new_product_name]" data-field="new_product_name" placeholder="Tên sản phẩm" value="${data.new_product_name || ''}" ${productMode === 'new' ? 'required' : 'disabled'} data-required="true">
+                                <input class="form-control" name="details[${index}][new_product_name]" data-field="new_product_name" placeholder="Tên sản phẩm" value="${data.new_product_name || ''}" ${productMode === 'new' ? 'required' : 'disabled'} data-required="true" ${isEditMode ? 'disabled' : ''}>
                             </div>
                             <div class="col-sm-6">
-                                <input class="form-control" name="details[${index}][new_product_unit]" data-field="new_product_unit" placeholder="Đơn vị" value="${data.new_product_unit || ''}" ${productMode === 'new' ? '' : 'disabled'}>
+                                <input class="form-control" name="details[${index}][new_product_unit]" data-field="new_product_unit" placeholder="Đơn vị" value="${data.new_product_unit || ''}" ${productMode === 'new' ? '' : 'disabled'} ${isEditMode ? 'disabled' : ''}>
                             </div>
                             <div class="col-sm-6">
-                                <textarea class="form-control" rows="1" name="details[${index}][new_product_description]" data-field="new_product_description" placeholder="Mô tả" ${productMode === 'new' ? '' : 'disabled'}>${data.new_product_description || ''}</textarea>
+                                <textarea class="form-control" rows="1" name="details[${index}][new_product_description]" data-field="new_product_description" placeholder="Mô tả" ${productMode === 'new' ? '' : 'disabled'} ${isEditMode ? 'disabled' : ''}>${data.new_product_description || ''}</textarea>
                             </div>
                         </div>
                     </div>
@@ -500,7 +542,7 @@ if (empty($initialDetails)) {
                         <button type="button" class="btn btn-outline-primary ${configurationMode === 'new' ? 'active' : ''}" data-action="toggle-configuration-mode" data-mode="new">Nhập cấu hình mới</button>
                     </div>
                     <div data-configuration-section="existing" class="${configurationMode === 'existing' ? '' : 'd-none'}">
-                        <select class="form-select" name="details[${index}][configuration_id]" data-field="configuration_id" ${configurationMode === 'existing' ? 'required' : ''}>
+                        <select class="form-select" name="details[${index}][configuration_id]" data-field="configuration_id" ${configurationMode === 'existing' ? 'required' : ''} ${isEditMode ? 'disabled' : ''}>
                             ${buildConfigurationOptions(productId, configurationId)}
                         </select>
                         <div class="form-text text-muted" data-field="configuration_hint"></div>
@@ -508,60 +550,70 @@ if (empty($initialDetails)) {
                     <div data-configuration-section="new" class="${configurationMode === 'new' ? '' : 'd-none'} border rounded p-3 mt-2">
                         <div class="row g-2">
                             <div class="col-sm-6">
-                                <input class="form-control" name="details[${index}][new_configuration_name]" data-field="new_configuration_name" placeholder="Tên cấu hình" value="${data.new_configuration_name || ''}" ${configurationMode === 'new' ? 'required' : 'disabled'} data-required="true">
+                                <input class="form-control" name="details[${index}][new_configuration_name]" data-field="new_configuration_name" placeholder="Tên cấu hình" value="${data.new_configuration_name || ''}" ${configurationMode === 'new' ? 'required' : 'disabled'} data-required="true" ${isEditMode ? 'disabled' : ''}>
                             </div>
                             <div class="col-sm-3">
-                                <input class="form-control" type="number" min="0" step="1000" name="details[${index}][new_configuration_price]" data-field="new_configuration_price" placeholder="Giá (đ)" value="${data.new_configuration_price || ''}" ${configurationMode === 'new' ? '' : 'disabled'}>
+                                <input class="form-control" type="number" min="0" step="1000" name="details[${index}][new_configuration_price]" data-field="new_configuration_price" placeholder="Giá (đ)" value="${data.new_configuration_price || ''}" ${configurationMode === 'new' ? '' : 'disabled'} ${isEditMode ? 'disabled' : ''}>
                             </div>
                             <div class="col-sm-3">
-                                <textarea class="form-control" rows="1" name="details[${index}][new_configuration_description]" data-field="new_configuration_description" placeholder="Mô tả" ${configurationMode === 'new' ? '' : 'disabled'}>${data.new_configuration_description || ''}</textarea>
+                                <textarea class="form-control" rows="1" name="details[${index}][new_configuration_description]" data-field="new_configuration_description" placeholder="Mô tả" ${configurationMode === 'new' ? '' : 'disabled'} ${isEditMode ? 'disabled' : ''}>${data.new_configuration_description || ''}</textarea>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Mô tả cấu hình</label>
-                    <input class="form-control" name="details[${index}][config_description]" data-field="config_description" value="${data.config_description || ''}">
+                    <input class="form-control" name="details[${index}][config_description]" data-field="config_description" value="${data.config_description || ''}" ${isEditMode ? 'readonly' : ''}>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <label class="form-label">Switch</label>
-                    <input class="form-control" name="details[${index}][config_switch_type]" data-field="config_switch_type" value="${data.config_switch_type || ''}">
+                    <label class="form-label">Keycap</label>
+                    <input class="form-control" name="details[${index}][config_keycap]" data-field="config_keycap" value="${data.config_keycap || ''}" ${isEditMode ? 'readonly' : ''}>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <label class="form-label">Case</label>
-                    <input class="form-control" name="details[${index}][config_case_type]" data-field="config_case_type" value="${data.config_case_type || ''}">
+                    <label class="form-label">Mainboard</label>
+                    <input class="form-control" name="details[${index}][config_mainboard]" data-field="config_mainboard" value="${data.config_mainboard || ''}" ${isEditMode ? 'readonly' : ''}>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Layout</label>
-                    <input class="form-control" name="details[${index}][config_layout]" data-field="config_layout" value="${data.config_layout || ''}">
+                    <input class="form-control" name="details[${index}][config_layout]" data-field="config_layout" value="${data.config_layout || ''}" ${isEditMode ? 'readonly' : ''}>
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Foam</label>
-                    <textarea class="form-control" rows="2" name="details[${index}][config_foam]" data-field="config_foam">${data.config_foam || ''}</textarea>
+                    <label class="form-label">Switch / Case / Foam</label>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <input class="form-control" name="details[${index}][config_switch_type]" data-field="config_switch_type" placeholder="Switch" value="${data.config_switch_type || ''}" ${isEditMode ? 'readonly' : ''}>
+                        </div>
+                        <div class="col-md-4">
+                            <input class="form-control" name="details[${index}][config_case_type]" data-field="config_case_type" placeholder="Case" value="${data.config_case_type || ''}" ${isEditMode ? 'readonly' : ''}>
+                        </div>
+                        <div class="col-md-4">
+                            <input class="form-control" name="details[${index}][config_foam]" data-field="config_foam" placeholder="Foam" value="${data.config_foam || ''}" ${isEditMode ? 'readonly' : ''}>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <label class="form-label">Số lượng</label>
-                    <input class="form-control" type="number" min="1" name="details[${index}][quantity]" data-field="quantity" value="${data.quantity || 1}">
+                    <input class="form-control" type="number" min="${data.min_quantity || 1}" name="details[${index}][quantity]" data-field="quantity" value="${data.quantity || 1}">
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <label class="form-label">Đơn giá (đ)</label>
-                    <input class="form-control" type="number" min="0" step="1000" name="details[${index}][unit_price]" data-field="unit_price" value="${data.unit_price || 0}" data-manual="${data.unit_price ? 'true' : ''}">
+                    <input class="form-control" type="number" min="0" step="1000" name="details[${index}][unit_price]" data-field="unit_price" value="${data.unit_price || 0}" data-manual="${data.unit_price ? 'true' : ''}" ${isEditMode ? 'readonly' : ''}>
                 </div>
                 <div class="col-md-2 col-sm-6">
                     <label class="form-label">VAT (%)</label>
-                    <input class="form-control" type="number" min="0" step="0.1" name="details[${index}][vat]" data-field="vat" value="${vatValue}">
+                    <input class="form-control" type="number" min="0" step="0.1" name="details[${index}][vat]" data-field="vat" value="${vatValue}" ${isEditMode ? 'readonly' : ''}>
                 </div>
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label">Ngày giao dự kiến</label>
-                    <input class="form-control" type="datetime-local" name="details[${index}][delivery_date]" data-field="delivery_date" value="${data.delivery_date || ''}">
+                    <input class="form-control" type="datetime-local" name="details[${index}][delivery_date]" data-field="delivery_date" value="${data.delivery_date || ''}" data-min-base="${data.min_delivery_date || ''}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Yêu cầu chi tiết</label>
-                    <textarea class="form-control" rows="2" name="details[${index}][requirement]">${data.requirement || ''}</textarea>
+                    <textarea class="form-control" rows="2" name="details[${index}][requirement]" ${isEditMode ? 'readonly' : ''}>${data.requirement || ''}</textarea>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Ghi chú thêm</label>
-                    <textarea class="form-control" rows="2" name="details[${index}][note]">${data.note || ''}</textarea>
+                    <textarea class="form-control" rows="2" name="details[${index}][note]" ${isEditMode ? 'readonly' : ''}>${data.note || ''}</textarea>
                 </div>
                 <div class="col-12 text-end">
                     <span class="text-muted small">Thành tiền: <span class="fw-semibold text-primary" data-field="line_total">0 đ</span></span>
@@ -572,6 +624,11 @@ if (empty($initialDetails)) {
         detailContainer.appendChild(row);
         applyProductMode(row, productMode);
         applyConfigurationMode(row, configurationMode);
+        if (isEditMode) {
+            row.querySelectorAll('[data-action="toggle-product-mode"], [data-action="toggle-configuration-mode"]').forEach(button => {
+                button.setAttribute('disabled', 'disabled');
+            });
+        }
         attachEvents(row);
         fillConfigurationFields(row, productId, configurationId);
         updateProductHint(row, productId);
@@ -580,9 +637,11 @@ if (empty($initialDetails)) {
         recalcTotals();
     }
 
-    addRowButton.addEventListener('click', () => {
-        addDetailRow({ quantity: 1, vat: 8 });
-    });
+    if (addRowButton) {
+        addRowButton.addEventListener('click', () => {
+            addDetailRow({ quantity: 1, vat: 8 });
+        });
+    }
 
     if (initialDetails.length > 0) {
         initialDetails.forEach(detail => addDetailRow(detail));
