@@ -11,7 +11,7 @@ class WorkshopAssignment
 
     public function getAssignmentsByWorkshop(string $workshopId): array
     {
-        $sql = 'SELECT xnv.IdNhanVien, xnv.VaiTro, nv.HoTen
+        $sql = 'SELECT xnv.IdNhanVien, xnv.VaiTro, nv.HoTen, nv.DiaChi
                 FROM xuong_nhan_vien xnv
                 JOIN nhan_vien nv ON nv.IdNhanVien = xnv.IdNhanVien
                 WHERE xnv.IdXuong = :workshopId AND xnv.VaiTro IN (\'nhan_vien_kho\', \'nhan_vien_san_xuat\')

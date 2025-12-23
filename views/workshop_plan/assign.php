@@ -4,6 +4,10 @@ $availableEmployees = $availableEmployees ?? [];
 $planAssignments = $planAssignments ?? [];
 $workShifts = $workShifts ?? [];
 
+$roleLabelMap = [
+    'nhan_vien_kho' => 'Kho',
+    'nhan_vien_san_xuat' => 'Sản xuất',
+];
 $assignedMap = [];
 $assignedNameMap = [];
 foreach ($planAssignments as $assignment) {
@@ -193,13 +197,23 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                 <div class="fw-semibold">Danh sách nhân viên</div>
                                 <span class="text-muted small">Chọn nhiều nhân viên để phân công nhanh.</span>
                             </div>
-                            <div class="row g-2" id="employee-list">
+                            <div class="row g-2 assignment-employee-list" id="employee-list">
                                 <?php foreach ($availableEmployees as $employee): ?>
                                     <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
+                                    <?php
+                                        $roleLabel = $roleLabelMap[$employee['VaiTro'] ?? ''] ?? 'Nhân sự';
+                                        $address = $employee['DiaChi'] ?? '';
+                                    ?>
                                     <div class="col-md-6 col-lg-4 employee-item" data-name="<?= htmlspecialchars(mb_strtolower($employee['HoTen'] ?? $employeeId, 'UTF-8')) ?>">
-                                        <label class="form-check d-flex align-items-center gap-2 border rounded-3 p-2 bg-white">
+                                        <label class="form-check d-flex align-items-start gap-2 border rounded-3 p-2 bg-white h-100">
                                             <input type="checkbox" class="form-check-input employee-checkbox" value="<?= htmlspecialchars($employeeId) ?>">
-                                            <span><?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?></span>
+                                            <div>
+                                                <div class="fw-semibold"><?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?></div>
+                                                <div class="text-muted small"><?= htmlspecialchars($roleLabel) ?></div>
+                                                <?php if ($address !== ''): ?>
+                                                    <div class="text-muted small">Địa chỉ: <?= htmlspecialchars($address) ?></div>
+                                                <?php endif; ?>
+                                            </div>
                                         </label>
                                     </div>
                                 <?php endforeach; ?>
@@ -453,3 +467,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<style>
+.assignment-employee-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+</style>

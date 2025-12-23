@@ -171,7 +171,9 @@ class Workshop_planController extends Controller
         );
 
         $assignments = $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong'] ?? '');
-        $availableEmployees = $assignments['nhan_vien_san_xuat'] ?? [];
+        $warehouseEmployees = $assignments['nhan_vien_kho'] ?? [];
+        $productionEmployees = $assignments['nhan_vien_san_xuat'] ?? [];
+        $availableEmployees = array_merge($warehouseEmployees, $productionEmployees);
         $planAssignments = $this->planAssignmentModel->getByPlan($planId);
         $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
 
