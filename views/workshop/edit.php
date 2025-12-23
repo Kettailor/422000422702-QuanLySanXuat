@@ -24,7 +24,7 @@
     <div class="card p-4">
         <form action="?controller=workshop&action=update" method="post" class="row g-4">
             <input type="hidden" name="IdXuong" value="<?= htmlspecialchars($workshop['IdXuong']) ?>">
-            <div class="col-md-4">
+            <div class="col-md-8">
                 <label class="form-label">Tên xưởng</label>
                 <input type="text" name="TenXuong" class="form-control" value="<?= htmlspecialchars($workshop['TenXuong']) ?>" required>
             </div>
@@ -32,25 +32,36 @@
                 <label class="form-label">Ngày thành lập</label>
                 <input type="date" name="NgayThanhLap" class="form-control" value="<?= htmlspecialchars($workshop['NgayThanhLap'] ?? '') ?>">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label class="form-label">Địa điểm</label>
                 <input type="text" name="DiaDiem" class="form-control" value="<?= htmlspecialchars($workshop['DiaDiem'] ?? '') ?>">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="form-label">Công suất tối đa</label>
                 <input type="number" name="CongSuatToiDa" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($workshop['CongSuatToiDa'] ?? 0) ?>">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="form-label">Công suất đang sử dụng</label>
                 <input type="number" name="CongSuatDangSuDung" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0) ?>">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="form-label">Nhân sự tối đa</label>
                 <input type="number" name="SlNhanVien" class="form-control" min="0" value="<?= htmlspecialchars($workshop['SlNhanVien'] ?? 0) ?>">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="form-label">Nhân sự hiện tại</label>
                 <div class="form-control bg-light"><?= number_format(count($staffList)) ?></div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Xưởng trưởng</label>
+                <select name="XUONGTRUONG_IdNhanVien" class="form-select">
+                    <option value="">-- Chọn xưởng trưởng --</option>
+                    <?php foreach ($managers as $manager): ?>
+                        <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>">
+                            <?= htmlspecialchars($manager['HoTen']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Trạng thái</label>

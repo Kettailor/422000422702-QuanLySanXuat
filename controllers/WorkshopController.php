@@ -106,11 +106,13 @@ class WorkshopController extends Controller
         $workshop = $this->workshopModel->find($id);
         $assignments = $this->assignmentModel->getAssignmentsByWorkshop($id);
         $canAssignStaff = $this->canAssignStaff($id);
+        $managers = $this->employeeModel->getEmployeesByRoleIds(['VT_QUANLY_XUONG']);
         $employees = $canAssignStaff ? $this->employeeModel->getActiveEmployees() : [];
 
         $this->render('workshop/edit', [
             'title' => 'Cập nhật thông tin xưởng',
             'workshop' => $workshop,
+            'managers' => $managers,
             'employees' => $employees,
             'employeeGroups' => $this->groupEmployeesByRole($employees),
             'selectedWarehouse' => array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien'),
