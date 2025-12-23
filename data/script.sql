@@ -523,6 +523,7 @@ CREATE TABLE `lo` (
   `SoLuong` int(10) DEFAULT NULL,
   `NgayTao` datetime DEFAULT NULL,
   `LoaiLo` varchar(255) DEFAULT NULL,
+  `TrangThai` varchar(255) DEFAULT NULL,
   `IdSanPham` varchar(50) NOT NULL,
   `IdKho` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -531,10 +532,10 @@ CREATE TABLE `lo` (
 -- Đang đổ dữ liệu cho bảng `lo`
 --
 
-INSERT INTO `lo` (`IdLo`, `TenLo`, `NgayTao`, `TrangThai`) VALUES
-('LO001', 'Lô nguyên liệu BN-01', '2023-05-01 08:00:00', 'Đang lưu kho'),
-('LO002', 'Lô nguyên liệu BN-02', '2023-05-02 08:00:00', 'Đang lưu kho'),
-('LO003', 'Lô nguyên liệu HN-01', '2023-05-01 09:00:00', 'Đang lưu kho');
+INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `TrangThai`, `IdSanPham`, `IdKho`) VALUES
+('LO001', 'Lô nguyên liệu BN-01', 1200, '2023-05-01 08:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP001', 'KHO001'),
+('LO002', 'Lô nguyên liệu BN-02', 800, '2023-05-02 08:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP001', 'KHO001'),
+('LO003', 'Lô nguyên liệu HN-01', 5000, '2023-05-01 09:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP002', 'KHO002');
 
 -- --------------------------------------------------------
 
@@ -716,7 +717,9 @@ CREATE TABLE `san_pham` (
 -- Đang đổ dữ liệu cho bảng `san_pham`
 --
 
--- (Dữ liệu đã được lược bỏ)
+INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VALUES
+('SP001', 'Linh kiện tiêu chuẩn A', 'sp', 120000, 'Sản phẩm tiêu chuẩn dùng cho lô nguyên liệu'),
+('SP002', 'Linh kiện tiêu chuẩn B', 'sp', 98000, 'Sản phẩm tiêu chuẩn dùng cho kho Hà Nội');
 
 -- --------------------------------------------------------
 
