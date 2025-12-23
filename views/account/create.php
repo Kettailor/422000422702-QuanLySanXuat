@@ -9,7 +9,7 @@
       <label for="employee">Nhân viên</label>
       <select class="form-select" id="employee" name="employee" aria-label="Employee select">
         <?php foreach ($employees as $employee): ?>
-          <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>"><?= htmlspecialchars($employee['HoTen']) ?></option>
+          <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>"><?= htmlspecialchars($employee['HoTen']) ?> - <?= htmlspecialchars($employee['ChucVu']) ?></option>
         <?php endforeach; ?>
       </select>
     </div>

@@ -31,12 +31,12 @@ class User extends BaseModel
         $stmt->bindValue(':status', 'Hoạt động');
         $stmt->execute();
         $result = $stmt->fetch();
-        return (int)$result['count'];
+        return (int) $result['count'];
     }
 
     public function findAllWithEmployeeAndRole(
         int $page = 1,
-        int $limit = 20
+        int $limit = 20,
     ): array {
         $stmt = $this->db->prepare('
           SELECT ND.IdNguoiDung, ND.TenDangNhap, ND.TrangThai,
@@ -50,7 +50,7 @@ class User extends BaseModel
         ');
         $stmt->execute([
             ':limit' => $limit,
-            ':offset' => ($page - 1) * $limit
+            ':offset' => ($page - 1) * $limit,
         ]);
         $users = $stmt->fetchAll();
 
@@ -63,11 +63,11 @@ class User extends BaseModel
         $totalPages = ceil($total / $limit);
 
         return [
-          'data' => $users,
-          'total' => (int)$total,
-          'page' => $page,
-          'limit' => $limit,
-          'totalPages' => $totalPages
+            'data' => $users,
+            'total' => (int) $total,
+            'page' => $page,
+            'limit' => $limit,
+            'totalPages' => $totalPages,
         ];
     }
 }

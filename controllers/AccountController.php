@@ -17,8 +17,8 @@ class AccountController extends Controller
 
     public function index(): void
     {
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
 
         $users = $this->userModel->findAllWithEmployeeAndRole($page, $limit);
         $numberOfActiveUsers = $this->userModel->countActiveUsers();
@@ -26,7 +26,7 @@ class AccountController extends Controller
 
         $this->render('account/index', [
             'title' => 'Quản lý tài khoản',
-            'header' => ["ID Người dùng", "ID nhân viên", 'Tên nhân viên', 'Vai trò', 'Chức vụ', 'Trạng thái', 'Hành động'],
+            'header' => ["Mã ND", "Mã NV", 'Tên nhân viên', 'Vai trò', 'Chức vụ', 'Trạng thái', ''],
             'users' => $users,
             'numberOfActiveUsers' => $numberOfActiveUsers,
             'numberOfActiveEmployees' => $numberOfActiveEmployees,
@@ -136,6 +136,11 @@ class AccountController extends Controller
             $user = $this->userModel->find($id);
             Logger::info("Thay đổi trạng thái tài khoản: " . $user['TenDangNhap'] . " (ID: $id)");
 
+            if ($_SESSION['user']['IdNguoiDung'] === $id) {
+                $this->setFlash('danger', 'Không thể thay đổi trạng thái tài khoản đang đăng nhập.');
+                $this->redirect('?controller=account&action=index');
+            }
+
             if ($user) {
                 $newStatus = ($user['TrangThai'] === 'Hoạt động') ? 'Tạm ngưng' : 'Hoạt động';
 
@@ -192,8 +197,8 @@ class AccountController extends Controller
 
     public function auditLog(): void
     {
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
         $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-6 days'));
         $endDate = $_GET['end_date'] ?? date('Y-m-d');
 

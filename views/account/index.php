@@ -9,10 +9,8 @@
 </div>
 
 <section class="card p-4">
-  <h2 class="sr-only">Quản lý tài khoản người dùng section</h2>
-
-  <div class="overflow-x-auto">
-    <table class="table table-hover table-bordered">
+  <div class="table-responsive">
+    <table class="table align-middle">
       <thead>
         <tr>
           <?php foreach ($header as $col): ?>
@@ -21,7 +19,6 @@
         </tr>
       </thead>
       <tbody>
-
         <?php foreach ($users['data'] as $user): ?>
           <tr>
             <td><?= htmlspecialchars($user['IdNguoiDung']) ?></td>
@@ -29,20 +26,18 @@
             <td><?= htmlspecialchars($user['HoTen']) ?></td>
             <td><?= htmlspecialchars($user['TenVaiTro']) ?></td>
             <td><?= htmlspecialchars($user['ChucVu']) ?></td>
-            <td><?= htmlspecialchars($user['TrangThai']) ?></td>
             <td>
-              <div class="row g-2">
-                <div class="col col-auto">
-                  <a href="?controller=account&action=edit&id=<?= htmlspecialchars($user['IdNguoiDung']) ?>" class="btn btn-primary btn-sm">Chỉnh sửa</a>
-                </div>
-                <div class="col col-auto">
-                  <a href="?controller=account&action=suspense&id=<?= htmlspecialchars($user['IdNguoiDung']) ?>" class="btn <?= $user['TrangThai'] === 'Hoạt động' ? 'btn-warning' : 'btn-success' ?> btn-sm" onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái tài khoản này?');">
-                    <?= $user['TrangThai'] === 'Hoạt động' ? 'Tạm ngưng' : 'Kích hoạt' ?>
-                  </a>
-                </div>
-                <div class="col">
-                  <a href="?controller=account&action=delete&id=<?= htmlspecialchars($user['IdNguoiDung']) ?>" class="btn btn-danger btn-sm<?= $user['TrangThai'] === 'Hoạt động' ? ' disabled' : '' ?>" onclick="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?');" <?= $user['TrangThai'] === 'Hoạt động' ? 'tabindex="-1" aria-disabled="true"' : '' ?>>Xóa</a>
-                </div>
+              <span class="badge <?= $user['TrangThai'] === 'Hoạt động' ? 'badge-soft-success' : 'badge-soft-warning' ?>">
+                <?= htmlspecialchars($user['TrangThai']) ?>
+              </span>
+              </td>
+            <td>
+              <div class="table-actions">
+                <a class="btn btn-sm btn-outline-primary" href="?controller=account&action=edit&id=<?= htmlspecialchars($user['IdNguoiDung']) ?>" class="btn btn-primary btn-sm">Chỉnh sửa</a>
+                <a class="btn btn-sm btn-outline-warning" href="?controller=account&action=suspense&id=<?= htmlspecialchars($user['IdNguoiDung']) ?>" class="btn <?= $user['TrangThai'] === 'Hoạt động' ? 'btn-warning' : 'btn-success' ?> btn-sm" onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái tài khoản này?');">
+                  <?= $user['TrangThai'] === 'Hoạt động' ? 'Tạm ngưng' : 'Kích hoạt' ?>
+                </a>
+                <a class="btn btn-sm btn-outline-danger" href="?controller=account&action=delete&id=<?= htmlspecialchars($user['IdNguoiDung']) ?>" class="btn btn-danger btn-sm<?= $user['TrangThai'] === 'Hoạt động' ? ' disabled' : '' ?>" onclick="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?');" <?= $user['TrangThai'] === 'Hoạt động' ? 'tabindex="-1" aria-disabled="true"' : '' ?>>Xóa</a>
               </div>
             </td>
           </tr>

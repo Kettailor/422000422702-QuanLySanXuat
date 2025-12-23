@@ -40,12 +40,12 @@ class Employee extends BaseModel
         $stmt = $this->db->prepare('SELECT COUNT(nhan_vien.IdNhanVien) AS count FROM nhan_vien');
         $stmt->execute();
         $result = $stmt->fetch();
-        return (int)$result['count'];
+        return (int) $result['count'];
     }
 
     public function getUnassignedEmployees(): array
     {
-        $stmt = $this->db->prepare('SELECT nv.IdNhanVien, nv.HoTen
+        $stmt = $this->db->prepare('SELECT nv.IdNhanVien, nv.HoTen, nv.ChucVu
           FROM NHAN_VIEN nv
           LEFT JOIN NGUOI_DUNG nd ON nv.IdNhanVien = nd.IdNhanVien
           WHERE nd.IdNhanVien IS NULL');
