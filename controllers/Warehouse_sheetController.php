@@ -469,12 +469,17 @@ class Warehouse_sheetController extends Controller
         ]);
         $html = ob_get_clean();
 
-        $dompdf = $this->buildPdfInstance();
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-        $dompdf->stream(($document['IdPhieu'] ?? 'phieu-kho') . '.pdf', ['Attachment' => 0]);
-        exit;
+        try {
+            $dompdf = $this->buildPdfInstance();
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            $dompdf->stream(($document['IdPhieu'] ?? 'phieu-kho') . '.pdf', ['Attachment' => 0]);
+            exit;
+        } catch (Throwable $e) {
+            $this->setFlash('danger', 'Xuất PDF thất bại: ' . $e->getMessage());
+            $this->redirect('?controller=warehouse_sheet&action=read&id=' . urlencode($id));
+        }
     }
 
     private function buildPdfInstance(): Dompdf
