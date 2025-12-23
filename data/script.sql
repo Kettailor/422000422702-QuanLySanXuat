@@ -474,7 +474,9 @@ CREATE TABLE `kho` (
 -- Đang đổ dữ liệu cho bảng `kho`
 --
 
--- (Dữ liệu đã được lược bỏ)
+INSERT INTO `kho` (`IdKho`, `TenKho`, `TenLoaiKho`, `DiaChi`, `TongSLLo`, `ThanhTien`, `TrangThai`, `TongSL`, `IdXuong`, `NHAN_VIEN_KHO_IdNhanVien`) VALUES
+('KHO001', 'Kho Bắc Ninh', 'Nguyên liệu', 'Bắc Ninh', 0, 0, 'Đang sử dụng', 0, 'XUONG001', 'NV012'),
+('KHO002', 'Kho Hà Nội', 'Nguyên liệu', 'Hà Nội', 0, 0, 'Đang sử dụng', 0, 'XUONG002', 'NV013');
 
 -- --------------------------------------------------------
 
@@ -529,7 +531,10 @@ CREATE TABLE `lo` (
 -- Đang đổ dữ liệu cho bảng `lo`
 --
 
--- (Dữ liệu đã được lược bỏ)
+INSERT INTO `lo` (`IdLo`, `TenLo`, `NgayTao`, `TrangThai`) VALUES
+('LO001', 'Lô nguyên liệu BN-01', '2023-05-01 08:00:00', 'Đang lưu kho'),
+('LO002', 'Lô nguyên liệu BN-02', '2023-05-02 08:00:00', 'Đang lưu kho'),
+('LO003', 'Lô nguyên liệu HN-01', '2023-05-01 09:00:00', 'Đang lưu kho');
 
 -- --------------------------------------------------------
 
@@ -594,7 +599,10 @@ CREATE TABLE `nguyen_lieu` (
 -- Đang đổ dữ liệu cho bảng `nguyen_lieu`
 --
 
--- (Dữ liệu đã được lược bỏ)
+INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonVi`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
+('NL001', 'Cuộn thép 1mm', 1200, 'kg', 18000, 'Còn hàng', '2023-04-15 00:00:00', '2024-04-15 00:00:00', 'LO001'),
+('NL002', 'Nhựa ABS', 800, 'kg', 22000, 'Còn hàng', '2023-04-18 00:00:00', '2024-04-18 00:00:00', 'LO002'),
+('NL003', 'Bao bì carton', 5000, 'tấm', 3500, 'Còn hàng', '2023-04-20 00:00:00', '2025-04-20 00:00:00', 'LO003');
 
 -- --------------------------------------------------------
 
@@ -829,7 +837,9 @@ CREATE TABLE `xuong` (
 -- Đang đổ dữ liệu cho bảng `xuong`
 --
 
--- (Dữ liệu đã được lược bỏ)
+INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietBi`, `SlNhanVien`, `SoLuongCongNhan`, `TenQuyTrinh`, `CongSuatToiDa`, `CongSuatDangSuDung`, `LoaiXuong`, `TrangThai`, `MoTa`, `XUONGTRUONG_IdNhanVien`) VALUES
+('XUONG001', 'Xưởng sản xuất Bắc Ninh', 'Bắc Ninh', '2023-01-10', 20, 50, 0, 'Quy trình sản xuất chuẩn', 1000, 0, 'Sản xuất', 'Đang hoạt động', 'Xưởng sản xuất chính', 'NV005'),
+('XUONG002', 'Xưởng lắp ráp Hà Nội', 'Hà Nội', '2023-02-05', 15, 30, 0, 'Quy trình lắp ráp', 600, 0, 'Sản xuất', 'Đang hoạt động', 'Xưởng lắp ráp và đóng gói', 'NV006');
 
 -- --------------------------------------------------------
 
