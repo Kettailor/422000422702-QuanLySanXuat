@@ -1351,6 +1351,7 @@ INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietB
 
 INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`, `IdVaiTro`) VALUES
 ('NV_GD01', 'Trần Thị Minh', '2025-12-22', 0, 'Giám đốc điều hành', 6, 'Đang làm việc', 'Quận 1, TP.HCM', '2025-12-15 08:00:00', NULL, NULL, 'VT_BAN_GIAM_DOC'),
+('NV_ADMIN', 'Nguyễn Văn An', '2025-12-15', 1, 'Quản trị hệ thống', 4, 'Đang làm việc', 'Thủ Đức, TP.HCM', '2025-12-01 08:00:00', NULL, NULL, 'VT_ADMIN'),
 ('NV_KT01', 'Đặng Thị Hạnh', '2025-12-19', 0, 'Kế toán tổng hợp', 4, 'Đang làm việc', 'Phú Nhuận, TP.HCM', '2025-12-12 08:00:00', NULL, NULL, 'VT_KETOAN'),
 ('NV_KHO01', 'Vũ Minh Tuấn', '2025-12-30', 1, 'Kho trưởng', 4, 'Đang làm việc', 'Thuận An, Bình Dương', '2025-12-05 08:00:00', NULL, 'XUONG01', 'VT_KHO_TRUONG'),
 ('NV_KHO02', 'Ngô Hải Yến', '2025-12-12', 0, 'Kho trưởng', 4, 'Đang làm việc', 'Dĩ An, Bình Dương', '2025-12-12 08:00:00', NULL, 'XUONG02', 'VT_KHO_TRUONG'),
@@ -1391,6 +1392,7 @@ INSERT INTO `xuong_nhan_vien` (`IdXuong`, `IdNhanVien`, `VaiTro`) VALUES
 
 INSERT INTO `nguoi_dung` (`IdNguoiDung`, `TenDangNhap`, `MatKhau`, `TrangThai`, `IdNhanVien`, `IdVaiTro`) VALUES
 ('ND_GD01', 'giamdoc', '123456', 'Hoạt động', 'NV_GD01', 'VT_BAN_GIAM_DOC'),
+('ND_ADMIN', 'admin', '123456', 'Hoạt động', 'NV_ADMIN', 'VT_ADMIN'),
 ('ND_KT01', 'ketoan', '123456', 'Hoạt động', 'NV_KT01', 'VT_KETOAN'),
 ('ND_KHO01', 'kho_a', '123456', 'Hoạt động', 'NV_KHO01', 'VT_KHO_TRUONG'),
 ('ND_KHO02', 'kho_b', '123456', 'Hoạt động', 'NV_KHO02', 'VT_KHO_TRUONG'),
