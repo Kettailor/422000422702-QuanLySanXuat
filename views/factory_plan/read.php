@@ -5,6 +5,12 @@ $assignments = $assignments ?? [];
 $progress = $progress ?? null;
 $materialStatus = $materialStatus ?? null;
 $canUpdateProgress = $canUpdateProgress ?? false;
+$typeConfig = $typeConfig ?? ['supports_materials' => true, 'supports_progress' => true];
+$supportsMaterials = $typeConfig['supports_materials'] ?? true;
+$supportsProgress = $typeConfig['supports_progress'] ?? true;
+$productionLabel = $plan && mb_strtolower(trim($plan['LoaiXuong'] ?? '')) === 'xưởng kiểm định'
+    ? 'Kiểm soát chất lượng'
+    : 'Sản xuất';
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -70,12 +76,16 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
             <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
                 <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca
             </a>
-            <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress ? '' : 'disabled' ?>">
-                <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ cuối ca
-            </a>
-            <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
-                <i class="bi bi-basket me-2"></i>Chọn thêm nguyên liệu
-            </a>
+            <?php if ($supportsProgress): ?>
+                <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress ? '' : 'disabled' ?>">
+                    <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ cuối ca
+                </a>
+            <?php endif; ?>
+            <?php if ($supportsMaterials): ?>
+                <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+                    <i class="bi bi-basket me-2"></i>Chọn thêm nguyên liệu
+                </a>
+            <?php endif; ?>
         <?php endif; ?>
         <a href="?controller=factory_plan&action=index" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Quay về kế hoạch xưởng
@@ -99,10 +109,10 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                         <span class="<?= $statusBadge((string) ($plan['TrangThai'] ?? '')) ?>">
                             <?= htmlspecialchars($plan['TrangThai'] ?? 'Chưa cập nhật') ?>
                         </span>
-                        <?php if (!empty($plan['TinhTrangVatTu'])): ?>
+                        <?php if ($supportsMaterials && !empty($plan['TinhTrangVatTu'])): ?>
                             <span class="badge bg-light text-muted ms-2">Vật tư: <?= htmlspecialchars($plan['TinhTrangVatTu']) ?></span>
                         <?php endif; ?>
-                        <?php if ($materialStatus): ?>
+                        <?php if ($supportsMaterials && $materialStatus): ?>
                             <span class="<?= $materialBadge($materialStatus) ?> ms-2"><?= htmlspecialchars($materialStatus) ?></span>
                         <?php endif; ?>
                     </div>
@@ -174,11 +184,11 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                             <?php endif; ?>
                             <?php if (!empty($assignments['nhan_vien_san_xuat'])): ?>
                                 <div>
-                                    <div class="text-muted small text-uppercase mb-1">Nhân viên sản xuất</div>
+                                    <div class="text-muted small text-uppercase mb-1">Nhân viên <?= htmlspecialchars(mb_strtolower($productionLabel)) ?></div>
                                     <?php foreach ($assignments['nhan_vien_san_xuat'] as $employee): ?>
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="bi bi-person-gear text-muted"></i>
-                                            <div><?= htmlspecialchars($employee['HoTen'] ?? '') ?> <span class="badge bg-light text-muted">Sản xuất</span></div>
+                                            <div><?= htmlspecialchars($employee['HoTen'] ?? '') ?> <span class="badge bg-light text-muted"><?= htmlspecialchars($productionLabel) ?></span></div>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -190,48 +200,57 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0">
-            <h5 class="mb-0">Quản Lý Nguyên Liệu</h5>
+    <?php if ($supportsMaterials): ?>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Quản Lý Nguyên Liệu</h5>
+            </div>
+            <div class="card-body">
+                <div id="material-feedback" class="border rounded-3 bg-light-subtle text-muted p-3 d-none" role="status"></div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên nguyên liệu</th>
+                                <th class="text-end">Số lượng cần</th>
+                                <th class="text-end">Số lượng tồn</th>
+                                <th>Tên lô</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php  foreach($stockNeed as $tmp ) { ?>
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold"><?= $tmp['TenNL'] ?></div>
+                                    <div class="small text-muted">Mã: <?= $tmp['IdNguyenLieu'] ?></div>
+                                </td>
+                                <td class="text-end"><?= $tmp['SoLuongCan'] ?></td>
+                                <td class="text-end"><?= $tmp['SoLuongTon'] ?></td>
+                                <td><?= $tmp['TenLo'] ?></td>
+                                <td class="text-center">
+                                    <?php if( $tmp['SoLuongTon'] <= $tmp['SoLuongCan'] ) { ?>
+                                    <button class="btn btn-sm btn-outline-primary send-notification-btn"
+                                            data-id-nguyen-lieu="<?= htmlspecialchars($tmp['IdNguyenLieu']) ?>"
+                                            data-ten-nl="<?= htmlspecialchars($tmp['TenNL']) ?>"
+                                            data-so-luong-can="<?= htmlspecialchars($tmp['SoLuongCan']) ?>"
+                                            data-so-luong-ton="<?= htmlspecialchars($tmp['SoLuongTon']) ?>"
+                                            data-ten-lo="<?= htmlspecialchars($tmp['TenLo']) ?>"
+                                            data-id-ke-hoach-san-xuat-xuong="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
+                                        Gửi thông báo
+                                    </button>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div id="material-feedback" class="border rounded-3 bg-light-subtle text-muted p-3 d-none" role="status"></div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Tên nguyên liệu</th>
-                            <th class="text-end">Số lượng cần</th>
-                            <th class="text-end">Số lượng tồn</th>
-                            <th>Tên lô</th>
-                            <th class="text-center">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php  foreach($stockNeed as $tmp ) { ?>
-                        <tr>
-                            <td>
-                                <div class="fw-semibold"><?= $tmp['TenNL'] ?></div>
-                                <div class="small text-muted">Mã: <?= $tmp['IdNguyenLieu'] ?></div>
-                            </td>
-                            <td class="text-end"><?= $tmp['SoLuongCan'] ?></td>
-                            <td class="text-end"><?= $tmp['SoLuongTon'] ?></td>
-                            <td><?= $tmp['TenLo'] ?></td>
-                            <td class="text-center">
-                                <?php if( $tmp['SoLuongTon'] <= $tmp['SoLuongCan'] ) { ?>
-                                <button class="btn btn-sm btn-outline-primary send-notification-btn"
-                                        data-id-nguyen-lieu="<?= htmlspecialchars($tmp['IdNguyenLieu']) ?>"
-                                        data-ten-nl="<?= htmlspecialchars($tmp['TenNL']) ?>"
-                                        data-so-luong-can="<?= htmlspecialchars($tmp['SoLuongCan']) ?>"
-                                        data-so-luong-ton="<?= htmlspecialchars($tmp['SoLuongTon']) ?>"
-                                        data-ten-lo="<?= htmlspecialchars($tmp['TenLo']) ?>"
-                                        data-id-ke-hoach-san-xuat-xuong="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
-                                    Gửi thông báo
-                                </button>
-                                <?php } ?>
-                            </td>
-                        </tr>
-                        <?php } ?>
+    <?php endif; ?>
+
+<?php if ($supportsMaterials): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const buttons = document.querySelectorAll('.send-notification-btn');

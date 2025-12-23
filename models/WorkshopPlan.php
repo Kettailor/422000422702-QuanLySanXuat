@@ -18,6 +18,7 @@ class WorkshopPlan extends BaseModel
                        kx.IdKeHoachSanXuat,
                        kx.IdXuong,
                        xuong.TenXuong,
+                       xuong.LoaiXuong,
                        ksx.TrangThai AS TrangThaiTong,
                        san.TenSanPham,
                        san.IdSanPham,
@@ -54,6 +55,7 @@ class WorkshopPlan extends BaseModel
                        kx.IdCongDoan,
                        kx.IdXuong,
                        xuong.TenXuong,
+                       xuong.LoaiXuong,
                        xcfg.IdCauHinh AS AssignmentConfigurationId,
                        COALESCE(cfg.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh
                 FROM ke_hoach_san_xuat_xuong kx
@@ -88,6 +90,7 @@ class WorkshopPlan extends BaseModel
                        kx.TinhTrangVatTu,
                        kx.IdXuong,
                        xuong.TenXuong,
+                       xuong.LoaiXuong,
                        xcfg.IdCauHinh AS AssignmentConfigurationId,
                        COALESCE(cfg.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh
                 FROM ke_hoach_san_xuat_xuong kx
@@ -160,6 +163,7 @@ WHERE
                        kx.IdKeHoachSanXuat,
                        kx.IdXuong,
                        xuong.TenXuong,
+                       xuong.LoaiXuong,
                        ksx.TrangThai AS TrangThaiTong,
                        san.TenSanPham,
                        COALESCE(cau.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh,
@@ -214,6 +218,7 @@ WHERE
                        kx.IdKeHoachSanXuat,
                        kx.IdXuong,
                        xuong.TenXuong,
+                       xuong.LoaiXuong,
                        ksx.SoLuong AS TongSoLuongKeHoach,
                        san.TenSanPham,
                        san.DonVi,

@@ -49,15 +49,17 @@ class WorkshopController extends Controller
         $employees = $this->employeeModel->getActiveEmployees();
         $defaultType = $this->getDefaultWorkshopType();
         $employeeGroups = $this->groupEmployeesForWorkshop($employees, $defaultType, []);
+        $workshopTypeRules = $this->getWorkshopTypeRules();
         $this->render('workshop/create', [
             'title' => 'Thêm xưởng mới',
             'employees' => $employees,
             'employeeGroups' => $employeeGroups,
-            'managerCandidates' => $this->getManagerCandidates(),
+            'managerCandidates' => $this->getManagerCandidates(null, $defaultType),
             'selectedWarehouse' => [],
             'selectedProduction' => [],
             'workshopType' => $defaultType,
             'workshopTypes' => $this->getWorkshopTypes(),
+            'workshopTypeRules' => $workshopTypeRules,
             'canAssign' => true,
         ]);
     }
@@ -75,6 +77,7 @@ class WorkshopController extends Controller
 
         $data = $this->extractWorkshopData($_POST);
         $assignments = $this->extractAssignments($_POST);
+        $assignments = $this->filterAssignmentsByWorkshopType($assignments, $data['LoaiXuong'] ?? $this->getDefaultWorkshopType());
         $data['IdXuong'] = uniqid('XUONG');
         $data['NgayThanhLap'] = date('Y-m-d');
 
@@ -86,6 +89,11 @@ class WorkshopController extends Controller
 
         if ($this->canAssign() && $data['XUONGTRUONG_IdNhanVien'] === '') {
             $this->setFlash('danger', 'Vui lòng chọn ít nhất 1 xưởng trưởng trước khi lưu.');
+            $this->redirect('?controller=workshop&action=create');
+            return;
+        }
+        if ($this->canAssign() && !$this->isValidManagerForType($data['XUONGTRUONG_IdNhanVien'], $data['LoaiXuong'])) {
+            $this->setFlash('danger', 'Xưởng trưởng phải thuộc đúng nhóm nhân sự theo loại xưởng.');
             $this->redirect('?controller=workshop&action=create');
             return;
         }
@@ -140,22 +148,24 @@ class WorkshopController extends Controller
                 array_merge($selectedWarehouse, $selectedProduction)
             )
             : ['warehouse' => [], 'production' => []];
+        $workshopTypeRules = $this->getWorkshopTypeRules();
 
         $this->render('workshop/edit', [
             'title' => 'Cập nhật thông tin xưởng',
             'workshop' => $workshop,
             'employees' => $employees,
             'employeeGroups' => $employeeGroups,
-            'managerCandidates' => $canAssignStaff ? $this->getManagerCandidates($workshop) : [],
+            'managerCandidates' => $canAssignStaff ? $this->getManagerCandidates($workshop, $workshopType) : [],
             'workshopManagerName' => $managerName,
             'selectedWarehouse' => $selectedWarehouse,
             'selectedProduction' => $selectedProduction,
             'canAssign' => $canAssignStaff,
             'canAssignManager' => $this->canAssign(),
             'canViewAssignments' => $canAssignStaff,
-            'staffList' => $this->buildStaffList($assignments),
+            'staffList' => $this->buildStaffList($assignments, $workshopType),
             'workshopType' => $workshopType,
             'workshopTypes' => $this->getWorkshopTypes(),
+            'workshopTypeRules' => $workshopTypeRules,
         ]);
     }
 
@@ -178,6 +188,7 @@ class WorkshopController extends Controller
 
         $data = $this->extractWorkshopData($_POST);
         $assignments = $this->extractAssignments($_POST);
+        $assignments = $this->filterAssignmentsByWorkshopType($assignments, $data['LoaiXuong'] ?? $this->getDefaultWorkshopType());
         $canAssign = $this->canAssignStaff($id);
         unset($data['IdXuong']);
         unset($data['NgayThanhLap']);
@@ -191,6 +202,11 @@ class WorkshopController extends Controller
         if ($this->canAssign()) {
             if ($data['XUONGTRUONG_IdNhanVien'] === '') {
                 $this->setFlash('danger', 'Vui lòng chọn ít nhất 1 xưởng trưởng trước khi lưu.');
+                $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
+                return;
+            }
+            if (!$this->isValidManagerForType($data['XUONGTRUONG_IdNhanVien'], $data['LoaiXuong'])) {
+                $this->setFlash('danger', 'Xưởng trưởng phải thuộc đúng nhóm nhân sự theo loại xưởng.');
                 $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
                 return;
             }
@@ -255,13 +271,15 @@ class WorkshopController extends Controller
         $workshop = $id ? $this->workshopModel->find($id) : null;
         $assignments = $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
         $canViewAssignments = $this->canAssignStaff($id);
+        $workshopType = $workshop['LoaiXuong'] ?? $this->getDefaultWorkshopType();
 
         $this->render('workshop/read', [
             'title' => 'Chi tiết xưởng sản xuất',
             'workshop' => $workshop,
             'assignments' => $assignments,
             'canViewAssignments' => $canViewAssignments,
-            'staffList' => $this->buildStaffList($assignments),
+            'staffList' => $this->buildStaffList($assignments, $workshopType),
+            'workshopType' => $workshopType,
         ]);
     }
 
@@ -273,6 +291,7 @@ class WorkshopController extends Controller
         $selectedWorkshop = $this->normalizeSelectedWorkshop($selectedWorkshop, $workshops);
 
         $plans = $this->workshopPlanModel->getDashboardPlans($selectedWorkshop);
+        $plans = $this->filterMaterialPlans($plans);
         $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops);
 
         $configurationIds = array_values(array_filter(array_map(
@@ -540,6 +559,14 @@ class WorkshopController extends Controller
         }));
     }
 
+    private function filterMaterialPlans(array $plans): array
+    {
+        return array_values(array_filter($plans, function (array $plan): bool {
+            $config = $this->getWorkshopTypeConfig($plan['LoaiXuong'] ?? $this->getDefaultWorkshopType());
+            return $config['supports_materials'] ?? true;
+        }));
+    }
+
     private function calculateSummary(array $workshops): array
     {
         $summary = [
@@ -646,14 +673,16 @@ class WorkshopController extends Controller
         $assignedIds = $this->assignmentModel->getAssignedEmployeeIds();
         $assignedLookup = array_fill_keys($assignedIds, true);
         $includeLookup = array_fill_keys($includeIds, true);
+        $config = $this->getWorkshopTypeConfig($workshopType);
 
         $groups = [
             'warehouse' => [],
             'production' => [],
         ];
 
-        $normalizedType = mb_strtolower($workshopType);
-        $useQuality = str_contains($normalizedType, 'kiểm định');
+        $useQuality = $config['use_quality'] ?? false;
+        $includeWarehouse = $config['allow_warehouse'] ?? true;
+        $includeProduction = $config['allow_production'] ?? true;
 
         foreach ($employees as $employee) {
             $employeeId = $employee['IdNhanVien'] ?? null;
@@ -667,11 +696,11 @@ class WorkshopController extends Controller
                 || str_contains($title, 'qa')
                 || str_contains($title, 'qc');
 
-            if ($isWarehouse) {
+            if ($includeWarehouse && $isWarehouse) {
                 $groups['warehouse'][] = $employee;
             }
 
-            if ($useQuality ? $isQuality : $isProduction) {
+            if ($includeProduction && ($useQuality ? $isQuality : $isProduction)) {
                 if ($employeeId && isset($assignedLookup[$employeeId]) && !isset($includeLookup[$employeeId])) {
                     continue;
                 }
@@ -685,21 +714,26 @@ class WorkshopController extends Controller
     private function getWorkshopTypes(): array
     {
         return [
-            'Sản xuất',
-            'Lắp ráp và đóng gói',
-            'Kiểm định sản xuất',
-            'Kiểm định lắp ráp',
+            'Xưởng kiểm định',
+            'Xưởng lắp ráp và đóng gói',
+            'Xưởng sản xuất',
+            'Xưởng lưu trữ hàng hóa',
         ];
     }
 
     private function getDefaultWorkshopType(): string
     {
-        return 'Sản xuất';
+        return 'Xưởng sản xuất';
     }
 
-    private function getManagerCandidates(?array $workshop = null): array
+    private function getManagerCandidates(?array $workshop = null, ?string $workshopType = null): array
     {
-        $managers = $this->employeeModel->getEmployeesByRoleIds(['VT_QUANLY_XUONG'], 'Đang làm việc');
+        $workshopType = $workshopType ?? ($workshop['LoaiXuong'] ?? $this->getDefaultWorkshopType());
+        $config = $this->getWorkshopTypeConfig($workshopType);
+        $roleIds = $config['manager_roles'] ?? [];
+        $managers = $roleIds
+            ? $this->employeeModel->getEmployeesByRoleIds($roleIds, 'Đang làm việc')
+            : [];
         if (empty($managers)) {
             $managers = $this->employeeModel->getActiveEmployees();
         }
@@ -774,9 +808,11 @@ class WorkshopController extends Controller
         return $workshops;
     }
 
-    private function buildStaffList(array $assignments): array
+    private function buildStaffList(array $assignments, ?string $workshopType = null): array
     {
         $list = [];
+        $config = $this->getWorkshopTypeConfig($workshopType ?? $this->getDefaultWorkshopType());
+        $productionLabel = $config['production_label'] ?? 'Sản xuất';
 
         foreach ($assignments['nhan_vien_kho'] ?? [] as $row) {
             $list[] = [
@@ -790,12 +826,104 @@ class WorkshopController extends Controller
             $list[] = [
                 'id' => $row['IdNhanVien'] ?? '',
                 'name' => $row['HoTen'] ?? '',
-                'role' => 'Sản xuất',
+                'role' => $productionLabel,
             ];
         }
 
         usort($list, fn ($a, $b) => strcmp($a['name'], $b['name']));
 
         return $list;
+    }
+
+    private function getWorkshopTypeConfig(string $workshopType): array
+    {
+        $normalized = mb_strtolower(trim($workshopType));
+
+        if ($normalized === 'xưởng kiểm định') {
+            return [
+                'use_quality' => true,
+                'allow_warehouse' => true,
+                'allow_production' => true,
+                'manager_roles' => ['VT_KIEM_SOAT_CL'],
+                'production_label' => 'Kiểm soát chất lượng',
+                'supports_materials' => false,
+                'supports_progress' => false,
+            ];
+        }
+
+        if ($normalized === 'xưởng lưu trữ hàng hóa') {
+            return [
+                'use_quality' => false,
+                'allow_warehouse' => true,
+                'allow_production' => false,
+                'manager_roles' => ['VT_NHANVIEN_KHO'],
+                'production_label' => 'Sản xuất',
+                'supports_materials' => false,
+                'supports_progress' => false,
+            ];
+        }
+
+        if ($normalized === 'xưởng lắp ráp và đóng gói') {
+            return [
+                'use_quality' => false,
+                'allow_warehouse' => true,
+                'allow_production' => true,
+                'manager_roles' => ['VT_NHANVIEN_SANXUAT'],
+                'production_label' => 'Sản xuất',
+                'supports_materials' => true,
+                'supports_progress' => true,
+            ];
+        }
+
+        return [
+            'use_quality' => false,
+            'allow_warehouse' => true,
+            'allow_production' => true,
+            'manager_roles' => ['VT_NHANVIEN_SANXUAT'],
+            'production_label' => 'Sản xuất',
+            'supports_materials' => true,
+            'supports_progress' => true,
+        ];
+    }
+
+    private function getWorkshopTypeRules(): array
+    {
+        $rules = [];
+        foreach ($this->getWorkshopTypes() as $type) {
+            $rules[$type] = $this->getWorkshopTypeConfig($type);
+        }
+
+        return $rules;
+    }
+
+    private function filterAssignmentsByWorkshopType(array $assignments, string $workshopType): array
+    {
+        $config = $this->getWorkshopTypeConfig($workshopType);
+
+        if (empty($config['allow_warehouse'])) {
+            $assignments['warehouse'] = [];
+        }
+
+        if (empty($config['allow_production'])) {
+            $assignments['production'] = [];
+        }
+
+        return $assignments;
+    }
+
+    private function isValidManagerForType(string $managerId, string $workshopType): bool
+    {
+        $manager = $this->employeeModel->find($managerId);
+        if (!$manager) {
+            return false;
+        }
+
+        $config = $this->getWorkshopTypeConfig($workshopType);
+        $allowedRoles = $config['manager_roles'] ?? [];
+        if (empty($allowedRoles)) {
+            return true;
+        }
+
+        return in_array($manager['IdVaiTro'] ?? null, $allowedRoles, true);
     }
 }

@@ -4,9 +4,12 @@ $availableEmployees = $availableEmployees ?? [];
 $planAssignments = $planAssignments ?? [];
 $workShifts = $workShifts ?? [];
 
+$workshopType = $plan['LoaiXuong'] ?? 'Xưởng sản xuất';
+$normalizedType = mb_strtolower(trim($workshopType));
+$productionLabel = $normalizedType === 'xưởng kiểm định' ? 'Kiểm soát chất lượng' : 'Sản xuất';
 $roleLabelMap = [
     'nhan_vien_kho' => 'Kho',
-    'nhan_vien_san_xuat' => 'Sản xuất',
+    'nhan_vien_san_xuat' => $productionLabel,
 ];
 $assignedMap = [];
 $assignedNameMap = [];
@@ -133,7 +136,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
 <?php elseif (empty($workShifts)): ?>
     <div class="alert alert-light border">Chưa có ca làm việc cho kế hoạch xưởng.</div>
 <?php elseif (empty($availableEmployees)): ?>
-    <div class="alert alert-light border">Chưa có nhân sự sản xuất được gán cho xưởng.</div>
+    <div class="alert alert-light border">Chưa có nhân sự phù hợp được gán cho xưởng.</div>
 <?php else: ?>
     <form method="post" action="?controller=workshop_plan&action=saveAssignments">
         <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">

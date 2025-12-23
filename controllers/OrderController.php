@@ -78,7 +78,8 @@ class OrderController extends Controller
             $totalAmount = array_reduce($preparedDetails, static fn ($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
 
             $currentUser = $this->currentUser();
-            $creatorId = $currentUser['IdNhanVien'] ?? null;
+            $creatorEmployeeId = $currentUser['IdNhanVien'] ?? null;
+            $creatorUserId = $currentUser['IdNguoiDung'] ?? null;
             $data = [
                 'IdDonHang' => $orderId,
                 'YeuCau' => $_POST['YeuCau'] ?? null,
@@ -87,7 +88,7 @@ class OrderController extends Controller
                 'TrangThai' => $this->orderStatuses[0],
                 'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
                 'IdKhachHang' => $customerId,
-                'IdNguoiTao' => $creatorId,
+                'IdNguoiTao' => $creatorEmployeeId,
             ];
 
             $this->orderModel->create($data);
@@ -99,7 +100,7 @@ class OrderController extends Controller
             $db->commit();
             $this->setFlash('success', 'Tạo đơn hàng thành công.');
             $this->notifyBoardOrder($orderId, 'Tạo đơn hàng mới');
-            $this->logOrderActivity($creatorId, sprintf('Tạo đơn hàng %s', $orderId));
+            $this->logOrderActivity($creatorUserId, sprintf('Tạo đơn hàng %s', $orderId));
         } catch (Throwable $exception) {
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
@@ -163,7 +164,7 @@ class OrderController extends Controller
         }
 
         $currentUser = $this->currentUser();
-        $editorId = $currentUser['IdNhanVien'] ?? null;
+        $editorId = $currentUser['IdNguoiDung'] ?? null;
 
         try {
             $db = Database::getInstance()->getConnection();

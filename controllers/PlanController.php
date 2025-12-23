@@ -651,23 +651,23 @@ class PlanController extends Controller
         $normalizedDetailKey = $detailKey ? (function_exists('mb_strtolower') ? mb_strtolower($detailKey) : strtolower($detailKey)) : '';
 
         if ($normalizedCategory === 'inspection' || str_contains($normalizedLabel, 'kiểm định')) {
-            return ['Kiểm định sản xuất', 'Kiểm định lắp ráp'];
+            return ['Xưởng kiểm định'];
         }
 
         if (str_contains($normalizedLabel, 'lắp ráp') || str_contains($normalizedLabel, 'đóng gói')) {
-            return ['Lắp ráp và đóng gói'];
+            return ['Xưởng lắp ráp và đóng gói'];
         }
 
         $productionKeys = ['keycap', 'mainboard', 'switchtype', 'casetype', 'foam'];
         if (in_array($normalizedDetailKey, $productionKeys, true)) {
-            return ['Sản xuất'];
+            return ['Xưởng sản xuất'];
         }
 
         if ($normalizedCategory === 'production' || $normalizedCategory === 'configuration-detail') {
-            return ['Sản xuất'];
+            return ['Xưởng sản xuất'];
         }
 
-        return ['Sản xuất'];
+        return ['Xưởng sản xuất'];
     }
 
     private function resolvePlannerUser(?array $user): ?array

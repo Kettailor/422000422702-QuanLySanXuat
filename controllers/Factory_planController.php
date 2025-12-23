@@ -63,10 +63,16 @@ class Factory_planController extends Controller
         $id = $_GET['id'] ?? null;
         $plan = $id ? $this->workshopPlanModel->findWithRelations($id) : null;
         $plan = $this->filterPlanByAccess($plan);
+        $typeConfig = $this->getWorkshopTypeConfig($plan['LoaiXuong'] ?? null);
 
-        $stockList = $plan ? ($this->workshopPlanModel->getMaterialStock($id) ?? []) : [];
+        $stockList = $plan && ($typeConfig['supports_materials'] ?? true)
+            ? ($this->workshopPlanModel->getMaterialStock($id) ?? [])
+            : [];
         $planAssignments = $plan ? $this->planAssignmentModel->getByPlan($plan['IdKeHoachSanXuatXuong']) : [];
-        $canUpdateProgress = $plan && $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null) && !empty($planAssignments);
+        $canUpdateProgress = $plan
+            && ($typeConfig['supports_progress'] ?? true)
+            && $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null)
+            && !empty($planAssignments);
 
         $this->render('factory_plan/read', [
             'title' => 'Chi tiết hạng mục xưởng',
@@ -76,6 +82,7 @@ class Factory_planController extends Controller
             'progress' => $plan ? $this->calculateProgress($plan['ThoiGianBatDau'] ?? null, $plan['ThoiGianKetThuc'] ?? null, $plan['TrangThai'] ?? null) : null,
             'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
             'canUpdateProgress' => $canUpdateProgress,
+            'typeConfig' => $typeConfig,
         ]);
     }
 
@@ -323,8 +330,9 @@ class Factory_planController extends Controller
                 return false;
             }
 
-            $managedWorkshops = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
-            return in_array($plan['IdXuong'] ?? null, $managedWorkshops, true);
+            $managedWorkshops = $this->workshopModel->getByManager($employeeId);
+            $managedIds = array_column($managedWorkshops, 'IdXuong');
+            return in_array($plan['IdXuong'] ?? null, $managedIds, true);
         }
 
         return false;
@@ -385,5 +393,29 @@ class Factory_planController extends Controller
 
         $normalized = mb_strtolower(trim($status));
         return str_contains($normalized, 'đủ');
+    }
+
+    private function getWorkshopTypeConfig(?string $workshopType): array
+    {
+        $normalized = mb_strtolower(trim((string) $workshopType));
+
+        if ($normalized === 'xưởng kiểm định') {
+            return [
+                'supports_materials' => false,
+                'supports_progress' => false,
+            ];
+        }
+
+        if ($normalized === 'xưởng lưu trữ hàng hóa') {
+            return [
+                'supports_materials' => false,
+                'supports_progress' => false,
+            ];
+        }
+
+        return [
+            'supports_materials' => true,
+            'supports_progress' => true,
+        ];
     }
 }
