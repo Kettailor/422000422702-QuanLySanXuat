@@ -16,6 +16,7 @@
     $selectedWarehouse = $selectedWarehouse ?? [];
     $selectedProduction = $selectedProduction ?? [];
     $canAssign = $canAssign ?? false;
+    $canAssignManager = $canAssignManager ?? false;
     $canViewAssignments = $canViewAssignments ?? false;
     $staffList = $staffList ?? [];
     $warehouseSelectedCount = count($selectedWarehouse);
@@ -29,8 +30,22 @@
                 <input type="text" name="TenXuong" class="form-control" value="<?= htmlspecialchars($workshop['TenXuong']) ?>" required>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Ngày thành lập</label>
-                <input type="date" name="NgayThanhLap" class="form-control" value="<?= htmlspecialchars($workshop['NgayThanhLap'] ?? '') ?>">
+                <label class="form-label">Xưởng trưởng <span class="text-danger">*</span></label>
+                <?php if ($canAssignManager): ?>
+                    <select name="XUONGTRUONG_IdNhanVien" class="form-select" required>
+                        <option value="" disabled <?= empty($workshop['XUONGTRUONG_IdNhanVien']) ? 'selected' : '' ?>>Chọn xưởng trưởng</option>
+                        <?php foreach (($managerCandidates ?? []) as $manager): ?>
+                            <?php $managerId = $manager['IdNhanVien'] ?? ''; ?>
+                            <option value="<?= htmlspecialchars($managerId) ?>" <?= $managerId === ($workshop['XUONGTRUONG_IdNhanVien'] ?? '') ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($manager['HoTen'] ?? '') ?> (<?= htmlspecialchars($managerId) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php else: ?>
+                    <div class="form-control bg-light">
+                        <?= htmlspecialchars($workshopManagerName ?? 'Chưa có xưởng trưởng') ?>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Địa điểm</label>

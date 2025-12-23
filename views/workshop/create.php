@@ -18,16 +18,19 @@
     ?>
     <form action="?controller=workshop&action=store" method="post" class="row g-4">
         <div class="col-md-4">
-            <label class="form-label">Mã xưởng</label>
-            <input type="text" name="IdXuong" class="form-control" placeholder="Tự sinh nếu để trống">
-        </div>
-        <div class="col-md-4">
             <label class="form-label">Tên xưởng</label>
             <input type="text" name="TenXuong" class="form-control" required>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Ngày thành lập</label>
-            <input type="date" name="NgayThanhLap" class="form-control">
+            <label class="form-label">Xưởng trưởng <span class="text-danger">*</span></label>
+            <select name="XUONGTRUONG_IdNhanVien" class="form-select" required>
+                <option value="" disabled selected>Chọn xưởng trưởng</option>
+                <?php foreach (($managerCandidates ?? []) as $manager): ?>
+                    <option value="<?= htmlspecialchars($manager['IdNhanVien'] ?? '') ?>">
+                        <?= htmlspecialchars($manager['HoTen'] ?? '') ?> (<?= htmlspecialchars($manager['IdNhanVien'] ?? '') ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="col-md-6">
             <label class="form-label">Địa điểm</label>
