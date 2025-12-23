@@ -280,7 +280,12 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                 ?>
                                 <div class="col-lg-4">
                                     <div class="border rounded-3 p-3 h-100 shift-card" data-date="<?= htmlspecialchars($dateKey) ?>" data-shift-type="<?= htmlspecialchars($typeLabel) ?>" data-shift-id="<?= htmlspecialchars($shiftId) ?>" data-editable="<?= ($isEditable || $isAddOnly) ? '1' : '0' ?>">
-                                        <div class="fw-semibold"><?= htmlspecialchars($shift['TenCa'] ?? $shiftId) ?></div>
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="fw-semibold"><?= htmlspecialchars($shift['TenCa'] ?? $shiftId) ?></div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger shift-remove" data-shift-remove="<?= htmlspecialchars($shiftId) ?>">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
                                         <div class="text-muted small mb-2">
                                             <?= htmlspecialchars($shift['ThoiGianBatDau'] ?? '-') ?>
                                             <?= !empty($shift['ThoiGianKetThuc']) ? '→ ' . htmlspecialchars($shift['ThoiGianKetThuc']) : '' ?>
@@ -340,6 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const bulkAssignBtn = document.getElementById('bulk-assign-btn');
     const dateFilters = document.querySelectorAll('.assignment-date');
     const shiftFilters = document.querySelectorAll('.assignment-shift');
+    const assignmentCards = document.getElementById('assignment-cards');
     const shiftCards = document.querySelectorAll('.shift-card');
     const shiftGroups = document.querySelectorAll('.shift-group');
 
@@ -404,7 +410,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const assignmentCards = document.getElementById('assignment-cards');
             if (assignmentCards) {
                 assignmentCards.classList.remove('d-none');
             }
@@ -428,13 +433,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    document.querySelectorAll('select.assignment-select').forEach((select) => {
-        select.addEventListener('change', () => {
-            Array.from(select.options).forEach((option) => {
-                if (option.dataset.existing !== '1') {
-                    option.selected = false;
-                }
-            });
+    document.querySelectorAll('.shift-remove').forEach((button) => {
+        button.addEventListener('click', () => {
+            const shiftId = button.getAttribute('data-shift-remove');
+            const card = shiftId ? document.querySelector(`.shift-card[data-shift-id="${shiftId}"]`) : null;
+            if (!card) {
+                return;
+            }
+            const select = card.querySelector('select.assignment-select');
+            if (select) {
+                Array.from(select.options).forEach((option) => {
+                    if (option.dataset.existing !== '1') {
+                        option.selected = false;
+                    }
+                });
+            }
+            card.style.display = 'none';
         });
     });
 });
