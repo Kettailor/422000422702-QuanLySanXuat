@@ -91,9 +91,6 @@ class WorkShift extends BaseModel
         ];
 
         $defaultLotId = $this->getDefaultLotId();
-        if (!$defaultLotId) {
-            $defaultLotId = 'LOTP202309';
-        }
 
         $date = new DateTimeImmutable($startDate);
         $end = new DateTimeImmutable($endDate);

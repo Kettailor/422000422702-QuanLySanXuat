@@ -178,7 +178,7 @@ CREATE TABLE `ca_lam` (
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TongSL` int(10) DEFAULT NULL,
   `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
-  `LOIdLo` varchar(50) NOT NULL
+  `LOIdLo` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -763,6 +763,7 @@ CREATE TABLE `xuong` (
   `TenQuyTrinh` varchar(255) DEFAULT NULL,
   `CongSuatToiDa` float DEFAULT 0,
   `CongSuatDangSuDung` float DEFAULT 0,
+  `LoaiXuong` varchar(255) DEFAULT 'Sản xuất',
   `TrangThai` varchar(255) NOT NULL,
   `MoTa` text DEFAULT NULL,
   `XUONGTRUONG_IdNhanVien` varchar(50) NOT NULL

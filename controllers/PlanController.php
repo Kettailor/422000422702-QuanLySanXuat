@@ -9,6 +9,8 @@ class PlanController extends Controller
     private Workshop $workshopModel;
     private  WorkshopPlanMaterialDetail $workShopPlanDetail;
     private Order $orderModel;
+    private Employee $employeeModel;
+    private User $userModel;
 
     public function __construct()
     {
@@ -20,6 +22,8 @@ class PlanController extends Controller
         $this->workshopModel = new Workshop();
         $this->workShopPlanDetail = new WorkshopPlanMaterialDetail();
         $this->orderModel = new Order();
+        $this->employeeModel = new Employee();
+        $this->userModel = new User();
     }
 
     public function index(): void
@@ -67,7 +71,7 @@ class PlanController extends Controller
             }
         }
 
-        $currentUser = $this->currentUser();
+        $currentUser = $this->resolvePlannerUser($this->currentUser());
 
         $this->render('plan/create', [
             'title' => 'Lập kế hoạch sản xuất',
@@ -103,8 +107,8 @@ class PlanController extends Controller
             return;
         }
 
-        $currentUser = $this->currentUser();
-        $actorId = $currentUser['IdNhanVien'] ?? null;
+        $currentUser = $this->resolvePlannerUser($this->currentUser());
+        $actorId = $currentUser['IdNhanVien'] ?? ($_POST['BanGiamDoc'] ?? null);
 
         if (!$actorId) {
             $this->setFlash('danger', 'Không xác định được người lập kế hoạch. Vui lòng đăng nhập lại.');
@@ -121,7 +125,7 @@ class PlanController extends Controller
 
         $startTime = $this->normalizeDateTimeInput($_POST['ThoiGianBD'] ?? null);
         $endTime = $this->normalizeDateTimeInput($_POST['ThoiGianKetThuc'] ?? null);
-        $status = $_POST['TrangThai'] ?? 'Đã lập kế hoạch';
+        $status = 'Đang triển khai';
 
         if (!$this->validatePlanDates($startTime, $endTime)) {
             $this->setFlash('danger', 'Ngày bắt đầu không được bé hơn ngày hiện tại và hạn chót phải lớn hơn hoặc bằng ngày bắt đầu.');
@@ -163,12 +167,17 @@ class PlanController extends Controller
             foreach ($assignments as $assignment) {
                 $this->workshopPlanModel->create($assignment);
                 if (isset($assignment['IdKeHoachSanXuatXuong'])) {
-
-                    $this->workShopPlanDetail->createWorkshopPlanDetail(
-                        $assignment['IdKeHoachSanXuatXuong'], // <-- Dùng cái này
-                        $orderDetail['IdCauHinh'],
-                        $assignment['SoLuong'] // <-- Nên dùng số lượng phân cho xưởng đó
-                    );
+                    try {
+                        $this->workShopPlanDetail->createWorkshopPlanDetail(
+                            $assignment['IdKeHoachSanXuatXuong'],
+                            $orderDetail['IdCauHinh'],
+                            $assignment['SoLuong']
+                        );
+                    } catch (Throwable $exception) {
+                        Logger::warn(
+                            'Không tìm thấy cấu hình nguyên liệu cho mã: ' . $orderDetail['IdCauHinh']
+                        );
+                    }
                 }
             }
 
@@ -177,6 +186,7 @@ class PlanController extends Controller
                 $this->orderModel->update($orderId, ['TrangThai' => 'Đang xử lý']);
             }
 
+            $this->notifyWorkshopManagers($assignments);
 
             $this->setFlash('success', 'Đã lập kế hoạch sản xuất và giao nhiệm vụ cho các xưởng.');
         } catch (PDOException $exception) {
@@ -289,6 +299,11 @@ class PlanController extends Controller
                 'configuration_label' => $component['TenCauHinh'] ?? null,
                 'unit' => $component['DonVi'] ?? 'sp',
                 'default_status' => $component['TrangThaiMacDinh'] ?? null,
+                'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes(
+                    $component['TenCongDoan'] ?? $component['TenPhanCong'] ?? '',
+                    $component['LoaiCongDoan'] ?? null,
+                    null
+                ),
             ];
         }
 
@@ -307,15 +322,19 @@ class PlanController extends Controller
                 'configuration_details' => $configurationDetails,
                 'detail_key' => null,
                 'detail_value' => null,
+                'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes('Gia công sản phẩm', 'production', null),
             ];
         }
 
-        return $this->appendConfigurationDetailAssignments($assignments, $configurationDetails, max(1, $quantity), $orderDetail);
+        $assignments = $this->appendConfigurationDetailAssignments($assignments, $configurationDetails, max(1, $quantity), $orderDetail);
+        return $this->ensureInspectionAssignment($assignments, max(1, $quantity), $orderDetail);
     }
 
     private function buildConfigurationDetails(array $orderDetail): array
     {
         $mapping = [
+            'Keycap' => 'Keycap',
+            'Mainboard' => 'Mainboard',
             'Layout' => 'Layout',
             'SwitchType' => 'Switch',
             'CaseType' => 'Case',
@@ -346,6 +365,7 @@ class PlanController extends Controller
             return $assignments;
         }
 
+        $assignmentKeys = ['Keycap', 'Mainboard', 'SwitchType', 'CaseType', 'Foam'];
         $normalizer = static function (string $value): string {
             return function_exists('mb_strtolower') ? mb_strtolower($value) : strtolower($value);
         };
@@ -355,6 +375,10 @@ class PlanController extends Controller
         }, $assignments);
 
         foreach ($configurationDetails as $detail) {
+            if (!in_array($detail['key'] ?? '', $assignmentKeys, true)) {
+                continue;
+            }
+
             $displayLabel = sprintf('%s: %s', $detail['label'], $detail['value']);
             if (in_array($normalizer($displayLabel), $existingLabels, true)) {
                 continue;
@@ -374,12 +398,101 @@ class PlanController extends Controller
                 'configuration_details' => $configurationDetails,
                 'detail_key' => $detail['key'],
                 'detail_value' => $detail['value'],
+                'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes($displayLabel, 'configuration-detail', $detail['key'] ?? null),
             ];
 
             $existingLabels[] = $normalizer($displayLabel);
         }
 
         return $assignments;
+    }
+
+    private function ensureInspectionAssignment(array $assignments, int $quantity, array $orderDetail): array
+    {
+        $hasInspection = false;
+        foreach ($assignments as $assignment) {
+            if (($assignment['category'] ?? null) === 'inspection') {
+                $hasInspection = true;
+                break;
+            }
+        }
+
+        if ($hasInspection) {
+            return $assignments;
+        }
+
+        $assignments[] = [
+            'id' => null,
+            'configuration_id' => $orderDetail['IdCauHinh'] ?? null,
+            'label' => 'Kiểm định sản phẩm',
+            'category' => 'inspection',
+            'default_quantity' => $quantity,
+            'quantity_ratio' => 1.0,
+            'default_workshop' => null,
+            'configuration_label' => $orderDetail['TenCauHinh'] ?? null,
+            'unit' => $orderDetail['DonVi'] ?? 'sp',
+            'default_status' => 'Đang chuẩn bị',
+            'configuration_details' => $this->buildConfigurationDetails($orderDetail),
+            'detail_key' => null,
+            'detail_value' => null,
+            'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes('Kiểm định sản phẩm', 'inspection', null),
+        ];
+
+        return $assignments;
+    }
+
+    private function notifyWorkshopManagers(array $assignments): void
+    {
+        if (empty($assignments)) {
+            return;
+        }
+
+        $workshopIds = [];
+        foreach ($assignments as $assignment) {
+            $workshopId = $assignment['IdXuong'] ?? null;
+            if ($workshopId) {
+                $workshopIds[$workshopId] = true;
+            }
+        }
+
+        if (empty($workshopIds)) {
+            return;
+        }
+
+        $managerMap = $this->workshopModel->getManagersByWorkshopIds(array_keys($workshopIds));
+        $entries = [];
+        foreach ($assignments as $assignment) {
+            $workshopId = $assignment['IdXuong'] ?? null;
+            if (!$workshopId) {
+                continue;
+            }
+            $managerId = $managerMap[$workshopId] ?? null;
+            if (!$managerId) {
+                continue;
+            }
+
+            $planId = $assignment['IdKeHoachSanXuatXuong'] ?? null;
+            if (!$planId) {
+                continue;
+            }
+
+            $entries[] = [
+                'channel' => 'workshop_plan',
+                'recipient' => $managerId,
+                'title' => 'Có kế hoạch mới cho xưởng',
+                'message' => sprintf('Kế hoạch xưởng %s vừa được tạo. Vui lòng kiểm tra và phân công.', $planId),
+                'link' => '?controller=workshop_plan&action=read&id=' . urlencode($planId),
+                'metadata' => [
+                    'workshop_id' => $workshopId,
+                    'workshop_plan_id' => $planId,
+                ],
+            ];
+        }
+
+        if (!empty($entries)) {
+            $store = new NotificationStore();
+            $store->pushMany($entries);
+        }
     }
 
     private function extractAssignments(array $input, array $context): array
@@ -529,5 +642,59 @@ class PlanController extends Controller
         }
 
         return 'Không thể tạo kế hoạch, vui lòng kiểm tra lại thời gian.';
+    }
+
+    private function resolveAllowedWorkshopTypes(string $label, ?string $category, ?string $detailKey): array
+    {
+        $normalizedLabel = function_exists('mb_strtolower') ? mb_strtolower($label) : strtolower($label);
+        $normalizedCategory = $category ? (function_exists('mb_strtolower') ? mb_strtolower($category) : strtolower($category)) : '';
+        $normalizedDetailKey = $detailKey ? (function_exists('mb_strtolower') ? mb_strtolower($detailKey) : strtolower($detailKey)) : '';
+
+        if ($normalizedCategory === 'inspection' || str_contains($normalizedLabel, 'kiểm định')) {
+            return ['Kiểm định sản xuất', 'Kiểm định lắp ráp'];
+        }
+
+        if (str_contains($normalizedLabel, 'lắp ráp') || str_contains($normalizedLabel, 'đóng gói')) {
+            return ['Lắp ráp và đóng gói'];
+        }
+
+        $productionKeys = ['keycap', 'mainboard', 'switchtype', 'casetype', 'foam'];
+        if (in_array($normalizedDetailKey, $productionKeys, true)) {
+            return ['Sản xuất'];
+        }
+
+        if ($normalizedCategory === 'production' || $normalizedCategory === 'configuration-detail') {
+            return ['Sản xuất'];
+        }
+
+        return ['Sản xuất'];
+    }
+
+    private function resolvePlannerUser(?array $user): ?array
+    {
+        if (!$user) {
+            return $user;
+        }
+
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if (!$employeeId) {
+            $username = $user['TenDangNhap'] ?? null;
+            if ($username) {
+                $account = $this->userModel->findByUsername($username);
+                $employeeId = $account['IdNhanVien'] ?? null;
+                if ($employeeId) {
+                    $user['IdNhanVien'] = $employeeId;
+                }
+            }
+        }
+
+        if ($employeeId) {
+            $employee = $this->employeeModel->find($employeeId);
+            if (!empty($employee['HoTen'])) {
+                $user['HoTen'] = $employee['HoTen'];
+            }
+        }
+
+        return $user;
     }
 }

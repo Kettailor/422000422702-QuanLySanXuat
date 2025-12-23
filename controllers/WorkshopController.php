@@ -11,7 +11,7 @@ class WorkshopController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
+        $this->authorize(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC', 'VT_ADMIN']);
         $this->workshopModel = new Workshop();
         $this->workshopPlanModel = new WorkshopPlan();
         $this->componentMaterialModel = new ProductComponentMaterial();
@@ -47,12 +47,17 @@ class WorkshopController extends Controller
         }
 
         $employees = $this->employeeModel->getActiveEmployees();
+        $defaultType = $this->getDefaultWorkshopType();
+        $employeeGroups = $this->groupEmployeesForWorkshop($employees, $defaultType, []);
         $this->render('workshop/create', [
             'title' => 'Thêm xưởng mới',
             'employees' => $employees,
-            'employeeGroups' => $this->groupEmployeesByRole($employees),
+            'employeeGroups' => $employeeGroups,
+            'managerCandidates' => $this->getManagerCandidates(),
             'selectedWarehouse' => [],
             'selectedProduction' => [],
+            'workshopType' => $defaultType,
+            'workshopTypes' => $this->getWorkshopTypes(),
             'canAssign' => true,
         ]);
     }
@@ -70,7 +75,20 @@ class WorkshopController extends Controller
 
         $data = $this->extractWorkshopData($_POST);
         $assignments = $this->extractAssignments($_POST);
-        $data['IdXuong'] = $data['IdXuong'] ?: uniqid('XUONG');
+        $data['IdXuong'] = uniqid('XUONG');
+        $data['NgayThanhLap'] = date('Y-m-d');
+
+        if ($data['CongSuatToiDa'] < $data['CongSuatDangSuDung']) {
+            $this->setFlash('danger', 'Công suất tối đa không được bé hơn công suất đang sử dụng.');
+            $this->redirect('?controller=workshop&action=create');
+            return;
+        }
+
+        if ($this->canAssign() && $data['XUONGTRUONG_IdNhanVien'] === '') {
+            $this->setFlash('danger', 'Vui lòng chọn ít nhất 1 xưởng trưởng trước khi lưu.');
+            $this->redirect('?controller=workshop&action=create');
+            return;
+        }
 
         try {
             $this->workshopModel->create($data);
@@ -103,20 +121,41 @@ class WorkshopController extends Controller
         }
 
         $workshop = $this->workshopModel->find($id);
+        $managerName = null;
+        $managerId = $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+        if ($managerId) {
+            $manager = $this->employeeModel->find($managerId);
+            $managerName = $manager['HoTen'] ?? null;
+        }
         $assignments = $this->assignmentModel->getAssignmentsByWorkshop($id);
         $canAssignStaff = $this->canAssignStaff($id);
         $employees = $canAssignStaff ? $this->employeeModel->getActiveEmployees() : [];
+        $selectedWarehouse = array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien');
+        $selectedProduction = array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien');
+        $workshopType = $workshop['LoaiXuong'] ?? $this->getDefaultWorkshopType();
+        $employeeGroups = $canAssignStaff
+            ? $this->groupEmployeesForWorkshop(
+                $employees,
+                $workshopType,
+                array_merge($selectedWarehouse, $selectedProduction)
+            )
+            : ['warehouse' => [], 'production' => []];
 
         $this->render('workshop/edit', [
             'title' => 'Cập nhật thông tin xưởng',
             'workshop' => $workshop,
             'employees' => $employees,
-            'employeeGroups' => $this->groupEmployeesByRole($employees),
-            'selectedWarehouse' => array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien'),
-            'selectedProduction' => array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien'),
+            'employeeGroups' => $employeeGroups,
+            'managerCandidates' => $canAssignStaff ? $this->getManagerCandidates($workshop) : [],
+            'workshopManagerName' => $managerName,
+            'selectedWarehouse' => $selectedWarehouse,
+            'selectedProduction' => $selectedProduction,
             'canAssign' => $canAssignStaff,
+            'canAssignManager' => $this->canAssign(),
             'canViewAssignments' => $canAssignStaff,
             'staffList' => $this->buildStaffList($assignments),
+            'workshopType' => $workshopType,
+            'workshopTypes' => $this->getWorkshopTypes(),
         ]);
     }
 
@@ -141,7 +180,23 @@ class WorkshopController extends Controller
         $assignments = $this->extractAssignments($_POST);
         $canAssign = $this->canAssignStaff($id);
         unset($data['IdXuong']);
-        unset($data['XUONGTRUONG_IdNhanVien']);
+        unset($data['NgayThanhLap']);
+
+        if ($data['CongSuatToiDa'] < $data['CongSuatDangSuDung']) {
+            $this->setFlash('danger', 'Công suất tối đa không được bé hơn công suất đang sử dụng.');
+            $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
+            return;
+        }
+
+        if ($this->canAssign()) {
+            if ($data['XUONGTRUONG_IdNhanVien'] === '') {
+                $this->setFlash('danger', 'Vui lòng chọn ít nhất 1 xưởng trưởng trước khi lưu.');
+                $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
+                return;
+            }
+        } else {
+            unset($data['XUONGTRUONG_IdNhanVien']);
+        }
 
         try {
             $this->workshopModel->update($id, $data);
@@ -387,7 +442,7 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        return in_array($role, ['VT_BAN_GIAM_DOC'], true);
+        return in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
     }
 
     private function canAssignStaff(string $workshopId): bool
@@ -421,7 +476,7 @@ class WorkshopController extends Controller
         }
 
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
-        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true)) {
             return true;
         }
 
@@ -442,7 +497,7 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true)) {
             return $this->workshopModel->getAllWithManagers();
         }
 
@@ -583,29 +638,102 @@ class WorkshopController extends Controller
 
     private function groupEmployeesByRole(array $employees): array
     {
+        return $this->groupEmployeesForWorkshop($employees, $this->getDefaultWorkshopType(), []);
+    }
+
+    private function groupEmployeesForWorkshop(array $employees, string $workshopType, array $includeIds): array
+    {
+        $assignedIds = $this->assignmentModel->getAssignedEmployeeIds();
+        $assignedLookup = array_fill_keys($assignedIds, true);
+        $includeLookup = array_fill_keys($includeIds, true);
+
         $groups = [
             'warehouse' => [],
             'production' => [],
         ];
 
+        $normalizedType = mb_strtolower($workshopType);
+        $useQuality = str_contains($normalizedType, 'kiểm định');
+
         foreach ($employees as $employee) {
+            $employeeId = $employee['IdNhanVien'] ?? null;
             $title = mb_strtolower($employee['ChucVu'] ?? '');
             $isWarehouse = str_contains($title, 'kho') || str_contains($title, 'logistics');
             $isProduction = str_contains($title, 'sản xuất')
                 || str_contains($title, 'lắp ráp')
-                || str_contains($title, 'qa')
                 || str_contains($title, 'vận hành');
+            $isQuality = str_contains($title, 'kiểm soát')
+                || str_contains($title, 'kiểm định')
+                || str_contains($title, 'qa')
+                || str_contains($title, 'qc');
 
             if ($isWarehouse) {
                 $groups['warehouse'][] = $employee;
             }
 
-            if ($isProduction || !$isWarehouse) {
+            if ($useQuality ? $isQuality : $isProduction) {
+                if ($employeeId && isset($assignedLookup[$employeeId]) && !isset($includeLookup[$employeeId])) {
+                    continue;
+                }
                 $groups['production'][] = $employee;
             }
         }
 
         return $groups;
+    }
+
+    private function getWorkshopTypes(): array
+    {
+        return [
+            'Sản xuất',
+            'Lắp ráp và đóng gói',
+            'Kiểm định sản xuất',
+            'Kiểm định lắp ráp',
+        ];
+    }
+
+    private function getDefaultWorkshopType(): string
+    {
+        return 'Sản xuất';
+    }
+
+    private function getManagerCandidates(?array $workshop = null): array
+    {
+        $managers = $this->employeeModel->getEmployeesByRoleIds(['VT_QUANLY_XUONG'], 'Đang làm việc');
+        if (empty($managers)) {
+            $managers = $this->employeeModel->getActiveEmployees();
+        }
+
+        $assignedManagers = $this->workshopModel->getAssignedManagerIds();
+        $assignedLookup = array_fill_keys($assignedManagers, true);
+        $selectedId = $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+        if ($selectedId) {
+            $exists = false;
+            foreach ($managers as $manager) {
+                if (($manager['IdNhanVien'] ?? null) === $selectedId) {
+                    $exists = true;
+                    break;
+                }
+            }
+
+            if (!$exists) {
+                $current = $this->employeeModel->find($selectedId);
+                if ($current) {
+                    $managers[] = $current;
+                }
+            }
+        }
+
+        return array_values(array_filter($managers, function (array $manager) use ($assignedLookup, $selectedId): bool {
+            $managerId = $manager['IdNhanVien'] ?? null;
+            if (!$managerId) {
+                return false;
+            }
+            if ($selectedId && $managerId === $selectedId) {
+                return true;
+            }
+            return !isset($assignedLookup[$managerId]);
+        }));
     }
 
     private function extractWorkshopData(array $input): array
@@ -614,6 +742,7 @@ class WorkshopController extends Controller
             'IdXuong' => trim($input['IdXuong'] ?? ''),
             'TenXuong' => trim($input['TenXuong'] ?? ''),
             'DiaDiem' => trim($input['DiaDiem'] ?? ''),
+            'LoaiXuong' => trim($input['LoaiXuong'] ?? $this->getDefaultWorkshopType()),
             'XUONGTRUONG_IdNhanVien' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
             'SlNhanVien' => (int) ($input['SlNhanVien'] ?? 0),
             'SoLuongCongNhan' => 0,
