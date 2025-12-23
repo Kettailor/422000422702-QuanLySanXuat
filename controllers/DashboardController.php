@@ -209,8 +209,7 @@ class DashboardController extends Controller
 
         $now = date('Y-m-d H:i:s');
         $shift = $workShiftModel->findShiftForTimestamp($now);
-        $workDate = date('Y-m-d');
-        $openRecord = $employeeId ? $timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
+        $openRecord = $employeeId ? $timekeepingModel->getOpenRecordForEmployee($employeeId) : null;
         $geofence = $this->getGeofenceConfig();
 
         $productionPlans = [];

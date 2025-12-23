@@ -27,13 +27,13 @@ class Self_timekeepingController extends Controller
 
         $user = $this->currentUser();
         $employeeId = $user['IdNhanVien'] ?? null;
+        $workDate = date('Y-m-d');
         $now = date('Y-m-d H:i:s');
         $shift = $this->workShiftModel->findShiftForTimestamp($now);
         if ($shift && $employeeId && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
             $shift = null;
         }
-        $workDate = date('Y-m-d');
-        $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
+        $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId) : null;
         $geofence = $this->getGeofenceConfig();
 
         $this->render('self_timekeeping/index', [
@@ -50,13 +50,12 @@ class Self_timekeepingController extends Controller
     {
         $user = $this->currentUser();
         $employeeId = $user['IdNhanVien'] ?? null;
-        $workDate = date('Y-m-d');
         $now = date('Y-m-d H:i:s');
         $shift = $this->workShiftModel->findShiftForTimestamp($now);
         if ($shift && $employeeId && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
             $shift = null;
         }
-        $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
+        $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId) : null;
         $geofence = $this->getGeofenceConfig();
         $shifts = $this->workShiftModel->getShifts($workDate);
         $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
@@ -110,17 +109,7 @@ class Self_timekeepingController extends Controller
         }
 
         $now = date('Y-m-d H:i:s');
-        $shift = $this->workShiftModel->findShiftForTimestamp($now);
-        if (!$shift) {
-            $this->setFlash('danger', 'Hiện tại không nằm trong ca làm việc nào.');
-            $this->redirect('?controller=self_timekeeping&action=index');
-            return;
-        }
-        if (!$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
-            $this->setFlash('danger', 'Bạn chưa được phân công ca làm hiện tại.');
-            $this->redirect('?controller=self_timekeeping&action=index');
-            return;
-        }
+        $openRecord = $this->timekeepingModel->getOpenRecordForEmployee($employeeId);
 
         $latitude = trim($_POST['latitude'] ?? '');
         $longitude = trim($_POST['longitude'] ?? '');
@@ -153,35 +142,51 @@ class Self_timekeepingController extends Controller
         $note = implode(' | ', $noteParts);
 
         try {
-        $workDate = date('Y-m-d');
-        $openRecord = $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate);
-        if ($openRecord) {
-            $recordId = $openRecord['IdChamCong'] ?? null;
-            if (!$recordId) {
-                throw new RuntimeException('Không thể xác định bản ghi chấm công.');
+            if ($openRecord) {
+                $recordId = $openRecord['IdChamCong'] ?? null;
+                $shiftId = $openRecord['IdCaLamViec'] ?? null;
+                if (!$recordId || !$shiftId) {
+                    throw new RuntimeException('Không thể xác định bản ghi chấm công.');
+                }
+                $shiftForRecord = $this->workShiftModel->find($shiftId);
+                if (!$shiftForRecord) {
+                    throw new RuntimeException('Không thể xác định ca làm việc để chấm ra.');
+                }
+                $adjustedCheckOut = $this->adjustCheckOutForShift($now, $shiftForRecord);
+                $this->timekeepingModel->updateCheckOut(
+                    $recordId,
+                    $adjustedCheckOut,
+                    $location['lat'],
+                    $location['lng'],
+                    $location['accuracy']
+                );
+                $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
+            } else {
+                $shift = $this->workShiftModel->findShiftForTimestamp($now);
+                if (!$shift) {
+                    $this->setFlash('danger', 'Hiện tại không nằm trong ca làm việc nào.');
+                    $this->redirect('?controller=self_timekeeping&action=index');
+                    return;
+                }
+                if (!$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
+                    $this->setFlash('danger', 'Bạn chưa được phân công ca làm hiện tại.');
+                    $this->redirect('?controller=self_timekeeping&action=index');
+                    return;
+                }
+                $adjustedCheckIn = $this->adjustCheckInForShift($now, $shift);
+                $this->timekeepingModel->createForShift(
+                    $employeeId,
+                    $adjustedCheckIn,
+                    null,
+                    $shift['IdCaLamViec'],
+                    $note,
+                    $employeeId,
+                    $location['lat'],
+                    $location['lng'],
+                    $location['accuracy']
+                );
+                $this->setFlash('success', 'Đã ghi nhận giờ vào ca.');
             }
-            $this->timekeepingModel->updateCheckOut(
-                $recordId,
-                $now,
-                $location['lat'],
-                $location['lng'],
-                $location['accuracy']
-            );
-            $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
-        } else {
-            $this->timekeepingModel->createForShift(
-                $employeeId,
-                $now,
-                null,
-                $shift['IdCaLamViec'],
-                $note,
-                $employeeId,
-                $location['lat'],
-                $location['lng'],
-                $location['accuracy']
-            );
-            $this->setFlash('success', 'Đã ghi nhận giờ vào ca.');
-        }
         } catch (Throwable $exception) {
             Logger::error('Không thể tự chấm công: ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể ghi nhận chấm công. Vui lòng thử lại.');
@@ -232,6 +237,47 @@ class Self_timekeepingController extends Controller
             'lng' => $lng,
             'accuracy' => $acc,
         ];
+    }
+
+    private function adjustCheckInForShift(string $timestamp, array $shift): string
+    {
+        return $this->adjustTimestampToShift($timestamp, $shift, true);
+    }
+
+    private function adjustCheckOutForShift(string $timestamp, array $shift): string
+    {
+        return $this->adjustTimestampToShift($timestamp, $shift, false);
+    }
+
+    private function adjustTimestampToShift(string $timestamp, array $shift, bool $isCheckIn): string
+    {
+        $start = $shift['ThoiGianBatDau'] ?? null;
+        $end = $shift['ThoiGianKetThuc'] ?? null;
+        if (!$start || !$end) {
+            return $timestamp;
+        }
+
+        $targetTs = strtotime($timestamp);
+        $startTs = strtotime($start);
+        $endTs = strtotime($end);
+        if ($targetTs === false || $startTs === false || $endTs === false) {
+            return $timestamp;
+        }
+
+        if ($isCheckIn && $targetTs < $startTs) {
+            return date('Y-m-d H:i:s', $startTs);
+        }
+        if (!$isCheckIn && $targetTs > $endTs) {
+            return date('Y-m-d H:i:s', $endTs);
+        }
+        if ($targetTs < $startTs) {
+            return date('Y-m-d H:i:s', $startTs);
+        }
+        if ($targetTs > $endTs) {
+            return date('Y-m-d H:i:s', $endTs);
+        }
+
+        return date('Y-m-d H:i:s', $targetTs);
     }
 
     private function loadNotifications(?string $employeeId, ?string $roleId): array
