@@ -536,13 +536,18 @@ class Warehouse_sheetController extends Controller
 
     private function prepareQuickEntryPayload(array $input, array $document, ?array $warehouse = null, bool $isConfirmed = false): ?array
     {
+        $documentType = $document['LoaiPhieu'] ?? '';
+        $warehouseType = $this->resolveWarehouseTypeKey($warehouse['TenLoaiKho'] ?? ($input['WarehouseType'] ?? 'material'));
+
+        if ($this->isOutboundDocument($documentType)) {
+            return $this->prepareOutboundQuickEntryPayload($input, $document, $warehouseType, $warehouse, $isConfirmed);
+        }
+
         $payload = $this->prepareQuickEntryPayloadLegacy($input, $document, $isConfirmed);
 
         if ($payload === null) {
             return null;
         }
-
-        $warehouseType = $this->resolveWarehouseTypeKey($warehouse['TenLoaiKho'] ?? ($input['WarehouseType'] ?? 'material'));
 
         if (!$this->validateProductCompatibility($payload['lot']['IdSanPham'] ?? null, $warehouseType)) {
             return null;
@@ -603,6 +608,59 @@ class Warehouse_sheetController extends Controller
                 'IdPhieu' => $document['IdPhieu'],
                 'IdLo' => $lotId,
                 'is_new_lot' => true,
+            ],
+        ];
+    }
+
+    private function prepareOutboundQuickEntryPayload(array $input, array $document, string $warehouseType, ?array $warehouse = null, bool $isConfirmed = false): ?array
+    {
+        $warehouseId = $document['IdKho'] ?? null;
+        if (!$warehouseId) {
+            return null;
+        }
+
+        $lotId = trim((string) ($input['Quick_IdLo_Existing'] ?? ''));
+        $quantity = (int) ($input['Quick_SoLuong'] ?? 0);
+        $received = (int) ($input['Quick_ThucNhan'] ?? 0);
+
+        if ($lotId === '' || $quantity <= 0) {
+            return null;
+        }
+
+        if ($received <= 0) {
+            $received = $quantity;
+        }
+
+        $lotData = $this->lotModel->findWithWarehouse($lotId);
+        if (!$lotData) {
+            throw new RuntimeException('Không tìm thấy lô để xuất kho.');
+        }
+
+        if (($lotData['IdKho'] ?? null) !== $warehouseId) {
+            throw new RuntimeException('Lô đã chọn không thuộc kho lập phiếu.');
+        }
+
+        if ($received > (int) ($lotData['SoLuong'] ?? 0)) {
+            throw new RuntimeException('Số lượng xuất vượt quá tồn của lô ' . $lotId . '.');
+        }
+
+        if (!$this->validateProductCompatibility($lotData['IdSanPham'] ?? null, $warehouseType)) {
+            throw new RuntimeException('Lô không phù hợp với loại kho đã chọn.');
+        }
+
+        $detailId = $this->generateDetailId($lotId);
+        $unit = $input['Quick_DonViTinh'] ?? ($lotData['DonVi'] ?? '');
+
+        return [
+            'lot' => $lotData,
+            'detail' => [
+                'IdTTCTPhieu' => $detailId,
+                'DonViTinh' => $unit !== '' ? $unit : null,
+                'SoLuong' => $quantity,
+                'ThucNhan' => $received,
+                'IdPhieu' => $document['IdPhieu'],
+                'IdLo' => $lotId,
+                'is_new_lot' => false,
             ],
         ];
     }
@@ -858,20 +916,23 @@ class Warehouse_sheetController extends Controller
     {
         $quickEntryPayload = $this->prepareQuickEntryPayload($_POST, $document, $warehouse, $isConfirmed);
 
+        $isOutbound = $this->isOutboundDocument($documentType);
+
         if ($quickEntryPayload === null) {
-            $this->setFlash('danger', 'Vui lòng nhập đầy đủ thông tin lô/nguyên liệu trước khi xác nhận.');
+            $message = $isOutbound
+                ? 'Vui lòng chọn lô cần xuất và số lượng hợp lệ trước khi lưu phiếu.'
+                : 'Vui lòng nhập đầy đủ thông tin lô/nguyên liệu trước khi xác nhận.';
+            $this->setFlash('danger', $message);
             $this->redirect($redirectTo);
             return;
         }
 
-        if ($this->isOutboundDocument($documentType)) {
-            $this->setFlash('danger', 'Nhập nhanh chỉ áp dụng cho phiếu nhập. Vui lòng chọn lô để xuất kho.');
-            $this->redirect($redirectTo);
-            return;
+        if ($isOutbound) {
+            $detailPayloads[] = $quickEntryPayload['detail'];
+        } else {
+            $detailPayloads[] = $quickEntryPayload['detail'];
+            $newLots[] = $quickEntryPayload['lot'];
         }
-
-        $detailPayloads[] = $quickEntryPayload['detail'];
-        $newLots[] = $quickEntryPayload['lot'];
     }
 
     private function findWarehouse(string $warehouseId): ?array

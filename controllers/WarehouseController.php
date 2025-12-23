@@ -9,6 +9,10 @@ class WarehouseController extends Controller
     private Employee $employeeModel;
     private Product $productModel;
     private ?array $visibleWarehouseIds = null;
+    private const WAREHOUSE_TYPE_KEYWORDS = [
+        'finished' => ['thành phẩm', 'thanh pham'],
+        'quality' => ['lỗi', 'xu ly', 'xử lý'],
+    ];
 
     public function __construct()
     {
@@ -32,6 +36,7 @@ class WarehouseController extends Controller
         $employees = $this->employeeModel->getActiveEmployees();
         $entryForms = $this->buildWarehouseEntryForms($warehouseGroups);
         $products = $this->getProductOptionsByType();
+        $lotOptionsByType = $this->getLotOptionsByType($warehouses);
         $this->render('warehouse/index', [
             'title' => 'Kho & tồn kho',
             'warehouses' => $warehouses,
@@ -42,6 +47,7 @@ class WarehouseController extends Controller
             'outboundDocumentTypes' => $this->getOutboundDocumentTypes(),
             'employees' => $employees,
             'productOptionsByType' => $products,
+            'lotOptionsByType' => $lotOptionsByType,
         ]);
     }
 
@@ -425,6 +431,59 @@ class WarehouseController extends Controller
             'quality' => 'LOXL',
             default => 'LONL',
         };
+    }
+
+    private function getLotOptionsByType(array $warehouses): array
+    {
+        $visibleIds = $this->getVisibleWarehouseIds();
+        $lots = $this->lotModel->getSelectableLots(400, $visibleIds);
+        $warehouseTypeMap = [];
+        foreach ($warehouses as $warehouse) {
+            $typeKey = $this->resolveWarehouseTypeKey($warehouse['TenLoaiKho'] ?? '');
+            $warehouseTypeMap[$warehouse['IdKho'] ?? ''] = $typeKey;
+        }
+
+        $grouped = [
+            'material' => [],
+            'finished' => [],
+            'quality' => [],
+        ];
+
+        foreach ($lots as $lot) {
+            $warehouseId = $lot['IdKho'] ?? '';
+            $typeKey = $warehouseTypeMap[$warehouseId] ?? 'material';
+            $grouped[$typeKey][] = [
+                'id' => $lot['IdLo'] ?? '',
+                'name' => $lot['TenLo'] ?? ($lot['IdLo'] ?? ''),
+                'quantity' => (int) ($lot['SoLuong'] ?? 0),
+                'warehouse_id' => $warehouseId,
+                'warehouse_name' => $lot['TenKho'] ?? '',
+                'product_id' => $lot['IdSanPham'] ?? '',
+                'product_name' => $lot['TenSanPham'] ?? '',
+                'unit' => $lot['DonVi'] ?? '',
+            ];
+        }
+
+        return $grouped;
+    }
+
+    private function resolveWarehouseTypeKey(string $type): string
+    {
+        $normalized = $this->normalizeText($type);
+
+        foreach (self::WAREHOUSE_TYPE_KEYWORDS['finished'] as $keyword) {
+            if (str_contains($normalized, $keyword)) {
+                return 'finished';
+            }
+        }
+
+        foreach (self::WAREHOUSE_TYPE_KEYWORDS['quality'] as $keyword) {
+            if (str_contains($normalized, $keyword)) {
+                return 'quality';
+            }
+        }
+
+        return 'material';
     }
 
     private function documentTypeStartsWith(?string $type, string $needle): bool
