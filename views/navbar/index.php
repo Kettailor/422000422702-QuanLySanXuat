@@ -39,15 +39,12 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
 ?>
 <nav class="sidebar">
     <div class="logo">
-        <span class="bi bi-grid-1x2-fill"></span>
-        <span>SV5TOT Keyboard Ops</span>
+        <a href="?controller=dashboard&action=index" class="logo-link">
+            <span class="logo-mark">SV5TOT</span>
+            <span class="logo-subtitle">Production Hub</span>
+        </a>
     </div>
     <div class="nav flex-column d-none d-lg-flex">
-        <div class="text-uppercase text-muted small px-3 mt-3">Tổng quan</div>
-        <a class="nav-link <?= $currentController === 'dashboard' ? 'active' : '' ?>" href="?controller=dashboard&action=index">
-            <i class="bi bi-speedometer2"></i> Dashboard
-        </a>
-
         <div class="text-uppercase text-muted small px-3 mt-3">Cá nhân</div>
         <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
             <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
@@ -68,6 +65,9 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
                 <i class="bi bi-clipboard-check"></i> Kế hoạch được giao
             </a>
         <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'setting' ? 'active' : '' ?>" href="?controller=setting&action=index">
+            <i class="bi bi-gear"></i> Cài đặt
+        </a>
         <?php if ($showNotifications): ?>
             <a class="nav-link <?= $currentController === 'notifications' ? 'active' : '' ?>" href="?controller=notifications&action=index">
                 <i class="bi bi-bell"></i> Thông báo
@@ -186,15 +186,9 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
             <a class="nav-link" href="?controller=admin&action=ticket">
                 <i class="bi bi-ticket-detailed"></i> Yêu cầu hỗ trợ
             </a>
-            <a class="nav-link" href="?controller=setting&action=index">
-                <i class="bi bi-gear"></i> Cài đặt
-            </a>
         <?php endif; ?>
     </div>
     <div class="nav flex-column d-lg-none">
-        <a class="nav-link <?= $currentController === 'dashboard' ? 'active' : '' ?>" href="?controller=dashboard&action=index">
-            <i class="bi bi-speedometer2"></i> Dashboard
-        </a>
         <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
             <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
         </a>
@@ -214,6 +208,9 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
                 <i class="bi bi-clipboard-check"></i> Kế hoạch được giao
             </a>
         <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'setting' ? 'active' : '' ?>" href="?controller=setting&action=index">
+            <i class="bi bi-gear"></i> Cài đặt
+        </a>
         <?php if ($showSupport): ?>
             <a class="nav-link <?= $currentController === 'support' ? 'active' : '' ?>" href="?controller=support&action=index">
                 <i class="bi bi-life-preserver"></i> Yêu cầu hỗ trợ
@@ -252,7 +249,7 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
     <header class="topbar">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-outline-primary d-lg-none" data-toggle="sidebar"><i class="bi bi-list"></i></button>
-            <div class="fw-semibold text-secondary">SV5TOT Keyboard Manufacturing Hub</div>
+            <a href="?controller=dashboard&action=index" class="topbar-brand">SV5TOT Manufacturing Hub</a>
         </div>
         <div class="d-flex align-items-center gap-3">
             <?php if ($isImpersonating): ?>
