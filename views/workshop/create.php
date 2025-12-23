@@ -169,10 +169,18 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('#production-list .assignment-item').forEach((item) => {
             const employeeType = item.getAttribute('data-employee-type');
             const shouldShow = useQuality ? employeeType === 'quality' : employeeType === 'production';
+            const checkbox = item.querySelector('input[type="checkbox"]');
             if (shouldShow) {
                 item.classList.remove('d-none');
+                if (checkbox) {
+                    checkbox.disabled = false;
+                }
             } else {
                 item.classList.add('d-none');
+                if (checkbox) {
+                    checkbox.checked = false;
+                    checkbox.disabled = true;
+                }
             }
         });
     };
