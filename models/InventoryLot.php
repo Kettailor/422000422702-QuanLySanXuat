@@ -55,8 +55,32 @@ class InventoryLot extends BaseModel
         return $stmt->fetchAll();
     }
 
-    public function getSelectableLots(int $limit = 300): array
+    public function getSelectableLots(int $limit = 300, ?array $warehouseIds = null): array
     {
+        $conditions = [];
+        $params = [];
+
+        if ($warehouseIds !== null) {
+            $normalized = array_values(array_filter($warehouseIds, static function ($value): bool {
+                return $value !== null && $value !== '';
+            }));
+
+            if (empty($normalized)) {
+                return [];
+            }
+
+            $placeholders = [];
+            foreach ($normalized as $index => $warehouseId) {
+                $placeholder = ':warehouse' . $index;
+                $placeholders[] = $placeholder;
+                $params[$placeholder] = $warehouseId;
+            }
+
+            $conditions[] = 'LO.IdKho IN (' . implode(', ', $placeholders) . ')';
+        }
+
+        $whereClause = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
         $sql = 'SELECT
                     LO.IdLo,
                     LO.TenLo,
@@ -70,10 +94,14 @@ class InventoryLot extends BaseModel
                 FROM LO
                 JOIN KHO ON KHO.IdKho = LO.IdKho
                 LEFT JOIN SAN_PHAM ON SAN_PHAM.IdSanPham = LO.IdSanPham
+                ' . $whereClause . '
                 ORDER BY LO.NgayTao DESC, LO.IdLo DESC
                 LIMIT :limit';
 
         $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
 

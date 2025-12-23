@@ -1,5 +1,7 @@
 <?php
 
+use Dompdf\Dompdf;
+
 class Warehouse_sheetController extends Controller
 {
     private InventorySheet $sheetModel;
@@ -8,6 +10,7 @@ class Warehouse_sheetController extends Controller
     private Product $productModel;
     private Warehouse $warehouseModel;
     private array $warehouseCache = [];
+    private ?array $accessibleWarehouseIds = null;
 
     private const DOCUMENT_TYPES = [
         'inbound' => [
@@ -46,8 +49,13 @@ class Warehouse_sheetController extends Controller
             $filter = 'all';
         }
 
-        $documents = $this->sheetModel->getDocuments($filter === 'all' ? null : $filter);
-        $summary = $this->sheetModel->getDocumentSummary();
+        $visibleWarehouses = $this->getAccessibleWarehouseIds();
+        $documents = $this->sheetModel->getDocuments($filter === 'all' ? null : $filter, 200, $visibleWarehouses);
+        $documents = array_map(function (array $document): array {
+            $document['classification'] = $this->classifyDocumentType($document['LoaiPhieu'] ?? '');
+            return $document;
+        }, $documents);
+        $summary = $this->sheetModel->getDocumentSummary($visibleWarehouses);
 
         $this->render('warehouse_sheet/index', [
             'title' => 'Phiếu kho',
@@ -63,11 +71,18 @@ class Warehouse_sheetController extends Controller
         $options = $this->sheetModel->getFormOptions();
         $defaultId = $this->sheetModel->generateDocumentId();
         $products = $this->productModel->all(300);
-        $lots = $this->lotModel->getSelectableLots();
+        $warehouses = $this->filterWarehousesByAccess($options['warehouses']);
+
+        if ($warehouses === []) {
+            $this->setFlash('danger', 'Bạn không có kho nào được phân quyền để lập phiếu.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+        }
+
+        $lots = $this->lotModel->getSelectableLots(300, $this->getAccessibleWarehouseIds());
 
         $this->render('warehouse_sheet/create', [
             'title' => 'Tạo phiếu kho mới',
-            'warehouses' => $options['warehouses'],
+            'warehouses' => $warehouses,
             'employees' => $options['employees'],
             'types' => $options['types'],
             'products' => $products,
@@ -103,7 +118,7 @@ class Warehouse_sheetController extends Controller
             'TongTien' => $_POST['TongTien'] ?? 0,
             'LoaiPhieu' => $documentType,
             'IdKho' => $_POST['IdKho'] ?? null,
-            'NHAN_VIENIdNhanVien' => $_POST['NguoiLap'] ?? null,
+            'NHAN_VIENIdNhanVien' => $this->resolveCreator($_POST['NguoiLap'] ?? null),
             'NHAN_VIENIdNhanVien2' => $_POST['NguoiXacNhan'] ?? null,
             'LoaiDoiTac' => $_POST['LoaiDoiTac'] ?? null,
             'DoiTac' => $_POST['DoiTac'] ?? null,
@@ -123,9 +138,21 @@ class Warehouse_sheetController extends Controller
             return;
         }
 
+        if (!$this->isWarehouseAccessible($data['IdKho'])) {
+            $this->setFlash('danger', 'Bạn không có quyền lập phiếu cho kho đã chọn.');
+            $this->redirect($redirectTo);
+            return;
+        }
+
         $warehouse = $this->findWarehouse($data['IdKho']);
         if (!$warehouse || !$this->validateWarehouseCompatibility($data['IdKho'], $documentType)) {
             $this->setFlash('danger', 'Loại phiếu không phù hợp với loại kho. Vui lòng chọn đúng loại kho để nhập/xuất.');
+            $this->redirect($redirectTo);
+            return;
+        }
+
+        if (!$this->validateApprovalSeparation($data['NHAN_VIENIdNhanVien'], $data['NHAN_VIENIdNhanVien2'])) {
+            $this->setFlash('danger', 'Người lập và người xác nhận phải là hai tài khoản khác nhau.');
             $this->redirect($redirectTo);
             return;
         }
@@ -211,12 +238,17 @@ class Warehouse_sheetController extends Controller
             $this->redirect('?controller=warehouse_sheet&action=index');
         }
 
+        if (!$this->isWarehouseAccessible($document['IdKho'] ?? null)) {
+            $this->setFlash('danger', 'Bạn không có quyền sửa phiếu thuộc kho này.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+        }
+
         $options = $this->sheetModel->getFormOptions();
 
         $this->render('warehouse_sheet/edit', [
             'title' => 'Cập nhật phiếu kho',
             'document' => $document,
-            'warehouses' => $options['warehouses'],
+            'warehouses' => $this->filterWarehousesByAccess($options['warehouses']),
             'employees' => $options['employees'],
             'types' => $options['types'],
         ]);
@@ -254,6 +286,16 @@ class Warehouse_sheetController extends Controller
             $this->redirect('?controller=warehouse_sheet&action=edit&id=' . urlencode($id));
         }
 
+        if (!$this->isWarehouseAccessible($data['IdKho'])) {
+            $this->setFlash('danger', 'Bạn không có quyền cập nhật phiếu thuộc kho này.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+        }
+
+        if (!$this->validateApprovalSeparation($data['NHAN_VIENIdNhanVien'], $data['NHAN_VIENIdNhanVien2'])) {
+            $this->setFlash('danger', 'Người lập và người xác nhận phải khác nhau.');
+            $this->redirect('?controller=warehouse_sheet&action=edit&id=' . urlencode($id));
+        }
+
         try {
             $this->sheetModel->updateDocument($id, $data);
             $this->setFlash('success', 'Đã cập nhật phiếu kho.');
@@ -281,6 +323,11 @@ class Warehouse_sheetController extends Controller
             $this->setFlash('warning', 'Phiếu kho đã không còn tồn tại.');
             $this->redirect('?controller=warehouse_sheet&action=index');
             return;
+        }
+
+        if (!$this->isWarehouseAccessible($document['IdKho'] ?? null)) {
+            $this->setFlash('danger', 'Bạn không có quyền xóa phiếu thuộc kho này.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
         }
 
         $details = $this->sheetDetailModel->getDetailsByDocument($id);
@@ -324,6 +371,11 @@ class Warehouse_sheetController extends Controller
             $this->redirect('?controller=warehouse_sheet&action=index');
         }
 
+        if (!$this->isWarehouseAccessible($document['IdKho'] ?? null)) {
+            $this->setFlash('danger', 'Bạn không có quyền xem phiếu thuộc kho này.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+        }
+
         $details = $this->sheetDetailModel->getDetailsWithMeta($id);
         $warehouse = $document ? $this->warehouseModel->findWithSupervisor($document['IdKho']) : null;
         $totalQuantity = 0;
@@ -332,6 +384,7 @@ class Warehouse_sheetController extends Controller
         }
         $document['TongSoLuong'] = $totalQuantity;
         $document['TongMatHang'] = count($details);
+        $document['classification'] = $this->classifyDocumentType($document['LoaiPhieu'] ?? '');
 
         $this->render('warehouse_sheet/read', [
             'title' => 'Chi tiết phiếu kho',
@@ -339,6 +392,53 @@ class Warehouse_sheetController extends Controller
             'details' => $details,
             'warehouse' => $warehouse,
         ]);
+    }
+
+    public function export_pdf(): void
+    {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            $this->setFlash('danger', 'Thiếu thông tin phiếu cần xuất PDF.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+        }
+
+        $document = $this->sheetModel->findDocument($id);
+        if (!$document) {
+            $this->setFlash('warning', 'Không tìm thấy phiếu kho.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+        }
+
+        if (!$this->isWarehouseAccessible($document['IdKho'] ?? null)) {
+            $this->setFlash('danger', 'Bạn không có quyền xuất PDF cho phiếu này.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+        }
+
+        $details = $this->sheetDetailModel->getDetailsWithMeta($id);
+        $warehouse = $document ? $this->warehouseModel->findWithSupervisor($document['IdKho']) : null;
+        $totalQuantity = 0;
+        foreach ($details as $detail) {
+            $totalQuantity += (int) ($detail['ThucNhan'] ?? $detail['SoLuong'] ?? 0);
+        }
+        $document['TongSoLuong'] = $totalQuantity;
+        $document['TongMatHang'] = count($details);
+        $classification = $this->classifyDocumentType($document['LoaiPhieu'] ?? '');
+
+        ob_start();
+        $this->render_pdf('warehouse_sheet/pdf', [
+            'title' => 'Phiếu kho',
+            'document' => $document,
+            'details' => $details,
+            'warehouse' => $warehouse,
+            'classification' => $classification,
+        ]);
+        $html = ob_get_clean();
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $dompdf->stream(($document['IdPhieu'] ?? 'phieu-kho') . '.pdf', ['Attachment' => 0]);
+        exit;
     }
 
     private function validateRequired(array $data): bool
@@ -723,6 +823,10 @@ class Warehouse_sheetController extends Controller
         }
 
         $warehouse = $this->warehouseModel->find($warehouseId);
+        if ($warehouse && !$this->isWarehouseAccessible($warehouseId)) {
+            return null;
+        }
+
         $this->warehouseCache[$warehouseId] = $warehouse;
 
         return $warehouse;
@@ -793,5 +897,100 @@ class Warehouse_sheetController extends Controller
                 }
             }
         }
+    }
+
+    private function getAccessibleWarehouseIds(): ?array
+    {
+        if ($this->accessibleWarehouseIds !== null) {
+            return $this->accessibleWarehouseIds;
+        }
+
+        $user = $this->currentUser();
+        if (!$user) {
+            return [];
+        }
+
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+            $this->accessibleWarehouseIds = null;
+            return $this->accessibleWarehouseIds;
+        }
+
+        if ($role === 'VT_NHANVIEN_KHO') {
+            $employeeId = $user['IdNhanVien'] ?? null;
+            $this->accessibleWarehouseIds = $employeeId ? $this->warehouseModel->getWarehouseIdsBySupervisor($employeeId) : [];
+            return $this->accessibleWarehouseIds;
+        }
+
+        $this->accessibleWarehouseIds = null;
+        return $this->accessibleWarehouseIds;
+    }
+
+    private function isWarehouseAccessible(?string $warehouseId): bool
+    {
+        if ($warehouseId === null || $warehouseId === '') {
+            return false;
+        }
+
+        $accessible = $this->getAccessibleWarehouseIds();
+
+        return $accessible === null || in_array($warehouseId, $accessible, true);
+    }
+
+    private function filterWarehousesByAccess(array $warehouses): array
+    {
+        $accessible = $this->getAccessibleWarehouseIds();
+        if ($accessible === null) {
+            return $warehouses;
+        }
+
+        return array_values(array_filter($warehouses, function (array $warehouse) use ($accessible): bool {
+            return in_array($warehouse['IdKho'] ?? null, $accessible, true);
+        }));
+    }
+
+    private function classifyDocumentType(string $documentType): array
+    {
+        $normalized = $this->normalizeText($documentType);
+        $isInbound = str_contains($normalized, 'nhập');
+
+        $category = 'Khác';
+        if (str_contains($normalized, 'nguyên liệu') || str_contains($normalized, 'nguyen lieu')) {
+            $category = 'Nguyên liệu';
+        } elseif (str_contains($normalized, 'thành phẩm') || str_contains($normalized, 'thanh pham')) {
+            $category = 'Thành phẩm';
+        } elseif (str_contains($normalized, 'xử lý') || str_contains($normalized, 'lỗi') || str_contains($normalized, 'loi')) {
+            $category = 'Hàng lỗi';
+        }
+
+        return [
+            'direction' => $isInbound ? 'inbound' : 'outbound',
+            'direction_label' => $isInbound ? 'Phiếu nhập' : 'Phiếu xuất',
+            'category' => $category,
+            'title' => strtoupper($isInbound ? 'PHIẾU NHẬP' : 'PHIẾU XUẤT') . ' ' . strtoupper($category),
+            'badge_class' => $isInbound ? 'badge-soft-success' : 'badge-soft-danger',
+        ];
+    }
+
+    private function resolveCreator(?string $requestedCreator): ?string
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $employeeId = $user['IdNhanVien'] ?? null;
+
+        if ($role === 'VT_NHANVIEN_KHO' && $employeeId) {
+            return $employeeId;
+        }
+
+        return $requestedCreator ?: $employeeId;
+    }
+
+    private function validateApprovalSeparation(?string $creatorId, ?string $approverId): bool
+    {
+        if (!$creatorId || !$approverId) {
+            return true;
+        }
+
+        return $creatorId !== $approverId;
     }
 }
