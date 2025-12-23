@@ -43,6 +43,64 @@ class NotificationStore
         return is_array($decoded) ? $decoded : [];
     }
 
+    public function markRead(string $notificationId, ?string $recipient = null): void
+    {
+        $entries = $this->readAll();
+        $updated = false;
+
+        foreach ($entries as &$entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            if (($entry['id'] ?? null) !== $notificationId) {
+                continue;
+            }
+            if ($recipient !== null) {
+                $entryRecipient = $entry['recipient'] ?? null;
+                if ($entryRecipient !== null && $entryRecipient !== $recipient) {
+                    continue;
+                }
+            }
+
+            $entry['read_at'] = date(DATE_ATOM);
+            $entry['is_read'] = true;
+            $updated = true;
+            break;
+        }
+        unset($entry);
+
+        if ($updated) {
+            $this->write($entries);
+        }
+    }
+
+    public function markAllRead(?string $recipient = null): void
+    {
+        $entries = $this->readAll();
+        $updated = false;
+
+        foreach ($entries as &$entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $entryRecipient = $entry['recipient'] ?? null;
+            if ($recipient !== null && $entryRecipient !== null && $entryRecipient !== $recipient) {
+                continue;
+            }
+            if (!empty($entry['is_read']) || !empty($entry['read_at'])) {
+                continue;
+            }
+            $entry['read_at'] = date(DATE_ATOM);
+            $entry['is_read'] = true;
+            $updated = true;
+        }
+        unset($entry);
+
+        if ($updated) {
+            $this->write($entries);
+        }
+    }
+
     private function ensureStorage(): void
     {
         $directory = dirname($this->filePath);
@@ -76,4 +134,3 @@ class NotificationStore
         return $entry;
     }
 }
-

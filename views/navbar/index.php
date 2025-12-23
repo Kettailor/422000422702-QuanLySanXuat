@@ -205,7 +205,13 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                                     <?php if ($message): ?>
                                         <div class="text-muted small mt-1"><?= htmlspecialchars($message) ?></div>
                                     <?php endif; ?>
-                                    <?php if ($link): ?>
+                                    <?php if (!empty($notification['id'])): ?>
+                                        <?php
+                                        $redirect = $link ?: '?controller=notifications&action=index';
+                                        $readLink = '?controller=notifications&action=read&id=' . urlencode($notification['id']) . '&redirect=' . urlencode($redirect);
+                                        ?>
+                                        <a href="<?= htmlspecialchars($readLink) ?>" class="stretched-link"></a>
+                                    <?php elseif ($link): ?>
                                         <a href="<?= htmlspecialchars($link) ?>" class="stretched-link"></a>
                                     <?php endif; ?>
                                 </div>
