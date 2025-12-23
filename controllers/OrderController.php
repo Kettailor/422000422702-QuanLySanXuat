@@ -9,6 +9,7 @@ class OrderController extends Controller
     private ProductConfiguration $configurationModel;
     private ProductBom $bomModel;
     private SystemActivity $activityModel;
+    private Employee $employeeModel;
 
     private array $orderStatuses = ['Chưa có kế hoạch', 'Đang xử lý', 'Hoàn thành', 'Chờ vận chuyển', 'Đã hoàn thành'];
 
@@ -22,6 +23,7 @@ class OrderController extends Controller
         $this->configurationModel = new ProductConfiguration();
         $this->bomModel = new ProductBom();
         $this->activityModel = new SystemActivity();
+        $this->employeeModel = new Employee();
     }
 
     public function index(): void
@@ -304,6 +306,11 @@ class OrderController extends Controller
         $customer = $order ? $this->customerModel->find($order['IdKhachHang']) : null;
         $orderDetails = $this->orderDetailModel->getByOrder($id);
         $detailedItems = $this->prepareDetailsForDisplay($orderDetails);
+        $creator = null;
+        if (!empty($order['IdNguoiTao'])) {
+            $creator = $this->employeeModel->find($order['IdNguoiTao']);
+        }
+        $activities = $this->activityModel->findByOrderId($id, 20);
 
         $this->render('order/read', [
             'title' => 'Chi tiết đơn hàng',
@@ -311,6 +318,8 @@ class OrderController extends Controller
             'customer' => $customer,
             'orderDetails' => $detailedItems,
             'orderStatuses' => $this->orderStatuses,
+            'creator' => $creator,
+            'activities' => $activities,
         ]);
     }
 

@@ -9,6 +9,10 @@
 <?php if (!$order): ?>
     <div class="alert alert-warning">Không tìm thấy đơn hàng.</div>
 <?php else: ?>
+    <?php
+    $creator = $creator ?? null;
+    $activities = $activities ?? [];
+    ?>
     <div class="row g-4">
         <div class="col-lg-6">
             <div class="card p-4 h-100">
@@ -24,6 +28,15 @@
                     <dd class="col-sm-7 fw-semibold text-primary"><?= number_format((float) ($order['TongTien'] ?? 0), 0, ',', '.') ?> đ</dd>
                     <dt class="col-sm-5">Email liên hệ</dt>
                     <dd class="col-sm-7"><?= htmlspecialchars($order['EmailLienHe'] ?? '---') ?></dd>
+                    <dt class="col-sm-5">Người tạo</dt>
+                    <dd class="col-sm-7">
+                        <?php if ($creator): ?>
+                            <?= htmlspecialchars($creator['HoTen'] ?? $order['IdNguoiTao'] ?? '---') ?>
+                            <span class="text-muted small">(<?= htmlspecialchars($order['IdNguoiTao'] ?? '') ?>)</span>
+                        <?php else: ?>
+                            <?= htmlspecialchars($order['IdNguoiTao'] ?? '---') ?>
+                        <?php endif; ?>
+                    </dd>
                 </dl>
                 <?php if (!empty($order['YeuCau'])): ?>
                     <div class="mt-3">
@@ -130,6 +143,34 @@
             </div>
         <?php else: ?>
             <p class="text-muted mb-0">Đơn hàng chưa có sản phẩm nào.</p>
+        <?php endif; ?>
+    </div>
+
+    <div class="card p-4 mt-4">
+        <h5 class="fw-semibold mb-3">Nhật ký chỉnh sửa</h5>
+        <?php if (!empty($activities)): ?>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Người thực hiện</th>
+                        <th>Nội dung</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($activities as $activity): ?>
+                        <tr>
+                            <td><?= !empty($activity['ThoiGian']) ? date('d/m/Y H:i', strtotime($activity['ThoiGian'])) : '---' ?></td>
+                            <td><?= htmlspecialchars($activity['TenNguoiDung'] ?? $activity['IdNguoiDung'] ?? '---') ?></td>
+                            <td><?= nl2br(htmlspecialchars($activity['HanhDong'] ?? '---')) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <p class="text-muted mb-0">Chưa có nhật ký chỉnh sửa.</p>
         <?php endif; ?>
     </div>
 <?php endif; ?>
