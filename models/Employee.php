@@ -14,6 +14,96 @@ class Employee extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getActiveEmployeesByWorkshop(string $workshopId): array
+    {
+        $sql = 'SELECT DISTINCT nv.*
+                FROM nhan_vien nv
+                LEFT JOIN xuong_nhan_vien xnv ON xnv.IdNhanVien = nv.IdNhanVien
+                WHERE nv.TrangThai = :status
+                  AND (nv.idXuong = :workshop OR xnv.IdXuong = :workshop)
+                ORDER BY nv.HoTen';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':status', 'Đang làm việc');
+        $stmt->bindValue(':workshop', $workshopId);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    public function getActiveEmployeesByWorkshops(array $workshopIds): array
+    {
+        $workshopIds = array_values(array_filter($workshopIds));
+        if (empty($workshopIds)) {
+            return [];
+        }
+
+        $placeholders = [];
+        foreach ($workshopIds as $index => $workshopId) {
+            $placeholders[':workshop' . $index] = $workshopId;
+        }
+
+        $sql = 'SELECT DISTINCT nv.*
+                FROM nhan_vien nv
+                LEFT JOIN xuong_nhan_vien xnv ON xnv.IdNhanVien = nv.IdNhanVien
+                WHERE nv.TrangThai = :status
+                  AND (nv.idXuong IN (' . implode(', ', array_keys($placeholders)) . ')
+                       OR xnv.IdXuong IN (' . implode(', ', array_keys($placeholders)) . '))
+                ORDER BY nv.HoTen';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':status', 'Đang làm việc');
+        foreach ($placeholders as $placeholder => $value) {
+            $stmt->bindValue($placeholder, $value);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    public function getWorkshopIdsForEmployee(?string $employeeId): array
+    {
+        if ($employeeId === null || $employeeId === '') {
+            return [];
+        }
+
+        $sql = 'SELECT DISTINCT IdXuong FROM (
+                    SELECT idXuong AS IdXuong FROM nhan_vien WHERE IdNhanVien = :employee
+                    UNION ALL
+                    SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employee
+                ) AS workshop_ids
+                WHERE IdXuong IS NOT NULL AND IdXuong <> ""';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employee', $employeeId);
+        $stmt->execute();
+
+        return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
+    }
+
+    public function isEmployeeInWorkshop(?string $employeeId, ?string $workshopId): bool
+    {
+        if ($employeeId === null || $employeeId === '' || $workshopId === null || $workshopId === '') {
+            return false;
+        }
+
+        $sql = 'SELECT 1
+                FROM (
+                    SELECT idXuong AS IdXuong FROM nhan_vien WHERE IdNhanVien = :employee
+                    UNION ALL
+                    SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employee
+                ) AS workshop_ids
+                WHERE IdXuong = :workshop
+                LIMIT 1';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employee', $employeeId);
+        $stmt->bindValue(':workshop', $workshopId);
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
     public function getBoardManagers(): array
     {
         $sql = 'SELECT *

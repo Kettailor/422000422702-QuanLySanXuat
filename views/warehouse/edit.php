@@ -3,6 +3,16 @@ $workshops = $workshops ?? [];
 $managers = $managers ?? [];
 $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
 $types = $types ?? [];
+$employees = $employees ?? [];
+
+$currentManagerId = $warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? null;
+$currentManager = null;
+foreach ($employees as $employee) {
+    if (($employee['IdNhanVien'] ?? null) === $currentManagerId) {
+        $currentManager = $employee;
+        break;
+    }
+}
 ?>
 
 <style>
@@ -218,14 +228,17 @@ $types = $types ?? [];
 
                     <div class="mb-3">
                         <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
-                        <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required data-live-search="true">
-                            <?php foreach ($managers as $manager): ?>
-                                <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>" <?= $manager['IdNhanVien'] === ($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '') ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($manager['HoTen']) ?><?= !empty($manager['ChucVu']) ? ' · ' . htmlspecialchars($manager['ChucVu']) : '' ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <div class="form-text text-muted">Nhập để tìm nhanh theo họ tên/chức vụ.</div>
+                        <div class="form-control-plaintext">
+                            <?php if ($currentManager): ?>
+                                <?= htmlspecialchars($currentManager['HoTen']) ?><?= !empty($currentManager['ChucVu']) ? ' · ' . htmlspecialchars($currentManager['ChucVu']) : '' ?>
+                            <?php elseif (!empty($warehouse['NHAN_VIEN_KHO_IdNhanVien'])): ?>
+                                <?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien']) ?>
+                            <?php else: ?>
+                                <span class="text-muted">Chưa phân công</span>
+                            <?php endif; ?>
+                        </div>
+                        <input type="hidden" name="NHAN_VIEN_KHO_IdNhanVien" value="<?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '') ?>">
+                        <div class="form-text text-muted">Chỉ hiển thị nhân viên đã phân công. Liên hệ quản lý để thay đổi.</div>
                     </div>
 
                     <div class="summary-card mt-3">

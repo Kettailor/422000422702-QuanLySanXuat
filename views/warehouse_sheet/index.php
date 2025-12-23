@@ -125,14 +125,13 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                 <th>Người xác nhận</th>
                 <th>Mặt hàng</th>
                 <th>Số lượng</th>
-                <th>Thực nhận</th>
                 <th class="text-end">Thao tác</th>
             </tr>
             </thead>
             <tbody>
             <?php if (empty($documents)): ?>
                 <tr>
-                    <td colspan="12" class="text-center text-muted py-4">Chưa có phiếu nào phù hợp với bộ lọc hiện tại.</td>
+                    <td colspan="13" class="text-center text-muted py-4">Chưa có phiếu nào phù hợp với bộ lọc hiện tại.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($documents as $document): ?>
@@ -172,7 +171,6 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                         <td><?= htmlspecialchars($document['NguoiXacNhan'] ?? '-') ?></td>
                         <td><?= number_format($document['TongMatHang']) ?></td>
                         <td><?= number_format($document['TongSoLuong']) ?></td>
-                        <td><?= number_format($document['TongThucNhan']) ?></td>
                         <td class="text-end">
                             <div class="btn-group" role="group">
                                 <a href="?controller=warehouse_sheet&action=read&id=<?= urlencode($document['IdPhieu']) ?>" class="btn btn-sm btn-outline-secondary">
