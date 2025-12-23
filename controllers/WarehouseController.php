@@ -39,6 +39,7 @@ class WarehouseController extends Controller
             'documentGroups' => $documentGroups,
             'warehouseGroups' => $warehouseGroups,
             'warehouseEntryForms' => $entryForms,
+            'outboundDocumentTypes' => $this->getOutboundDocumentTypes(),
             'employees' => $employees,
             'productOptionsByType' => $products,
         ]);
@@ -483,5 +484,14 @@ class WarehouseController extends Controller
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
         return $role === 'VT_NHANVIEN_KHO';
+    }
+
+    private function getOutboundDocumentTypes(): array
+    {
+        return [
+            'material' => 'Phiếu xuất nguyên liệu',
+            'finished' => 'Phiếu xuất thành phẩm',
+            'quality' => 'Phiếu xuất xử lý lỗi',
+        ];
     }
 }

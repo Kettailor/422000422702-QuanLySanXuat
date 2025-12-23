@@ -72,13 +72,25 @@ class Warehouse_sheetController extends Controller
         $defaultId = $this->sheetModel->generateDocumentId();
         $products = $this->productModel->all(300);
         $warehouses = $this->filterWarehousesByAccess($options['warehouses']);
+        $presetWarehouseId = $_GET['warehouse'] ?? null;
+        $presetDirection = $_GET['direction'] ?? null;
+        $presetCategory = $_GET['category'] ?? null;
+        $presetDocumentType = $this->resolvePresetDocumentType($presetDirection, $presetCategory);
+
+        if ($presetWarehouseId !== null && !$this->isWarehouseAccessible($presetWarehouseId)) {
+            $this->setFlash('danger', 'Bạn không có quyền lập phiếu cho kho đã chọn.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+        }
 
         if ($warehouses === []) {
             $this->setFlash('danger', 'Bạn không có kho nào được phân quyền để lập phiếu.');
             $this->redirect('?controller=warehouse_sheet&action=index');
         }
 
-        $lots = $this->lotModel->getSelectableLots(300, $this->getAccessibleWarehouseIds());
+        $lotFilter = $presetWarehouseId ? [$presetWarehouseId] : $this->getAccessibleWarehouseIds();
+        $lots = $this->lotModel->getSelectableLots(300, $lotFilter);
+
+        $creatorId = $this->resolveCreator(null);
 
         $this->render('warehouse_sheet/create', [
             'title' => 'Tạo phiếu kho mới',
@@ -91,6 +103,9 @@ class Warehouse_sheetController extends Controller
                 'IdPhieu' => $defaultId,
                 'NgayLP' => date('Y-m-d'),
                 'NgayXN' => date('Y-m-d'),
+                'IdKho' => $presetWarehouseId,
+                'LoaiPhieu' => $presetDocumentType,
+                'NHAN_VIENIdNhanVien' => $creatorId,
             ],
         ]);
     }
@@ -970,6 +985,45 @@ class Warehouse_sheetController extends Controller
             'title' => strtoupper($isInbound ? 'PHIẾU NHẬP' : 'PHIẾU XUẤT') . ' ' . strtoupper($category),
             'badge_class' => $isInbound ? 'badge-soft-success' : 'badge-soft-danger',
         ];
+    }
+
+    private function resolvePresetDocumentType(?string $direction, ?string $category): ?string
+    {
+        if ($direction === null || $category === null) {
+            return null;
+        }
+
+        $normalizedDirection = $this->normalizeText($direction);
+        $normalizedCategory = $this->normalizeText($category);
+
+        $map = [
+            'material' => [
+                'inbound' => 'Phiếu nhập nguyên liệu',
+                'outbound' => 'Phiếu xuất nguyên liệu',
+            ],
+            'finished' => [
+                'inbound' => 'Phiếu nhập thành phẩm',
+                'outbound' => 'Phiếu xuất thành phẩm',
+            ],
+            'quality' => [
+                'inbound' => 'Phiếu nhập xử lý lỗi',
+                'outbound' => 'Phiếu xuất xử lý lỗi',
+            ],
+        ];
+
+        $directionKey = str_contains($normalizedDirection, 'out') || str_contains($normalizedDirection, 'xuất') ? 'outbound' : (str_contains($normalizedDirection, 'in') || str_contains($normalizedDirection, 'nhập') ? 'inbound' : null);
+
+        if ($directionKey === null) {
+            return null;
+        }
+
+        foreach ($map as $key => $definitions) {
+            if ($normalizedCategory === $key || str_contains($normalizedCategory, $key)) {
+                return $definitions[$directionKey] ?? null;
+            }
+        }
+
+        return null;
     }
 
     private function resolveCreator(?string $requestedCreator): ?string
