@@ -9,6 +9,7 @@ class PlanController extends Controller
     private Workshop $workshopModel;
     private  WorkshopPlanMaterialDetail $workShopPlanDetail;
     private Order $orderModel;
+    private Employee $employeeModel;
 
     public function __construct()
     {
@@ -20,6 +21,7 @@ class PlanController extends Controller
         $this->workshopModel = new Workshop();
         $this->workShopPlanDetail = new WorkshopPlanMaterialDetail();
         $this->orderModel = new Order();
+        $this->employeeModel = new Employee();
     }
 
     public function index(): void
@@ -68,6 +70,15 @@ class PlanController extends Controller
         }
 
         $currentUser = $this->currentUser();
+        if ($currentUser && empty($currentUser['HoTen'])) {
+            $employeeId = $currentUser['IdNhanVien'] ?? null;
+            if ($employeeId) {
+                $employee = $this->employeeModel->find($employeeId);
+                if (!empty($employee['HoTen'])) {
+                    $currentUser['HoTen'] = $employee['HoTen'];
+                }
+            }
+        }
 
         $this->render('plan/create', [
             'title' => 'Lập kế hoạch sản xuất',
