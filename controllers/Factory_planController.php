@@ -7,6 +7,7 @@ class Factory_planController extends Controller
     private WorkshopAssignment $assignmentModel;
     private WorkshopPlanAssignment $planAssignmentModel;
     private Employee $employeeModel;
+    private ProductionPlan $planModel;
 
     public function __construct()
     {
@@ -16,6 +17,7 @@ class Factory_planController extends Controller
         $this->assignmentModel = new WorkshopAssignment();
         $this->planAssignmentModel = new WorkshopPlanAssignment();
         $this->employeeModel = new Employee();
+        $this->planModel = new ProductionPlan();
     }
 
     public function index(): void
@@ -93,6 +95,13 @@ class Factory_planController extends Controller
 
         if (!$this->canModifyPlan($plan)) {
             $this->setFlash('danger', 'Bạn không được phép xóa kế hoạch xưởng này.');
+            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
+        $parentPlanId = $plan['IdKeHoachSanXuat'] ?? null;
+        if ($parentPlanId && $this->planModel->find($parentPlanId)) {
+            $this->setFlash('danger', 'Không thể xóa kế hoạch xưởng khi kế hoạch chính vẫn còn.');
             $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
             return;
         }
