@@ -5,6 +5,8 @@ $types = $types ?? [];
 $workshops = $workshops ?? [];
 $managers = $managers ?? [];
 $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
+$workshopEmployees = $workshopEmployees ?? [];
+$workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 ?>
 
 <style>
@@ -86,15 +88,11 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
                     <h6 class="fw-semibold mb-3">Thông tin quản lý kho</h6>
                     <div class="mb-3">
                         <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
-                        <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required data-live-search="true">
+                        <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required data-live-search="true" data-role="manager-select">
                             <option value="" disabled selected>Chọn nhân viên quản kho</option>
-                            <?php foreach ($managers as $manager): ?>
-                                <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>">
-                                    <?= htmlspecialchars($manager['HoTen']) ?><?= !empty($manager['ChucVu']) ? ' · ' . htmlspecialchars($manager['ChucVu']) : '' ?>
-                                </option>
-                            <?php endforeach; ?>
                         </select>
-                        <div class="form-text text-muted">Nhập để tìm nhanh theo họ tên/ chức vụ.</div>
+                        <div class="form-text text-muted">Nhập để tìm nhanh theo họ tên/ chức vụ. Danh sách lọc theo xưởng phụ trách.</div>
+                        <div class="form-text text-danger d-none" data-role="no-employee-alert">Xưởng chưa có nhân sự quản kho. Vui lòng thêm nhân viên trước khi tạo kho.</div>
                     </div>
                     <div class="text-muted small">Mã kho và mã lô sẽ được tạo tự động khi lưu để đồng bộ với hệ thống phiếu.</div>
                 </div>
@@ -126,8 +124,56 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
             </div>
 
             <div class="col-12 text-end">
-                <button class="btn btn-primary px-4" type="submit">Lưu kho SV5TOT</button>
+                <button class="btn btn-primary px-4" type="submit" data-role="submit-btn">Lưu kho SV5TOT</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const workshopEmployees = JSON.parse('<?= $workshopEmployeesJson ?>');
+        const workshopSelect = document.querySelector('select[name="IdXuong"]');
+        const managerSelect = document.querySelector('[data-role="manager-select"]');
+        const submitBtn = document.querySelector('[data-role="submit-btn"]');
+        const alertEl = document.querySelector('[data-role="no-employee-alert"]');
+
+        const renderManagers = () => {
+            if (!workshopSelect || !managerSelect) {
+                return;
+            }
+
+            const workshopId = workshopSelect.value || '';
+            const employees = workshopEmployees[workshopId] || [];
+
+            managerSelect.innerHTML = '<option value="" disabled selected>Chọn nhân viên quản kho</option>';
+
+            employees.forEach((employee) => {
+                const option = document.createElement('option');
+                option.value = employee.IdNhanVien || '';
+                option.textContent = employee.HoTen || employee.IdNhanVien || '';
+                if (employee.ChucVu) {
+                    option.textContent += ' · ' + employee.ChucVu;
+                }
+                managerSelect.appendChild(option);
+            });
+
+            const hasEmployees = employees.length > 0;
+            managerSelect.disabled = !hasEmployees;
+            if (submitBtn) {
+                submitBtn.disabled = !hasEmployees;
+            }
+            if (alertEl) {
+                alertEl.classList.toggle('d-none', hasEmployees);
+            }
+        };
+
+        if (workshopSelect) {
+            workshopSelect.addEventListener('change', () => {
+                renderManagers();
+            });
+        }
+
+        renderManagers();
+    });
+</script>
