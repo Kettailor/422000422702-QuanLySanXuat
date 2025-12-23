@@ -294,7 +294,11 @@ class PlanController extends Controller
                 'configuration_label' => $component['TenCauHinh'] ?? null,
                 'unit' => $component['DonVi'] ?? 'sp',
                 'default_status' => $component['TrangThaiMacDinh'] ?? null,
-                'allowed_workshop_types' => ['Lắp ráp và đóng gói'],
+                'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes(
+                    $component['TenCongDoan'] ?? $component['TenPhanCong'] ?? '',
+                    $component['LoaiCongDoan'] ?? null,
+                    null
+                ),
             ];
         }
 
@@ -313,7 +317,7 @@ class PlanController extends Controller
                 'configuration_details' => $configurationDetails,
                 'detail_key' => null,
                 'detail_value' => null,
-                'allowed_workshop_types' => ['Lắp ráp và đóng gói'],
+                'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes('Gia công sản phẩm', 'production', null),
             ];
         }
 
@@ -389,7 +393,7 @@ class PlanController extends Controller
                 'configuration_details' => $configurationDetails,
                 'detail_key' => $detail['key'],
                 'detail_value' => $detail['value'],
-                'allowed_workshop_types' => ['Sản xuất'],
+                'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes($displayLabel, 'configuration-detail', $detail['key'] ?? null),
             ];
 
             $existingLabels[] = $normalizer($displayLabel);
@@ -426,7 +430,7 @@ class PlanController extends Controller
             'configuration_details' => $this->buildConfigurationDetails($orderDetail),
             'detail_key' => null,
             'detail_value' => null,
-            'allowed_workshop_types' => ['Kiểm định sản xuất', 'Kiểm định lắp ráp'],
+            'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes('Kiểm định sản phẩm', 'inspection', null),
         ];
 
         return $assignments;
@@ -633,6 +637,32 @@ class PlanController extends Controller
         }
 
         return 'Không thể tạo kế hoạch, vui lòng kiểm tra lại thời gian.';
+    }
+
+    private function resolveAllowedWorkshopTypes(string $label, ?string $category, ?string $detailKey): array
+    {
+        $normalizedLabel = function_exists('mb_strtolower') ? mb_strtolower($label) : strtolower($label);
+        $normalizedCategory = $category ? (function_exists('mb_strtolower') ? mb_strtolower($category) : strtolower($category)) : '';
+        $normalizedDetailKey = $detailKey ? (function_exists('mb_strtolower') ? mb_strtolower($detailKey) : strtolower($detailKey)) : '';
+
+        if ($normalizedCategory === 'inspection' || str_contains($normalizedLabel, 'kiểm định')) {
+            return ['Kiểm định sản xuất', 'Kiểm định lắp ráp'];
+        }
+
+        if (str_contains($normalizedLabel, 'lắp ráp') || str_contains($normalizedLabel, 'đóng gói')) {
+            return ['Lắp ráp và đóng gói'];
+        }
+
+        $productionKeys = ['keycap', 'mainboard', 'switchtype', 'casetype', 'foam'];
+        if (in_array($normalizedDetailKey, $productionKeys, true)) {
+            return ['Sản xuất'];
+        }
+
+        if ($normalizedCategory === 'production' || $normalizedCategory === 'configuration-detail') {
+            return ['Sản xuất'];
+        }
+
+        return ['Sản xuất'];
     }
 
     private function resolvePlannerUser(?array $user): ?array
