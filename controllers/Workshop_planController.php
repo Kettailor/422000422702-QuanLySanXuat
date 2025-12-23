@@ -250,6 +250,13 @@ class Workshop_planController extends Controller
         }
 
         $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
+        $shiftMap = [];
+        foreach ($workShifts as $shift) {
+            $shiftId = $shift['IdCaLamViec'] ?? null;
+            if ($shiftId) {
+                $shiftMap[$shiftId] = $shift;
+            }
+        }
         $now = time();
         $today = date('Y-m-d');
         $editableShiftIds = [];
