@@ -7,10 +7,14 @@ $actionUrl = $actionUrl ?? '?controller=warehouse_sheet&action=store';
 $isEdit = $isEdit ?? false;
 $products = $products ?? [];
 $lots = $lots ?? [];
+$approvers = $approvers ?? [];
+$approversJson = htmlspecialchars(json_encode($approvers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 $details = $details ?? [];
 $productsJson = htmlspecialchars(json_encode($products, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8');
+$currentWarehouseId = $document['IdKho'] ?? '';
+$currentApprover = $approvers[$currentWarehouseId] ?? null;
 ?>
 
 <div class="card border-0 shadow-sm">
@@ -96,28 +100,29 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Người lập phiếu <span class="text-danger">*</span></label>
-                <select class="form-select" name="NguoiLap" required>
-                    <option value="">-- Chọn nhân viên --</option>
-                    <?php foreach ($employees as $employee): ?>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Người lập phiếu <span class="text-danger">*</span></label>
+    <select class="form-select" name="NguoiLap" required>
+        <option value="">-- Chọn nhân viên --</option>
+        <?php foreach ($employees as $employee): ?>
                         <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($employee['HoTen']) ?>
                         </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Người xác nhận <span class="text-danger">*</span></label>
-                <select class="form-select" name="NguoiXacNhan">
-                    <option value="">-- Chọn nhân viên --</option>
-                    <?php foreach ($employees as $employee): ?>
-                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien2'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($employee['HoTen']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+        <?php endforeach; ?>
+    </select>
+</div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Xưởng trưởng xác nhận <span class="text-danger">*</span></label>
+    <div class="form-control-plaintext" data-role="approver-display">
+        <?php if ($currentApprover): ?>
+            <?= htmlspecialchars($currentApprover['HoTen'] ?? '') ?><?= !empty($currentApprover['ChucVu']) ? ' · ' . htmlspecialchars($currentApprover['ChucVu']) : '' ?>
+        <?php else: ?>
+            <span class="text-muted">Chọn kho để hiển thị xưởng trưởng.</span>
+        <?php endif; ?>
+    </div>
+    <input type="hidden" name="NguoiXacNhan" value="<?= htmlspecialchars($document['NHAN_VIENIdNhanVien2'] ?? ($currentApprover['IdNhanVien'] ?? '')) ?>" data-role="approver-input">
+    <div class="form-text text-muted">Hệ thống tự động gán xưởng trưởng của kho làm người xác nhận.</div>
+</div>
 
             <div class="col-12">
                 <label class="form-label fw-semibold">Lý do/Nội dung nghiệp vụ <span class="text-danger">*</span></label>
@@ -166,7 +171,6 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                             <th>Tên lô</th>
                             <th>Mặt hàng</th>
                             <th>Số lượng</th>
-                            <th>Thực nhận</th>
                             <th>Đơn vị</th>
                         </tr>
                         </thead>
@@ -180,7 +184,6 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                                     <small class="text-muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></small>
                                 </td>
                                 <td><?= number_format($detail['SoLuong'] ?? 0) ?></td>
-                                <td><?= number_format($detail['ThucNhan'] ?? 0) ?></td>
                                 <td><?= htmlspecialchars($detail['DonViTinh'] ?? $detail['DonVi'] ?? '') ?></td>
                             </tr>
                         <?php endforeach; ?>
@@ -206,16 +209,15 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
             <div class="table-responsive">
                 <table class="table align-middle table-hover" id="detail-table">
                     <thead class="table-light">
-                    <tr>
-                        <th class="text-nowrap">Hình thức</th>
-                        <th class="text-nowrap">Mã lô</th>
-                        <th>Tên lô</th>
-                        <th>Mặt hàng</th>
-                        <th class="text-nowrap">Số lượng</th>
-                        <th class="text-nowrap">Thực nhận</th>
-                        <th class="text-nowrap">Đơn vị</th>
-                        <th></th>
-                    </tr>
+                        <tr>
+                            <th class="text-nowrap">Hình thức</th>
+                            <th class="text-nowrap">Mã lô</th>
+                            <th>Tên lô</th>
+                            <th>Mặt hàng</th>
+                            <th class="text-nowrap">Số lượng</th>
+                            <th class="text-nowrap">Đơn vị</th>
+                            <th></th>
+                        </tr>
                     </thead>
                     <tbody data-detail-rows></tbody>
                 </table>
@@ -235,6 +237,7 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
         document.addEventListener('DOMContentLoaded', () => {
             const products = JSON.parse('<?= $productsJson ?>');
             const lots = JSON.parse('<?= $lotsJson ?>');
+            const approvers = JSON.parse('<?= $approversJson ?>');
             const lotMap = {};
             lots.forEach(lot => {
                 lotMap[lot.IdLo] = lot;
@@ -251,6 +254,27 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
             const addRowBtn = document.querySelector('[data-action="add-detail-row"]');
             const warehouseSelect = document.querySelector('select[name="IdKho"]');
             const typeInput = document.querySelector('input[name="LoaiPhieu"]');
+            const approverDisplay = document.querySelector('[data-role="approver-display"]');
+            const approverInput = document.querySelector('[data-role="approver-input"]');
+
+            const updateApprover = () => {
+                if (!warehouseSelect || !approverDisplay || !approverInput) {
+                    return;
+                }
+                const warehouseId = warehouseSelect.value || '';
+                const approver = approvers[warehouseId] || null;
+
+                if (approver) {
+                    approverDisplay.textContent = approver.HoTen || approver.IdNhanVien || '';
+                    if (approver.ChucVu) {
+                        approverDisplay.textContent += ' · ' + approver.ChucVu;
+                    }
+                    approverInput.value = approver.IdNhanVien || '';
+                } else {
+                    approverDisplay.innerHTML = '<span class=\"text-muted\">Chọn kho để hiển thị xưởng trưởng.</span>';
+                    approverInput.value = '';
+                }
+            };
 
             const resolveWarehouseType = () => {
                 const selectedOption = warehouseSelect ? warehouseSelect.options[warehouseSelect.selectedIndex] : null;
@@ -286,7 +310,6 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                 const productSelect = row.querySelector('[data-field="product"]');
                 const lotSelect = row.querySelector('[data-field="existing-lot"]');
                 const quantityInput = row.querySelector('[data-field="quantity"]');
-                const receivedInput = row.querySelector('[data-field="received"]');
                 const unitInput = row.querySelector('[data-field="unit"]');
                 const modeHidden = row.querySelector('[data-field="mode-hidden"]');
 
@@ -336,29 +359,12 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                     }
                 }
 
-                const syncReceived = () => {
-                    if (!receivedInput.value || receivedInput.dataset.synced === '1') {
-                        receivedInput.value = quantityInput.value;
-                        receivedInput.dataset.synced = '1';
-                    }
-                };
-
-                if (quantityInput && receivedInput) {
-                    quantityInput.removeEventListener('input', quantityInput._syncHandler || (() => {}));
-                    quantityInput._syncHandler = () => syncReceived();
-                    quantityInput.addEventListener('input', quantityInput._syncHandler);
-                    syncReceived();
-                }
-
                 if (!isNew && lotSelect) {
                     const selectedLot = lotMap[lotSelect.value] || null;
                     if (selectedLot) {
                         unitInput.value = selectedLot.DonVi || '';
                         if (quantityInput && quantityInput.value === '') {
                             quantityInput.value = selectedLot.SoLuong || 0;
-                        }
-                        if (receivedInput && receivedInput.value === '') {
-                            receivedInput.value = selectedLot.SoLuong || 0;
                         }
                     }
                 }
@@ -431,7 +437,6 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                         </select>
                     </td>
                     <td><input type="number" min="1" class="form-control form-control-sm" name="Detail_SoLuong[]" data-field="quantity" required></td>
-                    <td><input type="number" min="0" class="form-control form-control-sm" name="Detail_ThucNhan[]" data-field="received"></td>
                     <td><input type="text" class="form-control form-control-sm" name="Detail_DonVi[]" data-field="unit" placeholder="Đơn vị"></td>
                     <td class="text-end">
                         <button type="button" class="btn btn-sm btn-outline-danger" data-action="remove-row"><i class="bi bi-x"></i></button>
@@ -490,7 +495,9 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                         }
                         updateRowMode(row);
                     });
+                    updateApprover();
                 });
+                updateApprover();
             }
 
             if (typeInput) {
