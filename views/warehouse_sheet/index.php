@@ -138,18 +138,23 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                 <?php foreach ($documents as $document): ?>
                     <?php
                     $type = $document['LoaiPhieu'] ?? '';
-                    $typeClass = 'bg-secondary bg-opacity-10 text-secondary';
-                    $typeNormalized = function_exists('mb_strtolower') ? mb_strtolower($type, 'UTF-8') : strtolower($type);
-                    if (str_contains($typeNormalized, 'nhập')) {
-                        $typeClass = 'badge-soft-success';
-                    } elseif (str_contains($typeNormalized, 'xuất')) {
-                        $typeClass = 'badge-soft-danger';
-                    }
-                    ?>
+                    $classification = $document['classification'] ?? [];
+                    $typeClass = $classification['badge_class'] ?? 'bg-secondary bg-opacity-10 text-secondary';
+                    $directionLabel = $classification['direction_label'] ?? $type;
+                    $categoryLabel = $classification['category'] ?? '';
+                ?>
                     <tr>
                         <td class="fw-semibold"><?= htmlspecialchars($document['IdPhieu']) ?></td>
                         <td><?= htmlspecialchars($document['TenKho']) ?></td>
-                        <td><span class="badge <?= $typeClass ?>"><?= htmlspecialchars($document['LoaiPhieu']) ?></span></td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="badge <?= $typeClass ?> mb-1"><?= htmlspecialchars($directionLabel) ?></span>
+                                <?php if ($categoryLabel !== ''): ?>
+                                    <span class="badge bg-info-subtle text-info border mb-1"><?= htmlspecialchars($categoryLabel) ?></span>
+                                <?php endif; ?>
+                                <small class="text-muted"><?= htmlspecialchars($document['LoaiPhieu']) ?></small>
+                            </div>
+                        </td>
                         <td>
                             <div class="fw-semibold mb-0"><?= htmlspecialchars($document['DoiTac'] ?? '-') ?></div>
                             <small class="text-muted"><?= htmlspecialchars($document['LoaiDoiTac'] ?? '') ?></small>
@@ -175,6 +180,9 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                                 </a>
                                 <a href="?controller=warehouse_sheet&action=edit&id=<?= urlencode($document['IdPhieu']) ?>" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="?controller=warehouse_sheet&action=export_pdf&id=<?= urlencode($document['IdPhieu']) ?>" class="btn btn-sm btn-outline-success" title="Xuất PDF">
+                                    <i class="bi bi-filetype-pdf"></i>
                                 </a>
                                 <form method="post" action="?controller=warehouse_sheet&action=delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa phiếu này?');">
                                     <input type="hidden" name="IdPhieu" value="<?= htmlspecialchars($document['IdPhieu']) ?>">
