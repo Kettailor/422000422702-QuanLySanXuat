@@ -350,11 +350,15 @@ $lotPrefixMap = [
         <?php $formDisabled = empty($group['warehouses']); ?>
         <?php $defaultDate = ''; ?>
         <?php $firstWarehouseId = $group['warehouses'][0]['IdKho'] ?? ''; ?>
-        <div class="modal fade" id="warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" tabindex="-1" aria-hidden="true" data-warehouse-entry-modal data-entry-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>">
+        <?php
+            $inboundTitle = $form['modal_title'] ?? ('Lập phiếu cho ' . $group['label']);
+            $outboundTitle = 'Xuất ' . ($group['label'] ?? 'kho');
+        ?>
+        <div class="modal fade" id="warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" tabindex="-1" aria-hidden="true" data-warehouse-entry-modal data-entry-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>" data-inbound-title="<?= htmlspecialchars($inboundTitle) ?>" data-outbound-title="<?= htmlspecialchars($outboundTitle) ?>">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title"><?= htmlspecialchars($form['modal_title'] ?? ('Lập phiếu cho ' . $group['label'])) ?></h5>
+                        <h5 class="modal-title" data-modal-title><?= htmlspecialchars($inboundTitle) ?></h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                     </div>
                     <div class="modal-body">
@@ -772,6 +776,9 @@ $lotPrefixMap = [
             var inboundRequired = form.querySelectorAll('[data-inbound-required]');
             var modalId = modalEl.getAttribute('id');
             var directionTriggers = document.querySelectorAll('[data-direction-target][data-bs-target="#' + modalId + '"]');
+            var modalTitle = modalEl.querySelector('[data-modal-title]');
+            var inboundTitle = modalEl.getAttribute('data-inbound-title') || '';
+            var outboundTitle = modalEl.getAttribute('data-outbound-title') || inboundTitle;
 
             if (confirmToggle && confirmInput) {
                 confirmToggle.addEventListener('change', function () {
@@ -821,6 +828,10 @@ $lotPrefixMap = [
                     if (selected && selected.dataset.unit) {
                         productUnitInput.value = selected.dataset.unit;
                     }
+                }
+
+                if (modalTitle) {
+                    modalTitle.textContent = isOutbound ? outboundTitle : inboundTitle;
                 }
             };
 
