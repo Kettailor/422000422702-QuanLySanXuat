@@ -4,8 +4,13 @@ $shift = $shift ?? null;
 $now = $now ?? date('Y-m-d H:i:s');
 $openRecord = $openRecord ?? null;
 $geofence = $geofence ?? null;
-$plans = $plans ?? [];
+$role = $role ?? null;
+$productionPlans = $productionPlans ?? [];
+$workshopPlans = $workshopPlans ?? [];
+$orders = $orders ?? [];
+$qualityLots = $qualityLots ?? [];
 $notifications = $notifications ?? [];
+$importantNotifications = $importantNotifications ?? [];
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -79,29 +84,151 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-3">
-        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Kế hoạch của tôi</h6>
-            <a href="?controller=plan&action=index" class="btn btn-outline-secondary btn-sm">Xem tất cả</a>
+    <?php if ($role === 'VT_BAN_GIAM_DOC'): ?>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0">
+                <h6 class="mb-0">Gửi thông báo nhanh</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="?controller=dashboard&action=sendNotification">
+                    <div class="mb-2">
+                        <input type="text" name="title" class="form-control" placeholder="Tiêu đề thông báo">
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="message" rows="3" class="form-control" placeholder="Nội dung gửi đến toàn bộ nhân viên"></textarea>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="priority" class="form-select form-select-sm w-auto">
+                            <option value="normal">Bình thường</option>
+                            <option value="important">Quan trọng</option>
+                            <option value="urgent">Khẩn</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-send me-1"></i>Gửi đi
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="card-body">
-            <?php if (empty($plans)): ?>
-                <div class="text-muted small">Chưa có kế hoạch nào được phân công.</div>
-            <?php else: ?>
+    <?php endif; ?>
+
+    <?php if (!empty($productionPlans)): ?>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Kế hoạch sản xuất</h6>
+                <a href="?controller=plan&action=index" class="btn btn-outline-secondary btn-sm">Xem tất cả</a>
+            </div>
+            <div class="card-body">
                 <div class="list-group list-group-flush">
-                    <?php foreach (array_slice($plans, 0, 5) as $plan): ?>
+                    <?php foreach ($productionPlans as $plan): ?>
+                        <div class="list-group-item px-0">
+                            <div class="fw-semibold">
+                                <?= htmlspecialchars($plan['TenSanPham'] ?? 'Kế hoạch sản xuất') ?>
+                            </div>
+                            <div class="text-muted small">
+                                ĐH <?= htmlspecialchars($plan['IdDonHang'] ?? '-') ?>
+                                · <?= htmlspecialchars($formatDate($plan['ThoiGianBD'] ?? null, 'd/m/Y')) ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($role === 'VT_KINH_DOANH'): ?>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Đơn hàng của tôi</h6>
+                <a href="?controller=order&action=index" class="btn btn-outline-secondary btn-sm">Xem tất cả</a>
+            </div>
+            <div class="card-body">
+                <?php if (empty($orders)): ?>
+                    <div class="text-muted small">Chưa có đơn hàng được ghi nhận.</div>
+                <?php else: ?>
+                    <div class="list-group list-group-flush">
+                        <?php foreach ($orders as $order): ?>
+                            <div class="list-group-item px-0">
+                                <div class="fw-semibold">ĐH <?= htmlspecialchars($order['IdDonHang'] ?? '-') ?></div>
+                                <div class="text-muted small">
+                                    <?= htmlspecialchars($order['TenKhachHang'] ?? '-') ?>
+                                    · <?= htmlspecialchars($formatDate($order['NgayLap'] ?? null, 'd/m/Y')) ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($role === 'VT_KIEM_SOAT_CL'): ?>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Lô cần đánh giá</h6>
+                <a href="?controller=quality&action=index" class="btn btn-outline-secondary btn-sm">Xem tất cả</a>
+            </div>
+            <div class="card-body">
+                <?php if (empty($qualityLots)): ?>
+                    <div class="text-muted small">Không có lô chờ đánh giá.</div>
+                <?php else: ?>
+                    <div class="list-group list-group-flush">
+                        <?php foreach ($qualityLots as $lot): ?>
+                            <div class="list-group-item px-0">
+                                <div class="fw-semibold"><?= htmlspecialchars($lot['TenLo'] ?? '-') ?></div>
+                                <div class="text-muted small">
+                                    <?= htmlspecialchars($lot['TenXuong'] ?? '-') ?>
+                                    · SL <?= htmlspecialchars((string) ($lot['SoLuong'] ?? '-')) ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+                <div class="text-muted small mt-2">Có thể đánh giá chất lượng và kiểm tra đột xuất trên thiết bị di động.</div>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($workshopPlans)): ?>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Kế hoạch xưởng</h6>
+                <a href="?controller=factory_plan&action=index" class="btn btn-outline-secondary btn-sm">Xem tất cả</a>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <?php foreach (array_slice($workshopPlans, 0, 5) as $plan): ?>
                         <div class="list-group-item px-0">
                             <div class="fw-semibold"><?= htmlspecialchars($plan['TenThanhThanhPhanSP'] ?? 'Kế hoạch xưởng') ?></div>
                             <div class="text-muted small">
                                 <?= htmlspecialchars($plan['TenXuong'] ?? '-') ?>
                                 · <?= htmlspecialchars($formatDate($plan['ThoiGianBatDau'] ?? null, 'd/m/Y')) ?>
+                                <?php if (!empty($plan['TinhTrangVatTu'])): ?>
+                                    · <?= htmlspecialchars($plan['TinhTrangVatTu']) ?>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
-            <?php endif; ?>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($importantNotifications)): ?>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0">
+                <h6 class="mb-0">Thông báo quan trọng</h6>
+            </div>
+            <div class="card-body">
+                <?php foreach (array_slice($importantNotifications, 0, 3) as $notification): ?>
+                    <?php $message = $notification['message'] ?? $notification['title'] ?? 'Thông báo'; ?>
+                    <div class="alert alert-warning small mb-2">
+                        <?= htmlspecialchars($message) ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
