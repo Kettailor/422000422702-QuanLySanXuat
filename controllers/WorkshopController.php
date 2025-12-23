@@ -78,6 +78,12 @@ class WorkshopController extends Controller
         $data['IdXuong'] = uniqid('XUONG');
         $data['NgayThanhLap'] = date('Y-m-d');
 
+        if ($data['CongSuatToiDa'] < $data['CongSuatDangSuDung']) {
+            $this->setFlash('danger', 'Công suất tối đa không được bé hơn công suất đang sử dụng.');
+            $this->redirect('?controller=workshop&action=create');
+            return;
+        }
+
         if ($this->canAssign() && $data['XUONGTRUONG_IdNhanVien'] === '') {
             $this->setFlash('danger', 'Vui lòng chọn ít nhất 1 xưởng trưởng trước khi lưu.');
             $this->redirect('?controller=workshop&action=create');
@@ -175,6 +181,12 @@ class WorkshopController extends Controller
         $canAssign = $this->canAssignStaff($id);
         unset($data['IdXuong']);
         unset($data['NgayThanhLap']);
+
+        if ($data['CongSuatToiDa'] < $data['CongSuatDangSuDung']) {
+            $this->setFlash('danger', 'Công suất tối đa không được bé hơn công suất đang sử dụng.');
+            $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
+            return;
+        }
 
         if ($this->canAssign()) {
             if ($data['XUONGTRUONG_IdNhanVien'] === '') {
