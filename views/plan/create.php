@@ -208,9 +208,6 @@ foreach ($configurationDetails as $detail) {
                                     <h6 class="fw-semibold mb-1">Phân công xưởng theo cấu hình sản phẩm</h6>
                                     <span class="text-muted small">Điều chỉnh số lượng, thời gian cho từng hạng mục bên dưới.</span>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-add-assignment>
-                                    <i class="bi bi-plus-circle me-1"></i> Thêm cấu hình / hạng mục
-                                </button>
                             </div>
                             <div class="table-responsive">
                                 <table class="table align-middle">
@@ -272,6 +269,11 @@ foreach ($configurationDetails as $detail) {
                                     <?php endforeach; ?>
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-add-assignment>
+                                    <i class="bi bi-plus-circle me-1"></i> Thêm cấu hình / hạng mục
+                                </button>
                             </div>
                         </div>
 
