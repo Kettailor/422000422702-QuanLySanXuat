@@ -24,7 +24,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
         <span class="bi bi-grid-1x2-fill"></span>
         <span>SV5TOT Keyboard Ops</span>
     </div>
-    <div class="nav flex-column">
+    <div class="nav flex-column d-none d-lg-flex">
         <a class="nav-link <?= $currentController === 'dashboard' ? 'active' : '' ?>" href="?controller=dashboard&action=index">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
@@ -128,6 +128,24 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-gear"></i> Cài đặt
             </a>
         <?php endif; ?>
+    </div>
+    <div class="nav flex-column d-lg-none">
+        <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
+            <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
+        </a>
+        <?php if ($canAccess(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG'])): ?>
+            <a class="nav-link <?= $currentController === 'plan' ? 'active' : '' ?>" href="?controller=plan&action=index">
+                <i class="bi bi-kanban"></i> Kế hoạch sản xuất
+            </a>
+        <?php endif; ?>
+        <?php if ($canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KHO_TRUONG'])): ?>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=index">
+                <i class="bi bi-fingerprint"></i> Tự chấm công
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'notifications' ? 'active' : '' ?>" href="?controller=notifications&action=index">
+            <i class="bi bi-bell"></i> Thông báo
+        </a>
     </div>
     <button class="btn-close position-absolute top-0 end-0 m-3 text-white d-lg-none" data-toggle="sidebar" aria-label="Đóng menu"></button>
 </nav>
