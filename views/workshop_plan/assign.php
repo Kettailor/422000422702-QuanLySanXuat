@@ -296,7 +296,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                                     $isAssigned = in_array($employeeId, $assignedMap[$shiftId] ?? [], true);
                                                     $optionDisabled = $isAddOnly && $isAssigned ? 'disabled' : '';
                                                 ?>
-                                                <option value="<?= htmlspecialchars($employeeId) ?>" <?= $isAssigned ? 'selected' : '' ?> <?= $optionDisabled ?>>
+                                                <option value="<?= htmlspecialchars($employeeId) ?>" <?= $isAssigned ? 'selected' : '' ?> <?= $optionDisabled ?> data-existing="<?= $isAssigned ? '1' : '0' ?>">
                                                     <?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -427,5 +427,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    document.querySelectorAll('select.assignment-select').forEach((select) => {
+        select.addEventListener('change', () => {
+            Array.from(select.options).forEach((option) => {
+                if (option.dataset.existing !== '1') {
+                    option.selected = false;
+                }
+            });
+        });
+    });
 });
 </script>
