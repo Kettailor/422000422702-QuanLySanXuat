@@ -12,6 +12,7 @@ class Workshop_planController extends Controller
     private InventoryLot $inventoryLotModel;
     private Warehouse $warehouseModel;
     private Material $materialModel;
+    private Workshop $workshopModel;
 
     public function __construct()
     {
@@ -26,12 +27,16 @@ class Workshop_planController extends Controller
         $this->inventoryLotModel = new InventoryLot();
         $this->warehouseModel = new Warehouse();
         $this->materialModel = new Material();
+        $this->workshopModel = new Workshop();
     }
 
     public function read(): void
     {
         $id = $_GET['id'] ?? null;
         $plan = $id ? $this->workshopPlanModel->findWithRelations($id) : null;
+        if (!$this->canAccessPlan($plan)) {
+            return;
+        }
         $materials = $id ? $this->materialDetailModel->getByWorkshopPlan($id) : [];
         $history = $id ? $this->historyModel->getByPlan($id) : [];
         $warehouseRequests = $id ? $this->warehouseRequestModel->getByPlan($id) : [];
@@ -90,6 +95,9 @@ class Workshop_planController extends Controller
         if (!$plan) {
             $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
             $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+        if (!$this->canAccessPlan($plan)) {
             return;
         }
         if (!$this->supportsMaterials($plan)) {
@@ -177,6 +185,9 @@ class Workshop_planController extends Controller
             $this->redirect('?controller=factory_plan&action=index');
             return;
         }
+        if (!$this->canAccessPlan($plan)) {
+            return;
+        }
 
         $this->workShiftModel->ensureDefaultShiftsForPlan(
             $planId,
@@ -218,6 +229,9 @@ class Workshop_planController extends Controller
         if (!$plan) {
             $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
             $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+        if (!$this->canAccessPlan($plan)) {
             return;
         }
 
@@ -307,6 +321,9 @@ class Workshop_planController extends Controller
             $this->redirect('?controller=factory_plan&action=index');
             return;
         }
+        if (!$this->canAccessPlan($plan)) {
+            return;
+        }
         if (!$this->supportsProgress($plan)) {
             $this->setFlash('danger', 'Loại xưởng này chỉ hỗ trợ phân công, không cập nhật tiến độ.');
             $this->redirect('?controller=workshop_plan&action=assign&id=' . urlencode($planId));
@@ -358,6 +375,9 @@ class Workshop_planController extends Controller
         if (!$plan) {
             $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
             $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+        if (!$this->canAccessPlan($plan)) {
             return;
         }
         if (!$this->supportsProgress($plan)) {
@@ -554,6 +574,59 @@ class Workshop_planController extends Controller
             'VT_TRUONG_XUONG_SAN_XUAT',
             'VT_TRUONG_XUONG_LUU_TRU',
         ];
+    }
+
+    private function isStorageManager(): bool
+    {
+        $user = $this->currentUser();
+        $role = $user ? $this->resolveAccessRole($user) : null;
+
+        return $role === 'VT_TRUONG_XUONG_LUU_TRU';
+    }
+
+    private function canAccessPlan(?array $plan): bool
+    {
+        if (!$plan) {
+            $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return false;
+        }
+
+        $user = $this->currentUser();
+        $role = $user ? $this->resolveAccessRole($user) : null;
+        if ($role === 'VT_BAN_GIAM_DOC') {
+            return true;
+        }
+
+        if ($this->isStorageManager()) {
+            $pending = $this->warehouseRequestModel->getPendingByPlanIds([
+                $plan['IdKeHoachSanXuatXuong'] ?? '',
+            ]);
+            if (!empty($pending)) {
+                return true;
+            }
+            $this->setFlash('danger', 'Bạn chỉ được xem kế hoạch đang yêu cầu giao nguyên liệu.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return false;
+        }
+
+        if (in_array($role, $this->getWorkshopManagerRoles(), true)) {
+            $employeeId = $user['IdNhanVien'] ?? null;
+            if (!$employeeId) {
+                $this->setFlash('danger', 'Không xác định được nhân sự phụ trách.');
+                $this->redirect('?controller=factory_plan&action=index');
+                return false;
+            }
+            $managed = $this->workshopModel->getByManager($employeeId);
+            $managedIds = array_column($managed, 'IdXuong');
+            if (in_array($plan['IdXuong'] ?? null, $managedIds, true)) {
+                return true;
+            }
+        }
+
+        $this->setFlash('danger', 'Bạn không có quyền xem kế hoạch xưởng này.');
+        $this->redirect('?controller=factory_plan&action=index');
+        return false;
     }
 
     private function supportsMaterials(array $plan): bool

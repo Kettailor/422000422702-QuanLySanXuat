@@ -373,6 +373,18 @@ class Factory_planController extends Controller
             return null;
         }
 
+        if ($this->isStorageManager()) {
+            $pending = $this->warehouseRequestModel->getPendingByPlanIds([
+                $plan['IdKeHoachSanXuatXuong'] ?? '',
+            ]);
+            if (!empty($pending)) {
+                return $plan;
+            }
+            $this->setFlash('danger', 'Bạn chỉ được xem kế hoạch đang yêu cầu giao nguyên liệu.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return null;
+        }
+
         $visibleIds = array_column($this->getVisibleWorkshops(), 'IdXuong');
         if (in_array($plan['IdXuong'] ?? null, $visibleIds, true)) {
             return $plan;
