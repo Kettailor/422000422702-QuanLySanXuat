@@ -19,12 +19,16 @@
                 <?php
                     $title = $notification['title'] ?? 'Thông báo hệ thống';
                     $message = $notification['message'] ?? null;
-                    $time = $notification['time'] ?? null;
+                    $time = $notification['created_at'] ?? ($notification['time'] ?? null);
                     $link = $notification['link'] ?? null;
                     $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
                     $id = $notification['id'] ?? null;
                     $redirect = $link ?: '?controller=notifications&action=index';
                     $readLink = $id ? '?controller=notifications&action=read&id=' . urlencode($id) . '&redirect=' . urlencode($redirect) : $redirect;
+                    $recipient = $notification['recipient'] ?? null;
+                    $recipientRole = $notification['recipient_role'] ?? null;
+                    $scopeLabel = $recipient ? 'Cá nhân' : ($recipientRole ? 'Theo vai trò' : 'Chung');
+                    $scopeClass = $recipient ? 'bg-info-subtle text-info' : ($recipientRole ? 'bg-primary-subtle text-primary' : 'bg-secondary-subtle text-secondary');
                 ?>
                 <div class="list-group-item list-group-item-action <?= $isRead ? '' : 'notification-unread' ?>">
                     <div class="d-flex justify-content-between align-items-start gap-2">
@@ -34,9 +38,12 @@
                                 <div class="text-muted small mt-1"><?= htmlspecialchars($message) ?></div>
                             <?php endif; ?>
                         </div>
-                        <?php if ($time): ?>
-                            <small class="text-muted"><?= htmlspecialchars($time) ?></small>
-                        <?php endif; ?>
+                        <div class="text-end">
+                            <div class="badge <?= $scopeClass ?> mb-1"><?= htmlspecialchars($scopeLabel) ?></div>
+                            <?php if ($time): ?>
+                                <div><small class="text-muted"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($time))) ?></small></div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <?php if ($id): ?>
                         <a href="<?= htmlspecialchars($readLink) ?>" class="stretched-link"></a>

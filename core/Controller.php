@@ -75,21 +75,14 @@ abstract class Controller
         $notifications = [];
         if ($currentUser) {
             $employeeId = $currentUser['IdNhanVien'] ?? null;
+            $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
             try {
                 $notificationStore = new NotificationStore();
-                $notifications = array_values(array_filter(
+                $notifications = $notificationStore->filterForUser(
                     $notificationStore->readAll(),
-                    static function ($entry) use ($employeeId): bool {
-                        if (!is_array($entry)) {
-                            return false;
-                        }
-                        $recipient = $entry['recipient'] ?? null;
-                        if (!$recipient) {
-                            return true;
-                        }
-                        return $employeeId !== null && $recipient === $employeeId;
-                    }
-                ));
+                    $employeeId,
+                    $roleId
+                );
             } catch (Throwable $exception) {
                 $notifications = [];
             }
@@ -117,21 +110,14 @@ abstract class Controller
         $notifications = [];
         if ($currentUser) {
             $employeeId = $currentUser['IdNhanVien'] ?? null;
+            $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
             try {
                 $notificationStore = new NotificationStore();
-                $notifications = array_values(array_filter(
+                $notifications = $notificationStore->filterForUser(
                     $notificationStore->readAll(),
-                    static function ($entry) use ($employeeId): bool {
-                        if (!is_array($entry)) {
-                            return false;
-                        }
-                        $recipient = $entry['recipient'] ?? null;
-                        if (!$recipient) {
-                            return true;
-                        }
-                        return $employeeId !== null && $recipient === $employeeId;
-                    }
-                ));
+                    $employeeId,
+                    $roleId
+                );
             } catch (Throwable $exception) {
                 $notifications = [];
             }
