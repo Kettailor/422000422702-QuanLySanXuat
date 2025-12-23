@@ -8,16 +8,18 @@ class Factory_planController extends Controller
     private WorkshopPlanAssignment $planAssignmentModel;
     private Employee $employeeModel;
     private ProductionPlan $planModel;
+    private WarehouseRequest $warehouseRequestModel;
 
     public function __construct()
     {
-        $this->authorize(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT', 'VT_BAN_GIAM_DOC']);
+        $this->authorize(array_merge($this->getWorkshopManagerRoles(), ['VT_NHANVIEN_SANXUAT', 'VT_BAN_GIAM_DOC']));
         $this->workshopPlanModel = new WorkshopPlan();
         $this->workshopModel = new Workshop();
         $this->assignmentModel = new WorkshopAssignment();
         $this->planAssignmentModel = new WorkshopPlanAssignment();
         $this->employeeModel = new Employee();
         $this->planModel = new ProductionPlan();
+        $this->warehouseRequestModel = new WarehouseRequest();
     }
 
     public function index(): void
@@ -45,6 +47,17 @@ class Factory_planController extends Controller
             }
         }
         $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops, $selectedWorkshop);
+        $warehouseRequests = [];
+        $isStorageManager = $this->isStorageManager();
+        if ($isStorageManager) {
+            $warehouseRequests = $this->warehouseRequestModel->getPendingByPlanIds(
+                array_column($plans, 'IdKeHoachSanXuatXuong')
+            );
+            $plans = array_values(array_filter($plans, static function (array $plan) use ($warehouseRequests): bool {
+                $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
+                return $planId && isset($warehouseRequests[$planId]);
+            }));
+        }
 
         $groupedPlans = $this->groupPlansByWorkshop($plans, $workshopMap);
         $employee = $employeeId ? $this->employeeModel->find($employeeId) : null;
@@ -55,6 +68,8 @@ class Factory_planController extends Controller
             'workshops' => $workshops,
             'selectedWorkshop' => $selectedWorkshop,
             'employeeFilter' => $employee,
+            'warehouseRequests' => $warehouseRequests,
+            'isStorageManager' => $isStorageManager,
         ]);
     }
 
@@ -83,7 +98,49 @@ class Factory_planController extends Controller
             'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
             'canUpdateProgress' => $canUpdateProgress,
             'typeConfig' => $typeConfig,
+            'isStorageManager' => $this->isStorageManager(),
         ]);
+    }
+
+    public function confirmMaterialDelivery(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        if (!$this->isStorageManager()) {
+            $this->setFlash('danger', 'Bạn không có quyền xác nhận giao nguyên liệu.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $requestId = $_POST['request_id'] ?? null;
+        $planId = $_POST['plan_id'] ?? null;
+        if (!$requestId || !$planId) {
+            $this->setFlash('danger', 'Thiếu thông tin yêu cầu kho.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $plan = $this->workshopPlanModel->findWithRelations($planId);
+        if (!$plan) {
+            $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        try {
+            $this->warehouseRequestModel->markCompleted($requestId);
+            $this->workshopPlanModel->update($planId, ['TinhTrangVatTu' => 'Đủ nguyên liệu']);
+            $this->sendDeliveryNotifications($plan);
+            $this->setFlash('success', 'Đã xác nhận giao nguyên liệu.');
+        } catch (Throwable $exception) {
+            Logger::error('Lỗi xác nhận giao nguyên liệu ' . $requestId . ': ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể xác nhận giao nguyên liệu. Vui lòng kiểm tra log.');
+        }
+
+        $this->redirect('?controller=factory_plan&action=index');
     }
 
     public function delete(): void
@@ -131,8 +188,19 @@ class Factory_planController extends Controller
         $user = $this->currentUser();
         $role = $user ? $this->resolveAccessRole($user) : null;
 
-        if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
+        if ($role === 'VT_BAN_GIAM_DOC') {
             return $this->workshopModel->getAllWithManagers();
+        }
+
+        if (in_array($role, $this->getWorkshopManagerRoles(), true)) {
+            if ($this->isStorageManager()) {
+                return $this->workshopModel->getAllWithManagers();
+            }
+            $employeeId = $user['IdNhanVien'] ?? null;
+            if (!$employeeId) {
+                return [];
+            }
+            return $this->workshopModel->getByManager($employeeId);
         }
 
         $employeeId = $user['IdNhanVien'] ?? null;
@@ -324,7 +392,10 @@ class Factory_planController extends Controller
             return true;
         }
 
-        if ($role === 'VT_QUANLY_XUONG') {
+        if (in_array($role, $this->getWorkshopManagerRoles(), true)) {
+            if ($this->isStorageManager()) {
+                return false;
+            }
             $employeeId = $user['IdNhanVien'] ?? null;
             if (!$employeeId) {
                 return false;
@@ -417,5 +488,58 @@ class Factory_planController extends Controller
             'supports_materials' => true,
             'supports_progress' => true,
         ];
+    }
+
+    private function getWorkshopManagerRoles(): array
+    {
+        return [
+            'VT_TRUONG_XUONG_KIEM_DINH',
+            'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI',
+            'VT_TRUONG_XUONG_SAN_XUAT',
+            'VT_TRUONG_XUONG_LUU_TRU',
+        ];
+    }
+
+    private function isStorageManager(): bool
+    {
+        $user = $this->currentUser();
+        $role = $user ? $this->resolveAccessRole($user) : null;
+
+        return $role === 'VT_TRUONG_XUONG_LUU_TRU';
+    }
+
+    private function sendDeliveryNotifications(array $plan): void
+    {
+        $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
+        $workshopId = $plan['IdXuong'] ?? null;
+        if (!$planId || !$workshopId) {
+            return;
+        }
+
+        $managerMap = $this->workshopModel->getManagersByWorkshopIds([$workshopId]);
+        $managerId = $managerMap[$workshopId] ?? null;
+        $user = $this->currentUser();
+        $actorId = $user['IdNhanVien'] ?? null;
+        $message = sprintf(
+            'Đã hoàn thành giao nguyên liệu cho kế hoạch %s.',
+            $planId
+        );
+
+        $entries = [];
+        foreach (array_unique(array_filter([$managerId, $actorId])) as $recipientId) {
+            $entries[] = [
+                'channel' => 'warehouse_delivery',
+                'recipient' => $recipientId,
+                'title' => 'Xác nhận giao nguyên liệu',
+                'message' => $message,
+                'link' => '?controller=factory_plan&action=read&id=' . urlencode($planId),
+                'metadata' => [
+                    'workshop_id' => $workshopId,
+                    'workshop_plan_id' => $planId,
+                ],
+            ];
+        }
+
+        (new NotificationStore())->pushMany($entries);
     }
 }

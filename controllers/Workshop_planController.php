@@ -15,7 +15,7 @@ class Workshop_planController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
+        $this->authorize(array_merge($this->getWorkshopManagerRoles(), ['VT_BAN_GIAM_DOC']));
         $this->workshopPlanModel = new WorkshopPlan();
         $this->materialDetailModel = new WorkshopPlanMaterialDetail();
         $this->historyModel = new WorkshopPlanHistory();
@@ -543,6 +543,16 @@ class Workshop_planController extends Controller
             'supports_materials' => true,
             'supports_progress' => true,
             'assignment_role' => 'nhan_vien_san_xuat',
+        ];
+    }
+
+    private function getWorkshopManagerRoles(): array
+    {
+        return [
+            'VT_TRUONG_XUONG_KIEM_DINH',
+            'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI',
+            'VT_TRUONG_XUONG_SAN_XUAT',
+            'VT_TRUONG_XUONG_LUU_TRU',
         ];
     }
 

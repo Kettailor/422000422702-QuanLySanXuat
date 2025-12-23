@@ -3,6 +3,8 @@ $groupedPlans = $groupedPlans ?? [];
 $workshops = $workshops ?? [];
 $selectedWorkshop = $selectedWorkshop ?? null;
 $employeeFilter = $employeeFilter ?? null;
+$warehouseRequests = $warehouseRequests ?? [];
+$isStorageManager = $isStorageManager ?? false;
 
 $totalWorkshops = count($groupedPlans);
 $totalItems = array_reduce($groupedPlans, static function (int $carry, array $group): int {
@@ -53,7 +55,11 @@ $statusBadge = static function (string $status): string {
                 <?= htmlspecialchars((string) $totalItems) ?> hạng mục
             </span>
         </div>
-        <p class="text-muted mb-0 mt-1">Theo dõi sức khỏe kế hoạch, tiến độ và nhu cầu vật tư theo từng xưởng.</p>
+        <p class="text-muted mb-0 mt-1">
+            <?= $isStorageManager
+                ? 'Danh sách kế hoạch đang yêu cầu giao nguyên liệu từ kho lưu trữ.'
+                : 'Theo dõi sức khỏe kế hoạch, tiến độ và nhu cầu vật tư theo từng xưởng.' ?>
+        </p>
     </div>
     <form class="d-flex align-items-center gap-2 bg-white shadow-sm border rounded-3 px-3 py-2" method="get">
         <input type="hidden" name="controller" value="factory_plan">
@@ -82,6 +88,13 @@ $statusBadge = static function (string $status): string {
             (<?= htmlspecialchars($employeeFilter['IdNhanVien'] ?? '') ?>).
             <a href="?controller=factory_plan&action=index" class="alert-link ms-2">Xóa bộ lọc</a>
         </div>
+    </div>
+<?php endif; ?>
+
+<?php if ($isStorageManager): ?>
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="bi bi-truck me-2"></i>
+        <div>Chỉ hiển thị các kế hoạch đang chờ giao nguyên liệu. Sau khi xác nhận hoàn thành, kế hoạch sẽ được ẩn khỏi danh sách.</div>
     </div>
 <?php endif; ?>
 
@@ -190,6 +203,7 @@ $statusBadge = static function (string $status): string {
                     <div class="card-body">
                         <div class="vstack gap-3">
                             <?php foreach ($items as $item): ?>
+                                <?php $request = $isStorageManager ? ($warehouseRequests[$item['IdKeHoachSanXuatXuong'] ?? ''] ?? null) : null; ?>
                                 <div class="border rounded-3 p-3">
                                     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                         <div class="flex-grow-1">
@@ -205,18 +219,30 @@ $statusBadge = static function (string $status): string {
                                             <div class="text-muted small">Hạn: <?= $formatDate($item['ThoiGianKetThuc'] ?? null) ?></div>
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                                        <div class="d-flex flex-wrap align-items-center gap-2">
-                                            <span class="<?= $statusBadge((string) ($item['TrangThai'] ?? '')) ?>">
-                                                <?= htmlspecialchars($item['TrangThai'] ?? 'Chưa cập nhật') ?>
-                                            </span>
-                                            <?php if (!empty($item['TinhTrangVatTu'])): ?>
-                                                <span class="badge bg-light text-muted">Vật tư: <?= htmlspecialchars($item['TinhTrangVatTu']) ?></span>
+                                        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <span class="<?= $statusBadge((string) ($item['TrangThai'] ?? '')) ?>">
+                                                    <?= htmlspecialchars($item['TrangThai'] ?? 'Chưa cập nhật') ?>
+                                                </span>
+                                                <?php if (!empty($item['TinhTrangVatTu'])): ?>
+                                                    <span class="badge bg-light text-muted">Vật tư: <?= htmlspecialchars($item['TinhTrangVatTu']) ?></span>
+                                                <?php endif; ?>
+                                                <?php if ($isStorageManager && $request): ?>
+                                                    <span class="badge bg-warning-subtle text-warning">YC kho: <?= htmlspecialchars($request['IdYeuCau'] ?? '') ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <a class="btn btn-sm btn-primary" href="?controller=factory_plan&action=read&id=<?= urlencode($item['IdKeHoachSanXuatXuong'] ?? '') ?>">
+                                                Xem chi tiết
+                                            </a>
+                                            <?php if ($isStorageManager && !empty($request)): ?>
+                                                <form method="post" action="?controller=factory_plan&action=confirmMaterialDelivery" onsubmit="return confirm('Xác nhận đã giao nguyên liệu cho kế hoạch này?');">
+                                                    <input type="hidden" name="request_id" value="<?= htmlspecialchars($request['IdYeuCau'] ?? '') ?>">
+                                                    <input type="hidden" name="plan_id" value="<?= htmlspecialchars($item['IdKeHoachSanXuatXuong'] ?? '') ?>">
+                                                    <button type="submit" class="btn btn-sm btn-success">Xác nhận giao</button>
+                                                </form>
                                             <?php endif; ?>
                                         </div>
-                                        <a class="btn btn-sm btn-primary" href="?controller=factory_plan&action=read&id=<?= urlencode($item['IdKeHoachSanXuatXuong'] ?? '') ?>">
-                                            Xem chi tiết
-                                        </a>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
