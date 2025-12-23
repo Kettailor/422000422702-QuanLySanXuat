@@ -440,7 +440,7 @@ class WorkshopController extends Controller
     private function canAssign(): bool
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
 
         return in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
     }
@@ -452,7 +452,7 @@ class WorkshopController extends Controller
         }
 
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
         if ($role !== 'VT_QUANLY_XUONG') {
             return false;
         }
@@ -463,7 +463,7 @@ class WorkshopController extends Controller
     private function isWorkshopManager(): bool
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
 
         return $role === 'VT_QUANLY_XUONG' && !$this->canAssign();
     }
@@ -475,7 +475,7 @@ class WorkshopController extends Controller
             return false;
         }
 
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $this->resolveAccessRole($user);
         if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true)) {
             return true;
         }
@@ -495,7 +495,7 @@ class WorkshopController extends Controller
     private function getVisibleWorkshops(): array
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
 
         if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true)) {
             return $this->workshopModel->getAllWithManagers();

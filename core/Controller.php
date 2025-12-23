@@ -77,6 +77,24 @@ abstract class Controller
         }
     }
 
+    protected function resolveAccessRole(array $user): ?string
+    {
+        $role = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        if (!$role) {
+            return null;
+        }
+
+        $isAdmin = $role === 'VT_ADMIN';
+        $isImpersonating = !empty($user['IsImpersonating']);
+        $adminFlow = $_SESSION['admin_flow'] ?? 'main';
+
+        if ($isAdmin && !$isImpersonating && $adminFlow === 'test') {
+            return 'VT_BAN_GIAM_DOC';
+        }
+
+        return $role;
+    }
+
     protected function render(string $view, array $data = []): void
     {
         $viewFile = __DIR__ . '/../views/' . $view . '.php';

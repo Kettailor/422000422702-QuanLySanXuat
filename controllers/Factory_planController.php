@@ -122,7 +122,7 @@ class Factory_planController extends Controller
     private function getVisibleWorkshops(): array
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
 
         if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
             return $this->workshopModel->getAllWithManagers();
@@ -311,7 +311,7 @@ class Factory_planController extends Controller
     private function canModifyPlan(array $plan): bool
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
 
         if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
             return true;

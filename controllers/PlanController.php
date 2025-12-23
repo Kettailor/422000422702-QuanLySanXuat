@@ -624,7 +624,7 @@ class PlanController extends Controller
     {
         $user = $this->currentUser();
 
-        return $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        return $user ? $this->resolveAccessRole($user) : null;
     }
 
     private function canManagePlans(?string $role): bool
