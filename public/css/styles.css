@@ -124,6 +124,16 @@ body {
   color: var(--primary-color);
 }
 
+.topbar a.topbar-brand {
+  color: var(--text-dark);
+  text-decoration: none;
+}
+
+.topbar a.topbar-brand:hover,
+.topbar a.topbar-brand:focus {
+  color: var(--primary-color);
+}
+
 .notification-dropdown .btn {
   border-radius: 50%;
   width: 44px;

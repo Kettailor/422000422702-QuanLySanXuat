@@ -249,7 +249,7 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
     <header class="topbar">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-outline-primary d-lg-none" data-toggle="sidebar"><i class="bi bi-list"></i></button>
-            <a href="?controller=dashboard&action=index" class="topbar-brand">SV5TOT Manufacturing Hub</a>
+            <a href="?controller=dashboard&action=index" class="topbar-brand">SV5TOT</a>
         </div>
         <div class="d-flex align-items-center gap-3">
             <?php if ($isImpersonating): ?>
