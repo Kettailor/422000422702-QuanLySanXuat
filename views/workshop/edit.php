@@ -19,8 +19,9 @@
     $canAssignManager = $canAssignManager ?? false;
     $canViewAssignments = $canViewAssignments ?? false;
     $staffList = $staffList ?? [];
-    $workshopType = $workshopType ?? 'Sản xuất';
+    $workshopType = $workshopType ?? 'Xưởng sản xuất';
     $workshopTypes = $workshopTypes ?? [];
+    $workshopTypeRules = $workshopTypeRules ?? [];
     $warehouseSelectedCount = count($selectedWarehouse);
     $productionSelectedCount = count($selectedProduction);
     ?>
@@ -105,7 +106,7 @@
                                 <div>
                                     <div class="badge bg-secondary-subtle text-secondary mb-2">Phân công nhân sự</div>
                                     <h6 class="fw-bold mb-1">Chia theo vai trò</h6>
-                                    <p class="text-muted small mb-0">Lọc nhanh theo tên/mã, danh sách rõ ràng theo kho và sản xuất.</p>
+                                    <p class="text-muted small mb-0">Lọc nhanh theo tên/mã, danh sách rõ ràng theo kho và nhóm chính.</p>
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap">
                                     <span class="chip text-success bg-success-subtle" data-chip="warehouse-count">Kho: <?= $warehouseSelectedCount ?> chọn</span>
@@ -139,10 +140,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6" data-production-panel>
                                     <div class="assignment-panel h-100">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <label class="form-label mb-0">Nhân viên sản xuất</label>
+                                            <label class="form-label mb-0" data-production-label>Nhân viên sản xuất</label>
                                             <div class="input-group input-group-sm assignment-search-group">
                                                 <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
                                                 <input type="text" class="form-control assignment-search border-start-0" data-target="#production-list" placeholder="Tìm tên/mã nhân viên">
@@ -165,7 +166,7 @@
                                                             <div class="text-muted small"><?= htmlspecialchars($employee['IdNhanVien']) ?> <?= !empty($employee['ChucVu']) ? '• ' . htmlspecialchars($employee['ChucVu']) : '' ?></div>
                                                         </div>
                                                     </div>
-                                                    <span class="badge bg-info-subtle text-info">Sản xuất</span>
+                                                    <span class="badge bg-info-subtle text-info" data-production-badge>Sản xuất</span>
                                                 </label>
                                             <?php endforeach; ?>
                                         </div>
@@ -187,10 +188,10 @@
                                     <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
                                     <?php
                                     $warehouseCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Kho'));
-                                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
+                                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') !== 'Kho'));
                                     ?>
                                     <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>
-                                    <span class="chip text-info bg-info-subtle">Sản xuất: <?= $productionCount ?></span>
+                                    <span class="chip text-info bg-info-subtle">Nhóm khác: <?= $productionCount ?></span>
                                 </div>
                             </div>
                             <?php if (!empty($staffList)): ?>
@@ -224,13 +225,32 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const workshopTypeSelect = document.querySelector('[data-workshop-type]');
+    const workshopTypeRules = <?= json_encode($workshopTypeRules, JSON_UNESCAPED_UNICODE) ?>;
+    const productionPanel = document.querySelector('[data-production-panel]');
+    const productionLabel = document.querySelector('[data-production-label]');
+    const productionBadge = document.querySelector('[data-production-badge]');
+
+    const getConfig = () => {
+        const selectedType = workshopTypeSelect ? workshopTypeSelect.value : '';
+        return workshopTypeRules[selectedType] || {};
+    };
 
     const filterProductionEmployees = () => {
-        const selectedType = workshopTypeSelect ? workshopTypeSelect.value.toLowerCase() : '';
-        const useQuality = selectedType.includes('kiểm định');
+        const config = getConfig();
+        const useQuality = config.use_quality === true;
+        const allowProduction = config.allow_production !== false;
+
+        if (productionPanel) {
+            productionPanel.classList.toggle('d-none', !allowProduction);
+        }
+
+        const label = config.production_label || 'Sản xuất';
+        if (productionLabel) productionLabel.textContent = `Nhân viên ${label.toLowerCase()}`;
+        if (productionBadge) productionBadge.textContent = label;
+
         document.querySelectorAll('#production-list .assignment-item').forEach((item) => {
             const employeeType = item.getAttribute('data-employee-type');
-            const shouldShow = useQuality ? employeeType === 'quality' : employeeType === 'production';
+            const shouldShow = allowProduction && (useQuality ? employeeType === 'quality' : employeeType === 'production');
             const checkbox = item.querySelector('input[type="checkbox"]');
             if (shouldShow) {
                 item.classList.remove('d-none');
@@ -254,8 +274,9 @@ document.addEventListener('DOMContentLoaded', function () {
             .length;
         const warehouseChip = document.querySelector('[data-chip="warehouse-count"]');
         const productionChip = document.querySelector('[data-chip="production-count"]');
+        const label = (getConfig().production_label || 'Sản xuất').toLowerCase();
         if (warehouseChip) warehouseChip.textContent = `Kho: ${warehouseCount} chọn`;
-        if (productionChip) productionChip.textContent = `Sản xuất: ${productionCount} chọn`;
+        if (productionChip) productionChip.textContent = `${label}: ${productionCount} chọn`;
     };
 
     document.querySelectorAll('.assignment-search').forEach((input) => {

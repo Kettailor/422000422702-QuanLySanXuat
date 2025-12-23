@@ -17,6 +17,16 @@
     $productionNames = array_column($assignments['nhan_vien_san_xuat'] ?? [], 'HoTen');
     $canViewAssignments = $canViewAssignments ?? false;
     $staffList = $staffList ?? [];
+    $workshopType = $workshopType ?? 'Xưởng sản xuất';
+    $normalizedType = mb_strtolower(trim($workshopType));
+    $productionLabel = 'Sản xuất';
+    $showProduction = true;
+    if ($normalizedType === 'xưởng kiểm định') {
+        $productionLabel = 'Kiểm soát chất lượng';
+    }
+    if ($normalizedType === 'xưởng lưu trữ hàng hóa') {
+        $showProduction = false;
+    }
     ?>
     <div class="card p-4 shadow-sm">
         <div class="row g-4">
@@ -70,7 +80,7 @@
     <?php if ($canViewAssignments): ?>
         <?php
         $warehouseCount = count($warehouseNames);
-        $productionCount = count($productionNames);
+        $productionCount = $showProduction ? count($productionNames) : 0;
         ?>
         <div class="card mt-4 border-0 shadow-sm">
             <div class="card-body">
@@ -84,7 +94,9 @@
                     </div>
                     <div class="d-flex flex-wrap gap-2">
                         <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>
-                        <span class="chip text-info bg-info-subtle">Sản xuất: <?= $productionCount ?></span>
+                        <?php if ($showProduction): ?>
+                            <span class="chip text-info bg-info-subtle"><?= htmlspecialchars($productionLabel) ?>: <?= $productionCount ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="row g-3">
@@ -116,34 +128,36 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="assignment-card h-100">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="icon-circle bg-info-subtle text-info"><i class="bi bi-gear"></i></span>
-                                    <div>
-                                        <div class="text-muted small">Nhân viên sản xuất</div>
-                                        <div class="fw-semibold"><?= $productionCount ?> người</div>
+                    <?php if ($showProduction): ?>
+                        <div class="col-md-6">
+                            <div class="assignment-card h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="icon-circle bg-info-subtle text-info"><i class="bi bi-gear"></i></span>
+                                        <div>
+                                            <div class="text-muted small">Nhân viên <?= htmlspecialchars(mb_strtolower($productionLabel)) ?></div>
+                                            <div class="fw-semibold"><?= $productionCount ?> người</div>
+                                        </div>
                                     </div>
+                                    <span class="badge bg-info-subtle text-info"><?= htmlspecialchars($productionLabel) ?></span>
                                 </div>
-                                <span class="badge bg-info-subtle text-info">Sản xuất</span>
+                                <ul class="list-unstyled mb-0 assignment-stack">
+                                    <?php if ($productionNames): ?>
+                                        <?php foreach ($assignments['nhan_vien_san_xuat'] as $staff): ?>
+                                            <li class="assignment-stack-item">
+                                                <div>
+                                                    <div class="fw-semibold"><?= htmlspecialchars($staff['HoTen']) ?></div>
+                                                    <div class="text-muted small"><?= htmlspecialchars($staff['IdNhanVien']) ?></div>
+                                                </div>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <li class="text-muted small fst-italic">Chưa phân công nhân sự <?= htmlspecialchars(mb_strtolower($productionLabel)) ?>.</li>
+                                    <?php endif; ?>
+                                </ul>
                             </div>
-                            <ul class="list-unstyled mb-0 assignment-stack">
-                                <?php if ($productionNames): ?>
-                                    <?php foreach ($assignments['nhan_vien_san_xuat'] as $staff): ?>
-                                        <li class="assignment-stack-item">
-                                            <div>
-                                                <div class="fw-semibold"><?= htmlspecialchars($staff['HoTen']) ?></div>
-                                                <div class="text-muted small"><?= htmlspecialchars($staff['IdNhanVien']) ?></div>
-                                            </div>
-                                        </li>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <li class="text-muted small fst-italic">Chưa phân công nhân sự sản xuất.</li>
-                                <?php endif; ?>
-                            </ul>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -158,12 +172,14 @@
                     </div>
                     <?php
                     $warehouseCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Kho'));
-                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
+                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') !== 'Kho'));
                     ?>
                     <div class="d-flex gap-2 flex-wrap">
                         <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
                         <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>
-                        <span class="chip text-info bg-info-subtle">Sản xuất: <?= $productionCount ?></span>
+                        <?php if ($showProduction): ?>
+                            <span class="chip text-info bg-info-subtle"><?= htmlspecialchars($productionLabel) ?>: <?= $productionCount ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php if (!empty($staffList)): ?>

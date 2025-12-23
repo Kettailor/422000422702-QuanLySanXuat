@@ -6,6 +6,8 @@ $prefillPersist = $materialSource !== 'plan';
 $materialsForRender = !empty($materials) ? $materials : [['IdNguyenLieu' => '', 'SoLuongKeHoach' => 0, 'DonVi' => '', 'SoLuongTonKho' => null]];
 $canUpdateProgress = $canUpdateProgress ?? false;
 $planAssignments = $planAssignments ?? [];
+$materialEnabled = $materialEnabled ?? true;
+$progressEnabled = $progressEnabled ?? true;
 
 $materialOptionHtml = '<option value="">Chọn nguyên liệu</option>';
 foreach ($materialOptions as $option) {
@@ -35,7 +37,7 @@ foreach ($materialOptions as $option) {
 <?php if (!$plan): ?>
     <div class="alert alert-warning">Không tìm thấy kế hoạch xưởng.</div>
 <?php else: ?>
-        <?php if (!empty($materialCheckResult)): ?>
+        <?php if ($materialEnabled && !empty($materialCheckResult)): ?>
             <div class="alert <?= $materialCheckResult['is_sufficient'] ? 'alert-success' : 'alert-warning' ?>">
                 <div class="fw-semibold mb-2">
                     <?= $materialCheckResult['is_sufficient']
@@ -110,76 +112,80 @@ foreach ($materialOptions as $option) {
         </div>
     </div>
 
-    <div class="card p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h5 class="fw-semibold mb-1">Nhu cầu nguyên liệu thực tế</h5>
-                <?php if ($materialSource === 'custom'): ?>
-                    <div class="text-muted small">Sản phẩm mới chưa có định mức. Vui lòng chọn nguyên liệu phù hợp trước khi kiểm tra tồn kho.</div>
-                <?php endif; ?>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row">
-                <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
-            </button>
-        </div>
-        <form method="post" action="?controller=workshop_plan&action=checkMaterials">
-            <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
-            <div class="table-responsive mb-3">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Nguyên liệu</th>
-                            <th class="text-end">Định mức kế hoạch</th>
-                            <th class="text-end">Tồn kho</th>
-                            <th style="width: 220px">Nhu cầu thực tế</th>
-                        </tr>
-                    </thead>
-                    <tbody id="material-rows">
-                    <?php foreach ($materialsForRender as $index => $material): ?>
-                        <tr>
-                            <td>
-                                <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required>
-                                    <option value="">Chọn nguyên liệu</option>
-                                    <?php foreach ($materialOptions as $option): ?>
-                                        <?php $value = $option['IdNguyenLieu'] ?? ''; ?>
-                                        <option value="<?= htmlspecialchars($value) ?>" <?= ($value === ($material['IdNguyenLieu'] ?? null)) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars(($option['TenNL'] ?? $value) . (!empty($option['DonVi']) ? ' (' . $option['DonVi'] . ')' : '')) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </td>
-                            <td class="text-end">
-                                <?= number_format((int) ($material['SoLuongKeHoach'] ?? 0)) ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
-                            </td>
-                            <td class="text-end">
-                                <?= isset($material['SoLuongTonKho']) ? number_format((int) ($material['SoLuongTonKho'] ?? 0)) : 'Đang tra cứu' ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
-                            </td>
-                            <td>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" min="0" class="form-control" name="materials[<?= $index ?>][required]" value="<?= htmlspecialchars($material['SoLuongKeHoach'] ?? 0) ?>" required>
-                                    <?php if (!empty($material['DonVi'])): ?>
-                                        <span class="input-group-text"><?= htmlspecialchars($material['DonVi']) ?></span>
-                                    <?php endif; ?>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-8">
-                    <label for="note" class="form-label">Ghi chú điều chỉnh / lý do</label>
-                    <textarea name="note" id="note" rows="3" class="form-control" placeholder="Ghi chú cho Ban giám đốc theo dõi..."></textarea>
+    <?php if ($materialEnabled): ?>
+        <div class="card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-semibold mb-1">Nhu cầu nguyên liệu thực tế</h5>
+                    <?php if ($materialSource === 'custom'): ?>
+                        <div class="text-muted small">Sản phẩm mới chưa có định mức. Vui lòng chọn nguyên liệu phù hợp trước khi kiểm tra tồn kho.</div>
+                    <?php endif; ?>
                 </div>
-            </div>
-            <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check2-circle me-2"></i>Kiểm tra tồn kho
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row">
+                    <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
                 </button>
             </div>
-        </form>
-    </div>
+            <form method="post" action="?controller=workshop_plan&action=checkMaterials">
+                <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
+                <div class="table-responsive mb-3">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Nguyên liệu</th>
+                                <th class="text-end">Định mức kế hoạch</th>
+                                <th class="text-end">Tồn kho</th>
+                                <th style="width: 220px">Nhu cầu thực tế</th>
+                            </tr>
+                        </thead>
+                        <tbody id="material-rows">
+                        <?php foreach ($materialsForRender as $index => $material): ?>
+                            <tr>
+                                <td>
+                                    <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required>
+                                        <option value="">Chọn nguyên liệu</option>
+                                        <?php foreach ($materialOptions as $option): ?>
+                                            <?php $value = $option['IdNguyenLieu'] ?? ''; ?>
+                                            <option value="<?= htmlspecialchars($value) ?>" <?= ($value === ($material['IdNguyenLieu'] ?? null)) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars(($option['TenNL'] ?? $value) . (!empty($option['DonVi']) ? ' (' . $option['DonVi'] . ')' : '')) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
+                                <td class="text-end">
+                                    <?= number_format((int) ($material['SoLuongKeHoach'] ?? 0)) ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
+                                </td>
+                                <td class="text-end">
+                                    <?= isset($material['SoLuongTonKho']) ? number_format((int) ($material['SoLuongTonKho'] ?? 0)) : 'Đang tra cứu' ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" min="0" class="form-control" name="materials[<?= $index ?>][required]" value="<?= htmlspecialchars($material['SoLuongKeHoach'] ?? 0) ?>" required>
+                                        <?php if (!empty($material['DonVi'])): ?>
+                                            <span class="input-group-text"><?= htmlspecialchars($material['DonVi']) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label for="note" class="form-label">Ghi chú điều chỉnh / lý do</label>
+                        <textarea name="note" id="note" rows="3" class="form-control" placeholder="Ghi chú cho Ban giám đốc theo dõi..."></textarea>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check2-circle me-2"></i>Kiểm tra tồn kho
+                    </button>
+                </div>
+            </form>
+        </div>
+    <?php else: ?>
+        <div class="alert alert-info mb-4">Loại xưởng này chỉ cần phân công, không theo dõi nguyên liệu hoặc tiến độ.</div>
+    <?php endif; ?>
 
     <div class="row g-4">
         <div class="col-lg-6">
@@ -218,35 +224,37 @@ foreach ($materialOptions as $option) {
                 <?php endif; ?>
             </div>
         </div>
-        <div class="col-lg-6">
-            <div class="card p-4 h-100">
-                <h5 class="fw-semibold mb-3">Yêu cầu kho đã gửi</h5>
-                <?php if (empty($warehouseRequests)): ?>
-                    <div class="alert alert-light border mb-0">Chưa có yêu cầu xuất kho.</div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Mã yêu cầu</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            <?php foreach ($warehouseRequests as $request): ?>
-                                <tr>
-                                    <td class="fw-semibold"><?= htmlspecialchars($request['IdYeuCau']) ?></td>
-                                    <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($request['NgayTao'] ?? 'now'))) ?></td>
-                                    <td><span class="badge bg-warning bg-opacity-25 text-warning"><?= htmlspecialchars($request['TrangThai'] ?? 'Chờ xử lý') ?></span></td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
+        <?php if ($materialEnabled): ?>
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h5 class="fw-semibold mb-3">Yêu cầu kho đã gửi</h5>
+                    <?php if (empty($warehouseRequests)): ?>
+                        <div class="alert alert-light border mb-0">Chưa có yêu cầu xuất kho.</div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Mã yêu cầu</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <?php foreach ($warehouseRequests as $request): ?>
+                                    <tr>
+                                        <td class="fw-semibold"><?= htmlspecialchars($request['IdYeuCau']) ?></td>
+                                        <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($request['NgayTao'] ?? 'now'))) ?></td>
+                                        <td><span class="badge bg-warning bg-opacity-25 text-warning"><?= htmlspecialchars($request['TrangThai'] ?? 'Chờ xử lý') ?></span></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
 
 <?php endif; ?>

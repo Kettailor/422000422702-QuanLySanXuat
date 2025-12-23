@@ -39,15 +39,22 @@ class Workshop_planController extends Controller
         $materialCheckResult = $_SESSION['material_check_result'] ?? null;
         unset($_SESSION['material_check_result']);
 
-        $materialSource = 'plan';
-        $materialOptions = $this->materialModel->all(500);
+        $typeConfig = $this->getWorkshopTypeConfig($plan['LoaiXuong'] ?? null);
+        $materialEnabled = $typeConfig['supports_materials'] ?? true;
+        $progressEnabled = $typeConfig['supports_progress'] ?? true;
 
-        if ($plan && empty($materials)) {
+        $materialSource = 'plan';
+        $materialOptions = $materialEnabled ? $this->materialModel->all(500) : [];
+
+        if ($plan && empty($materials) && $materialEnabled) {
             $materialSource = 'custom';
         }
 
         $hasAssignments = !empty($planAssignments);
-        $canUpdateProgress = $plan && $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null) && $hasAssignments;
+        $canUpdateProgress = $plan
+            && $progressEnabled
+            && $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null)
+            && $hasAssignments;
 
         $this->render('workshop_plan/read', [
             'title' => 'Kiểm tra nguyên liệu kế hoạch xưởng',
@@ -60,6 +67,8 @@ class Workshop_planController extends Controller
             'materialOptions' => $materialOptions,
             'planAssignments' => $planAssignments,
             'canUpdateProgress' => $canUpdateProgress,
+            'materialEnabled' => $materialEnabled,
+            'progressEnabled' => $progressEnabled,
         ]);
     }
 
@@ -81,6 +90,11 @@ class Workshop_planController extends Controller
         if (!$plan) {
             $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
             $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+        if (!$this->supportsMaterials($plan)) {
+            $this->setFlash('danger', 'Loại xưởng này không cần kiểm tra nguyên liệu.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
             return;
         }
 
@@ -256,12 +270,13 @@ class Workshop_planController extends Controller
             if (empty($assignmentsInput)) {
                 $this->setFlash('warning', 'Không có ca nào hợp lệ để cập nhật phân công.');
             } else {
+                $assignmentRole = $this->getAssignmentRole($plan);
                 $this->planAssignmentModel->syncByShiftPolicy(
                     $planId,
                     $assignmentsInput,
                     $editableShiftIds,
                     $addOnlyShiftIds,
-                    'nhan_vien_san_xuat'
+                    $assignmentRole
                 );
                 $this->setFlash('success', 'Đã cập nhật phân công nhân sự theo ca.');
             }
@@ -292,6 +307,11 @@ class Workshop_planController extends Controller
             $this->redirect('?controller=factory_plan&action=index');
             return;
         }
+        if (!$this->supportsProgress($plan)) {
+            $this->setFlash('danger', 'Loại xưởng này chỉ hỗ trợ phân công, không cập nhật tiến độ.');
+            $this->redirect('?controller=workshop_plan&action=assign&id=' . urlencode($planId));
+            return;
+        }
 
         $this->workShiftModel->ensureDefaultShiftsForPlan(
             $planId,
@@ -308,7 +328,9 @@ class Workshop_planController extends Controller
         }));
 
         $hasAssignments = !empty($planAssignments);
-        $canUpdateProgress = $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null) && $hasAssignments;
+        $canUpdateProgress = $this->supportsProgress($plan)
+            && $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null)
+            && $hasAssignments;
 
         $this->render('workshop_plan/progress', [
             'title' => 'Cập nhật tiến độ cuối ca',
@@ -336,6 +358,11 @@ class Workshop_planController extends Controller
         if (!$plan) {
             $this->setFlash('danger', 'Không tìm thấy kế hoạch xưởng.');
             $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+        if (!$this->supportsProgress($plan)) {
+            $this->setFlash('danger', 'Loại xưởng này chỉ hỗ trợ phân công, không cập nhật tiến độ.');
+            $this->redirect('?controller=workshop_plan&action=assign&id=' . urlencode($planId));
             return;
         }
 
@@ -401,11 +428,16 @@ class Workshop_planController extends Controller
     private function updatePlanStatus(string $planId, ?string $materialStatus, bool $hasAssignments): void
     {
         $payload = [];
-        if ($materialStatus !== null) {
+        $plan = $this->workshopPlanModel->findWithRelations($planId);
+        $assignmentOnly = $plan && !$this->supportsMaterials($plan);
+
+        if (!$assignmentOnly && $materialStatus !== null) {
             $payload['TinhTrangVatTu'] = $materialStatus;
         }
 
-        if ($this->isMaterialSufficient($materialStatus)) {
+        if ($assignmentOnly) {
+            $payload['TrangThai'] = $hasAssignments ? 'Đang thực hiện' : 'Chờ phân công';
+        } elseif ($this->isMaterialSufficient($materialStatus)) {
             $payload['TrangThai'] = $hasAssignments ? 'Đang sản xuất' : 'Chờ phân công';
         } else {
             $payload['TrangThai'] = 'Chờ bổ sung';
@@ -485,5 +517,50 @@ class Workshop_planController extends Controller
         }
 
         return 'Không thể cập nhật trạng thái kế hoạch, vui lòng kiểm tra lại thời gian.';
+    }
+
+    private function getWorkshopTypeConfig(?string $workshopType): array
+    {
+        $normalized = mb_strtolower(trim((string) $workshopType));
+
+        if ($normalized === 'xưởng kiểm định') {
+            return [
+                'supports_materials' => false,
+                'supports_progress' => false,
+                'assignment_role' => 'nhan_vien_san_xuat',
+            ];
+        }
+
+        if ($normalized === 'xưởng lưu trữ hàng hóa') {
+            return [
+                'supports_materials' => false,
+                'supports_progress' => false,
+                'assignment_role' => 'nhan_vien_kho',
+            ];
+        }
+
+        return [
+            'supports_materials' => true,
+            'supports_progress' => true,
+            'assignment_role' => 'nhan_vien_san_xuat',
+        ];
+    }
+
+    private function supportsMaterials(array $plan): bool
+    {
+        $config = $this->getWorkshopTypeConfig($plan['LoaiXuong'] ?? null);
+        return $config['supports_materials'] ?? true;
+    }
+
+    private function supportsProgress(array $plan): bool
+    {
+        $config = $this->getWorkshopTypeConfig($plan['LoaiXuong'] ?? null);
+        return $config['supports_progress'] ?? true;
+    }
+
+    private function getAssignmentRole(array $plan): string
+    {
+        $config = $this->getWorkshopTypeConfig($plan['LoaiXuong'] ?? null);
+        return $config['assignment_role'] ?? 'nhan_vien_san_xuat';
     }
 }
