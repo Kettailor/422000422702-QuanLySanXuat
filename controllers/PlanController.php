@@ -70,13 +70,11 @@ class PlanController extends Controller
         }
 
         $currentUser = $this->currentUser();
-        if ($currentUser && empty($currentUser['HoTen'])) {
-            $employeeId = $currentUser['IdNhanVien'] ?? null;
-            if ($employeeId) {
-                $employee = $this->employeeModel->find($employeeId);
-                if (!empty($employee['HoTen'])) {
-                    $currentUser['HoTen'] = $employee['HoTen'];
-                }
+        $employeeId = $currentUser['IdNhanVien'] ?? null;
+        if ($employeeId) {
+            $employee = $this->employeeModel->find($employeeId);
+            if (!empty($employee['HoTen'])) {
+                $currentUser['HoTen'] = $employee['HoTen'];
             }
         }
 
