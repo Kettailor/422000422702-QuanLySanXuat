@@ -316,7 +316,8 @@ CREATE TABLE `don_hang` (
   `NgayLap` date DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
   `EmailLienHe` varchar(255) DEFAULT NULL,
-  `IdKhachHang` varchar(50) NOT NULL
+  `IdKhachHang` varchar(50) NOT NULL,
+  `IdNguoiTao` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -8,6 +8,7 @@ class OrderController extends Controller
     private OrderDetail $orderDetailModel;
     private ProductConfiguration $configurationModel;
     private ProductBom $bomModel;
+    private SystemActivity $activityModel;
 
     private array $orderStatuses = ['Chưa có kế hoạch', 'Đang xử lý', 'Hoàn thành', 'Chờ vận chuyển', 'Đã hoàn thành'];
 
@@ -20,6 +21,7 @@ class OrderController extends Controller
         $this->orderDetailModel = new OrderDetail();
         $this->configurationModel = new ProductConfiguration();
         $this->bomModel = new ProductBom();
+        $this->activityModel = new SystemActivity();
     }
 
     public function index(): void
@@ -73,6 +75,8 @@ class OrderController extends Controller
             $preparedDetails = $this->prepareOrderDetails($orderId, $detailsInput);
             $totalAmount = array_reduce($preparedDetails, static fn ($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
 
+            $currentUser = $this->currentUser();
+            $creatorId = $currentUser['IdNhanVien'] ?? null;
             $data = [
                 'IdDonHang' => $orderId,
                 'YeuCau' => $_POST['YeuCau'] ?? null,
@@ -81,6 +85,7 @@ class OrderController extends Controller
                 'TrangThai' => $this->orderStatuses[0],
                 'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
                 'IdKhachHang' => $customerId,
+                'IdNguoiTao' => $creatorId,
             ];
 
             $this->orderModel->create($data);
@@ -92,6 +97,7 @@ class OrderController extends Controller
             $db->commit();
             $this->setFlash('success', 'Tạo đơn hàng thành công.');
             $this->notifyBoardOrder($orderId, 'Tạo đơn hàng mới');
+            $this->logOrderActivity($creatorId, sprintf('Tạo đơn hàng %s', $orderId));
         } catch (Throwable $exception) {
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
@@ -154,6 +160,9 @@ class OrderController extends Controller
             return;
         }
 
+        $currentUser = $this->currentUser();
+        $editorId = $currentUser['IdNhanVien'] ?? null;
+
         try {
             $db = Database::getInstance()->getConnection();
             $db->beginTransaction();
@@ -183,12 +192,16 @@ class OrderController extends Controller
             }
 
             $totalAmount = 0.0;
+            $changeNotes = [];
             foreach ($existingMap as $detailId => $existing) {
                 $input = $inputById[$detailId] ?? [];
                 $currentQuantity = (int) ($existing['SoLuong'] ?? 0);
                 $newQuantity = isset($input['quantity']) ? (int) $input['quantity'] : $currentQuantity;
                 if ($newQuantity < $currentQuantity) {
                     throw new InvalidArgumentException('Số lượng chỉ được phép tăng, không được giảm.');
+                }
+                if ($newQuantity > $currentQuantity) {
+                    $changeNotes[] = sprintf('Dòng %s tăng số lượng %d → %d', $detailId, $currentQuantity, $newQuantity);
                 }
 
                 $deliveryInput = $input['delivery_date'] ?? null;
@@ -204,6 +217,9 @@ class OrderController extends Controller
                     if ($existingTimestamp && $newTimestamp && $newTimestamp < $existingTimestamp) {
                         throw new InvalidArgumentException('Ngày giao dự kiến chỉ được phép lùi muộn hơn.');
                     }
+                }
+                if (!empty($existing['NgayGiao']) && $delivery && $existing['NgayGiao'] !== $delivery) {
+                    $changeNotes[] = sprintf('Dòng %s dời ngày giao %s → %s', $detailId, $existing['NgayGiao'], $delivery);
                 }
                 if ($delivery) {
                     $newTimestamp = strtotime($delivery);
@@ -238,6 +254,11 @@ class OrderController extends Controller
             $db->commit();
             $this->setFlash('success', 'Cập nhật đơn hàng thành công.');
             $this->notifyBoardOrder($id, 'Cập nhật đơn hàng');
+            if (($order['EmailLienHe'] ?? null) !== ($data['EmailLienHe'] ?? null)) {
+                $changeNotes[] = sprintf('Email liên hệ %s → %s', $order['EmailLienHe'] ?? '---', $data['EmailLienHe'] ?? '---');
+            }
+            $noteText = $changeNotes ? implode('; ', $changeNotes) : 'Cập nhật thông tin đơn hàng.';
+            $this->logOrderActivity($editorId, sprintf('Cập nhật đơn hàng %s: %s', $id, $noteText));
         } catch (Throwable $exception) {
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
@@ -629,6 +650,24 @@ class OrderController extends Controller
         }
 
         $notificationStore->pushMany($entries);
+    }
+
+    private function logOrderActivity(?string $userId, string $action): void
+    {
+        if (!$userId) {
+            return;
+        }
+
+        try {
+            $this->activityModel->create([
+                'IdHoatDong' => uniqid('HD'),
+                'HanhDong' => $action,
+                'ThoiGian' => date('Y-m-d H:i:s'),
+                'IdNguoiDung' => $userId,
+            ]);
+        } catch (Throwable $exception) {
+            Logger::error('Lỗi khi ghi nhật ký đơn hàng: ' . $exception->getMessage());
+        }
     }
 
     private function resolveCustomer(array $input, ?string $fallbackCustomerId = null): string
