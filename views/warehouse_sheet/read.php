@@ -9,9 +9,16 @@ $warehouse = $warehouse ?? null;
         <h3 class="fw-bold mb-1">Chi tiết phiếu kho</h3>
         <p class="text-muted mb-0">Theo dõi đầy đủ thông tin chứng từ và các lô phát sinh.</p>
     </div>
-    <a href="?controller=warehouse_sheet&action=index" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
-    </a>
+    <div class="d-flex gap-2">
+        <a href="?controller=warehouse_sheet&action=index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+        </a>
+        <?php if (!empty($document['IdPhieu'])): ?>
+            <a href="?controller=warehouse_sheet&action=export_pdf&id=<?= urlencode($document['IdPhieu']) ?>" class="btn btn-success">
+                <i class="bi bi-filetype-pdf me-1"></i> Xuất PDF
+            </a>
+        <?php endif; ?>
+    </div>
 </div>
 
 <?php if (!$document): ?>
@@ -25,7 +32,14 @@ $warehouse = $warehouse ?? null;
                         <dt class="col-sm-5">Mã phiếu</dt>
                         <dd class="col-sm-7 fw-semibold"><?= htmlspecialchars($document['IdPhieu']) ?></dd>
                         <dt class="col-sm-5">Loại phiếu</dt>
-                        <dd class="col-sm-7"><span class="badge badge-soft-primary"><?= htmlspecialchars($document['LoaiPhieu']) ?></span></dd>
+                        <dd class="col-sm-7">
+                            <?php $classification = $document['classification'] ?? null; ?>
+                            <?php if ($classification): ?>
+                                <span class="badge <?= htmlspecialchars($classification['badge_class'] ?? 'badge-soft-primary') ?> me-1"><?= htmlspecialchars($classification['direction_label'] ?? '') ?></span>
+                                <span class="badge bg-info-subtle text-info border"><?= htmlspecialchars($classification['category'] ?? '') ?></span>
+                            <?php endif; ?>
+                            <div class="text-muted small"><?= htmlspecialchars($document['LoaiPhieu']) ?></div>
+                        </dd>
                         <dt class="col-sm-5">Đối tác</dt>
                         <dd class="col-sm-7">
                             <?= htmlspecialchars($document['DoiTac'] ?? '-') ?>
