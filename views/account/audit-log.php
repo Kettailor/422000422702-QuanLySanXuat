@@ -1,59 +1,74 @@
-<div class="container mt-4 card p-4">
-  <h5>Nhật ký kiểm tra tài khoản</h5>
+<?php
+$logs = $logs ?? ['logs' => [], 'total_pages' => 0, 'page' => 1, 'limit' => 10];
+$loginLogs = $loginLogs ?? ['start_date' => '', 'end_date' => '', 'data' => []];
 
-  <div class="table-responsive mt-4">
-    <table class="table table-bordered table-striped align-middle text-nowrap">
-      <thead>
-        <tr>
-          <th>Ngày</th>
-          <th>Mức độ</th>
-          <th>Người thực hiện</th>
-          <th>Hành động</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php if (!empty($logs['logs']) && is_array($logs['logs'])): ?>
+$resolveBadge = static function (?string $level): array {
+    return match ($level) {
+        'ERROR' => ['bg-danger', 'Lỗi'],
+        'WARN' => ['bg-warning text-dark', 'Cảnh báo'],
+        'DEBUG' => ['bg-secondary', 'Gỡ lỗi'],
+        default => ['bg-info', 'Thông tin'],
+    };
+};
+?>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Nhật ký hệ thống</h3>
+    <p class="text-muted mb-0">Theo dõi các hành động quan trọng và thống kê đăng nhập.</p>
+  </div>
+  <a href="?controller=dashboard&action=index" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Quay lại
+  </a>
+</div>
+
+<div class="card p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Hoạt động gần đây</h5>
+    <span class="badge bg-light text-dark"><?= count($logs['logs'] ?? []) ?> bản ghi</span>
+  </div>
+
+  <?php if (!empty($logs['logs']) && is_array($logs['logs'])): ?>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Thời gian</th>
+            <th>Mức độ</th>
+            <th>Người thực hiện</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
           <?php foreach ($logs['logs'] as $log): ?>
+            <?php [$badgeClass, $label] = $resolveBadge($log['level'] ?? null); ?>
             <tr>
-              <td><?php echo htmlspecialchars($log['date']); ?></td>
+              <td class="text-nowrap"><?php echo htmlspecialchars($log['date']); ?></td>
               <td>
-                <span class="badge bg-<?php
-                    if ($log['level'] === 'INFO') {
-                        echo 'info';
-                    } elseif ($log['level'] === 'ERROR') {
-                        echo 'danger';
-                    } elseif ($log['level'] === 'WARN') {
-                        echo 'warning';
-                    } elseif ($log['level'] === 'DEBUG') {
-                        echo 'secondary';
-                    }
-              ?>">
-                    <?php echo htmlspecialchars($log['level']); ?>
-                </span>
+                <span class="badge <?= $badgeClass ?>"><?php echo htmlspecialchars($label); ?></span>
+                <div class="text-muted small"><?php echo htmlspecialchars($log['level']); ?></div>
               </td>
               <td><?php echo htmlspecialchars($log['actor']); ?></td>
               <td class="text-wrap"><?php echo htmlspecialchars($log['action']); ?></td>
             </tr>
           <?php endforeach; ?>
-        <?php else: ?>
-          <tr>
-            <td colspan="4" class="text-center">Không có nhật ký kiểm tra nào được tìm thấy.</td>
-          </tr>
-        <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
+        </tbody>
+      </table>
+    </div>
+  <?php else: ?>
+    <div class="text-muted">Không có nhật ký kiểm tra nào được tìm thấy.</div>
+  <?php endif; ?>
 
   <?php if (!empty($logs['total_pages']) && $logs['total_pages'] > 1): ?>
-    <nav>
-      <ul class="pagination justify-content-center">
+    <nav class="mt-3">
+      <ul class="pagination justify-content-center mb-0">
         <li class="page-item<?php if ($logs['page'] <= 1) {
             echo ' disabled';
         } ?>">
-        <a class="page-link" href="?controller=account&action=auditLog&limit=<?php echo $logs['limit'] ?>&page=<?php echo $logs['page'] - 1; ?>" tabindex="-1">
-          <i class="bi bi-chevron-left"></i>
-          <span class="sr-only">Trước</span>
-        </a>
+          <a class="page-link" href="?controller=account&action=auditLog&limit=<?php echo $logs['limit'] ?>&page=<?php echo $logs['page'] - 1; ?>" tabindex="-1">
+            <i class="bi bi-chevron-left"></i>
+            <span class="sr-only">Trước</span>
+          </a>
         </li>
         <?php for ($i = 1; $i <= $logs['total_pages']; $i++): ?>
           <li class="page-item<?php if ($i == $logs['page']) {
@@ -65,35 +80,36 @@
         <li class="page-item<?php if ($logs['page'] >= $logs['total_pages']) {
             echo ' disabled';
         } ?>">
-        <a class="page-link" href="?controller=account&action=auditLog&limit=<?php echo $logs['limit'] ?>&page=<?php echo $logs['page'] + 1; ?>">
-          <i class="bi bi-chevron-right"></i>
-          <span class="sr-only">Sau</span>
-        </a>
+          <a class="page-link" href="?controller=account&action=auditLog&limit=<?php echo $logs['limit'] ?>&page=<?php echo $logs['page'] + 1; ?>">
+            <i class="bi bi-chevron-right"></i>
+            <span class="sr-only">Sau</span>
+          </a>
         </li>
       </ul>
     </nav>
   <?php endif; ?>
 </div>
 
-<div class="container mt-4 card p-4">
-  <h5>Số lần đăng nhập mỗi ngày</h5>
+<div class="card p-4 mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h5 class="mb-1">Thống kê đăng nhập</h5>
+      <div class="text-muted small">Số lần đăng nhập theo ngày trong khoảng được chọn.</div>
+    </div>
+  </div>
   <form class="row g-3 mb-4" method="get" action="">
     <input type="hidden" name="controller" value="account">
     <input type="hidden" name="action" value="auditLog">
-    <div class="col-auto">
-      <label for="start_date" class="col-form-label">Từ ngày:</label>
-    </div>
-    <div class="col-auto">
+    <div class="col-md-4">
+      <label for="start_date" class="form-label">Từ ngày</label>
       <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $loginLogs['start_date']; ?>">
     </div>
-    <div class="col-auto">
-      <label for="end_date" class="col-form-label">Đến ngày:</label>
-    </div>
-    <div class="col-auto">
+    <div class="col-md-4">
+      <label for="end_date" class="form-label">Đến ngày</label>
       <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $loginLogs['end_date'] ; ?>">
     </div>
-    <div class="col-auto">
-      <button type="submit" class="btn btn-primary">Lọc</button>
+    <div class="col-md-4 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">Lọc dữ liệu</button>
     </div>
   </form>
   <canvas id="loginAttemptsChart" height="100"></canvas>
@@ -135,4 +151,3 @@ new Chart(ctx, {
     }
 });
 </script>
-

@@ -85,14 +85,6 @@ $resolveNotificationScope = static function (array $notification): array {
         <h3 class="fw-bold mb-1">Bảng tổng quan hôm nay</h3>
         <div class="text-muted small">Vai trò: <?= htmlspecialchars($roleLabel) ?></div>
     </div>
-    <div class="d-flex align-items-center gap-2">
-        <a href="?controller=notifications&action=index" class="btn btn-outline-secondary">
-            <i class="bi bi-bell me-1"></i>Thông báo
-        </a>
-        <a href="?controller=auth&action=profile" class="btn btn-primary">
-            <i class="bi bi-person-circle me-1"></i>Hồ sơ
-        </a>
-    </div>
 </div>
 
 <div class="row g-4">

@@ -260,9 +260,6 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
             <?php elseif ($actualRole === 'VT_ADMIN'): ?>
                 <a href="?controller=adminImpersonation&action=index" class="btn btn-outline-secondary btn-sm">Giả lập vai trò</a>
             <?php endif; ?>
-            <div class="search-bar d-none d-md-block">
-                <input type="search" class="form-control" placeholder="Tìm nhanh đơn hàng, kế hoạch SV5TOT...">
-            </div>
             <div class="dropdown notification-dropdown">
                 <button class="btn btn-light border position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Xem thông báo">
                     <i class="bi <?= $unreadNotifications > 0 ? 'bi-bell-fill text-primary' : 'bi-bell' ?> fs-5"></i>

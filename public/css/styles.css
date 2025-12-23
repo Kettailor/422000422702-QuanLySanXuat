@@ -44,6 +44,12 @@ body {
   color: var(--sidebar-text);
 }
 
+.sidebar .logo-link:hover,
+.sidebar .logo-link:focus {
+  color: var(--sidebar-text);
+  text-decoration: none;
+}
+
 .sidebar .logo-mark {
   font-size: 1.4rem;
   letter-spacing: 0.08em;
@@ -116,12 +122,6 @@ body {
 
 .topbar-brand:hover {
   color: var(--primary-color);
-}
-
-.topbar .search-bar input {
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  padding: 0.6rem 1rem;
 }
 
 .notification-dropdown .btn {
