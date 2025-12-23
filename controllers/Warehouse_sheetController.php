@@ -449,15 +449,25 @@ class Warehouse_sheetController extends Controller
         ]);
         $html = ob_get_clean();
 
-        $options = new Options();
-        $options->set('isRemoteEnabled', true);
-        $options->set('isHtml5ParserEnabled', true);
-        $dompdf = new Dompdf($options);
+        $dompdf = $this->buildPdfInstance();
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
         $dompdf->stream(($document['IdPhieu'] ?? 'phieu-kho') . '.pdf', ['Attachment' => 0]);
         exit;
+    }
+
+    private function buildPdfInstance(): Dompdf
+    {
+        if (class_exists(Options::class)) {
+            $options = new Options();
+            $options->set('isRemoteEnabled', true);
+            $options->set('isHtml5ParserEnabled', true);
+
+            return new Dompdf($options);
+        }
+
+        return new Dompdf();
     }
 
     private function validateRequired(array $data): bool
