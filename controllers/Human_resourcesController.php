@@ -89,8 +89,7 @@ class Human_resourcesController extends Controller
             $this->setFlash('success', 'Thêm nhân sự thành công.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi thêm nhân sự: ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể thêm nhân sự: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể thêm nhân sự, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể thêm nhân sự: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=human_resources&action=index');
@@ -153,8 +152,7 @@ class Human_resourcesController extends Controller
             $this->setFlash('success', 'Cập nhật nhân sự thành công.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi cập nhật nhân sự ' . $id . ': ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể cập nhật nhân sự: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật nhân sự, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể cập nhật nhân sự: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=human_resources&action=index');
@@ -175,8 +173,7 @@ class Human_resourcesController extends Controller
                 $this->setFlash('success', 'Đã xóa nhân sự.');
             } catch (Throwable $e) {
                 Logger::error('Lỗi khi xóa nhân sự ' . $id . ': ' . $e->getMessage());
-                /* $this->setFlash('danger', 'Không thể xóa nhân sự: ' . $e->getMessage()); */
-                $this->setFlash('danger', 'Không thể xóa nhân sự, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể xóa nhân sự: ' . $e->getMessage());
             }
         }
 
@@ -211,7 +208,7 @@ class Human_resourcesController extends Controller
                 null,
                 null,
                 null,
-                $employee['IdNhanVien']
+                $employee['IdNhanVien'],
             );
 
             $planIds = $this->planAssignmentModel->getPlanIdsByEmployee($employee['IdNhanVien']);

@@ -7,7 +7,7 @@ class PlanController extends Controller
     private WorkshopPlan $workshopPlanModel;
     private ProductComponent $componentModel;
     private Workshop $workshopModel;
-    private  WorkshopPlanMaterialDetail $workShopPlanDetail;
+    private WorkshopPlanMaterialDetail $workShopPlanDetail;
     private Order $orderModel;
 
     public function __construct()
@@ -167,7 +167,7 @@ class PlanController extends Controller
                     $this->workShopPlanDetail->createWorkshopPlanDetail(
                         $assignment['IdKeHoachSanXuatXuong'], // <-- Dùng cái này
                         $orderDetail['IdCauHinh'],
-                        $assignment['SoLuong'] // <-- Nên dùng số lượng phân cho xưởng đó
+                        $assignment['SoLuong'], // <-- Nên dùng số lượng phân cho xưởng đó
                     );
                 }
             }
@@ -186,8 +186,7 @@ class PlanController extends Controller
             return;
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi tạo kế hoạch sản xuất: ' . $exception->getMessage());
-            /* $this->setFlash('danger', 'Không thể tạo kế hoạch: ' . $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể tạo kế hoạch, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể tạo kế hoạch: ' . $exception->getMessage());
             $this->redirect('?controller=plan&action=create&order_detail_id=' . urlencode($orderDetailId));
             return;
         }
@@ -227,8 +226,7 @@ class PlanController extends Controller
             $this->setFlash('success', 'Đã xóa kế hoạch sản xuất.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi xóa kế hoạch sản xuất ' . $id . ': ' . $exception->getMessage());
-            /* $this->setFlash('danger', 'Không thể xóa kế hoạch: ' . $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể xóa kế hoạch, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể xóa kế hoạch: ' . $exception->getMessage());
         }
 
         $this->redirect('?controller=plan&action=index');

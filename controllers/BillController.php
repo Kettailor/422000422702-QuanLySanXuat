@@ -55,8 +55,7 @@ class BillController extends Controller
             $this->setFlash('success', 'Đã tạo hóa đơn.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi tạo hóa đơn: ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể tạo hóa đơn: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể tạo hóa đơn, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể tạo hóa đơn: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=bill&action=index');
@@ -91,8 +90,7 @@ class BillController extends Controller
             $this->setFlash('success', 'Cập nhật hóa đơn thành công.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi cập nhật hóa đơn ' . $id . ': ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể cập nhật hóa đơn: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật hóa đơn, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể cập nhật hóa đơn: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=bill&action=index');
@@ -107,8 +105,7 @@ class BillController extends Controller
                 $this->setFlash('success', 'Đã xóa hóa đơn.');
             } catch (Throwable $e) {
                 Logger::error('Lỗi khi xóa hóa đơn ' . $id . ': ' . $e->getMessage());
-                /* $this->setFlash('danger', 'Không thể xóa hóa đơn: ' . $e->getMessage()); */
-                $this->setFlash('danger', 'Không thể xóa hóa đơn, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể xóa hóa đơn: ' . $e->getMessage());
             }
         }
 

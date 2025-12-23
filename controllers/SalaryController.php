@@ -181,7 +181,7 @@ class SalaryController extends Controller
                 $attendance,
                 static function (array $row): bool {
                     return ($row['working_days'] ?? 0) > 0;
-                }
+                },
             ));
 
             if (!$eligibleAttendance) {
@@ -217,7 +217,7 @@ class SalaryController extends Controller
             $attendance,
             static function (array $row): bool {
                 return ($row['working_days'] ?? 0) > 0;
-            }
+            },
         ));
 
         if ($attendance !== ($wizard['attendance'] ?? [])) {
@@ -226,7 +226,7 @@ class SalaryController extends Controller
                 $allowedIds = array_column($attendance, 'employee_id');
                 $wizard['compensation'] = array_intersect_key(
                     $wizard['compensation'],
-                    array_fill_keys($allowedIds, true)
+                    array_fill_keys($allowedIds, true),
                 );
             }
             $this->saveWizardState($wizard);
@@ -452,8 +452,7 @@ class SalaryController extends Controller
             $this->setFlash('success', 'Đã tạo bảng lương.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi tạo bảng lương: ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể tạo bảng lương: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể tạo bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể tạo bảng lương: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=salary&action=index');
@@ -503,8 +502,7 @@ class SalaryController extends Controller
             $this->setFlash('success', 'Cập nhật bảng lương thành công.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi cập nhật bảng lương ' . $id . ': ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể cập nhật bảng lương: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể cập nhật bảng lương: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=salary&action=index');
@@ -553,8 +551,7 @@ class SalaryController extends Controller
             $this->setFlash('success', 'Đã tính lại lương thực nhận.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi tính lại bảng lương ' . $id . ': ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể tính lại: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể tính lại bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể tính lại: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=salary&action=read&id=' . urlencode($id));
@@ -592,8 +589,7 @@ class SalaryController extends Controller
                 $this->setFlash('success', 'Đã xóa bảng lương.');
             } catch (Throwable $e) {
                 Logger::error('Lỗi khi xóa bảng lương ' . $id . ': ' . $e->getMessage());
-                /* $this->setFlash('danger', 'Không thể xóa bảng lương: ' . $e->getMessage()); */
-                $this->setFlash('danger', 'Không thể xóa bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể xóa bảng lương: ' . $e->getMessage());
             }
         }
 
@@ -742,8 +738,7 @@ class SalaryController extends Controller
             $this->setFlash('success', $message);
         } catch (Throwable $e) {
             Logger::error('Lỗi khi cập nhật trạng thái bảng lương ' . $id . ': ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể cập nhật trạng thái: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật trạng thái bảng lương, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể cập nhật trạng thái: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=salary&action=index');

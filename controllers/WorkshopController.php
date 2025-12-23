@@ -84,8 +84,7 @@ class WorkshopController extends Controller
             $this->setFlash('success', 'Đã thêm xưởng sản xuất mới.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi thêm xưởng: ' . $exception->getMessage());
-            /* $this->setFlash('danger', 'Không thể thêm xưởng: ' . $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể thêm xưởng, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể thêm xưởng: ' . $exception->getMessage());
         }
 
         $this->redirect('?controller=workshop&action=index');
@@ -157,8 +156,7 @@ class WorkshopController extends Controller
             $this->setFlash('success', 'Cập nhật thông tin xưởng thành công.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi cập nhật xưởng ' . $id . ': ' . $exception->getMessage());
-            /* $this->setFlash('danger', 'Không thể cập nhật xưởng: ' . $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật xưởng, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể cập nhật xưởng: ' . $exception->getMessage());
         }
 
         $this->redirect('?controller=workshop&action=index');
@@ -178,8 +176,7 @@ class WorkshopController extends Controller
                 $this->setFlash('success', 'Đã xóa xưởng sản xuất.');
             } catch (Throwable $exception) {
                 Logger::error('Lỗi khi xóa xưởng ' . $id . ': ' . $exception->getMessage());
-                /* $this->setFlash('danger', 'Không thể xóa xưởng: ' . $exception->getMessage()); */
-                $this->setFlash('danger', 'Không thể xóa xưởng, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể xóa xưởng: ' . $exception->getMessage());
             }
         }
 
@@ -367,8 +364,7 @@ class WorkshopController extends Controller
             $this->setFlash('success', 'Đã cập nhật kế hoạch xưởng.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi cập nhật kế hoạch xưởng ' . $planId . ': ' . $exception->getMessage());
-            /* $this->setFlash('danger', 'Không thể cập nhật kế hoạch: ' . $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật kế hoạch, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể cập nhật kế hoạch: ' . $exception->getMessage());
         }
 
         $this->redirect($this->buildDashboardRedirect($redirectWorkshop));

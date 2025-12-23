@@ -5,7 +5,14 @@ include_once 'views/header.php';
 
 // Calculate KPIs
 $totalOrders = count($orders ?? []);
-$totalRevenue = array_sum(array_column($orders ?? [], 'TongTien'));
+$totalRevenue = array_sum(
+    array_column(
+        array_filter($orders ?? [], function ($order) {
+            return isset($order['TrangThai']) && ($order['TrangThai'] === 'Đã hoàn thành' || $order['TrangThai'] === 'Hoàn thành');
+        }),
+        'TongTien',
+    ),
+);
 $totalProducts = count($products ?? []);
 $totalEmployees = count($employees ?? []);
 $totalMaterials = count($materials ?? []);
