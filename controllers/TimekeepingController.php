@@ -28,6 +28,10 @@ class TimekeepingController extends Controller
         $planId = $_GET['plan_id'] ?? null;
         $employeeId = $_GET['employee_id'] ?? null;
         $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, $workshopId, $planId, $employeeId);
+        $accessRole = $this->currentUser()['ActualIdVaiTro'] ?? ($this->currentUser()['IdVaiTro'] ?? null);
+        if ($this->isFixedShiftRole($accessRole)) {
+            $this->workShiftModel->ensureFixedShiftsForDate($workDate ?? date('Y-m-d'));
+        }
         $shifts = $this->workShiftModel->getShifts($workDate);
         $workshops = $this->workshopModel->getAllWithManagers();
         $plans = $this->workshopPlanModel->getDetailedPlans(200);
@@ -54,6 +58,10 @@ class TimekeepingController extends Controller
         $shift = $shiftId ? $this->workShiftModel->find($shiftId) : null;
         $user = $this->currentUser();
         $employees = $this->getAssignableEmployees($role, $user['IdNhanVien'] ?? null);
+        $accessRole = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        if ($this->isFixedShiftRole($accessRole)) {
+            $this->workShiftModel->ensureFixedShiftsForDate($workDate);
+        }
         $shifts = $this->workShiftModel->getShifts($workDate);
         $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, null, null, null);
 

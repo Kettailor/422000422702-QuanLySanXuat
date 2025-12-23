@@ -94,6 +94,26 @@ abstract class Controller
         return $role;
     }
 
+    protected function isFixedShiftRole(?string $role): bool
+    {
+        if (!$role) {
+            return false;
+        }
+
+        $fixedRoles = [
+            'VT_BAN_GIAM_DOC',
+            'VT_KETOAN',
+            'VT_KINH_DOANH',
+            'VT_ADMIN',
+            'VT_TRUONG_XUONG_KIEM_DINH',
+            'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI',
+            'VT_TRUONG_XUONG_SAN_XUAT',
+            'VT_TRUONG_XUONG_LUU_TRU',
+        ];
+
+        return in_array($role, $fixedRoles, true);
+    }
+
     protected function render(string $view, array $data = []): void
     {
         $viewFile = __DIR__ . '/../views/' . $view . '.php';

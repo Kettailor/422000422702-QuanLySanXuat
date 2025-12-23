@@ -27,10 +27,13 @@ class Self_timekeepingController extends Controller
 
         $user = $this->currentUser();
         $employeeId = $user['IdNhanVien'] ?? null;
-        $workDate = date('Y-m-d');
+        $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
         $now = date('Y-m-d H:i:s');
-        $shift = $this->workShiftModel->findShiftForTimestamp($now);
-        if ($shift && $employeeId && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
+        $shift = $this->isFixedShiftRole($roleId)
+            ? $this->workShiftModel->findFixedShiftForTimestamp($now)
+            : $this->workShiftModel->findShiftForTimestamp($now);
+        if ($shift && $employeeId && !$this->isFixedShiftRole($roleId)
+            && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
             $shift = null;
         }
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId) : null;
@@ -50,15 +53,22 @@ class Self_timekeepingController extends Controller
     {
         $user = $this->currentUser();
         $employeeId = $user['IdNhanVien'] ?? null;
+        $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        $workDate = date('Y-m-d');
         $now = date('Y-m-d H:i:s');
-        $shift = $this->workShiftModel->findShiftForTimestamp($now);
-        if ($shift && $employeeId && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
+        $shift = $this->isFixedShiftRole($roleId)
+            ? $this->workShiftModel->findFixedShiftForTimestamp($now)
+            : $this->workShiftModel->findShiftForTimestamp($now);
+        if ($shift && $employeeId && !$this->isFixedShiftRole($roleId)
+            && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
             $shift = null;
         }
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId) : null;
         $geofence = $this->getGeofenceConfig();
+        if ($this->isFixedShiftRole($roleId)) {
+            $this->workShiftModel->ensureFixedShiftsForDate($workDate);
+        }
         $shifts = $this->workShiftModel->getShifts($workDate);
-        $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
         $notifications = $this->loadNotifications($employeeId, $roleId);
 
         $this->render('self_timekeeping/mobile', [
@@ -102,6 +112,7 @@ class Self_timekeepingController extends Controller
 
         $user = $this->currentUser();
         $employeeId = $user['IdNhanVien'] ?? null;
+        $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
         if (!$employeeId) {
             $this->setFlash('danger', 'Không xác định được nhân sự để chấm công.');
             $this->redirect('?controller=self_timekeeping&action=index');
@@ -162,13 +173,16 @@ class Self_timekeepingController extends Controller
                 );
                 $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
             } else {
-                $shift = $this->workShiftModel->findShiftForTimestamp($now);
+                $shift = $this->isFixedShiftRole($roleId)
+                    ? $this->workShiftModel->findFixedShiftForTimestamp($now)
+                    : $this->workShiftModel->findShiftForTimestamp($now);
                 if (!$shift) {
                     $this->setFlash('danger', 'Hiện tại không nằm trong ca làm việc nào.');
                     $this->redirect('?controller=self_timekeeping&action=index');
                     return;
                 }
-                if (!$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
+                if (!$this->isFixedShiftRole($roleId)
+                    && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
                     $this->setFlash('danger', 'Bạn chưa được phân công ca làm hiện tại.');
                     $this->redirect('?controller=self_timekeeping&action=index');
                     return;
