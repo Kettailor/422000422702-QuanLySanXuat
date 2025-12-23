@@ -360,13 +360,17 @@ $lotPrefixMap = [
                         <?php else: ?>
                             <form method="post" action="?controller=warehouse_sheet&action=store" class="row g-4" data-warehouse-entry-form data-products='<?= $productOptionsJson ?>' data-lot-prefix='<?= htmlspecialchars($lotPrefix) ?>'>
                                 <input type="hidden" name="quick_entry" value="1">
-                                <input type="hidden" name="LoaiPhieu" value="<?= htmlspecialchars($form['document_type']) ?>">
+                                <div class="col-md-6">
+                                    <label class="form-label">Loại phiếu <span class="text-danger">*</span></label>
+                                    <select name="LoaiPhieu" class="form-select" required>
+                                        <option value="<?= htmlspecialchars($form['document_type']) ?>" selected><?= htmlspecialchars($form['document_type']) ?></option>
+                                        <?php if (!empty($outboundDocumentTypes[$typeKey])): ?>
+                                            <option value="<?= htmlspecialchars($outboundDocumentTypes[$typeKey]) ?>"><?= htmlspecialchars($outboundDocumentTypes[$typeKey]) ?></option>
+                                        <?php endif; ?>
+                                    </select>
+                                </div>
                                 <input type="hidden" name="redirect" value="?controller=warehouse&action=index">
                                 <input type="hidden" name="WarehouseType" value="<?= htmlspecialchars($typeKey) ?>">
-                                <div class="col-md-6">
-                                    <label class="form-label">Loại phiếu</label>
-                                    <input type="text" class="form-control" value="<?= htmlspecialchars($form['document_type']) ?>" readonly>
-                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Loại đối tác <span class="text-danger">*</span></label>
                                     <select name="LoaiDoiTac" class="form-select" required>
@@ -397,7 +401,11 @@ $lotPrefixMap = [
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Ngày xác nhận</label>
-                                    <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($defaultDate) ?>" data-synced="1">
+                                    <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($defaultDate) ?>" data-confirm-date>
+                                    <div class="form-check mt-1">
+                                        <input class="form-check-input" type="checkbox" value="1" id="confirm-now-<?= htmlspecialchars($typeKey) ?>" data-confirm-toggle>
+                                        <label class="form-check-label" for="confirm-now-<?= htmlspecialchars($typeKey) ?>">Xác nhận và cập nhật tồn ngay</label>
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Tổng giá trị (đ)</label>
@@ -652,20 +660,19 @@ $lotPrefixMap = [
 
             var dateInput = form.querySelector('input[name="NgayLP"]');
             var confirmInput = form.querySelector('input[name="NgayXN"]');
+            var confirmToggle = form.querySelector('[data-confirm-toggle]');
 
-            if (dateInput && confirmInput) {
-                var syncDates = function () {
-                    if (!confirmInput.value || confirmInput.dataset.synced === '1') {
-                        confirmInput.value = dateInput.value;
-                        confirmInput.dataset.synced = '1';
+            if (confirmToggle && confirmInput) {
+                confirmToggle.addEventListener('change', function () {
+                    if (confirmToggle.checked) {
+                        var now = new Date();
+                        var yyyy = now.getFullYear();
+                        var mm = String(now.getMonth() + 1).padStart(2, '0');
+                        var dd = String(now.getDate()).padStart(2, '0');
+                        confirmInput.value = `${yyyy}-${mm}-${dd}`;
+                    } else {
+                        confirmInput.value = '';
                     }
-                };
-
-                syncDates();
-
-                dateInput.addEventListener('change', syncDates);
-                confirmInput.addEventListener('input', function () {
-                    confirmInput.dataset.synced = '0';
                 });
             }
 
