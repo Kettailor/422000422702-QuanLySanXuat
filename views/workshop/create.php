@@ -55,10 +55,6 @@
             <input type="number" name="CongSuatToiDa" class="form-control" min="0" step="0.01">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Công suất đang sử dụng</label>
-            <input type="number" name="CongSuatDangSuDung" class="form-control" min="0" step="0.01">
-        </div>
-        <div class="col-md-4">
             <label class="form-label">Nhân sự tối đa</label>
             <input type="number" name="SlNhanVien" class="form-control" min="0" placeholder="Ví dụ: 50">
         </div>

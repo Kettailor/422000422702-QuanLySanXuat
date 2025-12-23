@@ -70,10 +70,6 @@
                 <input type="number" name="CongSuatToiDa" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($workshop['CongSuatToiDa'] ?? 0) ?>">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Công suất đang sử dụng</label>
-                <input type="number" name="CongSuatDangSuDung" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($workshop['CongSuatDangSuDung'] ?? $workshop['CongSuatHienTai'] ?? 0) ?>">
-            </div>
-            <div class="col-md-3">
                 <label class="form-label">Nhân sự tối đa</label>
                 <input type="number" name="SlNhanVien" class="form-control" min="0" value="<?= htmlspecialchars($workshop['SlNhanVien'] ?? 0) ?>">
             </div>

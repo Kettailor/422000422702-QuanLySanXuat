@@ -8,6 +8,7 @@ class WorkshopController extends Controller
     private Material $materialModel;
     private Employee $employeeModel;
     private WorkshopAssignment $assignmentModel;
+    private Warehouse $warehouseModel;
 
     public function __construct()
     {
@@ -18,11 +19,12 @@ class WorkshopController extends Controller
         $this->materialModel = new Material();
         $this->employeeModel = new Employee();
         $this->assignmentModel = new WorkshopAssignment();
+        $this->warehouseModel = new Warehouse();
     }
 
     public function index(): void
     {
-        $workshops = $this->attachStaffCounts($this->getVisibleWorkshops());
+        $workshops = $this->attachStaffCounts($this->refreshWorkshopCapacities($this->getVisibleWorkshops()));
         $summary = $this->calculateSummary($workshops);
         $statusDistribution = $this->calculateStatusDistribution($workshops);
         $isWorkshopManager = $this->isWorkshopManager();
@@ -81,8 +83,10 @@ class WorkshopController extends Controller
         $assignments = $this->filterAssignmentsByWorkshopType($assignments, $data['LoaiXuong'] ?? $this->getDefaultWorkshopType());
         $data['IdXuong'] = uniqid('XUONG');
         $data['NgayThanhLap'] = date('Y-m-d');
+        $capacity = $this->warehouseModel->getFinishedQuantityByWorkshop($data['IdXuong']);
+        $data['CongSuatDangSuDung'] = $capacity;
 
-        if ($data['CongSuatToiDa'] < $data['CongSuatDangSuDung']) {
+        if ($capacity !== null && $data['CongSuatToiDa'] > 0 && $data['CongSuatToiDa'] < $capacity) {
             $this->setFlash('danger', 'Công suất tối đa không được bé hơn công suất đang sử dụng.');
             $this->redirect('?controller=workshop&action=create');
             return;
@@ -131,6 +135,9 @@ class WorkshopController extends Controller
         }
 
         $workshop = $this->workshopModel->find($id);
+        if ($workshop) {
+            $workshop = $this->refreshWorkshopCapacity($id, $workshop);
+        }
         $managerName = null;
         $managerId = $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
         if ($managerId) {
@@ -193,10 +200,12 @@ class WorkshopController extends Controller
         $assignments = $this->extractAssignments($_POST);
         $assignments = $this->filterAssignmentsByWorkshopType($assignments, $data['LoaiXuong'] ?? $this->getDefaultWorkshopType());
         $canAssign = $this->canAssignStaff($id);
+        $capacity = $this->warehouseModel->getFinishedQuantityByWorkshop($id);
+        $data['CongSuatDangSuDung'] = $capacity;
         unset($data['IdXuong']);
         unset($data['NgayThanhLap']);
 
-        if ($data['CongSuatToiDa'] < $data['CongSuatDangSuDung']) {
+        if ($capacity !== null && $data['CongSuatToiDa'] > 0 && $data['CongSuatToiDa'] < $capacity) {
             $this->setFlash('danger', 'Công suất tối đa không được bé hơn công suất đang sử dụng.');
             $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
             return;
@@ -275,6 +284,9 @@ class WorkshopController extends Controller
         }
 
         $workshop = $id ? $this->workshopModel->find($id) : null;
+        if ($workshop) {
+            $workshop = $this->refreshWorkshopCapacity($id, $workshop);
+        }
         $assignments = $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
         $canViewAssignments = $this->canAssignStaff($id);
         $workshopType = $workshop['LoaiXuong'] ?? $this->getDefaultWorkshopType();
@@ -802,7 +814,7 @@ class WorkshopController extends Controller
             'SlNhanVien' => (int) ($input['SlNhanVien'] ?? 0),
             'SoLuongCongNhan' => 0,
             'CongSuatToiDa' => (float) ($input['CongSuatToiDa'] ?? 0),
-            'CongSuatDangSuDung' => (float) ($input['CongSuatDangSuDung'] ?? 0),
+            'CongSuatDangSuDung' => null,
             'NgayThanhLap' => $input['NgayThanhLap'] ?? null,
             'TrangThai' => $input['TrangThai'] ?? 'Đang hoạt động',
             'MoTa' => trim($input['MoTa'] ?? ''),
@@ -827,6 +839,43 @@ class WorkshopController extends Controller
         }
 
         return $workshops;
+    }
+
+    private function refreshWorkshopCapacities(array $workshops): array
+    {
+        foreach ($workshops as &$workshop) {
+            $workshopId = $workshop['IdXuong'] ?? null;
+            if (!$workshopId) {
+                continue;
+            }
+
+            $workshop = $this->refreshWorkshopCapacity($workshopId, $workshop) ?? $workshop;
+        }
+
+        return $workshops;
+    }
+
+    private function refreshWorkshopCapacity(string $workshopId, ?array $workshop = null): ?array
+    {
+        $capacity = $this->warehouseModel->getFinishedQuantityByWorkshop($workshopId);
+        if ($capacity === null) {
+            if ($workshop !== null) {
+                $workshop['CongSuatDangSuDung'] = null;
+            }
+            return $workshop;
+        }
+
+        try {
+            $this->workshopModel->update($workshopId, ['CongSuatDangSuDung' => $capacity]);
+        } catch (Throwable $exception) {
+            Logger::error('Lỗi khi cập nhật công suất xưởng ' . $workshopId . ': ' . $exception->getMessage());
+        }
+
+        if ($workshop !== null) {
+            $workshop['CongSuatDangSuDung'] = $capacity;
+        }
+
+        return $workshop;
     }
 
     private function buildStaffList(array $assignments, ?string $workshopType = null): array

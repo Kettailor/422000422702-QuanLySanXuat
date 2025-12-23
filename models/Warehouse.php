@@ -253,6 +253,21 @@ class Warehouse extends BaseModel
         return $result ?: null;
     }
 
+    public function getFinishedQuantityByWorkshop(?string $workshopId): ?int
+    {
+        $warehouse = $this->findFinishedWarehouseByWorkshop($workshopId);
+        if (!$warehouse) {
+            return null;
+        }
+
+        $stmt = $this->db->prepare('SELECT COALESCE(SUM(SoLuong), 0) AS total FROM LO WHERE IdKho = :warehouseId');
+        $stmt->bindValue(':warehouseId', $warehouse['IdKho']);
+        $stmt->execute();
+        $row = $stmt->fetch();
+
+        return (int) ($row['total'] ?? 0);
+    }
+
     public function getFormOptions(): array
     {
         $workshops = $this->db->query('SELECT IdXuong, TenXuong FROM XUONG ORDER BY TenXuong')->fetchAll();

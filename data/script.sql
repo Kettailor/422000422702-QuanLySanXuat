@@ -764,7 +764,7 @@ CREATE TABLE `xuong` (
   `SoLuongCongNhan` int(10) DEFAULT 0,
   `TenQuyTrinh` varchar(255) DEFAULT NULL,
   `CongSuatToiDa` float DEFAULT 0,
-  `CongSuatDangSuDung` float DEFAULT 0,
+  `CongSuatDangSuDung` float DEFAULT NULL,
   `LoaiXuong` varchar(255) DEFAULT 'Sản xuất',
   `TrangThai` varchar(255) NOT NULL,
   `MoTa` text DEFAULT NULL,
