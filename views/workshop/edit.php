@@ -57,7 +57,7 @@
                 <select name="XUONGTRUONG_IdNhanVien" class="form-select">
                     <option value="">-- Chọn xưởng trưởng --</option>
                     <?php foreach ($managers as $manager): ?>
-                        <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>">
+                      <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>" <?= (isset($workshop['XUONGTRUONG_IdNhanVien']) && $workshop['XUONGTRUONG_IdNhanVien'] == $manager['IdNhanVien']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($manager['HoTen']) ?>
                         </option>
                     <?php endforeach; ?>
