@@ -10,6 +10,8 @@ class Warehouse_sheetController extends Controller
     private InventorySheetDetail $sheetDetailModel;
     private Product $productModel;
     private Warehouse $warehouseModel;
+    private Workshop $workshopModel;
+    private Employee $employeeModel;
     private array $warehouseCache = [];
     private ?array $accessibleWarehouseIds = null;
 
@@ -40,6 +42,8 @@ class Warehouse_sheetController extends Controller
         $this->sheetDetailModel = new InventorySheetDetail();
         $this->productModel = new Product();
         $this->warehouseModel = new Warehouse();
+        $this->workshopModel = new Workshop();
+        $this->employeeModel = new Employee();
     }
 
     public function index(): void
@@ -92,6 +96,9 @@ class Warehouse_sheetController extends Controller
         $lots = $this->lotModel->getSelectableLots(300, $lotFilter);
 
         $creatorId = $this->resolveCreator(null);
+        $approvers = $this->buildApproverMap($warehouses, $options['employees']);
+        $workshops = $this->workshopModel->getAllWithManagers(300);
+        $warehouseWorkshopMap = $this->buildWarehouseWorkshopMap($warehouses, $workshops);
 
         $this->render('warehouse_sheet/create', [
             'title' => 'Tạo phiếu kho mới',
@@ -100,10 +107,14 @@ class Warehouse_sheetController extends Controller
             'types' => $options['types'],
             'products' => $products,
             'lots' => $lots,
+            'approvers' => $approvers,
+            'workshops' => $workshops,
+            'warehouseWorkshopMap' => $warehouseWorkshopMap,
+            'currentUser' => $this->currentUser(),
             'document' => [
                 'IdPhieu' => $defaultId,
                 'NgayLP' => date('Y-m-d'),
-                'NgayXN' => date('Y-m-d'),
+                'NgayXN' => '',
                 'IdKho' => $presetWarehouseId,
                 'LoaiPhieu' => $presetDocumentType,
                 'NHAN_VIENIdNhanVien' => $creatorId,
@@ -134,14 +145,33 @@ class Warehouse_sheetController extends Controller
             'TongTien' => $_POST['TongTien'] ?? 0,
             'LoaiPhieu' => $documentType,
             'IdKho' => $_POST['IdKho'] ?? null,
-            'NHAN_VIENIdNhanVien' => $this->resolveCreator($_POST['NguoiLap'] ?? null),
-            'NHAN_VIENIdNhanVien2' => $_POST['NguoiXacNhan'] ?? null,
-            'LoaiDoiTac' => $_POST['LoaiDoiTac'] ?? null,
-            'DoiTac' => $_POST['DoiTac'] ?? null,
+            'NHAN_VIENIdNhanVien' => $this->resolveCreator(null),
+            'NHAN_VIENIdNhanVien2' => null,
+            'LoaiDoiTac' => null,
+            'DoiTac' => null,
             'SoThamChieu' => $_POST['SoThamChieu'] ?? null,
             'LyDo' => $_POST['LyDo'] ?? null,
             'GhiChu' => $_POST['GhiChu'] ?? null,
         ];
+
+        $warehouse = $this->findWarehouse($data['IdKho']);
+        $partnerScope = $_POST['PartnerScope'] ?? 'internal';
+        $partnerData = $this->buildPartnerData($partnerScope, $_POST, $warehouse);
+        $data['LoaiDoiTac'] = $partnerData['type'] ?? null;
+        $data['DoiTac'] = $partnerData['name'] ?? null;
+
+        $approverId = $this->resolveWarehouseApprover($data['IdKho']);
+        if (!$approverId) {
+            $this->setFlash('danger', 'Kho chưa có xưởng trưởng để xác nhận phiếu.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+            return;
+        }
+        if (!$this->validateApproverWorkshop($approverId, $warehouse)) {
+            $this->setFlash('danger', 'Người xác nhận phải thuộc xưởng của kho được chọn.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+            return;
+        }
+        $data['NHAN_VIENIdNhanVien2'] = $approverId;
 
         $redirectTo = trim((string) ($_POST['redirect'] ?? ''));
         if ($redirectTo === '') {
@@ -180,14 +210,15 @@ class Warehouse_sheetController extends Controller
         }
 
         $isQuickEntry = isset($_POST['quick_entry']) && $_POST['quick_entry'] === '1';
+        $isConfirmed = $this->isConfirmedData($data);
         $detailPayloads = [];
         $newLots = [];
 
         if ($isQuickEntry) {
-            $this->handleQuickEntry($documentType, $redirectTo, $data, $warehouse, $detailPayloads, $newLots);
+            $this->handleQuickEntry($documentType, $redirectTo, $data, $warehouse, $detailPayloads, $newLots, $isConfirmed);
         } else {
             try {
-                $parsed = $this->parseDocumentDetails($_POST, $documentType, $warehouse, $data['IdPhieu']);
+                $parsed = $this->parseDocumentDetails($_POST, $documentType, $warehouse, $data['IdPhieu'], $isConfirmed);
                 $detailPayloads = $parsed['details'];
                 $newLots = $parsed['new_lots'];
             } catch (Throwable $e) {
@@ -224,11 +255,17 @@ class Warehouse_sheetController extends Controller
                 }
             }
 
-            $this->applyStockImpact($documentType, $detailPayloads, true, $data['IdPhieu'], $data['IdKho']);
+            if ($isConfirmed) {
+                $this->applyStockImpact($documentType, $detailPayloads, true, $data['IdPhieu'], $data['IdKho']);
+            }
 
             $connection->commit();
 
-            $this->setFlash('success', $isQuickEntry ? 'Đã lập phiếu và thêm lô vào kho thành công.' : 'Đã tạo phiếu kho mới và cập nhật tồn kho.');
+            if ($isConfirmed) {
+                $this->setFlash('success', $isQuickEntry ? 'Đã lập phiếu, xác nhận và cập nhật tồn kho.' : 'Đã tạo phiếu kho, xác nhận và cập nhật tồn kho.');
+            } else {
+                $this->setFlash('info', 'Đã lưu phiếu ở trạng thái chờ xác nhận. Tồn kho sẽ cập nhật sau khi xác nhận.');
+            }
         } catch (Throwable $e) {
             if ($connection->inTransaction()) {
                 $connection->rollBack();
@@ -260,13 +297,21 @@ class Warehouse_sheetController extends Controller
         }
 
         $options = $this->sheetModel->getFormOptions();
+        $filteredWarehouses = $this->filterWarehousesByAccess($options['warehouses']);
+        $approvers = $this->buildApproverMap($filteredWarehouses, $options['employees']);
+        $workshops = $this->workshopModel->getAllWithManagers(300);
+        $warehouseWorkshopMap = $this->buildWarehouseWorkshopMap($filteredWarehouses, $workshops);
 
         $this->render('warehouse_sheet/edit', [
             'title' => 'Cập nhật phiếu kho',
             'document' => $document,
-            'warehouses' => $this->filterWarehousesByAccess($options['warehouses']),
+            'warehouses' => $filteredWarehouses,
             'employees' => $options['employees'],
             'types' => $options['types'],
+            'approvers' => $approvers,
+            'workshops' => $workshops,
+            'warehouseWorkshopMap' => $warehouseWorkshopMap,
+            'currentUser' => $this->currentUser(),
         ]);
     }
 
@@ -282,20 +327,41 @@ class Warehouse_sheetController extends Controller
             $this->redirect('?controller=warehouse_sheet&action=index');
         }
 
+        $existing = $this->sheetModel->findDocument($id);
+
         $data = [
             'NgayLP' => $_POST['NgayLP'] ?? null,
             'NgayXN' => $_POST['NgayXN'] ?? null,
             'TongTien' => $_POST['TongTien'] ?? 0,
             'LoaiPhieu' => $_POST['LoaiPhieu'] ?? null,
             'IdKho' => $_POST['IdKho'] ?? null,
-            'NHAN_VIENIdNhanVien' => $_POST['NguoiLap'] ?? null,
-            'NHAN_VIENIdNhanVien2' => $_POST['NguoiXacNhan'] ?? null,
-            'LoaiDoiTac' => $_POST['LoaiDoiTac'] ?? null,
-            'DoiTac' => $_POST['DoiTac'] ?? null,
+            'NHAN_VIENIdNhanVien' => $this->resolveCreator(null),
+            'NHAN_VIENIdNhanVien2' => null,
+            'LoaiDoiTac' => null,
+            'DoiTac' => null,
             'SoThamChieu' => $_POST['SoThamChieu'] ?? null,
             'LyDo' => $_POST['LyDo'] ?? null,
             'GhiChu' => $_POST['GhiChu'] ?? null,
         ];
+
+        $warehouse = $this->findWarehouse($data['IdKho'] ?? ($existing['IdKho'] ?? null));
+        $partnerScope = $_POST['PartnerScope'] ?? 'internal';
+        $partnerData = $this->buildPartnerData($partnerScope, $_POST, $warehouse);
+        $data['LoaiDoiTac'] = $partnerData['type'] ?? null;
+        $data['DoiTac'] = $partnerData['name'] ?? null;
+
+        $approverId = $this->resolveWarehouseApprover($data['IdKho'] ?? ($existing['IdKho'] ?? null));
+        if (!$approverId) {
+            $this->setFlash('danger', 'Kho chưa có xưởng trưởng để xác nhận phiếu.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+            return;
+        }
+        if (!$this->validateApproverWorkshop($approverId, $warehouse)) {
+            $this->setFlash('danger', 'Người xác nhận phải thuộc xưởng của kho được chọn.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+            return;
+        }
+        $data['NHAN_VIENIdNhanVien2'] = $approverId;
 
         if (!$this->validateRequired(array_merge($data, ['IdPhieu' => $id]))) {
             $this->setFlash('danger', 'Vui lòng điền đầy đủ thông tin bắt buộc của phiếu.');
@@ -312,9 +378,20 @@ class Warehouse_sheetController extends Controller
             $this->redirect('?controller=warehouse_sheet&action=edit&id=' . urlencode($id));
         }
 
+        $wasConfirmed = $this->isConfirmedData($existing ?? []);
+        $nowConfirmed = $this->isConfirmedData(array_merge($existing ?? [], $data));
+        $details = $this->sheetDetailModel->getDetailsByDocument($id);
+
         try {
             $this->sheetModel->updateDocument($id, $data);
-            $this->setFlash('success', 'Đã cập nhật phiếu kho.');
+            if ($nowConfirmed && !$wasConfirmed) {
+                $documentType = $data['LoaiPhieu'] ?? ($existing['LoaiPhieu'] ?? '');
+                $warehouseId = $data['IdKho'] ?? ($existing['IdKho'] ?? null);
+                $this->applyStockImpact($documentType, $details, true, $id, $warehouseId);
+                $this->setFlash('success', 'Đã xác nhận phiếu và cập nhật tồn kho.');
+            } else {
+                $this->setFlash('success', 'Đã cập nhật phiếu kho.');
+            }
         } catch (Throwable $e) {
             $this->setFlash('danger', 'Không thể cập nhật phiếu: ' . $e->getMessage());
         }
@@ -352,7 +429,7 @@ class Warehouse_sheetController extends Controller
         try {
             $connection->beginTransaction();
 
-            if (!empty($details)) {
+            if (!empty($details) && $this->isConfirmedData($document)) {
                 $this->applyStockImpact($document['LoaiPhieu'], $details, false, $id, $document['IdKho'] ?? null);
             }
 
@@ -396,7 +473,7 @@ class Warehouse_sheetController extends Controller
         $warehouse = $document ? $this->warehouseModel->findWithSupervisor($document['IdKho']) : null;
         $totalQuantity = 0;
         foreach ($details as $detail) {
-            $totalQuantity += (int) ($detail['ThucNhan'] ?? $detail['SoLuong'] ?? 0);
+            $totalQuantity += (int) ($detail['SoLuong'] ?? 0);
         }
         $document['TongSoLuong'] = $totalQuantity;
         $document['TongMatHang'] = count($details);
@@ -433,7 +510,7 @@ class Warehouse_sheetController extends Controller
         $warehouse = $document ? $this->warehouseModel->findWithSupervisor($document['IdKho']) : null;
         $totalQuantity = 0;
         foreach ($details as $detail) {
-            $totalQuantity += (int) ($detail['ThucNhan'] ?? $detail['SoLuong'] ?? 0);
+            $totalQuantity += (int) ($detail['SoLuong'] ?? 0);
         }
         $document['TongSoLuong'] = $totalQuantity;
         $document['TongMatHang'] = count($details);
@@ -449,12 +526,17 @@ class Warehouse_sheetController extends Controller
         ]);
         $html = ob_get_clean();
 
-        $dompdf = $this->buildPdfInstance();
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-        $dompdf->stream(($document['IdPhieu'] ?? 'phieu-kho') . '.pdf', ['Attachment' => 0]);
-        exit;
+        try {
+            $dompdf = $this->buildPdfInstance();
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            $dompdf->stream(($document['IdPhieu'] ?? 'phieu-kho') . '.pdf', ['Attachment' => 0]);
+            exit;
+        } catch (Throwable $e) {
+            $this->setFlash('danger', 'Xuất PDF thất bại: ' . $e->getMessage());
+            $this->redirect('?controller=warehouse_sheet&action=read&id=' . urlencode($id));
+        }
     }
 
     private function buildPdfInstance(): Dompdf
@@ -509,15 +591,134 @@ class Warehouse_sheetController extends Controller
         };
     }
 
-    private function prepareQuickEntryPayload(array $input, array $document, ?array $warehouse = null): ?array
+    private function buildWarehouseWorkshopMap(array $warehouses, array $workshops): array
     {
-        $payload = $this->prepareQuickEntryPayloadLegacy($input, $document);
+        $workshopMap = [];
+        foreach ($workshops as $workshop) {
+            $workshopMap[$workshop['IdXuong'] ?? ''] = $workshop;
+        }
+
+        $map = [];
+        foreach ($warehouses as $warehouse) {
+            $id = $warehouse['IdKho'] ?? null;
+            if (!$id) {
+                continue;
+            }
+            $workshopId = $warehouse['IdXuong'] ?? null;
+            $workshop = $workshopId ? ($workshopMap[$workshopId] ?? []) : [];
+            $map[$id] = [
+                'IdKho' => $id,
+                'TenKho' => $warehouse['TenKho'] ?? '',
+                'IdXuong' => $workshopId,
+                'TenXuong' => $workshop['TenXuong'] ?? '',
+            ];
+        }
+
+        return $map;
+    }
+
+    private function buildApproverMap(array $warehouses, array $employees): array
+    {
+        $employeeMap = [];
+        foreach ($employees as $employee) {
+            $employeeMap[$employee['IdNhanVien'] ?? ''] = $employee;
+        }
+
+        $workshopIds = array_values(array_filter(array_column($warehouses, 'IdXuong')));
+        $managerMap = $this->workshopModel->getManagersByWorkshopIds($workshopIds);
+
+        $approvers = [];
+        foreach ($warehouses as $warehouse) {
+            $warehouseId = $warehouse['IdKho'] ?? null;
+            $workshopId = $warehouse['IdXuong'] ?? null;
+            if (!$warehouseId || !$workshopId) {
+                continue;
+            }
+
+            $managerId = $managerMap[$workshopId] ?? null;
+            if (!$managerId) {
+                continue;
+            }
+
+            $employee = $employeeMap[$managerId] ?? null;
+            $approvers[$warehouseId] = [
+                'IdNhanVien' => $managerId,
+                'HoTen' => $employee['HoTen'] ?? $managerId,
+                'ChucVu' => $employee['ChucVu'] ?? '',
+            ];
+        }
+
+        return $approvers;
+    }
+
+    private function resolveWarehouseApprover(?string $warehouseId): ?string
+    {
+        if (!$warehouseId) {
+            return null;
+        }
+
+        $warehouse = $this->findWarehouse($warehouseId);
+        $workshopId = $warehouse['IdXuong'] ?? null;
+        if (!$workshopId) {
+            return null;
+        }
+
+        $workshop = $this->workshopModel->find($workshopId);
+
+        return $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+    }
+
+    private function validateApproverWorkshop(?string $approverId, ?array $warehouse): bool
+    {
+        if (!$approverId || !$warehouse) {
+            return false;
+        }
+
+        $workshopId = $warehouse['IdXuong'] ?? null;
+        if (!$workshopId) {
+            return false;
+        }
+
+        return $this->employeeModel->isEmployeeInWorkshop($approverId, $workshopId);
+    }
+
+    private function buildPartnerData(string $scope, array $input, ?array $warehouse = null): array
+    {
+        if ($scope === 'external') {
+            $type = $input['PartnerExternalType'] ?? 'Nhà cung cấp';
+            $name = trim((string) ($input['PartnerExternalName'] ?? ''));
+
+            return [
+                'type' => $type,
+                'name' => $name,
+            ];
+        }
+
+        $internalWarehouseId = $input['PartnerWarehouse'] ?? ($warehouse['IdKho'] ?? null);
+        $internalWarehouse = $internalWarehouseId ? ($this->findWarehouse($internalWarehouseId) ?: $warehouse) : $warehouse;
+        $warehouseName = $internalWarehouse['TenKho'] ?? ($internalWarehouse['IdKho'] ?? '');
+        $workshopName = $internalWarehouse['TenXuong'] ?? '';
+
+        return [
+            'type' => 'Nội bộ',
+            'name' => trim($warehouseName . ($workshopName ? ' · ' . $workshopName : '')),
+        ];
+    }
+
+    private function prepareQuickEntryPayload(array $input, array $document, ?array $warehouse = null, bool $isConfirmed = false): ?array
+    {
+        $documentType = $document['LoaiPhieu'] ?? '';
+        $warehouseType = $this->resolveWarehouseTypeKey($warehouse['TenLoaiKho'] ?? ($input['WarehouseType'] ?? 'material'));
+
+        if ($this->isOutboundDocument($documentType)) {
+            return $this->prepareOutboundQuickEntryPayload($input, $document, $warehouseType, $warehouse, $isConfirmed);
+        }
+
+        $payload = $this->prepareQuickEntryPayloadLegacy($input, $document, $isConfirmed);
 
         if ($payload === null) {
             return null;
         }
-
-        $warehouseType = $this->resolveWarehouseTypeKey($warehouse['TenLoaiKho'] ?? ($input['WarehouseType'] ?? 'material'));
 
         if (!$this->validateProductCompatibility($payload['lot']['IdSanPham'] ?? null, $warehouseType)) {
             return null;
@@ -530,7 +731,7 @@ class Warehouse_sheetController extends Controller
         return $payload;
     }
 
-    private function prepareQuickEntryPayloadLegacy(array $input, array $document): ?array
+    private function prepareQuickEntryPayloadLegacy(array $input, array $document, bool $isConfirmed = false): ?array
     {
         $warehouseId = $document['IdKho'] ?? null;
         if (!$warehouseId) {
@@ -544,14 +745,8 @@ class Warehouse_sheetController extends Controller
         $productId = trim((string) ($input['Quick_IdSanPham'] ?? ''));
         $unit = trim((string) ($input['Quick_DonViTinh'] ?? ''));
         $quantity = (int) ($input['Quick_SoLuong'] ?? 0);
-        $received = (int) ($input['Quick_ThucNhan'] ?? 0);
-
         if ($lotName === '' || $productId === '' || $quantity <= 0) {
             return null;
-        }
-
-        if ($received <= 0) {
-            $received = $quantity;
         }
 
         if ($unit === '') {
@@ -564,7 +759,7 @@ class Warehouse_sheetController extends Controller
             'lot' => [
                 'IdLo' => $lotId,
                 'TenLo' => $lotName,
-                'SoLuong' => $received,
+                'SoLuong' => $isConfirmed ? $quantity : 0,
                 'NgayTao' => date('Y-m-d H:i:s'),
                 'LoaiLo' => $this->resolveLotTypeLabel($warehouseType),
                 'IdSanPham' => $productId,
@@ -574,10 +769,58 @@ class Warehouse_sheetController extends Controller
                 'IdTTCTPhieu' => $detailId,
                 'DonViTinh' => $unit ?: null,
                 'SoLuong' => $quantity,
-                'ThucNhan' => $received,
+                'ThucNhan' => $quantity,
                 'IdPhieu' => $document['IdPhieu'],
                 'IdLo' => $lotId,
                 'is_new_lot' => true,
+            ],
+        ];
+    }
+
+    private function prepareOutboundQuickEntryPayload(array $input, array $document, string $warehouseType, ?array $warehouse = null, bool $isConfirmed = false): ?array
+    {
+        $warehouseId = $document['IdKho'] ?? null;
+        if (!$warehouseId) {
+            return null;
+        }
+
+        $lotId = trim((string) ($input['Quick_IdLo_Existing'] ?? ''));
+        $quantity = (int) ($input['Quick_SoLuong'] ?? 0);
+
+        if ($lotId === '' || $quantity <= 0) {
+            return null;
+        }
+
+        $lotData = $this->lotModel->findWithWarehouse($lotId);
+        if (!$lotData) {
+            throw new RuntimeException('Không tìm thấy lô để xuất kho.');
+        }
+
+        if (($lotData['IdKho'] ?? null) !== $warehouseId) {
+            throw new RuntimeException('Lô đã chọn không thuộc kho lập phiếu.');
+        }
+
+        if ($quantity > (int) ($lotData['SoLuong'] ?? 0)) {
+            throw new RuntimeException('Số lượng xuất vượt quá tồn của lô ' . $lotId . '.');
+        }
+
+        if (!$this->validateProductCompatibility($lotData['IdSanPham'] ?? null, $warehouseType)) {
+            throw new RuntimeException('Lô không phù hợp với loại kho đã chọn.');
+        }
+
+        $detailId = $this->generateDetailId($lotId);
+        $unit = $input['Quick_DonViTinh'] ?? ($lotData['DonVi'] ?? '');
+
+        return [
+            'lot' => $lotData,
+            'detail' => [
+                'IdTTCTPhieu' => $detailId,
+                'DonViTinh' => $unit !== '' ? $unit : null,
+                'SoLuong' => $quantity,
+                'ThucNhan' => $quantity,
+                'IdPhieu' => $document['IdPhieu'],
+                'IdLo' => $lotId,
+                'is_new_lot' => false,
             ],
         ];
     }
@@ -723,13 +966,12 @@ class Warehouse_sheetController extends Controller
         return array_values(array_unique($types));
     }
 
-    private function parseDocumentDetails(array $input, string $documentType, array $warehouse, string $documentId): array
+    private function parseDocumentDetails(array $input, string $documentType, array $warehouse, string $documentId, bool $isConfirmed = false): array
     {
         $lotIds = $input['Detail_IdLo'] ?? [];
         $lotNames = $input['Detail_TenLo'] ?? [];
         $productIds = $input['Detail_IdSanPham'] ?? [];
         $quantities = $input['Detail_SoLuong'] ?? [];
-        $receivedList = $input['Detail_ThucNhan'] ?? [];
         $units = $input['Detail_DonVi'] ?? [];
         $modes = $input['Detail_Mode'] ?? [];
 
@@ -738,7 +980,7 @@ class Warehouse_sheetController extends Controller
 
         $details = [];
         $newLots = [];
-        $count = max(count($lotIds), count($lotNames), count($productIds), count($quantities), count($receivedList), count($units), count($modes));
+        $count = max(count($lotIds), count($lotNames), count($productIds), count($quantities), count($units), count($modes));
 
         for ($i = 0; $i < $count; $i++) {
             $mode = $modes[$i] ?? 'existing';
@@ -747,7 +989,6 @@ class Warehouse_sheetController extends Controller
             $lotName = trim((string) ($lotNames[$i] ?? ''));
             $productId = trim((string) ($productIds[$i] ?? ''));
             $quantity = (int) ($quantities[$i] ?? 0);
-            $received = (int) ($receivedList[$i] ?? 0);
             $unit = trim((string) ($units[$i] ?? ''));
 
             if ($quantity <= 0) {
@@ -756,10 +997,6 @@ class Warehouse_sheetController extends Controller
 
             if (!$isInbound && $isNewLot) {
                 throw new RuntimeException('Phiếu xuất không được phép tạo lô mới. Vui lòng chọn lô cần xuất.');
-            }
-
-            if ($received <= 0) {
-                $received = $quantity;
             }
 
             if ($isNewLot) {
@@ -784,7 +1021,7 @@ class Warehouse_sheetController extends Controller
                 $newLots[] = [
                     'IdLo' => $lotId,
                     'TenLo' => $lotName,
-                    'SoLuong' => $received,
+                    'SoLuong' => $isConfirmed ? $quantity : 0,
                     'NgayTao' => date('Y-m-d H:i:s'),
                     'LoaiLo' => $this->resolveLotTypeLabel($warehouseType),
                     'IdSanPham' => $productId,
@@ -803,7 +1040,7 @@ class Warehouse_sheetController extends Controller
                 $productId = $productId ?: ($lotData['IdSanPham'] ?? '');
                 $unit = $unit !== '' ? $unit : ($lotData['DonVi'] ?? '');
 
-                if (!$isInbound && $received > (int) ($lotData['SoLuong'] ?? 0)) {
+                if (!$isInbound && $quantity > (int) ($lotData['SoLuong'] ?? 0)) {
                     throw new RuntimeException('Số lượng xuất vượt quá tồn lô ' . $lotId . '.');
                 }
 
@@ -816,7 +1053,7 @@ class Warehouse_sheetController extends Controller
                 'IdTTCTPhieu' => $this->generateDetailId($lotId),
                 'DonViTinh' => $unit !== '' ? $unit : null,
                 'SoLuong' => $quantity,
-                'ThucNhan' => $received,
+                'ThucNhan' => $quantity,
                 'IdPhieu' => $documentId,
                 'IdLo' => $lotId,
                 'is_new_lot' => $isNewLot,
@@ -829,24 +1066,27 @@ class Warehouse_sheetController extends Controller
         ];
     }
 
-    private function handleQuickEntry(string $documentType, string $redirectTo, array $document, array $warehouse, array &$detailPayloads, array &$newLots): void
+    private function handleQuickEntry(string $documentType, string $redirectTo, array $document, array $warehouse, array &$detailPayloads, array &$newLots, bool $isConfirmed = false): void
     {
-        $quickEntryPayload = $this->prepareQuickEntryPayload($_POST, $document, $warehouse);
+        $quickEntryPayload = $this->prepareQuickEntryPayload($_POST, $document, $warehouse, $isConfirmed);
+
+        $isOutbound = $this->isOutboundDocument($documentType);
 
         if ($quickEntryPayload === null) {
-            $this->setFlash('danger', 'Vui lòng nhập đầy đủ thông tin lô/nguyên liệu trước khi xác nhận.');
+            $message = $isOutbound
+                ? 'Vui lòng chọn lô cần xuất và số lượng hợp lệ trước khi lưu phiếu.'
+                : 'Vui lòng nhập đầy đủ thông tin lô/nguyên liệu trước khi xác nhận.';
+            $this->setFlash('danger', $message);
             $this->redirect($redirectTo);
             return;
         }
 
-        if ($this->isOutboundDocument($documentType)) {
-            $this->setFlash('danger', 'Nhập nhanh chỉ áp dụng cho phiếu nhập. Vui lòng chọn lô để xuất kho.');
-            $this->redirect($redirectTo);
-            return;
+        if ($isOutbound) {
+            $detailPayloads[] = $quickEntryPayload['detail'];
+        } else {
+            $detailPayloads[] = $quickEntryPayload['detail'];
+            $newLots[] = $quickEntryPayload['lot'];
         }
-
-        $detailPayloads[] = $quickEntryPayload['detail'];
-        $newLots[] = $quickEntryPayload['lot'];
     }
 
     private function findWarehouse(string $warehouseId): ?array
@@ -855,7 +1095,7 @@ class Warehouse_sheetController extends Controller
             return $this->warehouseCache[$warehouseId];
         }
 
-        $warehouse = $this->warehouseModel->find($warehouseId);
+        $warehouse = $this->warehouseModel->findWithSupervisor($warehouseId) ?? $this->warehouseModel->find($warehouseId);
         if ($warehouse && !$this->isWarehouseAccessible($warehouseId)) {
             return null;
         }
@@ -876,6 +1116,16 @@ class Warehouse_sheetController extends Controller
         return trim(preg_replace('/\s+/', ' ', $value));
     }
 
+    private function isConfirmedData(array $data): bool
+    {
+        $value = $data['NgayXN'] ?? null;
+        if (is_string($value)) {
+            $value = trim($value);
+        }
+
+        return !empty($value);
+    }
+
     private function applyStockImpact(string $documentType, array $details, bool $isCreation, ?string $documentId = null, ?string $warehouseId = null): void
     {
         $isInbound = $this->isInboundDocument($documentType);
@@ -884,7 +1134,7 @@ class Warehouse_sheetController extends Controller
 
         foreach ($details as $detail) {
             $lotId = $detail['IdLo'] ?? null;
-            $quantity = (int) ($detail['ThucNhan'] ?? $detail['SoLuong'] ?? 0);
+            $quantity = (int) ($detail['SoLuong'] ?? 0);
             $isNewLot = (bool) ($detail['is_new_lot'] ?? false);
 
             if (!$lotId || $quantity <= 0) {
@@ -900,8 +1150,12 @@ class Warehouse_sheetController extends Controller
                 throw new RuntimeException('Lô không thuộc kho của phiếu. Vui lòng kiểm tra lại.');
             }
 
+            if ($isCreation && !$isNewLot && !$this->lotModel->hasOtherDocuments($lotId, $documentId)) {
+                $isNewLot = true;
+            }
+
             $quantityDelta = $direction * $quantity;
-            $skipLotQuantityUpdate = $isInbound && $isCreation && $isNewLot;
+            $skipLotQuantityUpdate = $isInbound && $isCreation && $isNewLot && ($lot['SoLuong'] ?? 0) > 0;
 
             if (!$skipLotQuantityUpdate) {
                 $currentQuantity = (int) ($lot['SoLuong'] ?? 0);
@@ -955,7 +1209,7 @@ class Warehouse_sheetController extends Controller
             return $this->accessibleWarehouseIds;
         }
 
-        $this->accessibleWarehouseIds = null;
+        $this->accessibleWarehouseIds = $this->resolveWarehouseIdsByWorkshop($user);
         return $this->accessibleWarehouseIds;
     }
 
@@ -980,6 +1234,21 @@ class Warehouse_sheetController extends Controller
         return array_values(array_filter($warehouses, function (array $warehouse) use ($accessible): bool {
             return in_array($warehouse['IdKho'] ?? null, $accessible, true);
         }));
+    }
+
+    private function resolveWarehouseIdsByWorkshop(array $user): ?array
+    {
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if (!$employeeId) {
+            return null;
+        }
+
+        $workshopIds = $this->employeeModel->getWorkshopIdsForEmployee($employeeId);
+        if (empty($workshopIds)) {
+            return [];
+        }
+
+        return $this->warehouseModel->getWarehouseIdsByWorkshops($workshopIds);
     }
 
     private function classifyDocumentType(string $documentType): array
@@ -1050,11 +1319,7 @@ class Warehouse_sheetController extends Controller
         $role = $user ? $this->resolveAccessRole($user) : null;
         $employeeId = $user['IdNhanVien'] ?? null;
 
-        if ($role === 'VT_NHANVIEN_KHO' && $employeeId) {
-            return $employeeId;
-        }
-
-        return $requestedCreator ?: $employeeId;
+        return $employeeId ?: $requestedCreator;
     }
 
     private function validateApprovalSeparation(?string $creatorId, ?string $approverId): bool

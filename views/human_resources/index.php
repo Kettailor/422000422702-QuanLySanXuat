@@ -41,7 +41,7 @@ $activeRate = $employeeCount > 0 ? round(($activeCount / $employeeCount) * 100, 
             <a href="?controller=salary&action=index" class="btn btn-outline-info"><i class="bi bi-cash-stack me-2"></i>Bảng lương</a>
         <?php endif; ?>
         <?php if ($showTimekeepingLink): ?>
-            <a href="?controller=timekeeping&action=index" class="btn btn-outline-secondary"><i class="bi bi-calendar-check me-2"></i>Chấm công</a>
+            <a href="?controller=timekeeping&action=index" class="btn btn-outline-secondary"><i class="bi bi-calendar-check me-2"></i>Phân công &amp; chấm công</a>
         <?php endif; ?>
         <a href="?controller=human_resources&action=create" class="btn btn-primary"><i class="bi bi-person-plus me-2"></i>Thêm nhân sự</a>
     </div>

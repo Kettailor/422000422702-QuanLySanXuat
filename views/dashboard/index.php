@@ -27,11 +27,20 @@ $activeUserCount = $activeUserCount ?? 0;
 $roles = $roles ?? [];
 $employees = $employees ?? [];
 
+$workshopManagerRoles = [
+    'VT_TRUONG_XUONG_KIEM_DINH',
+    'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI',
+    'VT_TRUONG_XUONG_SAN_XUAT',
+    'VT_TRUONG_XUONG_LUU_TRU',
+];
+
 $roleLabels = [
     'VT_BAN_GIAM_DOC' => 'Ban giám đốc',
-    'VT_KHO_TRUONG' => 'Kho trưởng',
     'VT_KINH_DOANH' => 'Nhân viên kinh doanh',
-    'VT_QUANLY_XUONG' => 'Xưởng trưởng',
+    'VT_TRUONG_XUONG_KIEM_DINH' => 'Xưởng trưởng kiểm định',
+    'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI' => 'Xưởng trưởng lắp ráp và đóng gói',
+    'VT_TRUONG_XUONG_SAN_XUAT' => 'Xưởng trưởng sản xuất',
+    'VT_TRUONG_XUONG_LUU_TRU' => 'Xưởng trưởng lưu trữ hàng hóa',
     'VT_NHANVIEN_KHO' => 'Nhân viên kho',
     'VT_NHANVIEN_SANXUAT' => 'Nhân viên sản xuất',
     'VT_KIEM_SOAT_CL' => 'Nhân viên kiểm soát chất lượng',
@@ -496,7 +505,7 @@ $resolveNotificationScope = static function (array $notification): array {
     </div>
 <?php endif; ?>
 
-<?php if (in_array($role, ['VT_KHO_TRUONG', 'VT_NHANVIEN_KHO'], true)): ?>
+<?php if (in_array($role, ['VT_NHANVIEN_KHO'], true)): ?>
     <div class="row g-4 mt-1">
         <div class="col-xl-4">
             <div class="card p-4 h-100">
@@ -652,7 +661,7 @@ $resolveNotificationScope = static function (array $notification): array {
     </div>
 <?php endif; ?>
 
-<?php if (in_array($role, ['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT'], true)): ?>
+<?php if (in_array($role, $workshopManagerRoles, true) || $role === 'VT_NHANVIEN_SANXUAT'): ?>
     <div class="row g-4 mt-1">
         <div class="col-xl-12">
             <div class="card p-4">

@@ -183,4 +183,83 @@ class WorkshopPlanAssignment extends BaseModel
             throw $exception;
         }
     }
+
+    public function findDayShiftConflicts(
+        string $workshopId,
+        string $planId,
+        array $assignmentsByShift,
+        array $shiftMap
+    ): array {
+        $existing = $this->getWorkshopAssignmentsByDay($workshopId, $planId);
+        if (empty($existing)) {
+            return [];
+        }
+
+        $existingMap = [];
+        foreach ($existing as $row) {
+            $employeeId = $row['IdNhanVien'] ?? null;
+            $workDate = $row['NgayLamViec'] ?? null;
+            $shiftLabel = $row['TenCa'] ?? null;
+            if (!$employeeId || !$workDate || !$shiftLabel) {
+                continue;
+            }
+            $existingMap[$employeeId][$workDate][$shiftLabel] = [
+                'plan_id' => $row['IdKeHoachSanXuatXuong'] ?? null,
+                'employee_name' => $row['HoTen'] ?? null,
+            ];
+        }
+
+        $conflicts = [];
+        foreach ($assignmentsByShift as $shiftId => $employeeIds) {
+            if (!isset($shiftMap[$shiftId])) {
+                continue;
+            }
+            $shift = $shiftMap[$shiftId];
+            $workDate = $shift['NgayLamViec'] ?? null;
+            $shiftLabel = $shift['TenCa'] ?? null;
+            if (!$workDate || !$shiftLabel) {
+                continue;
+            }
+
+            $normalizedIds = array_values(array_unique(array_filter(array_map('trim', (array) $employeeIds))));
+            foreach ($normalizedIds as $employeeId) {
+                if (!isset($existingMap[$employeeId][$workDate][$shiftLabel])) {
+                    continue;
+                }
+
+                $conflicts[] = [
+                    'employee_id' => $employeeId,
+                    'employee_name' => $existingMap[$employeeId][$workDate][$shiftLabel]['employee_name'] ?? null,
+                    'work_date' => $workDate,
+                    'shift_label' => $shiftLabel,
+                    'plan_id' => $existingMap[$employeeId][$workDate][$shiftLabel]['plan_id'] ?? null,
+                ];
+            }
+        }
+
+        return $conflicts;
+    }
+
+    private function getWorkshopAssignmentsByDay(string $workshopId, ?string $excludePlanId = null): array
+    {
+        $sql = 'SELECT pc.IdNhanVien, pc.IdCaLamViec, pc.IdKeHoachSanXuatXuong, ca.NgayLamViec, ca.TenCa, nv.HoTen
+                FROM phan_cong_ke_hoach_xuong pc
+                JOIN ca_lam ca ON ca.IdCaLamViec = pc.IdCaLamViec
+                JOIN ke_hoach_san_xuat_xuong kx ON kx.IdKeHoachSanXuatXuong = pc.IdKeHoachSanXuatXuong
+                LEFT JOIN nhan_vien nv ON nv.IdNhanVien = pc.IdNhanVien
+                WHERE kx.IdXuong = :workshopId';
+
+        if ($excludePlanId) {
+            $sql .= ' AND pc.IdKeHoachSanXuatXuong <> :planId';
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':workshopId', $workshopId);
+        if ($excludePlanId) {
+            $stmt->bindValue(':planId', $excludePlanId);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
 }

@@ -253,6 +253,21 @@ class Warehouse extends BaseModel
         return $result ?: null;
     }
 
+    public function getFinishedQuantityByWorkshop(?string $workshopId): ?int
+    {
+        $warehouse = $this->findFinishedWarehouseByWorkshop($workshopId);
+        if (!$warehouse) {
+            return null;
+        }
+
+        $stmt = $this->db->prepare('SELECT COALESCE(SUM(SoLuong), 0) AS total FROM LO WHERE IdKho = :warehouseId');
+        $stmt->bindValue(':warehouseId', $warehouse['IdKho']);
+        $stmt->execute();
+        $row = $stmt->fetch();
+
+        return (int) ($row['total'] ?? 0);
+    }
+
     public function getFormOptions(): array
     {
         $workshops = $this->db->query('SELECT IdXuong, TenXuong FROM XUONG ORDER BY TenXuong')->fetchAll();
@@ -276,6 +291,30 @@ class Warehouse extends BaseModel
         $sql = 'SELECT IdKho FROM KHO WHERE NHAN_VIEN_KHO_IdNhanVien = :employee';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':employee', $employeeId);
+        $stmt->execute();
+
+        return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
+    }
+
+    public function getWarehouseIdsByWorkshops(array $workshopIds): array
+    {
+        $workshopIds = array_values(array_filter($workshopIds));
+
+        if (empty($workshopIds)) {
+            return [];
+        }
+
+        $placeholders = [];
+        foreach ($workshopIds as $index => $workshopId) {
+            $placeholders[':workshop' . $index] = $workshopId;
+        }
+
+        $sql = 'SELECT IdKho FROM KHO WHERE IdXuong IN (' . implode(', ', array_keys($placeholders)) . ')';
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($placeholders as $placeholder => $value) {
+            $stmt->bindValue($placeholder, $value);
+        }
         $stmt->execute();
 
         return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));

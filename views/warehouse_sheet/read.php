@@ -101,7 +101,6 @@ $warehouse = $warehouse ?? null;
                             <th>Tên lô</th>
                             <th>Mặt hàng</th>
                             <th class="text-nowrap">Số lượng</th>
-                            <th class="text-nowrap">Thực nhận</th>
                             <th class="text-nowrap">Loại lô</th>
                             <th class="text-nowrap">Đơn vị</th>
                         </tr>
@@ -116,7 +115,6 @@ $warehouse = $warehouse ?? null;
                                     <small class="text-muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></small>
                                 </td>
                                 <td><?= number_format($detail['SoLuong'] ?? 0) ?></td>
-                                <td><?= number_format($detail['ThucNhan'] ?? 0) ?></td>
                                 <td><?= htmlspecialchars($detail['LoaiLo'] ?? '-') ?></td>
                                 <td><?= htmlspecialchars($detail['DonViTinh'] ?? $detail['DonVi'] ?? '-') ?></td>
                             </tr>

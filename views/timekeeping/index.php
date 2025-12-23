@@ -22,12 +22,12 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
-        <h2 class="fw-bold mb-1">Nhật ký chấm công</h2>
-        <p class="text-muted mb-0">Tổng hợp đầy đủ chấm công, có thể lọc theo ngày, xưởng và kế hoạch.</p>
+        <h2 class="fw-bold mb-1">Phân công &amp; chấm công</h2>
+        <p class="text-muted mb-0">Quản lý phân công ca và chấm công theo ngày, xưởng hoặc kế hoạch đang xử lý.</p>
     </div>
     <div class="d-flex gap-2">
         <a href="?controller=timekeeping&action=create" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Ghi nhận chấm công
+            <i class="bi bi-plus-circle me-2"></i>Tạo phân công/chấm công
         </a>
         <a href="?controller=factory_plan&action=index" class="btn btn-outline-secondary">
             <i class="bi bi-list me-2"></i>Kế hoạch xưởng
