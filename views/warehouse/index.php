@@ -6,6 +6,7 @@ $warehouseGroups = $warehouseGroups ?? [];
 $warehouseEntryForms = $warehouseEntryForms ?? [];
 $employees = $employees ?? [];
 $productOptionsByType = $productOptionsByType ?? [];
+$outboundDocumentTypes = $outboundDocumentTypes ?? [];
 $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 $lotMeta = [
     'material' => [
@@ -313,6 +314,14 @@ $lotPrefixMap = [
                                     <div class="table-actions d-flex align-items-center gap-2 flex-wrap">
                                         <a class="btn btn-sm btn-outline-secondary" href="?controller=warehouse&action=read&id=<?= urlencode($warehouse['IdKho']) ?>">Chi tiết</a>
                                         <a class="btn btn-sm btn-outline-primary" href="?controller=warehouse&action=edit&id=<?= urlencode($warehouse['IdKho']) ?>">Sửa</a>
+                                        <?php if (!empty($outboundDocumentTypes[$typeKey])): ?>
+                                            <a class="btn btn-sm btn-outline-success" href="?controller=warehouse_sheet&action=create&warehouse=<?= urlencode($warehouse['IdKho']) ?>&direction=inbound&category=<?= urlencode($typeKey) ?>">
+                                                Nhập
+                                            </a>
+                                            <a class="btn btn-sm btn-outline-danger" href="?controller=warehouse_sheet&action=create&warehouse=<?= urlencode($warehouse['IdKho']) ?>&direction=outbound&category=<?= urlencode($typeKey) ?>">
+                                                Xuất
+                                            </a>
+                                        <?php endif; ?>
                                         <form method="post" action="?controller=warehouse&action=delete" class="d-inline" onsubmit="return confirm('Xác nhận xóa kho này?');">
                                             <input type="hidden" name="IdKho" value="<?= htmlspecialchars($warehouse['IdKho']) ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
