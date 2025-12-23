@@ -342,7 +342,7 @@ foreach ($configurationDetails as $detail) {
             function buildAssignmentRow(index) {
                 const row = document.createElement('tr');
                 row.dataset.assignmentRow = '';
-                row.dataset.allowedTypes = JSON.stringify(['Sản xuất']);
+                row.dataset.allowedTypes = JSON.stringify(['Xưởng sản xuất']);
 
                 const optionsSource = document.querySelector('select[name^="component_assignments"]');
                 const optionMarkup = optionsSource

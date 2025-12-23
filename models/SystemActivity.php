@@ -16,9 +16,10 @@ class SystemActivity extends BaseModel
 
     public function findByOrderId(string $orderId, int $limit = 20): array
     {
-        $sql = 'SELECT hd.*, nv.HoTen AS TenNguoiDung
+        $sql = 'SELECT hd.*, COALESCE(nv.HoTen, nd.TenDangNhap) AS TenNguoiDung
                 FROM hoat_dong_he_thong hd
-                LEFT JOIN nhan_vien nv ON nv.IdNhanVien = hd.IdNguoiDung
+                LEFT JOIN nguoi_dung nd ON nd.IdNguoiDung = hd.IdNguoiDung
+                LEFT JOIN nhan_vien nv ON nv.IdNhanVien = nd.IdNhanVien
                 WHERE hd.HanhDong LIKE :pattern
                 ORDER BY hd.ThoiGian DESC
                 LIMIT :limit';
