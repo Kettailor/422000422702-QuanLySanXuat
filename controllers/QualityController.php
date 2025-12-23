@@ -41,35 +41,71 @@ class QualityController extends Controller
     /** Xem chi tiết biên bản hoặc lô */
     public function read(): void
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         $id = $_GET['id'] ?? null;
 
         if (!$id) {
-            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Thiếu mã lô hoặc mã biên bản.') . '&type=danger');
+            $this->redirect('?controller=quality&action=index&msg='
+                . urlencode('Thiếu mã lô hoặc mã biên bản.')
+                . '&type=danger');
         }
 
         $db = $this->qualityModel->getConnection();
+
+        // ===== LẤY BIÊN BẢN =====
         $stmt = $db->prepare("
-            SELECT bb.*
-            FROM bien_ban_danh_gia_thanh_pham bb
-            WHERE bb.IdLo = :id
-            ORDER BY bb.ThoiGian DESC
-            LIMIT 1
-        ");
+        SELECT bb.*
+        FROM bien_ban_danh_gia_thanh_pham bb
+        WHERE bb.IdLo = :id
+        ORDER BY bb.ThoiGian DESC
+        LIMIT 1
+    ");
         $stmt->execute([':id' => $id]);
         $report = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($report) {
-            $this->render('quality/read', [
-                'title'    => 'Chi tiết biên bản đánh giá',
-                'report'   => $report,
-                'isReport' => true
+
+            // ===== LẤY ẢNH MINH CHỨNG =====
+            $stmtImg = $db->prepare("
+            SELECT HinhAnh
+            FROM ttct_bien_ban_danh_gia_thanh_pham
+            WHERE IdBienBanDanhGiaSP = :id
+              AND HinhAnh IS NOT NULL
+              AND HinhAnh <> ''
+        ");
+            $stmtImg->execute([
+                ':id' => $report['IdBienBanDanhGiaSP']
             ]);
-        } else {
-            $loInfo = $this->qualityModel->getLoInfo($id);
+            $images = $stmtImg->fetchAll(PDO::FETCH_COLUMN);
+
+            // ===== LẤY NGƯỜI LẬP (HỌ TÊN) =====
+            $nguoiLap = $_SESSION['user']['TenDangNhap'] ?? 'Không xác định';
+
+            $idNV = $_SESSION['user']['IdNhanVien'] ?? null;
+            if ($idNV) {
+                $stmtNV = $db->prepare("
+                SELECT HoTen
+                FROM nhan_vien
+                WHERE IdNhanVien = :id
+            ");
+                $stmtNV->execute([':id' => $idNV]);
+                $hoTen = $stmtNV->fetchColumn();
+
+                if ($hoTen) {
+                    $nguoiLap = $hoTen;
+                }
+            }
+
+            // ===== RENDER VIEW =====
             $this->render('quality/read', [
-                'title'    => 'Thông tin lô sản phẩm',
-                'loInfo'   => $loInfo,
-                'isReport' => false
+                'title'     => 'Chi tiết biên bản đánh giá',
+                'report'    => $report,
+                'images'    => $images,
+                'isReport'  => true,
+                'nguoiLap'  => $nguoiLap   // 👈 TRUYỀN SANG VIEW
             ]);
         }
     }
@@ -159,12 +195,29 @@ class QualityController extends Controller
                 $fileName = null;
 
                 if ($files && !empty($files['name'][$i])) {
-                    $uploadDir = __DIR__ . '/../uploads/';
-                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-                    $safeName = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $files['name'][$i]);
-                    $fileName = uniqid('mc_') . '_' . $safeName;
-                    move_uploaded_file($files['tmp_name'][$i], $uploadDir . $fileName);
+
+                    $uploadDir = realpath(__DIR__ . '/../storage/img/bbdgtp');
+                    if ($uploadDir === false) {
+                        throw new Exception('Không tìm thấy thư mục storage/img/bbdgtp');
+                    }
+                    $uploadDir .= DIRECTORY_SEPARATOR;
+
+                    if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                        continue;
+                    }
+
+                    $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
+                    if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                        continue;
+                    }
+
+                    $fileName = uniqid('tp_', true) . '.' . $ext;
+
+                    if (!move_uploaded_file($files['tmp_name'][$i], $uploadDir . $fileName)) {
+                        throw new Exception('Không thể lưu file upload');
+                    }
                 }
+
 
                 $this->qualityModel->insertChiTietTieuChi($idBienBan, $tieuChi, (int)$diem, $ghiChu, $fileName);
 
