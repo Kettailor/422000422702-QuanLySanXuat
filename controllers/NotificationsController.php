@@ -13,7 +13,8 @@ class NotificationsController extends Controller
     {
         $user = $this->currentUser();
         $employeeId = $user['IdNhanVien'] ?? null;
-        $entries = $this->loadNotifications($employeeId);
+        $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        $entries = $this->loadNotifications($employeeId, $roleId);
 
         $this->render('notifications/index', [
             'title' => 'Thông báo',
@@ -39,23 +40,15 @@ class NotificationsController extends Controller
     {
         $user = $this->currentUser();
         $employeeId = $user['IdNhanVien'] ?? null;
-        $this->notificationStore->markAllRead($employeeId);
+        $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        $this->notificationStore->markAllRead($employeeId, $roleId);
         $this->redirect('?controller=notifications&action=index');
     }
 
-    private function loadNotifications(?string $employeeId): array
+    private function loadNotifications(?string $employeeId, ?string $roleId): array
     {
         $entries = $this->notificationStore->readAll();
-        $filtered = array_values(array_filter($entries, static function ($entry) use ($employeeId): bool {
-            if (!is_array($entry)) {
-                return false;
-            }
-            $recipient = $entry['recipient'] ?? null;
-            if (!$recipient) {
-                return true;
-            }
-            return $employeeId !== null && $recipient === $employeeId;
-        }));
+        $filtered = $this->notificationStore->filterForUser($entries, $employeeId, $roleId);
 
         usort($filtered, static function ($a, $b): int {
             $aTime = strtotime($a['created_at'] ?? '') ?: 0;

@@ -51,7 +51,8 @@ class Self_timekeepingController extends Controller
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
         $geofence = $this->getGeofenceConfig();
         $shifts = $this->workShiftModel->getShifts($workDate);
-        $notifications = $this->loadNotifications($employeeId);
+        $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        $notifications = $this->loadNotifications($employeeId, $roleId);
 
         $this->render('self_timekeeping/mobile', [
             'title' => 'Tự chấm công (Mobile)',
@@ -201,21 +202,11 @@ class Self_timekeepingController extends Controller
         ];
     }
 
-    private function loadNotifications(?string $employeeId): array
+    private function loadNotifications(?string $employeeId, ?string $roleId): array
     {
         $store = new NotificationStore();
         $entries = $store->readAll();
-
-        $filtered = array_values(array_filter($entries, static function ($entry) use ($employeeId): bool {
-            if (!is_array($entry)) {
-                return false;
-            }
-            $recipient = $entry['recipient'] ?? null;
-            if (!$recipient) {
-                return true;
-            }
-            return $employeeId !== null && $recipient === $employeeId;
-        }));
+        $filtered = $store->filterForUser($entries, $employeeId, $roleId);
 
         usort($filtered, static function ($a, $b): int {
             $aTime = strtotime($a['created_at'] ?? '') ?: 0;
