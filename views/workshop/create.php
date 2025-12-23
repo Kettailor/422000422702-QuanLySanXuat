@@ -18,6 +18,7 @@
     $workshopType = $workshopType ?? 'Xưởng sản xuất';
     $workshopTypes = $workshopTypes ?? [];
     $workshopTypeRules = $workshopTypeRules ?? [];
+    $managerCandidatesByType = $managerCandidatesByType ?? [];
     ?>
     <form action="?controller=workshop&action=store" method="post" class="row g-4">
         <div class="col-md-4">
@@ -26,7 +27,7 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Xưởng trưởng <span class="text-danger">*</span></label>
-            <select name="XUONGTRUONG_IdNhanVien" class="form-select" required>
+            <select name="XUONGTRUONG_IdNhanVien" class="form-select" data-manager-select required>
                 <option value="" disabled selected>Chọn xưởng trưởng</option>
                 <?php foreach (($managerCandidates ?? []) as $manager): ?>
                     <option value="<?= htmlspecialchars($manager['IdNhanVien'] ?? '') ?>">
@@ -52,10 +53,6 @@
         <div class="col-md-4">
             <label class="form-label">Công suất tối đa (giờ máy / tháng)</label>
             <input type="number" name="CongSuatToiDa" class="form-control" min="0" step="0.01">
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Công suất đang sử dụng</label>
-            <input type="number" name="CongSuatDangSuDung" class="form-control" min="0" step="0.01">
         </div>
         <div class="col-md-4">
             <label class="form-label">Nhân sự tối đa</label>
@@ -104,7 +101,9 @@
                                 <div class="assignment-list list-group" id="warehouse-list">
                                     <?php foreach ($employeeGroups['warehouse'] as $employee): ?>
                                         <?php $keyword = mb_strtolower(($employee['HoTen'] ?? '') . ' ' . ($employee['IdNhanVien'] ?? ''), 'UTF-8'); ?>
-                                        <label class="list-group-item assignment-item d-flex align-items-start justify-content-between" data-keywords="<?= htmlspecialchars($keyword) ?>">
+                                        <label class="list-group-item assignment-item d-flex align-items-start justify-content-between"
+                                               data-keywords="<?= htmlspecialchars($keyword) ?>"
+                                               data-employee-role="<?= htmlspecialchars($employee['IdVaiTro'] ?? '') ?>">
                                             <div class="form-check flex-grow-1">
                                                 <input class="form-check-input" type="checkbox" name="warehouse_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
                                                 <div class="ms-2">
@@ -130,13 +129,9 @@
                                 <div class="assignment-list list-group" id="production-list">
                                     <?php foreach ($employeeGroups['production'] as $employee): ?>
                                         <?php $keyword = mb_strtolower(($employee['HoTen'] ?? '') . ' ' . ($employee['IdNhanVien'] ?? ''), 'UTF-8'); ?>
-                                        <?php
-                                        $title = mb_strtolower($employee['ChucVu'] ?? '', 'UTF-8');
-                                        $type = (str_contains($title, 'kiểm soát') || str_contains($title, 'kiểm định') || str_contains($title, 'qa') || str_contains($title, 'qc'))
-                                            ? 'quality'
-                                            : 'production';
-                                        ?>
-                                        <label class="list-group-item assignment-item d-flex align-items-start justify-content-between" data-keywords="<?= htmlspecialchars($keyword) ?>" data-employee-type="<?= htmlspecialchars($type) ?>">
+                                        <label class="list-group-item assignment-item d-flex align-items-start justify-content-between"
+                                               data-keywords="<?= htmlspecialchars($keyword) ?>"
+                                               data-employee-role="<?= htmlspecialchars($employee['IdVaiTro'] ?? '') ?>">
                                             <div class="form-check flex-grow-1">
                                                 <input class="form-check-input" type="checkbox" name="production_staff[]" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
                                                 <div class="ms-2">
@@ -164,6 +159,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     const workshopTypeSelect = document.querySelector('[data-workshop-type]');
     const workshopTypeRules = <?= json_encode($workshopTypeRules, JSON_UNESCAPED_UNICODE) ?>;
+    const managerOptionsByType = <?= json_encode($managerCandidatesByType, JSON_UNESCAPED_UNICODE) ?>;
+    const managerSelect = document.querySelector('[data-manager-select]');
     const productionPanel = document.querySelector('[data-production-panel]');
     const productionLabel = document.querySelector('[data-production-label]');
     const productionBadge = document.querySelector('[data-production-badge]');
@@ -175,8 +172,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const filterProductionEmployees = () => {
         const config = getConfig();
-        const useQuality = config.use_quality === true;
-        const allowProduction = config.allow_production !== false;
+        const productionRoles = Array.isArray(config.production_roles) ? config.production_roles : [];
+        const allowProduction = config.allow_production !== false && productionRoles.length > 0;
 
         if (productionPanel) {
             productionPanel.classList.toggle('d-none', !allowProduction);
@@ -187,8 +184,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (productionBadge) productionBadge.textContent = label;
 
         document.querySelectorAll('#production-list .assignment-item').forEach((item) => {
-            const employeeType = item.getAttribute('data-employee-type');
-            const shouldShow = allowProduction && (useQuality ? employeeType === 'quality' : employeeType === 'production');
+            const employeeRole = item.getAttribute('data-employee-role');
+            const shouldShow = allowProduction && productionRoles.includes(employeeRole);
             const checkbox = item.querySelector('input[type="checkbox"]');
             if (shouldShow) {
                 item.classList.remove('d-none');
@@ -217,6 +214,41 @@ document.addEventListener('DOMContentLoaded', function () {
         if (productionChip) productionChip.textContent = `${label}: ${productionCount} chọn`;
     };
 
+    const updateManagerOptions = () => {
+        if (!managerSelect) return;
+        const selectedType = workshopTypeSelect ? workshopTypeSelect.value : '';
+        const options = managerOptionsByType[selectedType] || [];
+        const selectedValue = managerSelect.value;
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.disabled = true;
+        placeholder.textContent = 'Chọn xưởng trưởng';
+
+        managerSelect.innerHTML = '';
+        managerSelect.appendChild(placeholder);
+
+        if (options.length === 0) {
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.disabled = true;
+            emptyOption.textContent = 'Chưa có nhân sự phù hợp';
+            managerSelect.appendChild(emptyOption);
+        } else {
+            options.forEach((manager) => {
+                const option = document.createElement('option');
+                option.value = manager.id || '';
+                option.textContent = `${manager.name || ''} (${manager.id || ''})`;
+                managerSelect.appendChild(option);
+            });
+        }
+
+        const fallback = options.some((manager) => manager.id === selectedValue) ? selectedValue : '';
+        managerSelect.value = fallback;
+        if (!fallback) {
+            placeholder.selected = true;
+        }
+    };
+
     document.querySelectorAll('.assignment-search').forEach((input) => {
         const targetSelector = input.getAttribute('data-target');
         const target = document.querySelector(targetSelector);
@@ -243,11 +275,13 @@ document.addEventListener('DOMContentLoaded', function () {
         workshopTypeSelect.addEventListener('change', () => {
             filterProductionEmployees();
             updateAssignmentSummary();
+            updateManagerOptions();
         });
     }
 
     filterProductionEmployees();
     updateAssignmentSummary();
+    updateManagerOptions();
 });
 </script>
 

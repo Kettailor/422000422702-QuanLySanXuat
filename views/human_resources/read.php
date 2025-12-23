@@ -77,7 +77,7 @@ $completionBadge = static function (?string $status): string {
             <div class="col-md-4 text-md-end">
                 <div class="d-flex flex-wrap gap-2 justify-content-md-end">
                     <a href="#salary" class="btn btn-outline-info btn-sm">Lương</a>
-                    <a href="#timekeeping" class="btn btn-outline-secondary btn-sm">Chấm công</a>
+                    <a href="#timekeeping" class="btn btn-outline-secondary btn-sm">Phân công &amp; chấm công</a>
                     <a href="#plans" class="btn btn-outline-primary btn-sm">Kế hoạch</a>
                 </div>
             </div>

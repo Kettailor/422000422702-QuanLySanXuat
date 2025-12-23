@@ -26,9 +26,9 @@ $dayEnd = $workDate ? ($workDate . 'T23:59') : '';
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
-        <h2 class="fw-bold mb-1">Ghi nhận chấm công</h2>
+        <h2 class="fw-bold mb-1">Phân công &amp; chấm công</h2>
         <p class="text-muted mb-0">
-            Hệ thống tự động lấy dữ liệu ngày <span class="fw-semibold"><?= htmlspecialchars($formattedWorkDate) ?></span> và tổng hợp chấm công trong ngày.
+            Hệ thống tự động lấy dữ liệu ngày <span class="fw-semibold"><?= htmlspecialchars($formattedWorkDate) ?></span> và tổng hợp phân công, chấm công trong ngày.
         </p>
     </div>
     <div class="d-flex gap-2">
@@ -47,8 +47,8 @@ $dayEnd = $workDate ? ($workDate . 'T23:59') : '';
             <div class="card-header bg-white border-0">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="mb-1">Thông tin chấm công</h5>
-                        <div class="text-muted small">Cập nhật nhanh trạng thái vào/ra ca cho nhân sự.</div>
+                        <h5 class="mb-1">Phân công / chấm công</h5>
+                        <div class="text-muted small">Chọn ca, phân công nhân sự và chấm công theo ca.</div>
                     </div>
                     <div class="text-end">
                         <div class="text-muted small">Tổng ca hôm nay</div>
@@ -99,7 +99,7 @@ $dayEnd = $workDate ? ($workDate . 'T23:59') : '';
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                        <div class="text-muted small mt-2">Chọn nhiều nhân viên để ghi nhận chấm công cùng lúc.</div>
+                        <div class="text-muted small mt-2">Chọn nhiều nhân viên để phân công và ghi nhận chấm công cùng lúc.</div>
                     </div>
 
                     <div class="col-md-6">
@@ -148,7 +148,7 @@ $dayEnd = $workDate ? ($workDate . 'T23:59') : '';
 
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0">
-                <h6 class="mb-0">Chấm công trong ngày</h6>
+                <h6 class="mb-0">Phân công / chấm công trong ngày</h6>
             </div>
             <div class="card-body p-0">
                 <?php if (empty($entries)): ?>
