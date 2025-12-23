@@ -47,7 +47,8 @@ class WorkshopController extends Controller
         }
 
         $employees = $this->employeeModel->getActiveEmployees();
-        $employeeGroups = $this->groupEmployeesForWorkshop($employees, $this->getDefaultWorkshopType(), []);
+        $defaultType = $this->getDefaultWorkshopType();
+        $employeeGroups = $this->groupEmployeesForWorkshop($employees, $defaultType, []);
         $this->render('workshop/create', [
             'title' => 'Thêm xưởng mới',
             'employees' => $employees,
@@ -55,6 +56,8 @@ class WorkshopController extends Controller
             'managerCandidates' => $this->getManagerCandidates(),
             'selectedWarehouse' => [],
             'selectedProduction' => [],
+            'workshopType' => $defaultType,
+            'workshopTypes' => $this->getWorkshopTypes(),
             'canAssign' => true,
         ]);
     }
@@ -123,10 +126,11 @@ class WorkshopController extends Controller
         $employees = $canAssignStaff ? $this->employeeModel->getActiveEmployees() : [];
         $selectedWarehouse = array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien');
         $selectedProduction = array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien');
+        $workshopType = $workshop['LoaiXuong'] ?? $this->getDefaultWorkshopType();
         $employeeGroups = $canAssignStaff
             ? $this->groupEmployeesForWorkshop(
                 $employees,
-                $this->getDefaultWorkshopType(),
+                $workshopType,
                 array_merge($selectedWarehouse, $selectedProduction)
             )
             : ['warehouse' => [], 'production' => []];
@@ -144,6 +148,8 @@ class WorkshopController extends Controller
             'canAssignManager' => $this->canAssign(),
             'canViewAssignments' => $canAssignStaff,
             'staffList' => $this->buildStaffList($assignments),
+            'workshopType' => $workshopType,
+            'workshopTypes' => $this->getWorkshopTypes(),
         ]);
     }
 
@@ -724,6 +730,7 @@ class WorkshopController extends Controller
             'IdXuong' => trim($input['IdXuong'] ?? ''),
             'TenXuong' => trim($input['TenXuong'] ?? ''),
             'DiaDiem' => trim($input['DiaDiem'] ?? ''),
+            'LoaiXuong' => trim($input['LoaiXuong'] ?? $this->getDefaultWorkshopType()),
             'XUONGTRUONG_IdNhanVien' => trim($input['XUONGTRUONG_IdNhanVien'] ?? ''),
             'SlNhanVien' => (int) ($input['SlNhanVien'] ?? 0),
             'SoLuongCongNhan' => 0,

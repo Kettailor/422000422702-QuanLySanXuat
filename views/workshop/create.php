@@ -15,6 +15,8 @@
     $selectedProduction = $selectedProduction ?? [];
     $warehouseSelectedCount = count($selectedWarehouse);
     $productionSelectedCount = count($selectedProduction);
+    $workshopType = $workshopType ?? 'Sản xuất';
+    $workshopTypes = $workshopTypes ?? [];
     ?>
     <form action="?controller=workshop&action=store" method="post" class="row g-4">
         <div class="col-md-4">
@@ -28,6 +30,16 @@
                 <?php foreach (($managerCandidates ?? []) as $manager): ?>
                     <option value="<?= htmlspecialchars($manager['IdNhanVien'] ?? '') ?>">
                         <?= htmlspecialchars($manager['HoTen'] ?? '') ?> (<?= htmlspecialchars($manager['IdNhanVien'] ?? '') ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Loại xưởng</label>
+            <select name="LoaiXuong" class="form-select" data-workshop-type required>
+                <?php foreach ($workshopTypes as $type): ?>
+                    <option value="<?= htmlspecialchars($type) ?>" <?= $type === $workshopType ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($type) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -149,6 +161,22 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const workshopTypeSelect = document.querySelector('[data-workshop-type]');
+
+    const filterProductionEmployees = () => {
+        const selectedType = workshopTypeSelect ? workshopTypeSelect.value.toLowerCase() : '';
+        const useQuality = selectedType.includes('kiểm định');
+        document.querySelectorAll('#production-list .assignment-item').forEach((item) => {
+            const employeeType = item.getAttribute('data-employee-type');
+            const shouldShow = useQuality ? employeeType === 'quality' : employeeType === 'production';
+            if (shouldShow) {
+                item.classList.remove('d-none');
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+    };
+
     const updateAssignmentSummary = () => {
         const warehouseCount = document.querySelectorAll('#warehouse-list input[type="checkbox"]:checked').length;
         const productionCount = Array.from(document.querySelectorAll('#production-list input[type="checkbox"]:checked'))
@@ -182,6 +210,14 @@ document.addEventListener('DOMContentLoaded', function () {
         checkbox.addEventListener('change', updateAssignmentSummary);
     });
 
+    if (workshopTypeSelect) {
+        workshopTypeSelect.addEventListener('change', () => {
+            filterProductionEmployees();
+            updateAssignmentSummary();
+        });
+    }
+
+    filterProductionEmployees();
     updateAssignmentSummary();
 });
 </script>
