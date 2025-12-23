@@ -97,6 +97,8 @@ class Warehouse_sheetController extends Controller
 
         $creatorId = $this->resolveCreator(null);
         $approvers = $this->buildApproverMap($warehouses, $options['employees']);
+        $workshops = $this->workshopModel->getAllWithManagers(300);
+        $warehouseWorkshopMap = $this->buildWarehouseWorkshopMap($warehouses, $workshops);
 
         $this->render('warehouse_sheet/create', [
             'title' => 'Tạo phiếu kho mới',
@@ -106,6 +108,9 @@ class Warehouse_sheetController extends Controller
             'products' => $products,
             'lots' => $lots,
             'approvers' => $approvers,
+            'workshops' => $workshops,
+            'warehouseWorkshopMap' => $warehouseWorkshopMap,
+            'currentUser' => $this->currentUser(),
             'document' => [
                 'IdPhieu' => $defaultId,
                 'NgayLP' => date('Y-m-d'),
@@ -140,18 +145,29 @@ class Warehouse_sheetController extends Controller
             'TongTien' => $_POST['TongTien'] ?? 0,
             'LoaiPhieu' => $documentType,
             'IdKho' => $_POST['IdKho'] ?? null,
-            'NHAN_VIENIdNhanVien' => $this->resolveCreator($_POST['NguoiLap'] ?? null),
+            'NHAN_VIENIdNhanVien' => $this->resolveCreator(null),
             'NHAN_VIENIdNhanVien2' => null,
-            'LoaiDoiTac' => $_POST['LoaiDoiTac'] ?? null,
-            'DoiTac' => $_POST['DoiTac'] ?? null,
+            'LoaiDoiTac' => null,
+            'DoiTac' => null,
             'SoThamChieu' => $_POST['SoThamChieu'] ?? null,
             'LyDo' => $_POST['LyDo'] ?? null,
             'GhiChu' => $_POST['GhiChu'] ?? null,
         ];
 
+        $warehouse = $this->findWarehouse($data['IdKho']);
+        $partnerScope = $_POST['PartnerScope'] ?? 'internal';
+        $partnerData = $this->buildPartnerData($partnerScope, $_POST, $warehouse);
+        $data['LoaiDoiTac'] = $partnerData['type'] ?? null;
+        $data['DoiTac'] = $partnerData['name'] ?? null;
+
         $approverId = $this->resolveWarehouseApprover($data['IdKho']);
         if (!$approverId) {
             $this->setFlash('danger', 'Kho chưa có xưởng trưởng để xác nhận phiếu.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+            return;
+        }
+        if (!$this->validateApproverWorkshop($approverId, $warehouse)) {
+            $this->setFlash('danger', 'Người xác nhận phải thuộc xưởng của kho được chọn.');
             $this->redirect('?controller=warehouse_sheet&action=index');
             return;
         }
@@ -283,6 +299,8 @@ class Warehouse_sheetController extends Controller
         $options = $this->sheetModel->getFormOptions();
         $filteredWarehouses = $this->filterWarehousesByAccess($options['warehouses']);
         $approvers = $this->buildApproverMap($filteredWarehouses, $options['employees']);
+        $workshops = $this->workshopModel->getAllWithManagers(300);
+        $warehouseWorkshopMap = $this->buildWarehouseWorkshopMap($filteredWarehouses, $workshops);
 
         $this->render('warehouse_sheet/edit', [
             'title' => 'Cập nhật phiếu kho',
@@ -291,6 +309,9 @@ class Warehouse_sheetController extends Controller
             'employees' => $options['employees'],
             'types' => $options['types'],
             'approvers' => $approvers,
+            'workshops' => $workshops,
+            'warehouseWorkshopMap' => $warehouseWorkshopMap,
+            'currentUser' => $this->currentUser(),
         ]);
     }
 
@@ -314,18 +335,29 @@ class Warehouse_sheetController extends Controller
             'TongTien' => $_POST['TongTien'] ?? 0,
             'LoaiPhieu' => $_POST['LoaiPhieu'] ?? null,
             'IdKho' => $_POST['IdKho'] ?? null,
-            'NHAN_VIENIdNhanVien' => $_POST['NguoiLap'] ?? null,
+            'NHAN_VIENIdNhanVien' => $this->resolveCreator(null),
             'NHAN_VIENIdNhanVien2' => null,
-            'LoaiDoiTac' => $_POST['LoaiDoiTac'] ?? null,
-            'DoiTac' => $_POST['DoiTac'] ?? null,
+            'LoaiDoiTac' => null,
+            'DoiTac' => null,
             'SoThamChieu' => $_POST['SoThamChieu'] ?? null,
             'LyDo' => $_POST['LyDo'] ?? null,
             'GhiChu' => $_POST['GhiChu'] ?? null,
         ];
 
+        $warehouse = $this->findWarehouse($data['IdKho'] ?? ($existing['IdKho'] ?? null));
+        $partnerScope = $_POST['PartnerScope'] ?? 'internal';
+        $partnerData = $this->buildPartnerData($partnerScope, $_POST, $warehouse);
+        $data['LoaiDoiTac'] = $partnerData['type'] ?? null;
+        $data['DoiTac'] = $partnerData['name'] ?? null;
+
         $approverId = $this->resolveWarehouseApprover($data['IdKho'] ?? ($existing['IdKho'] ?? null));
         if (!$approverId) {
             $this->setFlash('danger', 'Kho chưa có xưởng trưởng để xác nhận phiếu.');
+            $this->redirect('?controller=warehouse_sheet&action=index');
+            return;
+        }
+        if (!$this->validateApproverWorkshop($approverId, $warehouse)) {
+            $this->setFlash('danger', 'Người xác nhận phải thuộc xưởng của kho được chọn.');
             $this->redirect('?controller=warehouse_sheet&action=index');
             return;
         }
@@ -559,6 +591,32 @@ class Warehouse_sheetController extends Controller
         };
     }
 
+    private function buildWarehouseWorkshopMap(array $warehouses, array $workshops): array
+    {
+        $workshopMap = [];
+        foreach ($workshops as $workshop) {
+            $workshopMap[$workshop['IdXuong'] ?? ''] = $workshop;
+        }
+
+        $map = [];
+        foreach ($warehouses as $warehouse) {
+            $id = $warehouse['IdKho'] ?? null;
+            if (!$id) {
+                continue;
+            }
+            $workshopId = $warehouse['IdXuong'] ?? null;
+            $workshop = $workshopId ? ($workshopMap[$workshopId] ?? []) : [];
+            $map[$id] = [
+                'IdKho' => $id,
+                'TenKho' => $warehouse['TenKho'] ?? '',
+                'IdXuong' => $workshopId,
+                'TenXuong' => $workshop['TenXuong'] ?? '',
+            ];
+        }
+
+        return $map;
+    }
+
     private function buildApproverMap(array $warehouses, array $employees): array
     {
         $employeeMap = [];
@@ -608,6 +666,43 @@ class Warehouse_sheetController extends Controller
         $workshop = $this->workshopModel->find($workshopId);
 
         return $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+    }
+
+    private function validateApproverWorkshop(?string $approverId, ?array $warehouse): bool
+    {
+        if (!$approverId || !$warehouse) {
+            return false;
+        }
+
+        $workshopId = $warehouse['IdXuong'] ?? null;
+        if (!$workshopId) {
+            return false;
+        }
+
+        return $this->employeeModel->isEmployeeInWorkshop($approverId, $workshopId);
+    }
+
+    private function buildPartnerData(string $scope, array $input, ?array $warehouse = null): array
+    {
+        if ($scope === 'external') {
+            $type = $input['PartnerExternalType'] ?? 'Nhà cung cấp';
+            $name = trim((string) ($input['PartnerExternalName'] ?? ''));
+
+            return [
+                'type' => $type,
+                'name' => $name,
+            ];
+        }
+
+        $internalWarehouseId = $input['PartnerWarehouse'] ?? ($warehouse['IdKho'] ?? null);
+        $internalWarehouse = $internalWarehouseId ? ($this->findWarehouse($internalWarehouseId) ?: $warehouse) : $warehouse;
+        $warehouseName = $internalWarehouse['TenKho'] ?? ($internalWarehouse['IdKho'] ?? '');
+        $workshopName = $internalWarehouse['TenXuong'] ?? '';
+
+        return [
+            'type' => 'Nội bộ',
+            'name' => trim($warehouseName . ($workshopName ? ' · ' . $workshopName : '')),
+        ];
     }
 
     private function prepareQuickEntryPayload(array $input, array $document, ?array $warehouse = null, bool $isConfirmed = false): ?array
@@ -1000,7 +1095,7 @@ class Warehouse_sheetController extends Controller
             return $this->warehouseCache[$warehouseId];
         }
 
-        $warehouse = $this->warehouseModel->find($warehouseId);
+        $warehouse = $this->warehouseModel->findWithSupervisor($warehouseId) ?? $this->warehouseModel->find($warehouseId);
         if ($warehouse && !$this->isWarehouseAccessible($warehouseId)) {
             return null;
         }
@@ -1224,11 +1319,7 @@ class Warehouse_sheetController extends Controller
         $role = $user ? $this->resolveAccessRole($user) : null;
         $employeeId = $user['IdNhanVien'] ?? null;
 
-        if ($role === 'VT_NHANVIEN_KHO' && $employeeId) {
-            return $employeeId;
-        }
-
-        return $requestedCreator ?: $employeeId;
+        return $employeeId ?: $requestedCreator;
     }
 
     private function validateApprovalSeparation(?string $creatorId, ?string $approverId): bool
