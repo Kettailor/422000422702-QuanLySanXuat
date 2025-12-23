@@ -6,6 +6,8 @@ class Factory_planController extends Controller
     private Workshop $workshopModel;
     private WorkshopAssignment $assignmentModel;
     private WorkshopPlanAssignment $planAssignmentModel;
+    private Employee $employeeModel;
+    private ProductionPlan $planModel;
 
     public function __construct()
     {
@@ -14,11 +16,14 @@ class Factory_planController extends Controller
         $this->workshopModel = new Workshop();
         $this->assignmentModel = new WorkshopAssignment();
         $this->planAssignmentModel = new WorkshopPlanAssignment();
+        $this->employeeModel = new Employee();
+        $this->planModel = new ProductionPlan();
     }
 
     public function index(): void
     {
         $selectedWorkshop = $_GET['workshop_id'] ?? null;
+        $employeeId = $_GET['employee_id'] ?? null;
         $workshops = $this->getVisibleWorkshops();
         $selectedWorkshop = $this->normalizeSelectedWorkshop($selectedWorkshop, $workshops);
         $workshopMap = [];
@@ -27,15 +32,29 @@ class Factory_planController extends Controller
         }
 
         $plans = $this->workshopPlanModel->getDetailedPlans(200);
+        if ($employeeId) {
+            $employeePlanIds = $this->planAssignmentModel->getPlanIdsByEmployee($employeeId);
+            if ($employeePlanIds) {
+                $allowed = array_fill_keys($employeePlanIds, true);
+                $plans = array_values(array_filter($plans, static function (array $plan) use ($allowed): bool {
+                    $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
+                    return $planId !== null && isset($allowed[$planId]);
+                }));
+            } else {
+                $plans = [];
+            }
+        }
         $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops, $selectedWorkshop);
 
         $groupedPlans = $this->groupPlansByWorkshop($plans, $workshopMap);
+        $employee = $employeeId ? $this->employeeModel->find($employeeId) : null;
 
         $this->render('factory_plan/index', [
             'title' => 'Tiến độ sản xuất xưởng',
             'groupedPlans' => $groupedPlans,
             'workshops' => $workshops,
             'selectedWorkshop' => $selectedWorkshop,
+            'employeeFilter' => $employee,
         ]);
     }
 
@@ -80,6 +99,13 @@ class Factory_planController extends Controller
             return;
         }
 
+        $parentPlanId = $plan['IdKeHoachSanXuat'] ?? null;
+        if ($parentPlanId && $this->planModel->find($parentPlanId)) {
+            $this->setFlash('danger', 'Không thể xóa kế hoạch xưởng khi kế hoạch chính vẫn còn.');
+            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
         try {
             $this->workshopPlanModel->deleteWithRelations($id);
             $this->setFlash('success', 'Đã xóa kế hoạch xưởng. Vui lòng lập lại từ kế hoạch tổng nếu cần.');
@@ -96,9 +122,9 @@ class Factory_planController extends Controller
     private function getVisibleWorkshops(): array
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
             return $this->workshopModel->getAllWithManagers();
         }
 
@@ -285,9 +311,9 @@ class Factory_planController extends Controller
     private function canModifyPlan(array $plan): bool
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
             return true;
         }
 

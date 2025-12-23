@@ -25,6 +25,49 @@ class WorkshopPlanAssignment extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getPlanIdsByEmployee(string $employeeId): array
+    {
+        $sql = 'SELECT DISTINCT IdKeHoachSanXuatXuong
+                FROM phan_cong_ke_hoach_xuong
+                WHERE IdNhanVien = :employeeId';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employeeId', $employeeId);
+        $stmt->execute();
+
+        return array_values(array_filter(array_column($stmt->fetchAll(), 'IdKeHoachSanXuatXuong')));
+    }
+
+    public function isEmployeeAssignedToShift(string $employeeId, string $shiftId): bool
+    {
+        $sql = 'SELECT 1
+                FROM phan_cong_ke_hoach_xuong
+                WHERE IdNhanVien = :employeeId
+                  AND IdCaLamViec = :shiftId
+                LIMIT 1';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employeeId', $employeeId);
+        $stmt->bindValue(':shiftId', $shiftId);
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function isEmployeeAssignedForTimestamp(string $employeeId, string $timestamp): bool
+    {
+        $sql = 'SELECT 1
+                FROM phan_cong_ke_hoach_xuong pc
+                JOIN ca_lam ca ON ca.IdCaLamViec = pc.IdCaLamViec
+                WHERE pc.IdNhanVien = :employeeId
+                  AND :timestamp BETWEEN ca.ThoiGianBatDau AND ca.ThoiGianKetThuc
+                LIMIT 1';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employeeId', $employeeId);
+        $stmt->bindValue(':timestamp', $timestamp);
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
     public function replaceForPlanWithShifts(string $planId, array $assignmentsByShift, string $role = 'nhan_vien_san_xuat'): void
     {
         $this->db->beginTransaction();

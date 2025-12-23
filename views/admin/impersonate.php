@@ -19,7 +19,36 @@
                         </div>
                     <?php else: ?>
                         <div class="alert alert-info" role="alert">
-                            Hiện tại bạn đang sử dụng quyền quản trị mặc định.
+                            Hiện tại bạn đang sử dụng quyền mặc định.
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($canToggleAdminFlow)): ?>
+                        <div class="alert alert-light border mb-3">
+                            <div class="fw-semibold mb-1">Luồng quản trị</div>
+                            <p class="text-muted small mb-3">
+                                Luồng chính: sử dụng đầy đủ chức năng cá nhân và quản trị theo quyền chuẩn.
+                                Luồng test: mở toàn quyền và truy cập toàn bộ dữ liệu để kiểm thử nhanh.
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <form method="post" action="?controller=adminImpersonation&action=updateFlow">
+                                    <input type="hidden" name="admin_flow" value="main">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm<?= ($adminFlow ?? 'main') === 'main' ? ' active' : '' ?>">
+                                        Luồng chính
+                                    </button>
+                                </form>
+                                <form method="post" action="?controller=adminImpersonation&action=updateFlow">
+                                    <input type="hidden" name="admin_flow" value="test">
+                                    <button type="submit" class="btn btn-outline-success btn-sm<?= ($adminFlow ?? 'main') === 'test' ? ' active' : '' ?>">
+                                        Luồng test (toàn quyền)
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="mt-3">
+                                <span class="badge <?= ($adminFlow ?? 'main') === 'test' ? 'bg-success' : 'bg-secondary' ?>">
+                                    <?= ($adminFlow ?? 'main') === 'test' ? 'Đang ở luồng test' : 'Đang ở luồng chính' ?>
+                                </span>
+                            </div>
                         </div>
                     <?php endif; ?>
 

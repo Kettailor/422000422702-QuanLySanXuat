@@ -31,8 +31,29 @@ abstract class Controller
         $actualRole = $user['ActualIdVaiTro'] ?? $role;
         $isAdmin = $actualRole === 'VT_ADMIN';
         $isImpersonating = !empty($user['IsImpersonating']);
+        $adminFlow = $_SESSION['admin_flow'] ?? 'main';
+        $adminBypassEnabled = $adminFlow === 'test';
+        $adminMainRestricted = $isAdmin && !$isImpersonating && $adminFlow === 'main';
 
-        if ($isAdmin) {
+        if ($adminMainRestricted) {
+            $allowedControllers = [
+                'dashboard',
+                'auth',
+                'setting',
+                'notifications',
+                'self_salary',
+                'admin',
+                'adminImpersonation',
+                'account',
+            ];
+            $currentController = $_GET['controller'] ?? 'dashboard';
+            if (!in_array($currentController, $allowedControllers, true)) {
+                $this->setFlash('danger', 'Luồng chính chỉ cho phép chức năng cá nhân và quản trị.');
+                $this->redirect('?controller=dashboard&action=index');
+            }
+        }
+
+        if ($isAdmin && $adminBypassEnabled) {
             if ($isImpersonating) {
                 $username = $user['TenDangNhap'] ?? 'unknown';
                 error_log(sprintf(
@@ -56,6 +77,24 @@ abstract class Controller
         }
     }
 
+    protected function resolveAccessRole(array $user): ?string
+    {
+        $role = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        if (!$role) {
+            return null;
+        }
+
+        $isAdmin = $role === 'VT_ADMIN';
+        $isImpersonating = !empty($user['IsImpersonating']);
+        $adminFlow = $_SESSION['admin_flow'] ?? 'main';
+
+        if ($isAdmin && !$isImpersonating && $adminFlow === 'test') {
+            return 'VT_BAN_GIAM_DOC';
+        }
+
+        return $role;
+    }
+
     protected function render(string $view, array $data = []): void
     {
         $viewFile = __DIR__ . '/../views/' . $view . '.php';
@@ -74,21 +113,14 @@ abstract class Controller
         $notifications = [];
         if ($currentUser) {
             $employeeId = $currentUser['IdNhanVien'] ?? null;
+            $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
             try {
                 $notificationStore = new NotificationStore();
-                $notifications = array_values(array_filter(
+                $notifications = $notificationStore->filterForUser(
                     $notificationStore->readAll(),
-                    static function ($entry) use ($employeeId): bool {
-                        if (!is_array($entry)) {
-                            return false;
-                        }
-                        $recipient = $entry['recipient'] ?? null;
-                        if (!$recipient) {
-                            return true;
-                        }
-                        return $employeeId !== null && $recipient === $employeeId;
-                    }
-                ));
+                    $employeeId,
+                    $roleId
+                );
             } catch (Throwable $exception) {
                 $notifications = [];
             }
@@ -116,21 +148,14 @@ abstract class Controller
         $notifications = [];
         if ($currentUser) {
             $employeeId = $currentUser['IdNhanVien'] ?? null;
+            $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
             try {
                 $notificationStore = new NotificationStore();
-                $notifications = array_values(array_filter(
+                $notifications = $notificationStore->filterForUser(
                     $notificationStore->readAll(),
-                    static function ($entry) use ($employeeId): bool {
-                        if (!is_array($entry)) {
-                            return false;
-                        }
-                        $recipient = $entry['recipient'] ?? null;
-                        if (!$recipient) {
-                            return true;
-                        }
-                        return $employeeId !== null && $recipient === $employeeId;
-                    }
-                ));
+                    $employeeId,
+                    $roleId
+                );
             } catch (Throwable $exception) {
                 $notifications = [];
             }

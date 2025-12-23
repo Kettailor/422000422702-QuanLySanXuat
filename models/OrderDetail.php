@@ -23,7 +23,7 @@ class OrderDetail extends BaseModel
     {
         $sql = 'SELECT ct.*, don.IdDonHang, don.YeuCau AS YeuCauDonHang, don.NgayLap, don.EmailLienHe,
                        san.TenSanPham, san.DonVi, san.IdSanPham,
-                       cau.TenCauHinh, cau.IdBOM, cau.Layout, cau.SwitchType, cau.CaseType, cau.Foam,
+                       cau.TenCauHinh, cau.IdBOM, cau.Keycap, cau.Mainboard, cau.Layout, cau.SwitchType, cau.CaseType, cau.Foam,
                        kh.HoTen AS TenKhachHang, kh.SoDienThoai, kh.Email, kh.TenCongTy,
                        ct.NgayGiao, ct.YeuCau AS YeuCauChiTiet, ct.GhiChu AS GhiChuChiTiet
                 FROM ct_don_hang ct
@@ -42,7 +42,8 @@ class OrderDetail extends BaseModel
     {
         $sql = 'SELECT ct_don_hang.*, san_pham.TenSanPham, san_pham.DonVi, san_pham.GiaBan,
                        cau_hinh_san_pham.TenCauHinh, cau_hinh_san_pham.MoTa AS MoTaCauHinh, cau_hinh_san_pham.GiaBan AS GiaCauHinh,
-                       cau_hinh_san_pham.IdBOM, cau_hinh_san_pham.Layout, cau_hinh_san_pham.SwitchType,
+                       cau_hinh_san_pham.IdBOM, cau_hinh_san_pham.Keycap, cau_hinh_san_pham.Mainboard,
+                       cau_hinh_san_pham.Layout, cau_hinh_san_pham.SwitchType,
                        cau_hinh_san_pham.CaseType, cau_hinh_san_pham.Foam
                 FROM ct_don_hang
                 LEFT JOIN san_pham ON san_pham.IdSanPham = ct_don_hang.IdSanPham
@@ -60,6 +61,7 @@ class OrderDetail extends BaseModel
         $sql = 'SELECT ct.*, don_hang.IdDonHang, don_hang.YeuCau AS YeuCauDonHang, don_hang.EmailLienHe,
                        san_pham.TenSanPham, san_pham.DonVi,
                        cau_hinh_san_pham.TenCauHinh, cau_hinh_san_pham.IdBOM,
+                       cau_hinh_san_pham.Keycap, cau_hinh_san_pham.Mainboard,
                        cau_hinh_san_pham.Layout, cau_hinh_san_pham.SwitchType,
                        cau_hinh_san_pham.CaseType, cau_hinh_san_pham.Foam,
                        khach_hang.HoTen AS TenKhachHang, khach_hang.SoDienThoai, khach_hang.Email, khach_hang.TenCongTy

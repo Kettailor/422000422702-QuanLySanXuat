@@ -6,6 +6,7 @@ $workshopId = $workshopId ?? null;
 $planId = $planId ?? null;
 $workshops = $workshops ?? [];
 $plans = $plans ?? [];
+$employeeFilter = $employeeFilter ?? null;
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -34,9 +35,23 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
     </div>
 </div>
 
+<?php if ($employeeFilter): ?>
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="bi bi-person-check me-2"></i>
+        <div>
+            Đang hiển thị chấm công của <strong><?= htmlspecialchars($employeeFilter['HoTen'] ?? '') ?></strong>
+            (<?= htmlspecialchars($employeeFilter['IdNhanVien'] ?? '') ?>).
+            <a href="?controller=timekeeping&action=index" class="alert-link ms-2">Xóa bộ lọc</a>
+        </div>
+    </div>
+<?php endif; ?>
+
 <form method="get" class="card border-0 shadow-sm mb-4">
     <input type="hidden" name="controller" value="timekeeping">
     <input type="hidden" name="action" value="index">
+    <?php if ($employeeFilter): ?>
+        <input type="hidden" name="employee_id" value="<?= htmlspecialchars($employeeFilter['IdNhanVien'] ?? '') ?>">
+    <?php endif; ?>
     <div class="card-body">
         <div class="row g-3 align-items-end">
             <div class="col-md-4">

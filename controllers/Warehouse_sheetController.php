@@ -34,7 +34,7 @@ class Warehouse_sheetController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_NHANVIEN_KHO']);
+        $this->authorize(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG']);
         $this->sheetModel = new InventorySheet();
         $this->lotModel = new InventoryLot();
         $this->sheetDetailModel = new InventorySheetDetail();
@@ -1043,7 +1043,7 @@ class Warehouse_sheetController extends Controller
             return [];
         }
 
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $this->resolveAccessRole($user);
         if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
             $this->accessibleWarehouseIds = null;
             return $this->accessibleWarehouseIds;
@@ -1147,7 +1147,7 @@ class Warehouse_sheetController extends Controller
     private function resolveCreator(?string $requestedCreator): ?string
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
         $employeeId = $user['IdNhanVien'] ?? null;
 
         if ($role === 'VT_NHANVIEN_KHO' && $employeeId) {

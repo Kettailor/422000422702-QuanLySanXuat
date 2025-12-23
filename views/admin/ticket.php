@@ -9,7 +9,7 @@
           <th>Người gửi</th>
           <th>Trạng thái</th>
           <th>Yêu cầu</th>
-          <th>Action</th>
+          <th>Phản hồi</th>
         </tr>
       </thead>
       <tbody>
@@ -18,23 +18,36 @@
             <tr>
               <td><?php echo htmlspecialchars($ticket['date']); ?></td>
               <td><?php echo htmlspecialchars($ticket['user']); ?></td>
-              <td><?php echo htmlspecialchars($ticket['status']); ?></td>
-              <td class="text-wrap"><?php echo htmlspecialchars($ticket['request']); ?></td>
               <td>
-                <?php if ($ticket['status'] === 'open'): ?>
-                  <form method="post" action="?controller=admin&action=closeTicket" onsubmit="return confirm('Bạn có chắc chắn muốn đóng yêu cầu này không?');">
-                    <input type="hidden" name="ticket_id" value="<?php echo htmlspecialchars($ticket['id'] ?? ''); ?>">
-                    <button type="submit" class="btn btn-sm btn-primary">Đóng yêu cầu</button>
-                  </form>
-                <?php else: ?>
-                  <span class="text-muted">Đã đóng</span>
+                <div class="fw-semibold"><?php echo htmlspecialchars($ticket['status']); ?></div>
+                <?php if (!empty($ticket['role'])): ?>
+                  <div class="text-muted small"><?php echo htmlspecialchars($ticket['role']); ?></div>
                 <?php endif; ?>
+              </td>
+              <td class="text-wrap">
+                <div class="fw-semibold mb-1"><?php echo htmlspecialchars($ticket['request']); ?></div>
+                <?php if (!empty($ticket['response'])): ?>
+                  <div class="text-muted small">Phản hồi trước: <?php echo htmlspecialchars($ticket['response']); ?></div>
+                <?php endif; ?>
+              </td>
+              <td>
+                <form method="post" action="?controller=admin&action=closeTicket" class="d-flex flex-column gap-2">
+                  <input type="hidden" name="ticket_id" value="<?php echo htmlspecialchars($ticket['id'] ?? ''); ?>">
+                  <textarea name="response" class="form-control form-control-sm" rows="2" placeholder="Nhập phản hồi"><?php echo htmlspecialchars($ticket['response'] ?? ''); ?></textarea>
+                  <select name="status" class="form-select form-select-sm">
+                    <option value="open" <?php echo ($ticket['status'] ?? '') === 'open' ? 'selected' : ''; ?>>Đang mở</option>
+                    <option value="processing" <?php echo ($ticket['status'] ?? '') === 'processing' ? 'selected' : ''; ?>>Đang xử lý</option>
+                    <option value="answered" <?php echo ($ticket['status'] ?? '') === 'answered' ? 'selected' : ''; ?>>Đã phản hồi</option>
+                    <option value="close" <?php echo ($ticket['status'] ?? '') === 'close' ? 'selected' : ''; ?>>Đã đóng</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
+                </form>
               </td>
             </tr>
           <?php endforeach; ?>
         <?php else: ?>
           <tr>
-            <td colspan="4" class="text-center">Không có nhật ký kiểm tra nào được tìm thấy.</td>
+            <td colspan="5" class="text-center">Không có yêu cầu hỗ trợ nào được tìm thấy.</td>
           </tr>
         <?php endif; ?>
       </tbody>

@@ -10,7 +10,7 @@ class SalaryController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_KETOAN', 'VT_BAN_GIAM_DOC']);
+        $this->authorize(['VT_KETOAN', 'VT_BAN_GIAM_DOC', 'VT_KINH_DOANH']);
         $this->salaryModel = new Salary();
         $this->employeeModel = new Employee();
         $this->attendanceModel = new Attendance();
@@ -18,12 +18,23 @@ class SalaryController extends Controller
 
     private function canManagePayrolls(?string $role): bool
     {
-        return in_array($role, ['VT_KETOAN', 'VT_ADMIN'], true);
+        return in_array($role, ['VT_KETOAN'], true);
     }
 
     private function canApprovePayrolls(?string $role): bool
     {
-        return in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
+        return in_array($role, ['VT_BAN_GIAM_DOC'], true);
+    }
+
+    private function restrictToSelf(?string $employeeId): ?string
+    {
+        $user = $this->currentUser();
+        $role = $user['IdVaiTro'] ?? null;
+        if ($this->canManagePayrolls($role) || $this->canApprovePayrolls($role)) {
+            return $employeeId;
+        }
+
+        return $user['IdNhanVien'] ?? null;
     }
 
     private function requireManagePermission(): void
@@ -50,16 +61,20 @@ class SalaryController extends Controller
 
     public function index(): void
     {
-        $payrolls = $this->salaryModel->getPayrolls();
-        $summary = $this->salaryModel->getPayrollSummary();
-        $pending = $this->salaryModel->getPendingPayrolls();
+        $employeeId = $this->restrictToSelf($_GET['employee_id'] ?? null);
+        $payrolls = $this->salaryModel->getPayrolls(50, $employeeId);
+        $summary = $this->salaryModel->getPayrollSummary($employeeId);
+        $pending = $this->salaryModel->getPendingPayrolls(5, $employeeId);
         $user = $this->currentUser();
         $role = $user['IdVaiTro'] ?? null;
+        $employee = $employeeId ? $this->employeeModel->find($employeeId) : null;
+
         $this->render('salary/index', [
             'title' => 'Bảng lương',
             'payrolls' => $payrolls,
             'summary' => $summary,
             'pending' => $pending,
+            'employeeFilter' => $employee,
             'permissions' => [
                 'canManage' => $this->canManagePayrolls($role),
                 'canApprove' => $this->canApprovePayrolls($role),
@@ -71,6 +86,17 @@ class SalaryController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $payroll = $id ? $this->salaryModel->find($id) : null;
+        if (!$payroll) {
+            $this->setFlash('warning', 'Không tìm thấy bảng lương.');
+            $this->redirect('?controller=salary&action=index');
+            return;
+        }
+        $restrictedEmployeeId = $this->restrictToSelf($payroll[Salary::EMPLOYEE_COLUMN] ?? null);
+        if ($restrictedEmployeeId && ($payroll[Salary::EMPLOYEE_COLUMN] ?? null) !== $restrictedEmployeeId) {
+            $this->setFlash('danger', 'Bạn chỉ được xem bảng lương của bản thân.');
+            $this->redirect('?controller=salary&action=index');
+            return;
+        }
         if ($payroll && !isset($payroll['HoTen'])) {
             $employeeId = $payroll[Salary::EMPLOYEE_COLUMN] ?? null;
             if ($employeeId) {

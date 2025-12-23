@@ -16,6 +16,8 @@ if (file_exists($envFile)) {
     }
 }
 
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 session_start();
 
 // Load Composer's autoloader if it exists

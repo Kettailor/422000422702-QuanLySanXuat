@@ -84,6 +84,6 @@ return [
             'workshop' => 'workshop',
             'warehouse' => 'warehouse',
         ],
-        'warehouse_roles' => ['VT_NHANVIEN_KHO', 'VT_DOI_TAC_VAN_TAI'],
+        'warehouse_roles' => ['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG'],
     ],
 ];

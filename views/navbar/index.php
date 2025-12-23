@@ -3,73 +3,153 @@ $currentController = $_GET['controller'] ?? 'dashboard';
 $role = is_array($user) ? ($user['IdVaiTro'] ?? null) : null;
 $actualRole = is_array($user) ? ($user['ActualIdVaiTro'] ?? ($user['OriginalIdVaiTro'] ?? $role)) : null;
 $isImpersonating = is_array($user) && !empty($user['IsImpersonating']);
-$canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating): bool {
+$adminFlow = $_SESSION['admin_flow'] ?? 'main';
+$adminFullAccess = $actualRole === 'VT_ADMIN' && !$isImpersonating && $adminFlow === 'test';
+$canAccess = function (array $roles) use ($role, $actualRole, $adminFullAccess): bool {
     if (!$role) {
         return false;
     }
 
-    if ($actualRole === 'VT_ADMIN' && !$isImpersonating) {
+    if ($adminFullAccess || ($actualRole === 'VT_BAN_GIAM_DOC')) {
         return true;
     }
 
-    if ($actualRole === 'VT_ADMIN' && in_array('VT_ADMIN', $roles, true)) {
+    if (array_intersect(['VT_ADMIN', 'VT_BAN_GIAM_DOC'], $roles) && ($actualRole === 'VT_ADMIN' || $actualRole === 'VT_BAN_GIAM_DOC')) {
         return true;
     }
 
     return in_array($role, $roles, true);
 };
+
+$showOrders = $canAccess(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC']);
+$showPlan = $canAccess(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG']);
+$showWorkshopPlan = $canAccess(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT']);
+$showWorkshopPlanPersonal = in_array($role, ['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO'], true);
+$showWorkshop = $canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
+$showTimekeeping = $canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG']);
+$showSelfTimekeeping = $canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_KINH_DOANH']);
+$showQuality = $canAccess(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
+$showWarehouse = $canAccess(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_QUANLY_XUONG']);
+$showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG']);
+$showHumanResources = $canAccess(['VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG']);
+$showReports = $canAccess(['VT_BAN_GIAM_DOC']);
+$showBill = $canAccess(['VT_KETOAN']);
+$showSalary = $canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC', 'VT_KINH_DOANH']);
+$showNotifications = !empty($role);
+$showSupport = $actualRole !== 'VT_ADMIN';
+$showAdminTools = $actualRole === 'VT_ADMIN';
+$isAdminMain = $actualRole === 'VT_ADMIN' && !$adminFullAccess;
+$showOperationsSection = $isAdminMain ? false : ($showOrders || $showPlan || $showWorkshopPlan || $showWorkshop || $showTimekeeping || $showHumanResources || $showReports);
+$showQualitySection = $isAdminMain ? false : $showQuality;
+$showWarehouseSection = $isAdminMain ? false : ($showWarehouse || $showWarehouseSheet);
+$showFinanceSection = $isAdminMain ? false : ($showBill || $showSalary);
+
+if ($isAdminMain) {
+    $showOrders = false;
+    $showPlan = false;
+    $showWorkshopPlan = false;
+    $showWorkshop = false;
+    $showTimekeeping = false;
+    $showSelfTimekeeping = false;
+    $showWorkshopPlanPersonal = false;
+    $showQuality = false;
+    $showWarehouse = false;
+    $showWarehouseSheet = false;
+    $showHumanResources = false;
+    $showReports = false;
+    $showBill = false;
+    $showSalary = false;
+}
 ?>
 <nav class="sidebar">
     <div class="logo">
-        <span class="bi bi-grid-1x2-fill"></span>
-        <span>SV5TOT Keyboard Ops</span>
-    </div>
-    <div class="nav flex-column">
-        <a class="nav-link <?= $currentController === 'dashboard' ? 'active' : '' ?>" href="?controller=dashboard&action=index">
-            <i class="bi bi-speedometer2"></i> Dashboard
+        <a href="?controller=dashboard&action=index" class="logo-link" style="text-decoration: none; color: white; font-weight: 700;">
+            <span class="logo-mark">SV5TOT</span>
+            <span class="logo-subtitle">Production Hub</span>
         </a>
-        <?php if ($canAccess(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC'])): ?>
+    </div>
+    <div class="nav flex-column d-none d-lg-flex">
+        <div class="text-uppercase text-muted small px-3 mt-3">Cá nhân</div>
+        <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
+            <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
+        </a>
+        <?php if ($showSelfTimekeeping): ?>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'index' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=index">
+                <i class="bi bi-fingerprint"></i> Tự chấm công
+            </a>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'history' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=history">
+                <i class="bi bi-calendar2-check"></i> Lịch sử chấm công
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'self_salary' ? 'active' : '' ?>" href="?controller=self_salary&action=index">
+            <i class="bi bi-cash-coin"></i> Bảng lương cá nhân
+        </a>
+        <?php if ($showWorkshopPlanPersonal): ?>
+            <a class="nav-link <?= $currentController === 'workshop_plan_personal' ? 'active' : '' ?>" href="?controller=workshop_plan_personal&action=index">
+                <i class="bi bi-clipboard-check"></i> Kế hoạch được giao
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'setting' ? 'active' : '' ?>" href="?controller=setting&action=index">
+            <i class="bi bi-gear"></i> Cài đặt
+        </a>
+        <?php if ($showNotifications): ?>
+            <a class="nav-link <?= $currentController === 'notifications' ? 'active' : '' ?>" href="?controller=notifications&action=index">
+                <i class="bi bi-bell"></i> Thông báo
+            </a>
+        <?php endif; ?>
+        <?php if ($showSupport): ?>
+            <a class="nav-link <?= $currentController === 'support' ? 'active' : '' ?>" href="?controller=support&action=index">
+                <i class="bi bi-life-preserver"></i> Yêu cầu hỗ trợ
+            </a>
+        <?php endif; ?>
+
+        <?php if ($showOperationsSection): ?>
+            <div class="text-uppercase text-muted small px-3 mt-3">Vận hành</div>
+        <?php endif; ?>
+        <?php if ($showOrders): ?>
             <a class="nav-link <?= $currentController === 'order' ? 'active' : '' ?>" href="?controller=order&action=index">
                 <i class="bi bi-receipt"></i> Đơn hàng
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'])): ?>
+        <?php if ($showPlan): ?>
             <a class="nav-link <?= $currentController === 'plan' ? 'active' : '' ?>" href="?controller=plan&action=index">
                 <i class="bi bi-kanban"></i> Kế hoạch sản xuất
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT'])): ?>
+        <?php if ($showWorkshopPlan): ?>
             <a class="nav-link <?= $currentController === 'factory_plan' ? 'active' : '' ?>" href="?controller=factory_plan&action=index">
                 <i class="bi bi-building"></i> Kế hoạch xưởng
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC'])): ?>
+        <?php if ($showWorkshop): ?>
             <a class="nav-link <?= $currentController === 'workshop' ? 'active' : '' ?>" href="?controller=workshop&action=index">
                 <i class="bi bi-houses"></i> Quản lý xưởng
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC', 'VT_ADMIN'])): ?>
+        <?php if ($showTimekeeping): ?>
             <a class="nav-link <?= $currentController === 'timekeeping' ? 'active' : '' ?>" href="?controller=timekeeping&action=index">
                 <i class="bi bi-stopwatch"></i> Chấm công
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU'])): ?>
+        <?php if ($showHumanResources): ?>
             <a class="nav-link <?= $currentController === 'human_resources' ? 'active' : '' ?>" href="?controller=human_resources&action=index">
                 <i class="bi bi-people"></i> Nhân sự
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_BAN_GIAM_DOC'])): ?>
+        <?php if ($showReports): ?>
             <a class="nav-link <?= $currentController === 'report' ? 'active' : '' ?>" href="?controller=report&action=index">
-                <i class="bi bi-file-earmark-bar-graph"></i> Thống Kê Báo Cáo
+                <i class="bi bi-file-earmark-bar-graph"></i> Thống kê báo cáo
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC'])): ?>
+
+        <?php if ($showQualitySection): ?>
+        <div class="text-uppercase text-muted small px-3 mt-3">Chất lượng</div>
         <div class="nav-group">
-            <a class="nav-link <?= in_array($currentController, ['quality']) ? 'active' : '' ?>"
+            <a class="nav-link <?= in_array($currentController, ['quality', 'suddenly']) ? 'active' : '' ?>"
             data-bs-toggle="collapse"
             href="#submenu-quality"
             role="button"
-            aria-expanded="<?= in_array($currentController, ['quality']) ? 'true' : 'false' ?>"
+            aria-expanded="<?= in_array($currentController, ['quality', 'suddenly']) ? 'true' : 'false' ?>"
             aria-controls="submenu-quality">
             <i class="bi bi-shield-check me-2"></i> Chất lượng
             </a>
@@ -85,28 +165,39 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 </li>
                 </ul>
                 </div>
+        </div>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_NHANVIEN_KHO', 'VT_QUANLY_XUONG'])): ?>
+
+        <?php if ($showWarehouseSection): ?>
+            <div class="text-uppercase text-muted small px-3 mt-3">Kho & vật tư</div>
+        <?php endif; ?>
+        <?php if ($showWarehouse): ?>
             <a class="nav-link <?= $currentController === 'warehouse' ? 'active' : '' ?>" href="?controller=warehouse&action=index">
                 <i class="bi bi-boxes"></i> Kho hàng
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_NHANVIEN_KHO'])): ?>
+        <?php if ($showWarehouseSheet): ?>
             <a class="nav-link <?= $currentController === 'warehouse_sheet' ? 'active' : '' ?>" href="?controller=warehouse_sheet&action=index">
                 <i class="bi bi-journal-text"></i> Phiếu kho
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_KETOAN', 'VT_KINH_DOANH'])): ?>
+
+        <?php if ($showFinanceSection): ?>
+            <div class="text-uppercase text-muted small px-3 mt-3">Tài chính</div>
+        <?php endif; ?>
+        <?php if ($showBill): ?>
             <a class="nav-link <?= $currentController === 'bill' ? 'active' : '' ?>" href="?controller=bill&action=index">
                 <i class="bi bi-file-earmark-text"></i> Hóa đơn
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC'])): ?>
+        <?php if ($showSalary): ?>
             <a class="nav-link <?= $currentController === 'salary' ? 'active' : '' ?>" href="?controller=salary&action=index">
                 <i class="bi bi-cash-stack"></i> Bảng lương
             </a>
         <?php endif; ?>
-        <?php if ($actualRole === 'VT_ADMIN'): ?>
+
+        <?php if ($showAdminTools): ?>
+            <div class="text-uppercase text-muted small px-3 mt-3">Quản trị</div>
             <a class="nav-link <?= $currentController === 'adminImpersonation' ? 'active' : '' ?>" href="?controller=adminImpersonation&action=index">
                 <i class="bi bi-person-badge"></i> Giả lập vai trò
             </a>
@@ -119,8 +210,59 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             <a class="nav-link" href="?controller=admin&action=ticket">
                 <i class="bi bi-ticket-detailed"></i> Yêu cầu hỗ trợ
             </a>
-            <a class="nav-link" href="?controller=setting&action=index">
-                <i class="bi bi-gear"></i> Cài đặt
+        <?php endif; ?>
+    </div>
+    <div class="nav flex-column d-lg-none">
+        <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
+            <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
+        </a>
+        <?php if ($showSelfTimekeeping): ?>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'index' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=index">
+                <i class="bi bi-fingerprint"></i> Tự chấm công
+            </a>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'history' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=history">
+                <i class="bi bi-calendar2-check"></i> Lịch sử chấm công
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'self_salary' ? 'active' : '' ?>" href="?controller=self_salary&action=index">
+            <i class="bi bi-cash-coin"></i> Bảng lương cá nhân
+        </a>
+        <?php if ($showWorkshopPlanPersonal): ?>
+            <a class="nav-link <?= $currentController === 'workshop_plan_personal' ? 'active' : '' ?>" href="?controller=workshop_plan_personal&action=index">
+                <i class="bi bi-clipboard-check"></i> Kế hoạch được giao
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'setting' ? 'active' : '' ?>" href="?controller=setting&action=index">
+            <i class="bi bi-gear"></i> Cài đặt
+        </a>
+        <?php if ($showSupport): ?>
+            <a class="nav-link <?= $currentController === 'support' ? 'active' : '' ?>" href="?controller=support&action=index">
+                <i class="bi bi-life-preserver"></i> Yêu cầu hỗ trợ
+            </a>
+        <?php endif; ?>
+        <?php if ($showOrders): ?>
+            <a class="nav-link <?= $currentController === 'order' ? 'active' : '' ?>" href="?controller=order&action=index">
+                <i class="bi bi-receipt"></i> Đơn hàng
+            </a>
+        <?php endif; ?>
+        <?php if ($showPlan): ?>
+            <a class="nav-link <?= $currentController === 'plan' ? 'active' : '' ?>" href="?controller=plan&action=index">
+                <i class="bi bi-kanban"></i> Kế hoạch sản xuất
+            </a>
+        <?php endif; ?>
+        <?php if ($showWorkshopPlan): ?>
+            <a class="nav-link <?= $currentController === 'factory_plan' ? 'active' : '' ?>" href="?controller=factory_plan&action=index">
+                <i class="bi bi-building"></i> Kế hoạch xưởng
+            </a>
+        <?php endif; ?>
+        <?php if ($showSalary): ?>
+            <a class="nav-link <?= $currentController === 'salary' ? 'active' : '' ?>" href="?controller=salary&action=index">
+                <i class="bi bi-cash-stack"></i> Bảng lương
+            </a>
+        <?php endif; ?>
+        <?php if ($showNotifications): ?>
+            <a class="nav-link <?= $currentController === 'notifications' ? 'active' : '' ?>" href="?controller=notifications&action=index">
+                <i class="bi bi-bell"></i> Thông báo
             </a>
         <?php endif; ?>
     </div>
@@ -131,7 +273,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
     <header class="topbar">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-outline-primary d-lg-none" data-toggle="sidebar"><i class="bi bi-list"></i></button>
-            <div class="fw-semibold text-secondary">SV5TOT Keyboard Manufacturing Hub</div>
+            <a href="?controller=dashboard&action=index" class="topbar-brand" style="text-decoration: none; color: var(--text-dark); font-weight: 700;">SV5TOT</a>
         </div>
         <div class="d-flex align-items-center gap-3">
             <?php if ($isImpersonating): ?>
@@ -142,9 +284,6 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
             <?php elseif ($actualRole === 'VT_ADMIN'): ?>
                 <a href="?controller=adminImpersonation&action=index" class="btn btn-outline-secondary btn-sm">Giả lập vai trò</a>
             <?php endif; ?>
-            <div class="search-bar d-none d-md-block">
-                <input type="search" class="form-control" placeholder="Tìm nhanh đơn hàng, kế hoạch SV5TOT...">
-            </div>
             <div class="dropdown notification-dropdown">
                 <button class="btn btn-light border position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Xem thông báo">
                     <i class="bi <?= $unreadNotifications > 0 ? 'bi-bell-fill text-primary' : 'bi-bell' ?> fs-5"></i>
@@ -167,22 +306,28 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                                 } ?>
                                 <?php
                                     $title = $notification['title'] ?? 'Thông báo hệ thống';
-                                $message = $notification['message'] ?? null;
-                                $time = $notification['time'] ?? null;
-                                $link = $notification['link'] ?? null;
-                                $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
+                                    $message = $notification['message'] ?? null;
+                                    $time = $notification['created_at'] ?? ($notification['time'] ?? null);
+                                    $link = $notification['link'] ?? null;
+                                    $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
                                 ?>
                                 <div class="notification-item px-3 py-2 <?= $isRead ? '' : 'notification-unread' ?>">
                                     <div class="d-flex justify-content-between align-items-start gap-2">
                                         <span class="fw-semibold text-truncate flex-grow-1"><?= htmlspecialchars($title) ?></span>
                                         <?php if ($time): ?>
-                                            <small class="text-muted flex-shrink-0"><?= htmlspecialchars($time) ?></small>
+                                            <small class="text-muted flex-shrink-0"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($time))) ?></small>
                                         <?php endif; ?>
                                     </div>
                                     <?php if ($message): ?>
                                         <div class="text-muted small mt-1"><?= htmlspecialchars($message) ?></div>
                                     <?php endif; ?>
-                                    <?php if ($link): ?>
+                                    <?php if (!empty($notification['id'])): ?>
+                                        <?php
+                                        $redirect = $link ?: '?controller=notifications&action=index';
+                                        $readLink = '?controller=notifications&action=read&id=' . urlencode($notification['id']) . '&redirect=' . urlencode($redirect);
+                                        ?>
+                                        <a href="<?= htmlspecialchars($readLink) ?>" class="stretched-link"></a>
+                                    <?php elseif ($link): ?>
                                         <a href="<?= htmlspecialchars($link) ?>" class="stretched-link"></a>
                                     <?php endif; ?>
                                 </div>

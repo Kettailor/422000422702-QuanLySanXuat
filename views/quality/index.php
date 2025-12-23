@@ -276,8 +276,8 @@ if (session_status() === PHP_SESSION_NONE) {
       <table class="table table-hover align-middle text-nowrap">
         <thead class="table">
           <tr>
-            <th class="text-center">Mã Lô</th>
-            <th class="text-center">Sản phẩm</th>
+            <th class="text-center">Mã lô</th>
+            <th class="text-center">Tên lô</th>
             <th class="text-center">Số lượng</th>
             <th class="text-center">Ngày tạo</th>
             <th class="text-center">Xưởng</th>
@@ -301,9 +301,11 @@ if (session_status() === PHP_SESSION_NONE) {
                 $checked = '0';
               }
               ?>
-              <tr data-status="<?= $status ?>" data-checked="<?= $checked ?>">
+              <tr data-idlo="<?= htmlspecialchars($lo['IdLo']) ?>"
+                data-status="<?= $status ?>"
+                data-checked="<?= $checked ?>">
                 <td class="fw-semibold"><?= htmlspecialchars($lo['IdLo']) ?></td>
-                <td><?= htmlspecialchars($lo['TenSanPham'] ?? '-') ?></td>
+                <td><?= htmlspecialchars($lo['TenLo'] ?? '-') ?></td>
                 <td><?= htmlspecialchars($lo['SoLuong'] ?? 0) ?></td>
                 <td><?= $lo['NgayTao'] ? date('d/m/Y', strtotime($lo['NgayTao'])) : '-' ?></td>
                 <td><?= htmlspecialchars($lo['TenXuong'] ?? '-') ?></td>
@@ -318,22 +320,22 @@ if (session_status() === PHP_SESSION_NONE) {
                 </td>
                 <td>
                   <div class="d-flex justify-content-end gap-2">
-                    <?php if ($ketqua === '' || $ketqua === null): ?>
+
+                    <?php if (empty($lo['KetQua'])): ?>
+                      <!-- LÔ CHƯA ĐÁNH GIÁ -->
                       <a href="?controller=quality&action=create&IdLo=<?= urlencode($lo['IdLo']) ?>"
-                        class="btn-action btn-create">Đánh giá</a>
-                    <?php endif; ?>
+                        class="btn-action btn-create">
+                        Đánh giá
+                      </a>
 
-                    <a href="?controller=quality&action=read&id=<?= urlencode($lo['IdLo']) ?>"
-                      class="btn-action btn-detail">Chi tiết</a>
-
-                    <?php if (!empty($lo['IdBienBanDanhGiaSP'])): ?>
-                      <a href="?controller=quality&action=delete&id=<?= urlencode($lo['IdBienBanDanhGiaSP']) ?>&IdLo=<?= urlencode($lo['IdLo']) ?>"
-                        class="btn-action btn-delete btn-delete-trigger"
-                        data-id="<?= htmlspecialchars($lo['IdBienBanDanhGiaSP']) ?>"
-                        data-lo="<?= htmlspecialchars($lo['IdLo']) ?>">
-                        Xóa
+                    <?php else: ?>
+                      <!-- LÔ ĐÃ ĐÁNH GIÁ -->
+                      <a href="?controller=quality&action=read&id=<?= urlencode($lo['IdLo']) ?>"
+                        class="btn-action btn-detail">
+                        Chi tiết
                       </a>
                     <?php endif; ?>
+
                   </div>
                 </td>
               </tr>
@@ -367,6 +369,23 @@ if (session_status() === PHP_SESSION_NONE) {
     </div>
   </div>
 </div>
+<script>
+  const STORAGE_KEY = 'hidden_los';
+
+  function getHiddenLos() {
+    return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
+  }
+
+  (function applyHiddenRows() {
+    const hidden = getHiddenLos();
+    document.querySelectorAll('#lotTable tr[data-idlo]').forEach(row => {
+      const idLo = row.dataset.idlo;
+      if (hidden.includes(idLo)) {
+        row.remove(); // ✅ quan trọng: không dùng display:none
+      }
+    });
+  })();
+</script>
 
 <script>
   // Filter
@@ -416,6 +435,8 @@ if (session_status() === PHP_SESSION_NONE) {
       row.style.display = passFilter && match ? '' : 'none';
     });
   });
+  recalcDashboard();
+
 
   // Modal xác nhận XÓA
   document.querySelectorAll('.btn-delete-trigger').forEach(btn => {
@@ -447,4 +468,52 @@ if (session_status() === PHP_SESSION_NONE) {
       modal.show();
     });
   });
+</script>
+
+<?php if (!empty($_GET['msg'])): ?>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: '<?= ($_GET['type'] ?? 'success') === 'danger' ? 'error' : (($_GET['type'] ?? 'success') === 'warning' ? 'warning' : 'success') ?>',
+        title: '<?= addslashes(strip_tags($_GET['msg'])) ?>',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    });
+  </script>
+<?php endif; ?>
+<script>
+  function recalcDashboard() {
+    const rows = document.querySelectorAll('#lotTable tr[data-status]');
+    let total = 0,
+      passed = 0,
+      failed = 0,
+      unchecked = 0;
+
+    rows.forEach(row => {
+      if (row.offsetParent === null) return; // bị ẩn → không tính
+
+      total++;
+
+      const status = row.dataset.status;
+      const checked = row.dataset.checked;
+
+      if (status === 'passed') passed++;
+      else if (status === 'failed') failed++;
+      else if (status === 'unchecked') unchecked++;
+    });
+
+    // Update card
+    document.querySelector('.card-total h3').textContent = total;
+    document.querySelector('.card-passed h3').textContent = passed;
+    document.querySelector('.card-failed h3').textContent = failed;
+
+    document.querySelector('.card-total small').innerHTML =
+      `Lô đã kiểm tra: <strong>${passed + failed}</strong> &nbsp;|&nbsp; Lô chưa kiểm tra: <strong>${unchecked}</strong>`;
+  }
+  document.addEventListener('DOMContentLoaded', recalcDashboard);
 </script>

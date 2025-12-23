@@ -32,9 +32,9 @@ class Order extends BaseModel
     {
         $sql = 'SELECT COUNT(*) AS total_orders,
                        SUM(TongTien) AS total_revenue,
-                       SUM(CASE WHEN TrangThai = "Hoàn thành" THEN 1 ELSE 0 END) AS completed_orders,
+                       SUM(CASE WHEN TrangThai IN ("Hoàn thành", "Đã hoàn thành") THEN 1 ELSE 0 END) AS completed_orders,
                        SUM(CASE WHEN TrangThai = "Đang xử lý" THEN 1 ELSE 0 END) AS processing_orders,
-                       SUM(CASE WHEN TrangThai = "Chờ duyệt" THEN 1 ELSE 0 END) AS pending_orders
+                       SUM(CASE WHEN TrangThai = "Chưa có kế hoạch" THEN 1 ELSE 0 END) AS pending_orders
                 FROM don_hang';
 
         $stats = $this->db->query($sql)->fetch();

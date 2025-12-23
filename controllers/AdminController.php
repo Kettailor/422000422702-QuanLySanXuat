@@ -4,7 +4,7 @@ class AdminController extends Controller
 {
     public function __construct()
     {
-        $this->authorize(['VT_ADMIN']);
+        $this->authorize(['VT_ADMIN', 'VT_BAN_GIAM_DOC']);
     }
 
     public function ticket(): void
@@ -24,10 +24,12 @@ class AdminController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ticketId = $_POST['ticket_id'] ?? null;
+            $response = trim($_POST['response'] ?? '');
+            $status = trim($_POST['status'] ?? 'close');
 
             if ($ticketId) {
-                Ticket::closeTicket($ticketId);
-                $this->setFlash('success', 'Đóng yêu cầu thành công.');
+                Ticket::closeTicket($ticketId, $response !== '' ? $response : null, $status);
+                $this->setFlash('success', 'Cập nhật yêu cầu thành công.');
             }
         }
         $this->redirect('?controller=admin&action=ticket');

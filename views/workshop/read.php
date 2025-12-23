@@ -154,7 +154,7 @@
                     <div>
                         <div class="badge bg-secondary-subtle text-secondary mb-2">Nhân sự xưởng</div>
                         <h5 class="fw-bold mb-1">Danh sách nhân sự thuộc xưởng</h5>
-                        <p class="text-muted small mb-0">Xưởng trưởng được xem danh sách nhân sự, không được phân công.</p>
+                        <p class="text-muted small mb-0">Quản lý xưởng có thể xem và cập nhật phân công nhân sự trong phạm vi xưởng phụ trách.</p>
                     </div>
                     <?php
                     $warehouseCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Kho'));

@@ -52,4 +52,29 @@ class Employee extends BaseModel
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public function getEmployeesByRoleIds(array $roleIds, ?string $status = null): array
+    {
+        $roleIds = array_values(array_filter(array_map('trim', $roleIds), static fn($id) => $id !== ''));
+        if (empty($roleIds)) {
+            return [];
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($roleIds), '?'));
+        $sql = 'SELECT * FROM nhan_vien WHERE IdVaiTro IN (' . $placeholders . ')';
+        if ($status !== null && $status !== '') {
+            $sql .= ' AND TrangThai = ?';
+        }
+        $sql .= ' ORDER BY HoTen';
+        $stmt = $this->db->prepare($sql);
+        foreach ($roleIds as $index => $roleId) {
+            $stmt->bindValue($index + 1, $roleId);
+        }
+        if ($status !== null && $status !== '') {
+            $stmt->bindValue(count($roleIds) + 1, $status);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
 }

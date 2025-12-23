@@ -9,25 +9,26 @@ class QualityReport extends BaseModel
     public function getLatestReports(int $limit = 10): array
     {
         $sql = 'SELECT 
-                    bb.IdBienBanDanhGiaSP,
-                    bb.KetQua,
-                    bb.ThoiGian,
-                    lo.IdLo,
-                    lo.SoLuong,
-                    sp.TenSanPham,
-                    x.TenXuong
-                FROM bien_ban_danh_gia_thanh_pham bb
-                JOIN lo ON lo.IdLo = bb.IdLo
-                LEFT JOIN san_pham sp ON sp.IdSanPham = lo.IdSanPham
-                LEFT JOIN kho k ON k.IdKho = lo.IdKho
-                LEFT JOIN xuong x ON x.IdXuong = k.IdXuong
-                ORDER BY bb.ThoiGian DESC
-                LIMIT :limit';
+                bb.IdBienBanDanhGiaSP,
+                bb.KetQua,
+                bb.ThoiGian,
+                lo.IdLo,
+                lo.TenLo,
+                lo.SoLuong,
+                x.TenXuong
+            FROM bien_ban_danh_gia_thanh_pham bb
+            JOIN lo ON lo.IdLo = bb.IdLo
+            LEFT JOIN kho k ON k.IdKho = lo.IdKho
+            LEFT JOIN xuong x ON x.IdXuong = k.IdXuong
+            ORDER BY bb.ThoiGian DESC
+            LIMIT :limit';
+
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
     /** Lấy thống kê tổng quan */
     public function getQualitySummary(): array
@@ -43,49 +44,66 @@ class QualityReport extends BaseModel
     /** Danh sách lô kèm biên bản mới nhất (nếu có) */
     public function getDanhSachLo(): array
     {
-        $sql = 'SELECT 
-                    lo.IdLo,
-                    lo.TenLo,
-                    lo.SoLuong,
-                    lo.NgayTao,
-                    sp.TenSanPham,
-                    x.TenXuong,
-                    bb.IdBienBanDanhGiaSP,
-                    bbdg.KetQua
-                FROM lo
-                LEFT JOIN san_pham sp ON sp.IdSanPham = lo.IdSanPham
-                LEFT JOIN kho k ON k.IdKho = lo.IdKho
-                LEFT JOIN xuong x ON x.IdXuong = k.IdXuong
-                LEFT JOIN (
-                    SELECT IdLo, MAX(IdBienBanDanhGiaSP) AS IdBienBanDanhGiaSP
-                    FROM bien_ban_danh_gia_thanh_pham
-                    GROUP BY IdLo
-                ) bb ON bb.IdLo = lo.IdLo
-                LEFT JOIN bien_ban_danh_gia_thanh_pham bbdg ON bbdg.IdBienBanDanhGiaSP = bb.IdBienBanDanhGiaSP
-                ORDER BY lo.NgayTao DESC';
+        $sql = "
+        SELECT
+            lo.IdLo,
+            lo.TenLo,
+            lo.SoLuong,
+            lo.NgayTao,
+            x.TenXuong,
+
+            bb.IdBienBanDanhGiaSP,
+            bb.KetQua
+
+        FROM lo
+
+        LEFT JOIN kho k 
+            ON k.IdKho = lo.IdKho
+
+        LEFT JOIN xuong x 
+            ON x.IdXuong = k.IdXuong
+
+        /* LẤY BIÊN BẢN MỚI NHẤT THEO THỜI GIAN */
+        LEFT JOIN (
+            SELECT b1.*
+            FROM bien_ban_danh_gia_thanh_pham b1
+            INNER JOIN (
+                SELECT IdLo, MAX(ThoiGian) AS MaxTime
+                FROM bien_ban_danh_gia_thanh_pham
+                GROUP BY IdLo
+            ) b2
+            ON b1.IdLo = b2.IdLo 
+           AND b1.ThoiGian = b2.MaxTime
+        ) bb 
+            ON bb.IdLo = lo.IdLo
+
+        ORDER BY lo.NgayTao DESC
+    ";
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
     /** Lấy thông tin chi tiết 1 lô */
     public function getLoInfo(string $idLo): ?array
     {
         $sql = 'SELECT 
-                    lo.IdLo,
-                    lo.TenLo,
-                    sp.TenSanPham,
-                    x.TenXuong
-                FROM lo
-                LEFT JOIN san_pham sp ON sp.IdSanPham = lo.IdSanPham
-                LEFT JOIN kho k ON k.IdKho = lo.IdKho
-                LEFT JOIN xuong x ON x.IdXuong = k.IdXuong
-                WHERE lo.IdLo = :idLo
-                LIMIT 1';
+                lo.IdLo,
+                lo.TenLo,
+                x.TenXuong
+            FROM lo
+            LEFT JOIN kho k ON k.IdKho = lo.IdKho
+            LEFT JOIN xuong x ON x.IdXuong = k.IdXuong
+            WHERE lo.IdLo = :idLo
+            LIMIT 1';
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':idLo' => $idLo]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
+
 
     /** Tạo biên bản cha */
     public function create(array $data): bool

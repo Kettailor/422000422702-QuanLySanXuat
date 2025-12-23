@@ -221,10 +221,11 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Sản phẩm</label>
-                    <input type="text" class="form-control" name="TenSanPham"
-                        value="<?= htmlspecialchars($loInfo['TenSanPham'] ?? '') ?>" readonly>
+                    <label class="form-label">Tên lô</label>
+                    <input type="text" class="form-control"
+                        value="<?= htmlspecialchars($loInfo['TenLo'] ?? '') ?>" readonly>
                 </div>
+
             </div>
         </div>
 
@@ -430,10 +431,6 @@
     fileInput.addEventListener("change", () => {
 
         Array.from(fileInput.files).forEach(f => fileStore.push(f));
-
-        // Reset input → cho phép chọn tiếp
-        fileInput.value = "";
-
         renderPreview();
     });
 
@@ -498,35 +495,30 @@
             return;
         }
 
-        // Tạo FormData mới
-        const form = e.target;
-        const formData = new FormData(form);
+        document.querySelector("form").addEventListener("submit", e => {
 
-        // Thêm toàn bộ file đã chọn vào formData
-        fileStore.forEach(file => {
-            formData.append("FileMinhChung[]", file);
+            // Kiểm tra điểm
+            for (let inp of document.querySelectorAll(".diem-dat")) {
+                const val = Number(inp.value);
+                if (inp.value.trim() === "" || isNaN(val) || val < 1 || val > 10) {
+                    e.preventDefault();
+                    showMessage("⚠️ Yêu cầu nhập điểm cho tiêu chí.", "danger");
+                    inp.focus();
+                    return;
+                }
+            }
+
+            // Kiểm tra ảnh
+            if (fileStore.length === 0) {
+                e.preventDefault();
+                showMessage("⚠️ Yêu cầu tải lên ít nhất một hình ảnh minh chứng.", "warning");
+                return;
+            }
+
+            // ✅ KHÔNG preventDefault → để form submit bình thường
+            // PHP sẽ xử lý + redirect
         });
 
-        // Submit bằng fetch POST
-        fetch(form.action, {
-                method: "POST",
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-
-                    // Redirect về INDEX và hiện thông báo
-                    window.location.href = "?controller=quality&action=index&msg=" +
-                        encodeURIComponent("Biên bản đã được tạo thành công!") +
-                        "&type=success";
-                } else {
-                    showMessage("Không thể tạo biên bản!", "danger");
-                }
-            })
-            .catch(err => {
-                showMessage("Lỗi kết nối server!", "danger");
-            });
 
 
     });

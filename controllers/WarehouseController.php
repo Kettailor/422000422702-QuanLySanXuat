@@ -16,7 +16,7 @@ class WarehouseController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_NHANVIEN_KHO', 'VT_QUANLY_XUONG']);
+        $this->authorize(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_QUANLY_XUONG']);
         $this->warehouseModel = new Warehouse();
         $this->lotModel = new InventoryLot();
         $this->sheetModel = new InventorySheet();
@@ -510,7 +510,7 @@ class WarehouseController extends Controller
             return [];
         }
 
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $this->resolveAccessRole($user);
         if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
             $this->visibleWarehouseIds = null;
             return $this->visibleWarehouseIds;
@@ -540,7 +540,7 @@ class WarehouseController extends Controller
     private function isWarehouseStaffRestricted(): bool
     {
         $user = $this->currentUser();
-        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        $role = $user ? $this->resolveAccessRole($user) : null;
 
         return $role === 'VT_NHANVIEN_KHO';
     }
