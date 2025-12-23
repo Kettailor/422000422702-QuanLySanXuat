@@ -57,11 +57,15 @@ class DashboardController extends Controller
     {
         $currentUser = $this->currentUser();
         $employeeId = $currentUser['IdNhanVien'] ?? null;
+        $role = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
 
         $workShiftModel = new WorkShift();
         $timekeepingModel = new Timekeeping();
         $planAssignmentModel = new WorkshopPlanAssignment();
         $workshopPlanModel = new WorkshopPlan();
+        $productionPlanModel = new ProductionPlan();
+        $orderModel = new Order();
+        $qualityModel = new QualityReport();
 
         $now = date('Y-m-d H:i:s');
         $shift = $workShiftModel->findShiftForTimestamp($now);
@@ -69,16 +73,40 @@ class DashboardController extends Controller
         $openRecord = $employeeId ? $timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
         $geofence = $this->getGeofenceConfig();
 
-        $planIds = $employeeId ? $planAssignmentModel->getPlanIdsByEmployee($employeeId) : [];
-        $plans = $workshopPlanModel->getDetailedPlans(50);
-        if ($planIds) {
-            $allowed = array_fill_keys($planIds, true);
-            $plans = array_values(array_filter($plans, static function (array $plan) use ($allowed): bool {
-                $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
-                return $planId !== null && isset($allowed[$planId]);
-            }));
-        } else {
-            $plans = [];
+        $productionPlans = [];
+        if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG'], true)) {
+            $productionPlans = $productionPlanModel->getPlansWithOrders(6);
+        }
+
+        $workshopPlans = [];
+        if (in_array($role, ['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT'], true)) {
+            $planIds = $employeeId ? $planAssignmentModel->getPlanIdsByEmployee($employeeId) : [];
+            $workshopPlans = $workshopPlanModel->getDetailedPlans(50);
+            if ($planIds) {
+                $allowed = array_fill_keys($planIds, true);
+                $workshopPlans = array_values(array_filter($workshopPlans, static function (array $plan) use ($allowed): bool {
+                    $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
+                    return $planId !== null && isset($allowed[$planId]);
+                }));
+            } else {
+                $workshopPlans = [];
+            }
+        } elseif (in_array($role, ['VT_KHO_TRUONG', 'VT_NHANVIEN_KHO', 'VT_BAN_GIAM_DOC'], true)) {
+            $workshopPlans = $workshopPlanModel->getDetailedPlans(10);
+        }
+
+        $orders = [];
+        if ($role === 'VT_KINH_DOANH') {
+            $orders = $orderModel->getOrdersWithCustomer(6);
+        }
+
+        $qualityLots = [];
+        if ($role === 'VT_KIEM_SOAT_CL') {
+            $qualityLots = array_values(array_filter(
+                $qualityModel->getDanhSachLo(),
+                static fn (array $row): bool => empty($row['IdBienBanDanhGiaSP'])
+            ));
+            $qualityLots = array_slice($qualityLots, 0, 6);
         }
 
         $notifications = $this->loadNotifications($employeeId);
@@ -86,13 +114,72 @@ class DashboardController extends Controller
         $this->render('dashboard/mobile', [
             'title' => 'Bảng điều khiển di động',
             'currentUser' => $currentUser,
+            'role' => $role,
             'now' => $now,
             'shift' => $shift,
             'openRecord' => $openRecord,
             'geofence' => $geofence,
-            'plans' => $plans,
-            'notifications' => $notifications,
+            'productionPlans' => $productionPlans,
+            'workshopPlans' => $workshopPlans,
+            'orders' => $orders,
+            'qualityLots' => $qualityLots,
+            'notifications' => $notifications['all'],
+            'importantNotifications' => $notifications['important'],
         ]);
+    }
+
+    public function sendNotification(): void
+    {
+        $user = $this->currentUser();
+        if (!$user) {
+            $this->setFlash('danger', 'Vui lòng đăng nhập để tiếp tục.');
+            $this->redirect('?controller=auth&action=login');
+            return;
+        }
+
+        $role = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        if ($role !== 'VT_BAN_GIAM_DOC') {
+            $this->setFlash('danger', 'Bạn không có quyền gửi thông báo.');
+            $this->redirect('?controller=dashboard&action=index');
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=dashboard&action=index');
+            return;
+        }
+
+        $title = trim($_POST['title'] ?? '');
+        $message = trim($_POST['message'] ?? '');
+        $priority = trim($_POST['priority'] ?? 'normal');
+
+        if ($title === '' && $message === '') {
+            $this->setFlash('danger', 'Vui lòng nhập tiêu đề hoặc nội dung thông báo.');
+            $this->redirect('?controller=dashboard&action=index');
+            return;
+        }
+
+        $metadata = [];
+        if ($priority !== '' && $priority !== 'normal') {
+            $metadata['priority'] = $priority;
+            $metadata['important'] = in_array($priority, ['high', 'important', 'urgent'], true);
+        }
+
+        try {
+            $store = new NotificationStore();
+            $store->push([
+                'title' => $title !== '' ? $title : 'Thông báo từ Ban giám đốc',
+                'message' => $message !== '' ? $message : null,
+                'sender' => $user['HoTen'] ?? 'Ban giám đốc',
+                'metadata' => $metadata,
+            ]);
+            $this->setFlash('success', 'Đã gửi thông báo đến toàn bộ nhân viên.');
+        } catch (Throwable $exception) {
+            Logger::error('Không thể gửi thông báo: ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể gửi thông báo. Vui lòng thử lại.');
+        }
+
+        $this->redirect('?controller=dashboard&action=index');
     }
 
     private function isMobileRequest(): bool
@@ -148,6 +235,21 @@ class DashboardController extends Controller
             return $bTime <=> $aTime;
         });
 
-        return $filtered;
+        $important = array_values(array_filter($filtered, static function ($entry): bool {
+            if (!is_array($entry)) {
+                return false;
+            }
+            $metadata = $entry['metadata'] ?? [];
+            $priority = $metadata['priority'] ?? $metadata['level'] ?? null;
+            if (is_string($priority) && in_array(strtolower($priority), ['high', 'important', 'urgent'], true)) {
+                return true;
+            }
+            return !empty($metadata['important']);
+        }));
+
+        return [
+            'all' => $filtered,
+            'important' => $important,
+        ];
     }
 }
