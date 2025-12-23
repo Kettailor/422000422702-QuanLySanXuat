@@ -81,8 +81,8 @@ $resolveNotificationScope = static function (array $notification): array {
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <div class="text-muted small">Xin chào</div>
-        <h3 class="fw-bold mb-1"><?= htmlspecialchars($currentUser['HoTen'] ?? 'Nhân viên') ?></h3>
+        <div class="text-muted small">Xin chào, <span class="fw-semibold"><?= htmlspecialchars($currentUser['HoTen'] ?? 'Nhân viên') ?></span></div>
+        <h3 class="fw-bold mb-1">Bảng tổng quan hôm nay</h3>
         <div class="text-muted small">Vai trò: <?= htmlspecialchars($roleLabel) ?></div>
     </div>
     <div class="d-flex align-items-center gap-2">

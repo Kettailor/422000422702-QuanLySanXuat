@@ -67,6 +67,25 @@ class Self_timekeepingController extends Controller
         ]);
     }
 
+    public function history(): void
+    {
+        $user = $this->currentUser();
+        $employeeId = $user['IdNhanVien'] ?? null;
+
+        if (!$employeeId) {
+            $this->setFlash('danger', 'Không xác định được nhân sự.');
+            $this->redirect('?controller=self_timekeeping&action=index');
+            return;
+        }
+
+        $records = $this->timekeepingModel->getRecentRecords(200, null, null, null, null, $employeeId);
+
+        $this->render('self_timekeeping/history', [
+            'title' => 'Lịch sử chấm công',
+            'records' => $records,
+        ]);
+    }
+
     public function store(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
