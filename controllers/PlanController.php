@@ -316,6 +316,8 @@ class PlanController extends Controller
     private function buildConfigurationDetails(array $orderDetail): array
     {
         $mapping = [
+            'Keycap' => 'Keycap',
+            'Mainboard' => 'Mainboard',
             'Layout' => 'Layout',
             'SwitchType' => 'Switch',
             'CaseType' => 'Case',
@@ -346,6 +348,7 @@ class PlanController extends Controller
             return $assignments;
         }
 
+        $assignmentKeys = ['Keycap', 'Mainboard', 'SwitchType', 'CaseType', 'Foam'];
         $normalizer = static function (string $value): string {
             return function_exists('mb_strtolower') ? mb_strtolower($value) : strtolower($value);
         };
@@ -355,6 +358,10 @@ class PlanController extends Controller
         }, $assignments);
 
         foreach ($configurationDetails as $detail) {
+            if (!in_array($detail['key'] ?? '', $assignmentKeys, true)) {
+                continue;
+            }
+
             $displayLabel = sprintf('%s: %s', $detail['label'], $detail['value']);
             if (in_array($normalizer($displayLabel), $existingLabels, true)) {
                 continue;
