@@ -332,41 +332,11 @@ foreach ($configurationDetails as $detail) {
                 if (!row) return;
                 const select = row.querySelector('select[name^="component_assignments"]');
                 if (!select) return;
-                const allowedTypes = JSON.parse(row.getAttribute('data-allowed-types') || '[]');
                 const options = Array.from(select.querySelectorAll('option'));
-                const allowedSet = new Set(allowedTypes.map((type) => type.toLowerCase()));
-                let hasAllowed = false;
-
                 options.forEach((option) => {
-                    const optionType = (option.getAttribute('data-workshop-type') || '').toLowerCase();
-                    if (!option.value) {
-                        option.hidden = false;
-                        option.disabled = false;
-                        return;
-                    }
-                    if (allowedSet.size === 0 || allowedSet.has(optionType)) {
-                        option.hidden = false;
-                        option.disabled = false;
-                        hasAllowed = true;
-                    } else {
-                        option.hidden = true;
-                        option.disabled = true;
-                    }
+                    option.hidden = false;
+                    option.disabled = false;
                 });
-
-                if (!hasAllowed && allowedSet.size > 0) {
-                    options.forEach((option) => {
-                        option.hidden = false;
-                        option.disabled = false;
-                    });
-                }
-
-                if (select.selectedOptions.length === 0 || (select.selectedOptions[0] && select.selectedOptions[0].disabled)) {
-                    const firstValid = options.find((option) => !option.disabled && option.value);
-                    if (firstValid) {
-                        select.value = firstValid.value;
-                    }
-                }
             }
 
             function buildAssignmentRow(index) {
