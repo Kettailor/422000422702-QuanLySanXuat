@@ -208,6 +208,9 @@ foreach ($configurationDetails as $detail) {
                                     <h6 class="fw-semibold mb-1">Phân công xưởng theo cấu hình sản phẩm</h6>
                                     <span class="text-muted small">Điều chỉnh số lượng, thời gian cho từng hạng mục bên dưới.</span>
                                 </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-add-assignment>
+                                    <i class="bi bi-plus-circle me-1"></i> Thêm cấu hình / hạng mục
+                                </button>
                             </div>
                             <div class="table-responsive">
                                 <table class="table align-middle">
@@ -290,6 +293,7 @@ foreach ($configurationDetails as $detail) {
             const planEnd = document.querySelector('[data-plan-end]');
             const startFields = document.querySelectorAll('[data-sync-start]');
             const endFields = document.querySelectorAll('[data-sync-end]');
+            const defaultQuantity = <?= htmlspecialchars((string) max(1, $selectedQuantity)) ?>;
             const now = new Date();
             const toDateTimeLocal = function (date) {
                 const pad = (num) => String(num).padStart(2, '0');
@@ -363,6 +367,51 @@ foreach ($configurationDetails as $detail) {
                 }
             }
 
+            function buildAssignmentRow(index) {
+                const row = document.createElement('tr');
+                row.dataset.assignmentRow = '';
+                row.dataset.allowedTypes = JSON.stringify(['Sản xuất']);
+
+                const optionsSource = document.querySelector('select[name^="component_assignments"]');
+                const optionMarkup = optionsSource
+                    ? Array.from(optionsSource.querySelectorAll('option'))
+                        .filter((option) => option.value)
+                        .map((option) => {
+                            const type = option.getAttribute('data-workshop-type') || '';
+                            return `<option value="${option.value}" data-workshop-type="${type}">${option.textContent}</option>`;
+                        })
+                        .join('')
+                    : '';
+
+                row.innerHTML = `
+                    <td>
+                        <input type="hidden" name="component_assignments[${index}][component_id]" value="">
+                        <input type="hidden" name="component_assignments[${index}][configuration_id]" value="">
+                        <input type="hidden" name="component_assignments[${index}][default_status]" value="">
+                        <input type="text" name="component_assignments[${index}][label]" class="form-control" value="Hạng mục bổ sung" required>
+                        <div class="text-muted small mt-2">Tùy chỉnh hạng mục nếu cần.</div>
+                    </td>
+                    <td>
+                        <select name="component_assignments[${index}][workshop_id]" class="form-select" required>
+                            <option value="">-- Chọn xưởng --</option>
+                            ${optionMarkup}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" min="1" name="component_assignments[${index}][quantity]" class="form-control" value="${defaultQuantity}" required>
+                        <div class="form-text">sp (tỉ lệ 1.00)</div>
+                    </td>
+                    <td>
+                        <input type="datetime-local" name="component_assignments[${index}][start]" class="form-control" value="${planStart ? planStart.value : ''}" data-sync-start>
+                    </td>
+                    <td>
+                        <input type="datetime-local" name="component_assignments[${index}][deadline]" class="form-control" value="${planEnd ? planEnd.value : ''}" data-sync-end>
+                    </td>
+                `;
+
+                return row;
+            }
+
             function markEdited(event) {
                 event.target.dataset.userEdited = 'true';
             }
@@ -397,6 +446,23 @@ foreach ($configurationDetails as $detail) {
                 input.addEventListener('change', setMinDates);
                 input.addEventListener('input', setMinDates);
             });
+
+            const addAssignmentButton = document.querySelector('[data-add-assignment]');
+            if (addAssignmentButton) {
+                addAssignmentButton.addEventListener('click', () => {
+                    const tbody = document.querySelector('tbody');
+                    if (!tbody) return;
+                    const index = document.querySelectorAll('[data-assignment-row]').length;
+                    const row = buildAssignmentRow(index);
+                    tbody.appendChild(row);
+                    row.querySelectorAll('[data-sync-start], [data-sync-end]').forEach((input) => {
+                        input.addEventListener('change', setMinDates);
+                        input.addEventListener('input', setMinDates);
+                    });
+                    applyWorkshopFilter(row);
+                    setMinDates();
+                });
+            }
 
             document.querySelectorAll('[data-assignment-row]').forEach(applyWorkshopFilter);
             setMinDates();
