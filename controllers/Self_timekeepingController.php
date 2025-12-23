@@ -4,6 +4,7 @@ class Self_timekeepingController extends Controller
 {
     private Timekeeping $timekeepingModel;
     private WorkShift $workShiftModel;
+    private WorkshopPlanAssignment $planAssignmentModel;
 
     public function __construct()
     {
@@ -14,6 +15,7 @@ class Self_timekeepingController extends Controller
         }
         $this->timekeepingModel = new Timekeeping();
         $this->workShiftModel = new WorkShift();
+        $this->planAssignmentModel = new WorkshopPlanAssignment();
     }
 
     public function index(): void
@@ -27,6 +29,12 @@ class Self_timekeepingController extends Controller
         $employeeId = $user['IdNhanVien'] ?? null;
         $now = date('Y-m-d H:i:s');
         $shift = $this->workShiftModel->findShiftForTimestamp($now);
+        if ($shift && $employeeId) {
+            $shiftId = $shift['IdCaLamViec'] ?? null;
+            if ($shiftId && !$this->planAssignmentModel->isEmployeeAssignedToShift($employeeId, $shiftId)) {
+                $shift = null;
+            }
+        }
         $workDate = date('Y-m-d');
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
         $geofence = $this->getGeofenceConfig();
@@ -48,6 +56,12 @@ class Self_timekeepingController extends Controller
         $workDate = date('Y-m-d');
         $now = date('Y-m-d H:i:s');
         $shift = $this->workShiftModel->findShiftForTimestamp($now);
+        if ($shift && $employeeId) {
+            $shiftId = $shift['IdCaLamViec'] ?? null;
+            if ($shiftId && !$this->planAssignmentModel->isEmployeeAssignedToShift($employeeId, $shiftId)) {
+                $shift = null;
+            }
+        }
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
         $geofence = $this->getGeofenceConfig();
         $shifts = $this->workShiftModel->getShifts($workDate);
@@ -105,6 +119,12 @@ class Self_timekeepingController extends Controller
         $shift = $this->workShiftModel->findShiftForTimestamp($now);
         if (!$shift) {
             $this->setFlash('danger', 'Hiện tại không nằm trong ca làm việc nào.');
+            $this->redirect('?controller=self_timekeeping&action=index');
+            return;
+        }
+        $shiftId = $shift['IdCaLamViec'] ?? null;
+        if ($shiftId && !$this->planAssignmentModel->isEmployeeAssignedToShift($employeeId, $shiftId)) {
+            $this->setFlash('danger', 'Bạn chưa được phân công ca làm hiện tại.');
             $this->redirect('?controller=self_timekeeping&action=index');
             return;
         }
