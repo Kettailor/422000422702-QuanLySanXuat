@@ -24,27 +24,37 @@
                     <?php endif; ?>
 
                     <?php if (!empty($canToggleAdminBypass)): ?>
-                        <form method="post" action="?controller=adminImpersonation&action=updateBypass" class="mb-3">
-                            <div class="alert alert-light border mb-0">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <div>
-                                        <div class="fw-semibold">Toàn quyền quản trị hệ thống</div>
-                                        <small class="text-muted">
-                                            <?= ($adminBypassEnabled ?? true)
-                                                ? 'Đang bật: bỏ qua mọi giới hạn để kiểm thử nhanh.'
-                                                : 'Đang tắt: áp dụng giới hạn theo vai trò để kiểm tra phân quyền.' ?>
-                                        </small>
-                                    </div>
+                        <div class="alert alert-light border mb-3">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <div class="fw-semibold">Toàn quyền quản trị hệ thống</div>
+                                    <small class="text-muted">
+                                        <?= ($adminBypassEnabled ?? true)
+                                            ? 'Đang bật: bỏ qua mọi giới hạn để kiểm thử nhanh.'
+                                            : 'Đang tắt: áp dụng giới hạn theo vai trò để kiểm tra phân quyền.' ?>
+                                    </small>
+                                </div>
+                                <form method="post" action="?controller=adminImpersonation&action=updateBypass">
                                     <div class="form-check form-switch m-0">
                                         <input class="form-check-input" type="checkbox" role="switch" id="admin_bypass" name="admin_bypass" value="1" <?= ($adminBypassEnabled ?? true) ? 'checked' : '' ?>>
                                         <label class="form-check-label" for="admin_bypass">Bật toàn quyền</label>
                                     </div>
-                                </div>
-                                <div class="text-end mt-3">
-                                    <button type="submit" class="btn btn-outline-primary btn-sm">Lưu cấu hình quyền</button>
-                                </div>
+                                    <div class="text-end mt-3">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">Lưu cấu hình quyền</button>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <form method="post" action="?controller=adminImpersonation&action=updateBypass">
+                                    <input type="hidden" name="admin_bypass" value="0">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Luồng chính</button>
+                                </form>
+                                <form method="post" action="?controller=adminImpersonation&action=updateBypass">
+                                    <input type="hidden" name="admin_bypass" value="1">
+                                    <button type="submit" class="btn btn-outline-success btn-sm">Luồng test (toàn quyền)</button>
+                                </form>
+                            </div>
+                        </div>
                     <?php endif; ?>
 
                     <form method="post" action="?controller=adminImpersonation&action=store">
