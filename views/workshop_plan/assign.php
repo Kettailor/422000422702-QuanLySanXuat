@@ -358,8 +358,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    dateFilters.forEach(cb => cb.addEventListener('change', applyFilters));
-    shiftFilters.forEach(cb => cb.addEventListener('change', applyFilters));
+    dateFilters.forEach(cb => {
+        cb.checked = false;
+        cb.addEventListener('change', applyFilters);
+    });
+    shiftFilters.forEach(cb => {
+        cb.checked = false;
+        cb.addEventListener('change', applyFilters);
+    });
     applyFilters();
 
     if (employeeSearch) {
