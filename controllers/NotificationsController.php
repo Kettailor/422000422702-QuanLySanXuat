@@ -45,6 +45,21 @@ class NotificationsController extends Controller
         $this->redirect('?controller=notifications&action=index');
     }
 
+    public function delete(): void
+    {
+        $id = $_GET['id'] ?? null;
+        $redirect = $_GET['redirect'] ?? '?controller=notifications&action=index';
+        $user = $this->currentUser();
+        $employeeId = $user['IdNhanVien'] ?? null;
+        $roleId = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+
+        if ($id) {
+            $this->notificationStore->deleteForUser($id, $employeeId, $roleId);
+        }
+
+        $this->redirect($redirect);
+    }
+
     private function loadNotifications(?string $employeeId, ?string $roleId): array
     {
         $entries = $this->notificationStore->readAll();

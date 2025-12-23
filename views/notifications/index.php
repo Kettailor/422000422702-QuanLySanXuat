@@ -30,7 +30,7 @@
                     $scopeLabel = $recipient ? 'Cá nhân' : ($recipientRole ? 'Theo vai trò' : 'Chung');
                     $scopeClass = $recipient ? 'bg-info-subtle text-info' : ($recipientRole ? 'bg-primary-subtle text-primary' : 'bg-secondary-subtle text-secondary');
                 ?>
-                <div class="list-group-item list-group-item-action <?= $isRead ? '' : 'notification-unread' ?>">
+                <div class="list-group-item list-group-item-action position-relative <?= $isRead ? '' : 'notification-unread' ?>">
                     <div class="d-flex justify-content-between align-items-start gap-2">
                         <div>
                             <div class="fw-semibold"><?= htmlspecialchars($title) ?></div>
@@ -42,6 +42,16 @@
                             <div class="badge <?= $scopeClass ?> mb-1"><?= htmlspecialchars($scopeLabel) ?></div>
                             <?php if ($time): ?>
                                 <div><small class="text-muted"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($time))) ?></small></div>
+                            <?php endif; ?>
+                            <?php if ($id): ?>
+                                <?php $deleteLink = '?controller=notifications&action=delete&id=' . urlencode($id) . '&redirect=' . urlencode('?controller=notifications&action=index'); ?>
+                                <div class="mt-2">
+                                    <a href="<?= htmlspecialchars($deleteLink) ?>"
+                                       class="btn btn-sm btn-outline-danger position-relative z-1"
+                                       onclick="return confirm('Bạn có chắc muốn xóa thông báo này?');">
+                                        Xóa
+                                    </a>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>

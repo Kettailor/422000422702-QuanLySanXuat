@@ -125,6 +125,38 @@ class NotificationStore
         }
     }
 
+    public function deleteForUser(string $notificationId, ?string $recipientId, ?string $roleId): void
+    {
+        if ($recipientId === null || $recipientId === '') {
+            return;
+        }
+
+        $entries = $this->readAll();
+        $updated = false;
+
+        foreach ($entries as &$entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            if (($entry['id'] ?? null) !== $notificationId) {
+                continue;
+            }
+            if (!$this->matchesRecipient($entry, $recipientId, $roleId)) {
+                continue;
+            }
+
+            $entry['deleted_by'] = $this->normalizeDeletedBy($entry['deleted_by'] ?? null);
+            $entry['deleted_by'][$recipientId] = date(DATE_ATOM);
+            $updated = true;
+            break;
+        }
+        unset($entry);
+
+        if ($updated) {
+            $this->write($entries);
+        }
+    }
+
     public function filterForUser(array $entries, ?string $recipientId, ?string $roleId): array
     {
         $filtered = array_values(array_filter($entries, function ($entry) use ($recipientId, $roleId): bool {
@@ -132,7 +164,18 @@ class NotificationStore
                 return false;
             }
 
-            return $this->matchesRecipient($entry, $recipientId, $roleId);
+            if (!$this->matchesRecipient($entry, $recipientId, $roleId)) {
+                return false;
+            }
+
+            if ($recipientId !== null && $recipientId !== '') {
+                $deletedBy = $this->normalizeDeletedBy($entry['deleted_by'] ?? null);
+                if (isset($deletedBy[$recipientId])) {
+                    return false;
+                }
+            }
+
+            return true;
         }));
 
         return array_values(array_map(function (array $entry) use ($recipientId): array {
@@ -214,6 +257,9 @@ class NotificationStore
         if (!isset($entry['read_by']) || !is_array($entry['read_by'])) {
             $entry['read_by'] = [];
         }
+        if (!isset($entry['deleted_by']) || !is_array($entry['deleted_by'])) {
+            $entry['deleted_by'] = [];
+        }
 
         return $entry;
     }
@@ -251,6 +297,31 @@ class NotificationStore
 
         $normalized = [];
         foreach ($readBy as $key => $value) {
+            if (is_int($key)) {
+                $recipientId = (string) $value;
+                if ($recipientId !== '') {
+                    $normalized[$recipientId] = $normalized[$recipientId] ?? date(DATE_ATOM);
+                }
+                continue;
+            }
+
+            $recipientId = (string) $key;
+            if ($recipientId !== '') {
+                $normalized[$recipientId] = is_string($value) && $value !== '' ? $value : date(DATE_ATOM);
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeDeletedBy(mixed $deletedBy): array
+    {
+        if (!is_array($deletedBy)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($deletedBy as $key => $value) {
             if (is_int($key)) {
                 $recipientId = (string) $value;
                 if ($recipientId !== '') {
