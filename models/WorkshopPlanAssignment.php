@@ -52,6 +52,22 @@ class WorkshopPlanAssignment extends BaseModel
         return (bool) $stmt->fetchColumn();
     }
 
+    public function isEmployeeAssignedForTimestamp(string $employeeId, string $timestamp): bool
+    {
+        $sql = 'SELECT 1
+                FROM phan_cong_ke_hoach_xuong pc
+                JOIN ca_lam ca ON ca.IdCaLamViec = pc.IdCaLamViec
+                WHERE pc.IdNhanVien = :employeeId
+                  AND :timestamp BETWEEN ca.ThoiGianBatDau AND ca.ThoiGianKetThuc
+                LIMIT 1';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employeeId', $employeeId);
+        $stmt->bindValue(':timestamp', $timestamp);
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
     public function replaceForPlanWithShifts(string $planId, array $assignmentsByShift, string $role = 'nhan_vien_san_xuat'): void
     {
         $this->db->beginTransaction();

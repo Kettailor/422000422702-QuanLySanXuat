@@ -29,11 +29,8 @@ class Self_timekeepingController extends Controller
         $employeeId = $user['IdNhanVien'] ?? null;
         $now = date('Y-m-d H:i:s');
         $shift = $this->workShiftModel->findShiftForTimestamp($now);
-        if ($shift && $employeeId) {
-            $shiftId = $shift['IdCaLamViec'] ?? null;
-            if ($shiftId && !$this->planAssignmentModel->isEmployeeAssignedToShift($employeeId, $shiftId)) {
-                $shift = null;
-            }
+        if ($shift && $employeeId && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
+            $shift = null;
         }
         $workDate = date('Y-m-d');
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
@@ -56,11 +53,8 @@ class Self_timekeepingController extends Controller
         $workDate = date('Y-m-d');
         $now = date('Y-m-d H:i:s');
         $shift = $this->workShiftModel->findShiftForTimestamp($now);
-        if ($shift && $employeeId) {
-            $shiftId = $shift['IdCaLamViec'] ?? null;
-            if ($shiftId && !$this->planAssignmentModel->isEmployeeAssignedToShift($employeeId, $shiftId)) {
-                $shift = null;
-            }
+        if ($shift && $employeeId && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
+            $shift = null;
         }
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
         $geofence = $this->getGeofenceConfig();
@@ -122,8 +116,7 @@ class Self_timekeepingController extends Controller
             $this->redirect('?controller=self_timekeeping&action=index');
             return;
         }
-        $shiftId = $shift['IdCaLamViec'] ?? null;
-        if ($shiftId && !$this->planAssignmentModel->isEmployeeAssignedToShift($employeeId, $shiftId)) {
+        if (!$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
             $this->setFlash('danger', 'Bạn chưa được phân công ca làm hiện tại.');
             $this->redirect('?controller=self_timekeeping&action=index');
             return;
