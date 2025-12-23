@@ -23,11 +23,45 @@ $customerMode = $customerMode ?? 'existing';
             <option value="">-- Chọn khách hàng/đối tác --</option>
             <?php foreach ($customers as $customer): ?>
                 <option value="<?= htmlspecialchars($customer['IdKhachHang']) ?>"
+                        data-name="<?= htmlspecialchars($customer['HoTen'] ?? '') ?>"
+                        data-company="<?= htmlspecialchars($customer['TenCongTy'] ?? '') ?>"
+                        data-phone="<?= htmlspecialchars($customer['SoDienThoai'] ?? '') ?>"
+                        data-email="<?= htmlspecialchars($customer['Email'] ?? '') ?>"
+                        data-address="<?= htmlspecialchars($customer['DiaChi'] ?? '') ?>"
+                        data-type="<?= htmlspecialchars($customer['LoaiKhachHang'] ?? '') ?>"
                     <?= $customer['IdKhachHang'] === $selectedCustomerId ? 'selected' : '' ?>>
                     <?= htmlspecialchars($customer['HoTen']) ?><?= !empty($customer['TenCongTy']) ? ' - ' . htmlspecialchars($customer['TenCongTy']) : '' ?>
                 </option>
             <?php endforeach; ?>
         </select>
+        <div class="border rounded p-3 bg-light mt-3" data-customer-field="existing-info">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Tên khách hàng</label>
+                    <input type="text" class="form-control" data-customer-info="name" readonly>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Tên công ty dự án</label>
+                    <input type="text" class="form-control" data-customer-info="company" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="text" class="form-control" data-customer-info="phone" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" data-customer-info="email" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Nhóm khách hàng</label>
+                    <input type="text" class="form-control" data-customer-info="type" readonly>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Địa chỉ</label>
+                    <textarea class="form-control" rows="2" data-customer-info="address" readonly></textarea>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="border rounded p-3 bg-light new-customer-fields <?= $customerMode === 'new' ? '' : 'd-none' ?>" data-customer-field="new">
         <div class="row g-3">
@@ -84,7 +118,29 @@ $customerMode = $customerMode ?? 'existing';
                 const existingSection = wrapper.querySelector('[data-customer-field="existing"]');
                 const newSection = wrapper.querySelector('[data-customer-field="new"]');
                 const existingSelect = existingSection.querySelector('select');
+                const existingInfoWrapper = existingSection.querySelector('[data-customer-field="existing-info"]');
                 const newInputs = newSection.querySelectorAll('input, textarea');
+
+                function fillExistingInfo() {
+                    if (!existingInfoWrapper) {
+                        return;
+                    }
+
+                    const selectedOption = existingSelect.options[existingSelect.selectedIndex];
+                    const infoMap = {
+                        name: selectedOption?.getAttribute('data-name') || '',
+                        company: selectedOption?.getAttribute('data-company') || '',
+                        phone: selectedOption?.getAttribute('data-phone') || '',
+                        email: selectedOption?.getAttribute('data-email') || '',
+                        address: selectedOption?.getAttribute('data-address') || '',
+                        type: selectedOption?.getAttribute('data-type') || ''
+                    };
+
+                    existingInfoWrapper.querySelectorAll('[data-customer-info]').forEach(function (field) {
+                        const key = field.getAttribute('data-customer-info');
+                        field.value = infoMap[key] || '';
+                    });
+                }
 
                 function setMode(mode) {
                     modeInput.value = mode;
@@ -103,6 +159,7 @@ $customerMode = $customerMode ?? 'existing';
                                 input.removeAttribute('required');
                             }
                         });
+                        fillExistingInfo();
                     } else {
                         existingSection.classList.add('d-none');
                         existingSelect.setAttribute('disabled', 'disabled');
@@ -122,6 +179,8 @@ $customerMode = $customerMode ?? 'existing';
                         setMode(button.getAttribute('data-mode'));
                     });
                 });
+
+                existingSelect.addEventListener('change', fillExistingInfo);
 
                 setMode(modeInput.value || 'existing');
             });
