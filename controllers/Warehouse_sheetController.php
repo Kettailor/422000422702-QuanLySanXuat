@@ -459,6 +459,10 @@ class Warehouse_sheetController extends Controller
 
     private function buildPdfInstance(): Dompdf
     {
+        if (!class_exists(Dompdf::class)) {
+            throw new RuntimeException('Thư viện Dompdf chưa được cài đặt. Vui lòng chạy composer install.');
+        }
+
         if (class_exists(Options::class)) {
             $options = new Options();
             $options->set('isRemoteEnabled', true);
