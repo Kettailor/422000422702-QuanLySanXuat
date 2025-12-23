@@ -163,7 +163,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                         <div class="d-flex flex-wrap gap-2">
                             <?php foreach ($planDates as $dateKey): ?>
                                 <label class="btn btn-sm btn-outline-primary">
-                                    <input type="checkbox" class="form-check-input me-2 assignment-date" value="<?= htmlspecialchars($dateKey) ?>" checked>
+                                    <input type="checkbox" class="form-check-input me-2 assignment-date" value="<?= htmlspecialchars($dateKey) ?>">
                                     <?= htmlspecialchars($formatDate($dateKey)) ?>
                                 </label>
                             <?php endforeach; ?>
@@ -174,7 +174,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                         <div class="d-flex flex-wrap gap-2">
                             <?php foreach ($shiftTypes as $type): ?>
                                 <label class="btn btn-sm btn-outline-secondary">
-                                    <input type="checkbox" class="form-check-input me-2 assignment-shift" value="<?= htmlspecialchars($type) ?>" checked>
+                                    <input type="checkbox" class="form-check-input me-2 assignment-shift" value="<?= htmlspecialchars($type) ?>">
                                     <?= htmlspecialchars($type) ?>
                                 </label>
                             <?php endforeach; ?>
