@@ -7,7 +7,19 @@ class InventoryLot extends BaseModel
 
     public function findWithWarehouse(string $lotId): ?array
     {
-        $stmt = $this->db->prepare('SELECT IdLo, SoLuong, IdKho FROM LO WHERE IdLo = :id LIMIT 1');
+        $stmt = $this->db->prepare(
+            'SELECT LO.IdLo,
+                    LO.TenLo,
+                    LO.SoLuong,
+                    LO.IdKho,
+                    LO.IdSanPham,
+                    SAN_PHAM.TenSanPham,
+                    SAN_PHAM.DonVi
+             FROM LO
+             LEFT JOIN SAN_PHAM ON SAN_PHAM.IdSanPham = LO.IdSanPham
+             WHERE LO.IdLo = :id
+             LIMIT 1'
+        );
         $stmt->bindValue(':id', $lotId);
         $stmt->execute();
 
