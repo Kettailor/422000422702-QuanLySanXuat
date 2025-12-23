@@ -201,6 +201,31 @@ if (empty($initialDetails)) {
         }
     }
 
+    function getMinDeliveryDate() {
+        const now = new Date();
+        const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 16);
+    }
+
+    function applyDeliveryMin(row) {
+        const input = row.querySelector('[data-field="delivery_date"]');
+        if (!input) {
+            return;
+        }
+        const minValue = getMinDeliveryDate();
+        input.setAttribute('min', minValue);
+        if (input.value && input.value < minValue) {
+            input.value = minValue;
+        }
+        input.addEventListener('change', () => {
+            const currentMin = getMinDeliveryDate();
+            input.setAttribute('min', currentMin);
+            if (input.value && input.value < currentMin) {
+                input.value = currentMin;
+            }
+        });
+    }
+
     function applyProductMode(row, mode) {
         const hidden = row.querySelector('[data-field="product_mode"]');
         const existingSection = row.querySelector('[data-product-section="existing"]');
@@ -528,7 +553,7 @@ if (empty($initialDetails)) {
                 </div>
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label">Ngày giao dự kiến</label>
-                    <input class="form-control" type="datetime-local" name="details[${index}][delivery_date]" value="${data.delivery_date || ''}">
+                    <input class="form-control" type="datetime-local" name="details[${index}][delivery_date]" data-field="delivery_date" value="${data.delivery_date || ''}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Yêu cầu chi tiết</label>
@@ -550,6 +575,7 @@ if (empty($initialDetails)) {
         attachEvents(row);
         fillConfigurationFields(row, productId, configurationId);
         updateProductHint(row, productId);
+        applyDeliveryMin(row);
         updateRowIndexes();
         recalcTotals();
     }
