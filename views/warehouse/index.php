@@ -249,9 +249,16 @@ $lotPrefixMap = [
                     <?php endif; ?>
                 </div>
                 <?php if ($form): ?>
-                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>">
-                        <i class="bi bi-plus-lg me-2"></i><?= htmlspecialchars($form['submit_label']) ?>
-                    </button>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" data-direction-target="inbound">
+                            <i class="bi bi-plus-lg me-2"></i><?= htmlspecialchars($form['submit_label']) ?>
+                        </button>
+                        <?php if (!empty($outboundDocumentTypes[$typeKey])): ?>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" data-direction-target="outbound">
+                                <i class="bi bi-box-arrow-up me-2"></i>Xuất <?= htmlspecialchars($group['label']) ?>
+                            </button>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -763,6 +770,8 @@ $lotPrefixMap = [
             var inboundFields = form.querySelectorAll('[data-inbound-only]');
             var outboundFields = form.querySelectorAll('[data-outbound-only]');
             var inboundRequired = form.querySelectorAll('[data-inbound-required]');
+            var modalId = modalEl.getAttribute('id');
+            var directionTriggers = document.querySelectorAll('[data-direction-target][data-bs-target="#' + modalId + '"]');
 
             if (confirmToggle && confirmInput) {
                 confirmToggle.addEventListener('change', function () {
@@ -850,6 +859,26 @@ $lotPrefixMap = [
 
             if (directionSelect) {
                 directionSelect.addEventListener('change', toggleDirection);
+            }
+
+            if (directionTriggers.length) {
+                directionTriggers.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var target = btn.getAttribute('data-direction-target') || '';
+                        if (!directionSelect) {
+                            return;
+                        }
+                        if (target === 'outbound' && existingLotSelect) {
+                            var outboundOption = directionSelect.querySelector('option[value*="xuất"], option[value*="xuat"]');
+                            if (outboundOption) {
+                                directionSelect.value = outboundOption.value;
+                            }
+                        } else {
+                            directionSelect.selectedIndex = 0;
+                        }
+                        toggleDirection();
+                    });
+                });
             }
         });
     });
