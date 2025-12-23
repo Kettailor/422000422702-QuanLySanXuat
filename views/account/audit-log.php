@@ -49,7 +49,35 @@ $resolveBadge = static function (?string $level): array {
                 <div class="text-muted small"><?php echo htmlspecialchars($log['level']); ?></div>
               </td>
               <td><?php echo htmlspecialchars($log['actor']); ?></td>
-              <td class="text-wrap"><?php echo htmlspecialchars($log['action']); ?></td>
+              <td>
+                <?php
+                  $actionText = (string) ($log['action'] ?? '');
+                  $shortText = mb_strimwidth($actionText, 0, 110, '…', 'UTF-8');
+                ?>
+                <div class="text-muted small"><?= htmlspecialchars($shortText) ?></div>
+                <button type="button" class="btn btn-link p-0 small" data-bs-toggle="modal" data-bs-target="#log-detail-<?= htmlspecialchars($log['id'] ?? md5($actionText . ($log['date'] ?? ''))) ?>">
+                  Xem chi tiết
+                </button>
+                <div class="modal fade" id="log-detail-<?= htmlspecialchars($log['id'] ?? md5($actionText . ($log['date'] ?? ''))) ?>" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Chi tiết hành động</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="mb-2"><span class="text-muted small">Thời gian:</span> <?= htmlspecialchars($log['date'] ?? '-') ?></div>
+                        <div class="mb-2"><span class="text-muted small">Người thực hiện:</span> <?= htmlspecialchars($log['actor'] ?? '-') ?></div>
+                        <div class="mb-2"><span class="text-muted small">Mức độ:</span> <?= htmlspecialchars($log['level'] ?? '-') ?></div>
+                        <div class="border rounded-3 p-3 bg-light small"><?= nl2br(htmlspecialchars($actionText)) ?></div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
