@@ -19,13 +19,14 @@ class Employee extends BaseModel
         $sql = 'SELECT DISTINCT nv.*
                 FROM nhan_vien nv
                 LEFT JOIN xuong_nhan_vien xnv ON xnv.IdNhanVien = nv.IdNhanVien
-                WHERE nv.TrangThai = :status
-                  AND (nv.idXuong = :workshop OR xnv.IdXuong = :workshop)
+                WHERE nv.TrangThai = ?
+                  AND (nv.idXuong = ? OR xnv.IdXuong = ?)
                 ORDER BY nv.HoTen';
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':status', 'Đang làm việc');
-        $stmt->bindValue(':workshop', $workshopId);
+        $stmt->bindValue(1, 'Đang làm việc');
+        $stmt->bindValue(2, $workshopId);
+        $stmt->bindValue(3, $workshopId);
         $stmt->execute();
 
         return $stmt->fetchAll();
