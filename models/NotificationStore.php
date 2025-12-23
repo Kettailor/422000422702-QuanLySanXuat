@@ -74,7 +74,7 @@ class NotificationStore
         }
     }
 
-    public function markAllRead(?string $recipient = null): void
+    public function markAllRead(?string $recipient = null, ?string $roleId = null): void
     {
         $entries = $this->readAll();
         $updated = false;
@@ -83,8 +83,7 @@ class NotificationStore
             if (!is_array($entry)) {
                 continue;
             }
-            $entryRecipient = $entry['recipient'] ?? null;
-            if ($recipient !== null && $entryRecipient !== null && $entryRecipient !== $recipient) {
+            if (!$this->matchesRecipient($entry, $recipient, $roleId)) {
                 continue;
             }
             if (!empty($entry['is_read']) || !empty($entry['read_at'])) {
@@ -99,6 +98,33 @@ class NotificationStore
         if ($updated) {
             $this->write($entries);
         }
+    }
+
+    public function filterForUser(array $entries, ?string $recipientId, ?string $roleId): array
+    {
+        return array_values(array_filter($entries, function ($entry) use ($recipientId, $roleId): bool {
+            if (!is_array($entry)) {
+                return false;
+            }
+
+            return $this->matchesRecipient($entry, $recipientId, $roleId);
+        }));
+    }
+
+    public function resolveScope(array $entry): string
+    {
+        $recipient = $entry['recipient'] ?? null;
+        $recipientRole = $entry['recipient_role'] ?? null;
+
+        if ($recipient) {
+            return 'personal';
+        }
+
+        if ($recipientRole) {
+            return 'role';
+        }
+
+        return 'general';
     }
 
     private function ensureStorage(): void
@@ -132,5 +158,30 @@ class NotificationStore
         }
 
         return $entry;
+    }
+
+    private function matchesRecipient(array $entry, ?string $recipientId, ?string $roleId): bool
+    {
+        $recipient = $entry['recipient'] ?? null;
+        if ($recipient !== null && $recipient !== '') {
+            if ($recipientId === null || $recipientId === '') {
+                return false;
+            }
+            if ($recipient !== $recipientId) {
+                return false;
+            }
+        }
+
+        $recipientRole = $entry['recipient_role'] ?? null;
+        if ($recipientRole !== null && $recipientRole !== '') {
+            if ($roleId === null || $roleId === '') {
+                return false;
+            }
+            if ($recipientRole !== $roleId) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

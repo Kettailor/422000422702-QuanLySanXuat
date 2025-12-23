@@ -8,7 +8,14 @@ class Ticket
     {
         $date = date('Y-m-d H:i:s');
         $user = $_SESSION['user']['TenDangNhap'] ?? 'anonymous';
-        $ticket = ['date' => $date, 'user' => $user, 'request' => $message, 'status' => 'open'];
+        $role = $_SESSION['user']['TenVaiTro'] ?? ($_SESSION['user']['IdVaiTro'] ?? null);
+        $ticket = [
+            'date' => $date,
+            'user' => $user,
+            'role' => $role,
+            'request' => $message,
+            'status' => 'open',
+        ];
 
         $tickets = [];
         if (file_exists(self::$ticketFile)) {
@@ -21,7 +28,7 @@ class Ticket
         file_put_contents(self::$ticketFile, json_encode(['tickets' => $tickets], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
-    public static function closeTicket($ticketId): void
+    public static function closeTicket($ticketId, ?string $response = null, ?string $status = null): void
     {
         $tickets = [];
         if (file_exists(self::$ticketFile)) {
@@ -30,7 +37,11 @@ class Ticket
         }
         foreach ($tickets as &$ticket) {
             if (isset($ticket['id']) && $ticket['id'] == $ticketId) {
-                $ticket['status'] = 'close';
+                $ticket['status'] = $status ?: 'close';
+                if ($response !== null && $response !== '') {
+                    $ticket['response'] = $response;
+                }
+                $ticket['resolved_at'] = date('Y-m-d H:i:s');
                 break;
             }
         }

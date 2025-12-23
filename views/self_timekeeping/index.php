@@ -22,7 +22,10 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         <h2 class="fw-bold mb-1">Tự chấm công</h2>
         <p class="text-muted mb-0">Nhân viên sản xuất và kho tự chấm công ngay khi đến nơi làm.</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a href="?controller=self_timekeeping&action=history" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-calendar2-check me-1"></i>Lịch sử chấm công
+        </a>
         <span class="badge rounded-pill text-bg-primary px-3 py-2">
             <i class="bi bi-clock-history me-1"></i><?= htmlspecialchars($formatDate($now, 'H:i:s')) ?>
         </span>

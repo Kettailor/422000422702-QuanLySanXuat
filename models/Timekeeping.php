@@ -182,4 +182,34 @@ class Timekeeping extends BaseModel
         return $stmt->execute();
     }
 
+    public function getMonthlySummary(string $employeeId, ?string $month = null): array
+    {
+        $month = $month ?: date('Y-m');
+
+        $sql = "SELECT COUNT(*) AS total_records,
+                       SUM(CASE
+                           WHEN cc.`ThoiGIanRa` IS NOT NULL THEN TIMESTAMPDIFF(MINUTE, cc.`ThoiGianVao`, cc.`ThoiGIanRa`)
+                           ELSE 0
+                       END) AS total_minutes
+                FROM cham_cong cc
+                WHERE cc.`NHANVIEN IdNhanVien` = :employeeId
+                  AND DATE_FORMAT(cc.`ThoiGianVao`, '%Y-%m') = :month";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employeeId', $employeeId);
+        $stmt->bindValue(':month', $month);
+        $stmt->execute();
+
+        $row = $stmt->fetch();
+        $totalMinutes = (int) ($row['total_minutes'] ?? 0);
+        $totalHours = $totalMinutes > 0 ? round($totalMinutes / 60, 1) : 0.0;
+
+        return [
+            'month' => $month,
+            'total_records' => (int) ($row['total_records'] ?? 0),
+            'total_hours' => $totalHours,
+            'total_minutes' => $totalMinutes,
+        ];
+    }
+
 }

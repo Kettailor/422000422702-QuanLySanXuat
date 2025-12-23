@@ -9,35 +9,166 @@ class DashboardController extends Controller
             return;
         }
 
-        $orderModel = new Order();
+        $currentUser = $this->currentUser();
+        $employeeId = $currentUser['IdNhanVien'] ?? null;
+        $role = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
+
         $employeeModel = new Employee();
-        $planModel = new ProductionPlan();
-        $activityModel = new SystemActivity();
-        $qualityModel = new QualityReport();
+        $timekeepingModel = new Timekeeping();
+        $workShiftModel = new WorkShift();
         $salaryModel = new Salary();
-        $workshopModel = new Workshop();
 
-        $orders = $orderModel->getOrdersWithCustomer(5);
-        $employees = $employeeModel->getActiveEmployees();
-        $plans = $planModel->getPlansWithOrders(5);
-        $activities = $activityModel->latest(6);
-        $qualitySummary = $qualityModel->getQualitySummary();
-        $monthlyRevenue = $orderModel->getMonthlyRevenue();
-        $payrollTrend = $salaryModel->getMonthlyPayoutTrend();
-        $orderStats = $orderModel->getOrderStatistics();
-        $payrollSummary = $salaryModel->getPayrollSummary();
-        $workshopSummary = $workshopModel->getCapacitySummary();
-        $pendingPayrolls = $salaryModel->getPendingPayrolls();
+        $employee = $employeeId ? $employeeModel->find($employeeId) : null;
+        $workshopId = $employee['IdXuong'] ?? null;
 
+        $now = date('Y-m-d H:i:s');
+        $workDate = date('Y-m-d');
+        $shift = $workShiftModel->findShiftForTimestamp($now);
+        $shiftList = $workShiftModel->getShifts($workDate, 6);
+        $workSummary = $employeeId ? $timekeepingModel->getMonthlySummary($employeeId) : [
+            'month' => date('Y-m'),
+            'total_records' => 0,
+            'total_hours' => 0,
+            'total_minutes' => 0,
+        ];
+
+        $employeePayrollSummary = $employeeId ? $salaryModel->getPayrollSummary($employeeId) : [
+            'total' => 0,
+            'pending' => 0,
+            'approved' => 0,
+            'paid' => 0,
+            'total_amount' => 0,
+        ];
+        $latestPayrolls = $employeeId ? $salaryModel->getPayrolls(3, $employeeId) : [];
+        $notifications = $this->loadNotifications($employeeId, $role);
+
+        $orders = [];
+        $employees = [];
+        $plans = [];
+        $activities = [];
+        $qualitySummary = [];
+        $monthlyRevenue = [];
+        $payrollTrend = [];
+        $orderStats = ['total_orders' => 0, 'pending_orders' => 0, 'total_revenue' => 0, 'completed_orders' => 0];
+        $payrollSummary = ['total_amount' => 0, 'pending' => 0];
+        $workshopSummary = ['utilization' => 0, 'workforce' => 0];
+        $pendingPayrolls = [];
+        $warehouseSummary = [];
+        $warehouses = [];
+        $workshopPlans = [];
+        $qualityLots = [];
+        $qualityReports = [];
+        $tickets = [];
+        $ticketSummary = ['total' => 0, 'open' => 0];
+        $activeUserCount = 0;
+        $roles = [];
         $stats = [
             'totalWorkingDays' => 22,
-            'participationRate' => count($employees),
-            'completedPlans' => array_reduce($plans, fn ($carry, $plan) => $carry + ($plan['TrangThai'] === 'Hoàn thành' ? 1 : 0), 0),
-            'newNotifications' => count($activities),
+            'participationRate' => 0,
+            'completedPlans' => 0,
+            'newNotifications' => 0,
         ];
+
+        if ($role === 'VT_BAN_GIAM_DOC') {
+            $orderModel = new Order();
+            $planModel = new ProductionPlan();
+            $activityModel = new SystemActivity();
+            $qualityModel = new QualityReport();
+            $workshopModel = new Workshop();
+            $roleModel = new Role();
+
+            $orders = $orderModel->getOrdersWithCustomer(5);
+            $employees = $employeeModel->getActiveEmployees();
+            $plans = $planModel->getPlansWithOrders(5);
+            $activities = $activityModel->latest(6);
+            $qualitySummary = $qualityModel->getQualitySummary();
+            $monthlyRevenue = $orderModel->getMonthlyRevenue();
+            $payrollTrend = $salaryModel->getMonthlyPayoutTrend();
+            $orderStats = $orderModel->getOrderStatistics();
+            $payrollSummary = $salaryModel->getPayrollSummary();
+            $workshopSummary = $workshopModel->getCapacitySummary();
+            $pendingPayrolls = $salaryModel->getPendingPayrolls();
+            $roles = $roleModel->all(50);
+
+            $stats = [
+                'totalWorkingDays' => 22,
+                'participationRate' => count($employees),
+                'completedPlans' => array_reduce($plans, fn ($carry, $plan) => $carry + ($plan['TrangThai'] === 'Hoàn thành' ? 1 : 0), 0),
+                'newNotifications' => count($activities),
+            ];
+        } elseif (in_array($role, ['VT_KHO_TRUONG', 'VT_NHANVIEN_KHO'], true)) {
+            $warehouseModel = new Warehouse();
+            $workshopPlanModel = new WorkshopPlan();
+
+            $warehouses = $warehouseModel->getWithSupervisor();
+            if ($role === 'VT_NHANVIEN_KHO' && $employeeId) {
+                $warehouses = array_values(array_filter($warehouses, static function (array $warehouse) use ($employeeId): bool {
+                    return ($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? null) === $employeeId;
+                }));
+            }
+            $warehouseSummary = $warehouseModel->getWarehouseSummary($warehouses);
+            $workshopPlans = $workshopPlanModel->getDashboardPlans($role === 'VT_KHO_TRUONG' ? null : $workshopId);
+        } elseif ($role === 'VT_KINH_DOANH') {
+            $orderModel = new Order();
+            $orders = $orderModel->getOrdersWithCustomer(8);
+            $orderStats = $orderModel->getOrderStatistics();
+        } elseif ($role === 'VT_QUANLY_XUONG') {
+            $workshopPlanModel = new WorkshopPlan();
+            $workshopPlans = $workshopPlanModel->getDashboardPlans($workshopId);
+        } elseif ($role === 'VT_NHANVIEN_SANXUAT') {
+            $workshopPlanModel = new WorkshopPlan();
+            $planAssignmentModel = new WorkshopPlanAssignment();
+            $planIds = $employeeId ? $planAssignmentModel->getPlanIdsByEmployee($employeeId) : [];
+            $workshopPlans = $workshopPlanModel->getDetailedPlans(50);
+            if ($planIds) {
+                $allowed = array_fill_keys($planIds, true);
+                $workshopPlans = array_values(array_filter($workshopPlans, static function (array $plan) use ($allowed): bool {
+                    $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
+                    return $planId !== null && isset($allowed[$planId]);
+                }));
+            } else {
+                $workshopPlans = [];
+            }
+        } elseif ($role === 'VT_KIEM_SOAT_CL') {
+            $qualityModel = new QualityReport();
+            $qualitySummary = $qualityModel->getQualitySummary();
+            $qualityLots = array_values(array_filter(
+                $qualityModel->getDanhSachLo(),
+                static fn (array $row): bool => empty($row['IdBienBanDanhGiaSP'])
+            ));
+            $qualityLots = array_slice($qualityLots, 0, 8);
+            $qualityReports = $qualityModel->getLatestReports(6);
+        } elseif ($role === 'VT_KETOAN') {
+            $orderModel = new Order();
+            $orderStats = $orderModel->getOrderStatistics();
+            $orders = $orderModel->getOrdersWithCustomer(5);
+            $pendingPayrolls = $salaryModel->getPendingPayrolls();
+        } elseif ($role === 'VT_ADMIN') {
+            $userModel = new User();
+            $ticketData = Ticket::getTickets(1, 10);
+            $tickets = $ticketData['tickets'] ?? [];
+            $ticketSummary['total'] = count($tickets);
+            foreach ($tickets as $ticket) {
+                if (($ticket['status'] ?? '') === 'open') {
+                    $ticketSummary['open']++;
+                }
+            }
+            $activeUserCount = $userModel->countActiveUsers();
+        }
 
         $this->render('dashboard/index', [
             'title' => 'Tổng quan hệ thống',
+            'currentUser' => $currentUser,
+            'role' => $role,
+            'employee' => $employee,
+            'now' => $now,
+            'shift' => $shift,
+            'shiftList' => $shiftList,
+            'workSummary' => $workSummary,
+            'employeePayrollSummary' => $employeePayrollSummary,
+            'latestPayrolls' => $latestPayrolls,
+            'notifications' => $notifications['all'],
+            'importantNotifications' => $notifications['important'],
             'orders' => $orders,
             'employees' => $employees,
             'plans' => $plans,
@@ -50,6 +181,15 @@ class DashboardController extends Controller
             'payrollSummary' => $payrollSummary,
             'workshopSummary' => $workshopSummary,
             'pendingPayrolls' => $pendingPayrolls,
+            'warehouseSummary' => $warehouseSummary,
+            'warehouses' => $warehouses,
+            'workshopPlans' => $workshopPlans,
+            'qualityLots' => $qualityLots,
+            'qualityReports' => $qualityReports,
+            'tickets' => $tickets,
+            'ticketSummary' => $ticketSummary,
+            'activeUserCount' => $activeUserCount,
+            'roles' => $roles,
         ]);
     }
 
@@ -109,7 +249,7 @@ class DashboardController extends Controller
             $qualityLots = array_slice($qualityLots, 0, 6);
         }
 
-        $notifications = $this->loadNotifications($employeeId);
+        $notifications = $this->loadNotifications($employeeId, $role);
 
         $this->render('dashboard/mobile', [
             'title' => 'Bảng điều khiển di động',
@@ -152,9 +292,24 @@ class DashboardController extends Controller
         $title = trim($_POST['title'] ?? '');
         $message = trim($_POST['message'] ?? '');
         $priority = trim($_POST['priority'] ?? 'normal');
+        $scope = trim($_POST['scope'] ?? 'general');
+        $recipientRole = trim($_POST['recipient_role'] ?? '');
+        $recipient = trim($_POST['recipient'] ?? '');
 
         if ($title === '' && $message === '') {
             $this->setFlash('danger', 'Vui lòng nhập tiêu đề hoặc nội dung thông báo.');
+            $this->redirect('?controller=dashboard&action=index');
+            return;
+        }
+
+        if ($scope === 'role' && $recipientRole === '') {
+            $this->setFlash('danger', 'Vui lòng chọn vai trò nhận thông báo.');
+            $this->redirect('?controller=dashboard&action=index');
+            return;
+        }
+
+        if ($scope === 'personal' && $recipient === '') {
+            $this->setFlash('danger', 'Vui lòng chọn người nhận thông báo.');
             $this->redirect('?controller=dashboard&action=index');
             return;
         }
@@ -167,13 +322,24 @@ class DashboardController extends Controller
 
         try {
             $store = new NotificationStore();
-            $store->push([
+            $payload = [
                 'title' => $title !== '' ? $title : 'Thông báo từ Ban giám đốc',
                 'message' => $message !== '' ? $message : null,
                 'sender' => $user['HoTen'] ?? 'Ban giám đốc',
                 'metadata' => $metadata,
-            ]);
-            $this->setFlash('success', 'Đã gửi thông báo đến toàn bộ nhân viên.');
+            ];
+            if ($scope === 'role' && $recipientRole !== '') {
+                $payload['recipient_role'] = $recipientRole;
+            } elseif ($scope === 'personal' && $recipient !== '') {
+                $payload['recipient'] = $recipient;
+            }
+            $store->push($payload);
+            $scopeMessage = match ($scope) {
+                'role' => 'Đã gửi thông báo đến nhóm vai trò được chọn.',
+                'personal' => 'Đã gửi thông báo đến nhân sự được chọn.',
+                default => 'Đã gửi thông báo đến toàn bộ nhân viên.',
+            };
+            $this->setFlash('success', $scopeMessage);
         } catch (Throwable $exception) {
             Logger::error('Không thể gửi thông báo: ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể gửi thông báo. Vui lòng thử lại.');
@@ -213,21 +379,11 @@ class DashboardController extends Controller
         ];
     }
 
-    private function loadNotifications(?string $employeeId): array
+    private function loadNotifications(?string $employeeId, ?string $roleId): array
     {
         $store = new NotificationStore();
         $entries = $store->readAll();
-
-        $filtered = array_values(array_filter($entries, static function ($entry) use ($employeeId): bool {
-            if (!is_array($entry)) {
-                return false;
-            }
-            $recipient = $entry['recipient'] ?? null;
-            if (!$recipient) {
-                return true;
-            }
-            return $employeeId !== null && $recipient === $employeeId;
-        }));
+        $filtered = $store->filterForUser($entries, $employeeId, $roleId);
 
         usort($filtered, static function ($a, $b): int {
             $aTime = strtotime($a['created_at'] ?? '') ?: 0;
@@ -236,9 +392,6 @@ class DashboardController extends Controller
         });
 
         $important = array_values(array_filter($filtered, static function ($entry): bool {
-            if (!is_array($entry)) {
-                return false;
-            }
             $metadata = $entry['metadata'] ?? [];
             $priority = $metadata['priority'] ?? $metadata['level'] ?? null;
             if (is_string($priority) && in_array(strtolower($priority), ['high', 'important', 'urgent'], true)) {
