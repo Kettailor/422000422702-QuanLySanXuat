@@ -282,7 +282,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                     <div class="border rounded-3 p-3 h-100 shift-card" data-date="<?= htmlspecialchars($dateKey) ?>" data-shift-type="<?= htmlspecialchars($typeLabel) ?>" data-shift-id="<?= htmlspecialchars($shiftId) ?>" data-editable="<?= ($isEditable || $isAddOnly) ? '1' : '0' ?>">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div class="fw-semibold"><?= htmlspecialchars($shift['TenCa'] ?? $shiftId) ?></div>
-                                            <button type="button" class="btn btn-sm btn-outline-danger shift-remove" data-shift-remove="<?= htmlspecialchars($shiftId) ?>">
+                                            <button type="button" class="btn btn-sm btn-outline-danger shift-remove" data-shift-remove="<?= htmlspecialchars($shiftId) ?>" <?= $isAddOnly ? 'disabled' : '' ?>>
                                                 <i class="bi bi-x-lg"></i>
                                             </button>
                                         </div>
