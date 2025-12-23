@@ -198,21 +198,6 @@ foreach ($configurationDetails as $detail) {
                                 <label class="form-label fw-semibold">Hạn chót giao hàng</label>
                                 <input type="datetime-local" name="ThoiGianKetThuc" class="form-control" value="<?= htmlspecialchars($defaultEnd) ?>" data-plan-end required>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Người lập kế hoạch</label>
-                                <div class="border rounded-3 p-3 bg-light-subtle">
-                                    <div class="fw-semibold mb-1">
-                                        <?= htmlspecialchars($currentUser['HoTen'] ?? 'Không xác định') ?>
-                                    </div>
-                                    <?php if (!empty($currentUser['ChucVu'])): ?>
-                                        <div class="text-muted small">Chức vụ: <?= htmlspecialchars($currentUser['ChucVu']) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($currentUser['TenDangNhap'])): ?>
-                                        <div class="text-muted small">Tài khoản: <?= htmlspecialchars($currentUser['TenDangNhap']) ?></div>
-                                    <?php endif; ?>
-                                </div>
-                                <input type="hidden" name="BanGiamDoc" value="<?= htmlspecialchars($currentUser['IdNhanVien'] ?? '') ?>">
-                            </div>
                         </div>
 
                         <div class="border-top"></div>
