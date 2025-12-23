@@ -227,6 +227,13 @@ if (session_status() === PHP_SESSION_NONE) {
     </form>
   </div>
 
+  <?php if (!empty($_GET['msg'])): ?>
+    <div class="border rounded-3 bg-light-subtle text-muted p-3 mb-3" role="status">
+      <?= htmlspecialchars((string) $_GET['msg']) ?>
+    </div>
+  <?php endif; ?>
+  <div id="quality-feedback" class="border rounded-3 bg-light-subtle text-muted p-3 mb-3 d-none" role="status"></div>
+
   <!-- Dashboard -->
   <div class="summary-cards">
     <div class="card card-total" onclick="activateAllFilter()">
@@ -440,7 +447,12 @@ if (session_status() === PHP_SESSION_NONE) {
       const url = btn.getAttribute('href');
 
       if (!url || url.endsWith('id=&IdLo=')) {
-        alert('Không tìm thấy mã biên bản để xóa!');
+        const feedback = document.getElementById('quality-feedback');
+        if (feedback) {
+          feedback.textContent = 'Không tìm thấy mã biên bản để xóa. Vui lòng làm mới trang và thử lại.';
+          feedback.classList.remove('d-none');
+          feedback.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         return;
       }
 

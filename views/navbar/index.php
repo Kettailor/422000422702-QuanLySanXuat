@@ -53,13 +53,18 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-stopwatch"></i> Chấm công
             </a>
         <?php endif; ?>
+        <?php if ($canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO'])): ?>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=index">
+                <i class="bi bi-fingerprint"></i> Tự chấm công
+            </a>
+        <?php endif; ?>
         <?php if ($canAccess(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU'])): ?>
             <a class="nav-link <?= $currentController === 'human_resources' ? 'active' : '' ?>" href="?controller=human_resources&action=index">
                 <i class="bi bi-people"></i> Nhân sự
             </a>
         <?php endif; ?>
         <?php if ($canAccess(['VT_BAN_GIAM_DOC'])): ?>
-            <a class="nav-link <?= $currentController === 'report' ? 'active' : '' ?>" href="?controller=report&action=i    ndex">
+            <a class="nav-link <?= $currentController === 'report' ? 'active' : '' ?>" href="?controller=report&action=index">
                 <i class="bi bi-file-earmark-bar-graph"></i> Thống Kê Báo Cáo
             </a>
         <?php endif; ?>

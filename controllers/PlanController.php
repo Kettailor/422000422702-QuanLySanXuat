@@ -107,6 +107,12 @@ class PlanController extends Controller
         $endTime = $this->normalizeDateTimeInput($_POST['ThoiGianKetThuc'] ?? null);
         $status = $_POST['TrangThai'] ?? 'Đã lập kế hoạch';
 
+        if (!$this->validatePlanDates($startTime, $endTime)) {
+            $this->setFlash('danger', 'Ngày bắt đầu không được bé hơn ngày hiện tại và hạn chót phải lớn hơn hoặc bằng ngày bắt đầu.');
+            $this->redirect('?controller=plan&action=create&order_detail_id=' . urlencode($orderDetailId));
+            return;
+        }
+
         $planData = [
             'IdKeHoachSanXuat' => $planId,
             'IdTTCTDonHang' => $orderDetailId,
@@ -124,6 +130,12 @@ class PlanController extends Controller
             'start' => $startTime,
         ]);
 
+        if (!$this->validateAssignmentDates($assignments)) {
+            $this->setFlash('danger', 'Ngày bắt đầu/hạn chót của hạng mục không hợp lệ. Ngày bắt đầu không được bé hơn ngày hiện tại và hạn chót phải lớn hơn hoặc bằng ngày bắt đầu.');
+            $this->redirect('?controller=plan&action=create&order_detail_id=' . urlencode($orderDetailId));
+            return;
+        }
+
         if (empty($assignments)) {
             $this->setFlash('warning', 'Vui lòng phân công ít nhất một xưởng phụ trách cho sản phẩm.');
             $this->redirect('?controller=plan&action=create&order_detail_id=' . urlencode($orderDetailId));
@@ -138,7 +150,7 @@ class PlanController extends Controller
 
                     $this->workShopPlanDetail->createWorkshopPlanDetail(
                         $assignment['IdKeHoachSanXuatXuong'], // <-- Dùng cái này
-                        $orderDetail['IdCauHinh'], 
+                        $orderDetail['IdCauHinh'],
                         $assignment['SoLuong'] // <-- Nên dùng số lượng phân cho xưởng đó
                     );
                 }
@@ -146,6 +158,11 @@ class PlanController extends Controller
 
 
             $this->setFlash('success', 'Đã lập kế hoạch sản xuất và giao nhiệm vụ cho các xưởng.');
+        } catch (PDOException $exception) {
+            Logger::error('Lỗi khi tạo kế hoạch sản xuất: ' . $exception->getMessage());
+            $this->setFlash('danger', $this->resolveDateRuleMessage($exception->getMessage()));
+            $this->redirect('?controller=plan&action=create&order_detail_id=' . urlencode($orderDetailId));
+            return;
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi tạo kế hoạch sản xuất: ' . $exception->getMessage());
             /* $this->setFlash('danger', 'Không thể tạo kế hoạch: ' . $exception->getMessage()); */
@@ -419,5 +436,59 @@ class PlanController extends Controller
         }
 
         return date('Y-m-d H:i:s', $timestamp);
+    }
+
+    private function validatePlanDates(?string $startTime, ?string $endTime): bool
+    {
+        if (!$startTime || !$endTime) {
+            return false;
+        }
+
+        $start = new DateTimeImmutable($startTime);
+        $end = new DateTimeImmutable($endTime);
+        $today = new DateTimeImmutable('today');
+
+        if ($start < $today) {
+            return false;
+        }
+
+        return $end >= $start;
+    }
+
+    private function validateAssignmentDates(array $assignments): bool
+    {
+        if (empty($assignments)) {
+            return false;
+        }
+
+        $today = new DateTimeImmutable('today');
+        foreach ($assignments as $assignment) {
+            $startTime = $assignment['ThoiGianBatDau'] ?? null;
+            $endTime = $assignment['ThoiGianKetThuc'] ?? null;
+            if (!$startTime || !$endTime) {
+                return false;
+            }
+
+            $start = new DateTimeImmutable($startTime);
+            $end = new DateTimeImmutable($endTime);
+
+            if ($start < $today || $end < $start) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function resolveDateRuleMessage(string $message): string
+    {
+        if (str_contains($message, 'Ngày bắt đầu không được bé hơn ngày hiện tại')) {
+            return 'Ngày bắt đầu không được bé hơn ngày hiện tại.';
+        }
+        if (str_contains($message, 'Ngày kết thúc không được bé hơn ngày bắt đầu')) {
+            return 'Ngày kết thúc không được bé hơn ngày bắt đầu.';
+        }
+
+        return 'Không thể tạo kế hoạch, vui lòng kiểm tra lại thời gian.';
     }
 }

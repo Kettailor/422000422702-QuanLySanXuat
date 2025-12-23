@@ -132,43 +132,81 @@ class Salary extends BaseModel
         ];
     }
 
-    public function getPayrolls(int $limit = 50): array
+    public function getPayrolls(int $limit = 50, ?string $employeeId = null): array
     {
+        $conditions = [];
+        $params = [];
+
+        if ($employeeId) {
+            $conditions[] = 'bang_luong.' . self::EMPLOYEE_COLUMN . ' = :employeeId';
+            $params[':employeeId'] = $employeeId;
+        }
+
+        $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
         $sql = 'SELECT bang_luong.*, nv.HoTen
                 FROM bang_luong
                 JOIN nhan_vien nv ON nv.IdNhanVien = bang_luong.' . self::EMPLOYEE_COLUMN . '
+                ' . $where . '
                 ORDER BY NgayLap DESC
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    public function getPendingPayrolls(int $limit = 5): array
+    public function getPendingPayrolls(int $limit = 5, ?string $employeeId = null): array
     {
+        $conditions = ['BANG_LUONG.TrangThai = :status'];
+        $params = [':status' => 'Chờ duyệt'];
+
+        if ($employeeId) {
+            $conditions[] = 'BANG_LUONG.' . self::EMPLOYEE_COLUMN . ' = :employeeId';
+            $params[':employeeId'] = $employeeId;
+        }
+
         $sql = 'SELECT BANG_LUONG.*, NV.HoTen
                 FROM BANG_LUONG
                 JOIN NHAN_VIEN NV ON NV.IdNhanVien = BANG_LUONG.' . self::EMPLOYEE_COLUMN . '
-                WHERE BANG_LUONG.TrangThai = :status
+                WHERE ' . implode(' AND ', $conditions) . '
                 ORDER BY NgayLap DESC
                 LIMIT :limit';
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':status', 'Chờ duyệt');
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    public function getPayrollSummary(): array
+    public function getPayrollSummary(?string $employeeId = null): array
     {
+        $conditions = [];
+        $params = [];
+
+        if ($employeeId) {
+            $conditions[] = self::EMPLOYEE_COLUMN . ' = :employeeId';
+            $params[':employeeId'] = $employeeId;
+        }
+
+        $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
         $sql = 'SELECT COUNT(*) AS total,
                        SUM(TongThuNhap) AS total_amount,
                        SUM(CASE WHEN TrangThai = "Chờ duyệt" THEN 1 ELSE 0 END) AS pending,
                        SUM(CASE WHEN TrangThai = "Đã duyệt" THEN 1 ELSE 0 END) AS approved,
                        SUM(CASE WHEN TrangThai = "Đã chi" THEN 1 ELSE 0 END) AS paid
-                FROM bang_luong';
-        $summary = $this->db->query($sql)->fetch();
+                FROM bang_luong
+                ' . $where;
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+        $summary = $stmt->fetch();
 
         return [
             'total' => (int) ($summary['total'] ?? 0),

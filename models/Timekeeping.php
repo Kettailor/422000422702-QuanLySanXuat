@@ -57,7 +57,14 @@ class Timekeeping extends BaseModel
         return $stmt->fetchAll();
     }
 
-    public function getRecentRecords(int $limit = 100, ?string $shiftId = null, ?string $workDate = null): array
+    public function getRecentRecords(
+        int $limit = 100,
+        ?string $shiftId = null,
+        ?string $workDate = null,
+        ?string $workshopId = null,
+        ?string $planId = null,
+        ?string $employeeId = null
+    ): array
     {
         $conditions = [];
         $bindings = [];
@@ -72,6 +79,21 @@ class Timekeeping extends BaseModel
             $bindings[':workDate'] = $workDate;
         }
 
+        if ($workshopId) {
+            $conditions[] = 'kx.IdXuong = :workshopId';
+            $bindings[':workshopId'] = $workshopId;
+        }
+
+        if ($planId) {
+            $conditions[] = 'kx.IdKeHoachSanXuatXuong = :planId';
+            $bindings[':planId'] = $planId;
+        }
+
+        if ($employeeId) {
+            $conditions[] = 'cc.`NHANVIEN IdNhanVien` = :employeeId';
+            $bindings[':employeeId'] = $employeeId;
+        }
+
         $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
 
         $sql = "SELECT cc.*, nv.HoTen AS TenNhanVien,
@@ -79,10 +101,17 @@ class Timekeeping extends BaseModel
                        ca.LoaiCa,
                        ca.NgayLamViec,
                        ca.ThoiGianBatDau,
-                       ca.ThoiGianKetThuc
+                       ca.ThoiGianKetThuc,
+                       kx.IdKeHoachSanXuatXuong,
+                       kx.IdKeHoachSanXuat,
+                       kx.TenThanhThanhPhanSP,
+                       kx.IdXuong,
+                       xuong.TenXuong
                 FROM cham_cong cc
                 LEFT JOIN nhan_vien nv ON nv.IdNhanVien = cc.`NHANVIEN IdNhanVien`
                 LEFT JOIN ca_lam ca ON ca.IdCaLamViec = cc.`IdCaLamViec`
+                LEFT JOIN ke_hoach_san_xuat_xuong kx ON kx.IdKeHoachSanXuatXuong = ca.IdKeHoachSanXuatXuong
+                LEFT JOIN xuong ON xuong.IdXuong = kx.IdXuong
                 {$where}
                 ORDER BY cc.`ThoiGianVao` DESC
                 LIMIT :limit";
@@ -95,6 +124,44 @@ class Timekeeping extends BaseModel
         $stmt->execute();
 
         return $stmt->fetchAll();
+    }
+
+    public function getOpenRecordForEmployee(string $employeeId, ?string $workDate = null): ?array
+    {
+        $conditions = ['cc.`NHANVIEN IdNhanVien` = :employeeId', 'cc.`ThoiGIanRa` IS NULL'];
+        $bindings = [':employeeId' => $employeeId];
+
+        if ($workDate) {
+            $conditions[] = 'DATE(cc.`ThoiGianVao`) = :workDate';
+            $bindings[':workDate'] = $workDate;
+        }
+
+        $where = 'WHERE ' . implode(' AND ', $conditions);
+        $sql = "SELECT cc.*
+                FROM cham_cong cc
+                {$where}
+                ORDER BY cc.`ThoiGianVao` DESC
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
+    public function updateCheckOut(string $recordId, string $checkOut): bool
+    {
+        $sql = "UPDATE cham_cong
+                SET `ThoiGIanRa` = :checkOut
+                WHERE `IdChamCong` = :recordId";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':checkOut', $checkOut);
+        $stmt->bindValue(':recordId', $recordId);
+        return $stmt->execute();
     }
 
 }

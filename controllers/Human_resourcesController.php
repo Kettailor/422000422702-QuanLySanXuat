@@ -3,19 +3,38 @@
 class Human_resourcesController extends Controller
 {
     private Employee $employeeModel;
+    private Role $roleModel;
+    private Salary $salaryModel;
+    private Timekeeping $timekeepingModel;
+    private WorkshopPlanAssignment $planAssignmentModel;
+    private WorkshopPlan $workshopPlanModel;
 
     public function __construct()
     {
         $this->authorize(['VT_BAN_GIAM_DOC', 'VT_NHAN_SU']);
         $this->employeeModel = new Employee();
+        $this->roleModel = new Role();
+        $this->salaryModel = new Salary();
+        $this->timekeepingModel = new Timekeeping();
+        $this->planAssignmentModel = new WorkshopPlanAssignment();
+        $this->workshopPlanModel = new WorkshopPlan();
     }
 
     public function index(): void
     {
         $employees = $this->employeeModel->all(200);
+        $roles = $this->roleModel->all(200);
+        $roleMap = [];
+        foreach ($roles as $role) {
+            $roleId = $role['IdVaiTro'] ?? null;
+            if ($roleId) {
+                $roleMap[$roleId] = $role;
+            }
+        }
         $this->render('human_resources/index', [
             'title' => 'Quản lý nhân sự',
             'employees' => $employees,
+            'roleMap' => $roleMap,
         ]);
     }
 
@@ -23,6 +42,7 @@ class Human_resourcesController extends Controller
     {
         $this->render('human_resources/create', [
             'title' => 'Thêm nhân sự',
+            'roles' => $this->roleModel->all(200),
         ]);
     }
 
@@ -42,6 +62,7 @@ class Human_resourcesController extends Controller
             'TrangThai' => $_POST['TrangThai'] ?? 'Đang làm việc',
             'DiaChi' => $_POST['DiaChi'] ?? null,
             'ThoiGianLamViec' => $_POST['ThoiGianLamViec'] ?? date('Y-m-d H:i:s'),
+            'IdVaiTro' => $_POST['IdVaiTro'] ?? null,
             'ChuKy' => null,
         ];
 
@@ -65,6 +86,7 @@ class Human_resourcesController extends Controller
         $this->render('human_resources/edit', [
             'title' => 'Cập nhật nhân sự',
             'employee' => $employee,
+            'roles' => $this->roleModel->all(200),
         ]);
     }
 
@@ -84,6 +106,7 @@ class Human_resourcesController extends Controller
             'TrangThai' => $_POST['TrangThai'] ?? 'Đang làm việc',
             'DiaChi' => $_POST['DiaChi'] ?? null,
             'ThoiGianLamViec' => $_POST['ThoiGianLamViec'] ?? date('Y-m-d H:i:s'),
+            'IdVaiTro' => $_POST['IdVaiTro'] ?? null,
         ];
 
         try {
@@ -119,9 +142,48 @@ class Human_resourcesController extends Controller
     {
         $id = $_GET['id'] ?? null;
         $employee = $id ? $this->employeeModel->find($id) : null;
+        $role = null;
+        if ($employee && !empty($employee['IdVaiTro'])) {
+            $role = $this->roleModel->find($employee['IdVaiTro']);
+        }
+
+        $payrolls = [];
+        $salarySummary = null;
+        $timekeepingEntries = [];
+        $plans = [];
+
+        if ($employee) {
+            $payrolls = $this->salaryModel->getPayrolls(50, $employee['IdNhanVien']);
+            $salarySummary = $this->salaryModel->getPayrollSummary($employee['IdNhanVien']);
+            $timekeepingEntries = $this->timekeepingModel->getRecentRecords(
+                200,
+                null,
+                null,
+                null,
+                null,
+                $employee['IdNhanVien']
+            );
+
+            $planIds = $this->planAssignmentModel->getPlanIdsByEmployee($employee['IdNhanVien']);
+            $plans = $this->workshopPlanModel->getDetailedPlans(200);
+            if ($planIds) {
+                $allowed = array_fill_keys($planIds, true);
+                $plans = array_values(array_filter($plans, static function (array $plan) use ($allowed): bool {
+                    $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
+                    return $planId !== null && isset($allowed[$planId]);
+                }));
+            } else {
+                $plans = [];
+            }
+        }
         $this->render('human_resources/read', [
             'title' => 'Chi tiết nhân sự',
             'employee' => $employee,
+            'role' => $role,
+            'payrolls' => $payrolls,
+            'salarySummary' => $salarySummary,
+            'timekeepingEntries' => $timekeepingEntries,
+            'plans' => $plans,
         ]);
     }
 }
