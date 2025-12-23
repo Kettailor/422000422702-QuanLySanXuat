@@ -16,15 +16,15 @@ class AdminImpersonationController extends Controller
         $roles = $this->roleModel->all(200);
         $roles = array_filter($roles, fn (array $role) => $role['IdVaiTro'] !== 'VT_ADMIN');
         $impersonatedRole = Impersonation::getImpersonatedRole();
-        $adminBypassEnabled = $_SESSION['admin_bypass_enabled'] ?? true;
-        $canToggleAdminBypass = true;
+        $adminFlow = $_SESSION['admin_flow'] ?? 'main';
+        $canToggleAdminFlow = true;
 
         $this->render('admin/impersonate', [
             'title' => 'Giả lập vai trò',
             'roles' => $roles,
             'impersonatedRole' => $impersonatedRole,
-            'adminBypassEnabled' => $adminBypassEnabled,
-            'canToggleAdminBypass' => $canToggleAdminBypass,
+            'adminFlow' => $adminFlow,
+            'canToggleAdminFlow' => $canToggleAdminFlow,
         ]);
     }
 
@@ -68,7 +68,7 @@ class AdminImpersonationController extends Controller
         $this->redirect('?controller=adminImpersonation&action=index');
     }
 
-    public function updateBypass(): void
+    public function updateFlow(): void
     {
         $this->authorize(['VT_ADMIN']);
 
@@ -76,11 +76,12 @@ class AdminImpersonationController extends Controller
             $this->redirect('?controller=adminImpersonation&action=index');
         }
 
-        $enabled = isset($_POST['admin_bypass']) && $_POST['admin_bypass'] === '1';
-        $_SESSION['admin_bypass_enabled'] = $enabled;
-        $this->setFlash('success', $enabled
-            ? 'Đã bật toàn quyền quản trị hệ thống.'
-            : 'Đã tắt toàn quyền quản trị, áp dụng giới hạn theo vai trò.');
+        $flow = $_POST['admin_flow'] ?? 'main';
+        $flow = $flow === 'test' ? 'test' : 'main';
+        $_SESSION['admin_flow'] = $flow;
+        $this->setFlash('success', $flow === 'test'
+            ? 'Đã chuyển sang luồng test: toàn quyền và truy cập toàn bộ dữ liệu.'
+            : 'Đã chuyển sang luồng chính: quyền chuẩn theo vai trò quản trị.');
 
         $this->redirect('?controller=adminImpersonation&action=index');
     }

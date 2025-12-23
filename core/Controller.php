@@ -31,7 +31,27 @@ abstract class Controller
         $actualRole = $user['ActualIdVaiTro'] ?? $role;
         $isAdmin = $actualRole === 'VT_ADMIN';
         $isImpersonating = !empty($user['IsImpersonating']);
-        $adminBypassEnabled = $_SESSION['admin_bypass_enabled'] ?? true;
+        $adminFlow = $_SESSION['admin_flow'] ?? 'main';
+        $adminBypassEnabled = $adminFlow === 'test';
+        $adminMainRestricted = $isAdmin && !$isImpersonating && $adminFlow === 'main';
+
+        if ($adminMainRestricted) {
+            $allowedControllers = [
+                'dashboard',
+                'auth',
+                'setting',
+                'notifications',
+                'self_salary',
+                'admin',
+                'adminImpersonation',
+                'account',
+            ];
+            $currentController = $_GET['controller'] ?? 'dashboard';
+            if (!in_array($currentController, $allowedControllers, true)) {
+                $this->setFlash('danger', 'Luồng chính chỉ cho phép chức năng cá nhân và quản trị.');
+                $this->redirect('?controller=dashboard&action=index');
+            }
+        }
 
         if ($isAdmin && $adminBypassEnabled) {
             if ($isImpersonating) {
@@ -55,6 +75,24 @@ abstract class Controller
             $this->setFlash('danger', 'Bạn không có quyền truy cập chức năng này.');
             $this->redirect('?controller=dashboard&action=index');
         }
+    }
+
+    protected function resolveAccessRole(array $user): ?string
+    {
+        $role = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        if (!$role) {
+            return null;
+        }
+
+        $isAdmin = $role === 'VT_ADMIN';
+        $isImpersonating = !empty($user['IsImpersonating']);
+        $adminFlow = $_SESSION['admin_flow'] ?? 'main';
+
+        if ($isAdmin && !$isImpersonating && $adminFlow === 'test') {
+            return 'VT_BAN_GIAM_DOC';
+        }
+
+        return $role;
     }
 
     protected function render(string $view, array $data = []): void

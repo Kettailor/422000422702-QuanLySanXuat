@@ -204,13 +204,47 @@ class WorkShift extends BaseModel
 
     private function removeShiftsOutsideRange(string $planId, string $startDate, string $endDate): void
     {
-        $sql = 'DELETE FROM ca_lam
-                WHERE IdKeHoachSanXuatXuong = :planId
-                  AND (NgayLamViec < :startDate OR NgayLamViec > :endDate)';
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':planId', $planId);
-        $stmt->bindValue(':startDate', $startDate);
-        $stmt->bindValue(':endDate', $endDate);
-        $stmt->execute();
+        $this->db->beginTransaction();
+        try {
+            $shiftSql = 'SELECT IdCaLamViec
+                         FROM ca_lam
+                         WHERE IdKeHoachSanXuatXuong = :planId
+                           AND (NgayLamViec < :startDate OR NgayLamViec > :endDate)';
+            $shiftStmt = $this->db->prepare($shiftSql);
+            $shiftStmt->bindValue(':planId', $planId);
+            $shiftStmt->bindValue(':startDate', $startDate);
+            $shiftStmt->bindValue(':endDate', $endDate);
+            $shiftStmt->execute();
+            $shiftIds = $shiftStmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (!empty($shiftIds)) {
+                $placeholders = implode(',', array_fill(0, count($shiftIds), '?'));
+                $assignmentSql = "DELETE FROM phan_cong_ke_hoach_xuong WHERE IdCaLamViec IN ({$placeholders})";
+                $assignmentStmt = $this->db->prepare($assignmentSql);
+                foreach ($shiftIds as $index => $shiftId) {
+                    $assignmentStmt->bindValue($index + 1, $shiftId);
+                }
+                $assignmentStmt->execute();
+
+                $attendanceSql = "DELETE FROM cham_cong WHERE IdCaLamViec IN ({$placeholders})";
+                $attendanceStmt = $this->db->prepare($attendanceSql);
+                foreach ($shiftIds as $index => $shiftId) {
+                    $attendanceStmt->bindValue($index + 1, $shiftId);
+                }
+                $attendanceStmt->execute();
+
+                $deleteSql = "DELETE FROM ca_lam WHERE IdCaLamViec IN ({$placeholders})";
+                $deleteStmt = $this->db->prepare($deleteSql);
+                foreach ($shiftIds as $index => $shiftId) {
+                    $deleteStmt->bindValue($index + 1, $shiftId);
+                }
+                $deleteStmt->execute();
+            }
+
+            $this->db->commit();
+        } catch (Throwable $exception) {
+            $this->db->rollBack();
+            throw $exception;
+        }
     }
 }

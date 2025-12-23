@@ -3,16 +3,18 @@ $currentController = $_GET['controller'] ?? 'dashboard';
 $role = is_array($user) ? ($user['IdVaiTro'] ?? null) : null;
 $actualRole = is_array($user) ? ($user['ActualIdVaiTro'] ?? ($user['OriginalIdVaiTro'] ?? $role)) : null;
 $isImpersonating = is_array($user) && !empty($user['IsImpersonating']);
-$canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating): bool {
+$adminFlow = $_SESSION['admin_flow'] ?? 'main';
+$adminFullAccess = $actualRole === 'VT_ADMIN' && !$isImpersonating && $adminFlow === 'test';
+$canAccess = function (array $roles) use ($role, $actualRole, $adminFullAccess): bool {
     if (!$role) {
         return false;
     }
 
-    if (in_array($actualRole, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true) && !$isImpersonating) {
+    if ($adminFullAccess || ($actualRole === 'VT_BAN_GIAM_DOC')) {
         return true;
     }
 
-    if (in_array($actualRole, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true) && array_intersect(['VT_ADMIN', 'VT_BAN_GIAM_DOC'], $roles)) {
+    if (array_intersect(['VT_ADMIN', 'VT_BAN_GIAM_DOC'], $roles) && ($actualRole === 'VT_ADMIN' || $actualRole === 'VT_BAN_GIAM_DOC')) {
         return true;
     }
 
@@ -36,6 +38,28 @@ $showSalary = $canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC', 'VT_KINH_DOANH']);
 $showNotifications = !empty($role);
 $showSupport = $actualRole !== 'VT_ADMIN';
 $showAdminTools = $actualRole === 'VT_ADMIN';
+$isAdminMain = $actualRole === 'VT_ADMIN' && !$adminFullAccess;
+$showOperationsSection = $isAdminMain ? false : ($showOrders || $showPlan || $showWorkshopPlan || $showWorkshop || $showTimekeeping || $showHumanResources || $showReports);
+$showQualitySection = $isAdminMain ? false : $showQuality;
+$showWarehouseSection = $isAdminMain ? false : ($showWarehouse || $showWarehouseSheet);
+$showFinanceSection = $isAdminMain ? false : ($showBill || $showSalary);
+
+if ($isAdminMain) {
+    $showOrders = false;
+    $showPlan = false;
+    $showWorkshopPlan = false;
+    $showWorkshop = false;
+    $showTimekeeping = false;
+    $showSelfTimekeeping = false;
+    $showWorkshopPlanPersonal = false;
+    $showQuality = false;
+    $showWarehouse = false;
+    $showWarehouseSheet = false;
+    $showHumanResources = false;
+    $showReports = false;
+    $showBill = false;
+    $showSalary = false;
+}
 ?>
 <nav class="sidebar">
     <div class="logo">
@@ -79,7 +103,7 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
             </a>
         <?php endif; ?>
 
-        <?php if ($showOrders || $showPlan || $showWorkshopPlan || $showWorkshop || $showTimekeeping || $showHumanResources || $showReports): ?>
+        <?php if ($showOperationsSection): ?>
             <div class="text-uppercase text-muted small px-3 mt-3">Vận hành</div>
         <?php endif; ?>
         <?php if ($showOrders): ?>
@@ -118,7 +142,7 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
             </a>
         <?php endif; ?>
 
-        <?php if ($showQuality): ?>
+        <?php if ($showQualitySection): ?>
         <div class="text-uppercase text-muted small px-3 mt-3">Chất lượng</div>
         <div class="nav-group">
             <a class="nav-link <?= in_array($currentController, ['quality', 'suddenly']) ? 'active' : '' ?>"
@@ -144,7 +168,7 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
         </div>
         <?php endif; ?>
 
-        <?php if ($showWarehouse || $showWarehouseSheet): ?>
+        <?php if ($showWarehouseSection): ?>
             <div class="text-uppercase text-muted small px-3 mt-3">Kho & vật tư</div>
         <?php endif; ?>
         <?php if ($showWarehouse): ?>
@@ -158,7 +182,7 @@ $showAdminTools = $actualRole === 'VT_ADMIN';
             </a>
         <?php endif; ?>
 
-        <?php if ($showBill || $showSalary): ?>
+        <?php if ($showFinanceSection): ?>
             <div class="text-uppercase text-muted small px-3 mt-3">Tài chính</div>
         <?php endif; ?>
         <?php if ($showBill): ?>
