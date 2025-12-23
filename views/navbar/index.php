@@ -104,7 +104,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-journal-text"></i> Phiếu kho
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_KETOAN', 'VT_KINH_DOANH'])): ?>
+        <?php if ($canAccess(['VT_KETOAN'])): ?>
             <a class="nav-link <?= $currentController === 'bill' ? 'active' : '' ?>" href="?controller=bill&action=index">
                 <i class="bi bi-file-earmark-text"></i> Hóa đơn
             </a>
