@@ -290,11 +290,11 @@ class OrderController extends Controller
             $configurationId = $detail['configuration_id'] ?? null;
             $configuration = null;
 
-            $configKeycap = trim($detail['config_keycap'] ?? '');
-            $configSwitch = trim($detail['config_switch'] ?? '');
-            $configCase = trim($detail['config_case'] ?? '');
-            $configMain = trim($detail['config_main'] ?? '');
-            $configOthers = trim($detail['config_others'] ?? '');
+            $configDescription = trim($detail['config_description'] ?? '');
+            $configSwitch = trim($detail['config_switch_type'] ?? '');
+            $configCase = trim($detail['config_case_type'] ?? '');
+            $configLayout = trim($detail['config_layout'] ?? '');
+            $configFoam = trim($detail['config_foam'] ?? '');
 
             if ($configurationMode === 'new') {
                 $configurationName = trim($detail['new_configuration_name'] ?? '');
@@ -308,13 +308,13 @@ class OrderController extends Controller
                 if ($configurationId && $existingConfiguration = $this->configurationModel->find($configurationId)) {
                     $this->configurationModel->update($configurationId, [
                         'TenCauHinh' => $configurationName,
-                        'MoTa' => $configurationDescription ?: ($configKeycap ?: null),
+                        'MoTa' => $configurationDescription ?: ($configDescription ?: null),
                         'GiaBan' => $configurationPrice,
                         'IdSanPham' => $productId,
-                        'Layout' => $configMain ?: null,
+                        'Layout' => $configLayout ?: null,
                         'SwitchType' => $configSwitch ?: null,
                         'CaseType' => $configCase ?: null,
-                        'Foam' => $configOthers ?: null,
+                        'Foam' => $configFoam ?: null,
                     ]);
                     $bomId = $existingConfiguration['IdBOM'] ?? null;
                     if ($bomId) {
@@ -339,14 +339,14 @@ class OrderController extends Controller
                     $this->configurationModel->create([
                         'IdCauHinh' => $configurationId,
                         'TenCauHinh' => $configurationName,
-                        'MoTa' => $configurationDescription ?: ($configKeycap ?: null),
+                        'MoTa' => $configurationDescription ?: ($configDescription ?: null),
                         'GiaBan' => $configurationPrice,
                         'IdSanPham' => $productId,
                         'IdBOM' => $bomId,
-                        'Layout' => $configMain ?: null,
+                        'Layout' => $configLayout ?: null,
                         'SwitchType' => $configSwitch ?: null,
                         'CaseType' => $configCase ?: null,
-                        'Foam' => $configOthers ?: null,
+                        'Foam' => $configFoam ?: null,
                     ]);
                     $configuration = $this->configurationModel->find($configurationId);
                 }
@@ -366,10 +366,10 @@ class OrderController extends Controller
             if ($configuration) {
                 $configSwitch = $configSwitch ?: trim((string)($configuration['SwitchType'] ?? ''));
                 $configCase = $configCase ?: trim((string)($configuration['CaseType'] ?? ''));
-                $configMain = $configMain ?: trim((string)($configuration['Layout'] ?? ''));
-                $configOthers = $configOthers ?: trim((string)($configuration['Foam'] ?? ''));
-                if ($configKeycap === '' && !empty($configuration['MoTa'])) {
-                    $configKeycap = trim((string)$configuration['MoTa']);
+                $configLayout = $configLayout ?: trim((string)($configuration['Layout'] ?? ''));
+                $configFoam = $configFoam ?: trim((string)($configuration['Foam'] ?? ''));
+                if ($configDescription === '' && !empty($configuration['MoTa'])) {
+                    $configDescription = trim((string)$configuration['MoTa']);
                 }
             }
 
@@ -393,11 +393,11 @@ class OrderController extends Controller
             $metaPayload = [
                 'note' => $note !== '' ? $note : null,
                 'configuration' => array_filter([
-                    'keycap' => $configKeycap !== '' ? $configKeycap : null,
-                    'switch' => $configSwitch !== '' ? $configSwitch : null,
-                    'case' => $configCase !== '' ? $configCase : null,
-                    'main' => $configMain !== '' ? $configMain : null,
-                    'others' => $configOthers !== '' ? $configOthers : null,
+                    'description' => $configDescription !== '' ? $configDescription : null,
+                    'layout' => $configLayout !== '' ? $configLayout : null,
+                    'switch_type' => $configSwitch !== '' ? $configSwitch : null,
+                    'case_type' => $configCase !== '' ? $configCase : null,
+                    'foam' => $configFoam !== '' ? $configFoam : null,
                 ]),
                 'source' => [
                     'product' => $productMode,
@@ -432,11 +432,11 @@ class OrderController extends Controller
         $meta = [
             'note' => null,
             'configuration' => [
-                'keycap' => null,
-                'switch' => null,
-                'case' => null,
-                'main' => null,
-                'others' => null,
+                'description' => null,
+                'layout' => null,
+                'switch_type' => null,
+                'case_type' => null,
+                'foam' => null,
             ],
             'source' => [
                 'product' => 'existing',
@@ -454,6 +454,11 @@ class OrderController extends Controller
                 }
                 if (isset($decoded['configuration']) && is_array($decoded['configuration'])) {
                     $meta['configuration'] = array_merge($meta['configuration'], array_intersect_key($decoded['configuration'], $meta['configuration']));
+                    $meta['configuration']['description'] = $meta['configuration']['description'] ?? ($decoded['configuration']['keycap'] ?? null);
+                    $meta['configuration']['layout'] = $meta['configuration']['layout'] ?? ($decoded['configuration']['main'] ?? null);
+                    $meta['configuration']['switch_type'] = $meta['configuration']['switch_type'] ?? ($decoded['configuration']['switch'] ?? null);
+                    $meta['configuration']['case_type'] = $meta['configuration']['case_type'] ?? ($decoded['configuration']['case'] ?? null);
+                    $meta['configuration']['foam'] = $meta['configuration']['foam'] ?? ($decoded['configuration']['others'] ?? null);
                 }
                 if (isset($decoded['source']) && is_array($decoded['source'])) {
                     $meta['source'] = array_merge($meta['source'], array_intersect_key($decoded['source'], $meta['source']));
@@ -499,11 +504,11 @@ class OrderController extends Controller
                 'delivery_date' => $delivery,
                 'requirement' => $detail['YeuCau'] ?? '',
                 'note' => $meta['note'] ?? '',
-                'config_keycap' => $meta['configuration']['keycap'] ?? '',
-                'config_switch' => $meta['configuration']['switch'] ?? '',
-                'config_case' => $meta['configuration']['case'] ?? '',
-                'config_main' => $meta['configuration']['main'] ?? '',
-                'config_others' => $meta['configuration']['others'] ?? '',
+                'config_description' => $meta['configuration']['description'] ?? '',
+                'config_layout' => $meta['configuration']['layout'] ?? '',
+                'config_switch_type' => $meta['configuration']['switch_type'] ?? '',
+                'config_case_type' => $meta['configuration']['case_type'] ?? '',
+                'config_foam' => $meta['configuration']['foam'] ?? '',
             ];
         }, $details);
     }

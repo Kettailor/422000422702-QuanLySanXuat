@@ -99,11 +99,11 @@
                             <td>
                                 <div class="fw-medium"><?= htmlspecialchars($detail['TenCauHinh'] ?? 'Cấu hình tùy chỉnh') ?></div>
                                 <ul class="list-unstyled text-muted small mb-0">
-                                    <?php if (!empty($config['keycap'])): ?><li>Keycap: <?= htmlspecialchars($config['keycap']) ?></li><?php endif; ?>
-                                    <?php if (!empty($config['switch'])): ?><li>Switch: <?= htmlspecialchars($config['switch']) ?></li><?php endif; ?>
-                                    <?php if (!empty($config['case'])): ?><li>Case: <?= htmlspecialchars($config['case']) ?></li><?php endif; ?>
-                                    <?php if (!empty($config['main'])): ?><li>Mainboard: <?= htmlspecialchars($config['main']) ?></li><?php endif; ?>
-                                    <?php if (!empty($config['others'])): ?><li>Khác: <?= htmlspecialchars($config['others']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['description'])): ?><li>Mô tả: <?= htmlspecialchars($config['description']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['layout'])): ?><li>Layout: <?= htmlspecialchars($config['layout']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['switch_type'])): ?><li>Switch: <?= htmlspecialchars($config['switch_type']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['case_type'])): ?><li>Case: <?= htmlspecialchars($config['case_type']) ?></li><?php endif; ?>
+                                    <?php if (!empty($config['foam'])): ?><li>Foam: <?= htmlspecialchars($config['foam']) ?></li><?php endif; ?>
                                 </ul>
                             </td>
                             <td class="text-center"><?= number_format((int) ($detail['SoLuong'] ?? 0)) ?></td>

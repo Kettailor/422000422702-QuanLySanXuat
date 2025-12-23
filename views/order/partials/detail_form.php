@@ -49,11 +49,11 @@ $initialDetails = array_map(static function ($detail) {
             'new_configuration_name' => '',
             'new_configuration_price' => '',
             'new_configuration_description' => '',
-            'config_keycap' => '',
-            'config_switch' => '',
-            'config_case' => '',
-            'config_main' => '',
-            'config_others' => '',
+            'config_description' => '',
+            'config_layout' => '',
+            'config_switch_type' => '',
+            'config_case_type' => '',
+            'config_foam' => '',
             'quantity' => 1,
             'unit_price' => 0,
             'vat' => 8,
@@ -74,11 +74,11 @@ $initialDetails = array_map(static function ($detail) {
         'new_configuration_name' => $detail['new_configuration_name'] ?? '',
         'new_configuration_price' => $detail['new_configuration_price'] ?? '',
         'new_configuration_description' => $detail['new_configuration_description'] ?? '',
-        'config_keycap' => $detail['config_keycap'] ?? '',
-        'config_switch' => $detail['config_switch'] ?? '',
-        'config_case' => $detail['config_case'] ?? '',
-        'config_main' => $detail['config_main'] ?? '',
-        'config_others' => $detail['config_others'] ?? '',
+        'config_description' => $detail['config_description'] ?? '',
+        'config_layout' => $detail['config_layout'] ?? '',
+        'config_switch_type' => $detail['config_switch_type'] ?? '',
+        'config_case_type' => $detail['config_case_type'] ?? '',
+        'config_foam' => $detail['config_foam'] ?? '',
         'quantity' => (int) ($detail['quantity'] ?? 1),
         'unit_price' => (float) ($detail['unit_price'] ?? 0),
         'vat' => isset($detail['vat']) ? (float) $detail['vat'] : 8,
@@ -100,11 +100,11 @@ if (empty($initialDetails)) {
         'new_configuration_name' => '',
         'new_configuration_price' => '',
         'new_configuration_description' => '',
-        'config_keycap' => '',
-        'config_switch' => '',
-        'config_case' => '',
-        'config_main' => '',
-        'config_others' => '',
+        'config_description' => '',
+        'config_layout' => '',
+        'config_switch_type' => '',
+        'config_case_type' => '',
+        'config_foam' => '',
         'quantity' => 1,
         'unit_price' => 0,
         'vat' => 8,
@@ -118,7 +118,7 @@ if (empty($initialDetails)) {
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <label class="form-label fw-semibold">Danh sách sản phẩm & cấu hình</label>
-            <p class="text-muted small mb-0">Chọn sản phẩm có sẵn hoặc nhập mới, sau đó điền các cấu hình chi tiết (keycap, switch, case, main...).</p>
+            <p class="text-muted small mb-0">Chọn sản phẩm có sẵn hoặc nhập mới, sau đó điền các cấu hình chi tiết (mô tả, layout, switch, case, foam...).</p>
         </div>
         <button class="btn btn-outline-primary" type="button" id="add-detail-row"><i class="bi bi-plus-lg me-2"></i>Thêm dòng</button>
     </div>
@@ -323,11 +323,11 @@ if (empty($initialDetails)) {
 
     function fillConfigurationFields(row, productId, configurationId) {
         const configuration = productId && configurationId ? getConfiguration(productId, configurationId) : null;
-        const layoutInput = row.querySelector('[data-field="config_main"]');
-        const switchInput = row.querySelector('[data-field="config_switch"]');
-        const caseInput = row.querySelector('[data-field="config_case"]');
-        const otherInput = row.querySelector('[data-field="config_others"]');
-        const keycapInput = row.querySelector('[data-field="config_keycap"]');
+        const layoutInput = row.querySelector('[data-field="config_layout"]');
+        const switchInput = row.querySelector('[data-field="config_switch_type"]');
+        const caseInput = row.querySelector('[data-field="config_case_type"]');
+        const foamInput = row.querySelector('[data-field="config_foam"]');
+        const descriptionInput = row.querySelector('[data-field="config_description"]');
         const description = configuration ? configuration.description : '';
         if (layoutInput && !layoutInput.value) {
             layoutInput.value = configuration ? (configuration.layout || '') : layoutInput.value;
@@ -338,11 +338,11 @@ if (empty($initialDetails)) {
         if (caseInput && !caseInput.value) {
             caseInput.value = configuration ? (configuration.case || '') : caseInput.value;
         }
-        if (otherInput && !otherInput.value) {
-            otherInput.value = configuration ? (configuration.others || '') : otherInput.value;
+        if (foamInput && !foamInput.value) {
+            foamInput.value = configuration ? (configuration.others || '') : foamInput.value;
         }
-        if (keycapInput && !keycapInput.value && description) {
-            keycapInput.value = description;
+        if (descriptionInput && !descriptionInput.value && description) {
+            descriptionInput.value = description;
         }
 
         const hint = row.querySelector('[data-field="configuration_hint"]');
@@ -354,7 +354,7 @@ if (empty($initialDetails)) {
                 }
                 const specs = [];
                 if (configuration.layout) {
-                    specs.push(`Main: ${configuration.layout}`);
+                    specs.push(`Layout: ${configuration.layout}`);
                 }
                 if (configuration.switch) {
                     specs.push(`Switch: ${configuration.switch}`);
@@ -363,7 +363,7 @@ if (empty($initialDetails)) {
                     specs.push(`Case: ${configuration.case}`);
                 }
                 if (configuration.others) {
-                    specs.push(`Khác: ${configuration.others}`);
+                    specs.push(`Foam: ${configuration.others}`);
                 }
                 if (specs.length) {
                     lines.push(specs.join(' • '));
@@ -520,24 +520,24 @@ if (empty($initialDetails)) {
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <label class="form-label">Keycap</label>
-                    <input class="form-control" name="details[${index}][config_keycap]" data-field="config_keycap" value="${data.config_keycap || ''}">
+                    <label class="form-label">Mô tả cấu hình</label>
+                    <input class="form-control" name="details[${index}][config_description]" data-field="config_description" value="${data.config_description || ''}">
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Switch</label>
-                    <input class="form-control" name="details[${index}][config_switch]" data-field="config_switch" value="${data.config_switch || ''}">
+                    <input class="form-control" name="details[${index}][config_switch_type]" data-field="config_switch_type" value="${data.config_switch_type || ''}">
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Case</label>
-                    <input class="form-control" name="details[${index}][config_case]" data-field="config_case" value="${data.config_case || ''}">
+                    <input class="form-control" name="details[${index}][config_case_type]" data-field="config_case_type" value="${data.config_case_type || ''}">
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <label class="form-label">Mainboard</label>
-                    <input class="form-control" name="details[${index}][config_main]" data-field="config_main" value="${data.config_main || ''}">
+                    <label class="form-label">Layout</label>
+                    <input class="form-control" name="details[${index}][config_layout]" data-field="config_layout" value="${data.config_layout || ''}">
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Ghi chú cấu hình khác</label>
-                    <textarea class="form-control" rows="2" name="details[${index}][config_others]" data-field="config_others">${data.config_others || ''}</textarea>
+                    <label class="form-label">Foam</label>
+                    <textarea class="form-control" rows="2" name="details[${index}][config_foam]" data-field="config_foam">${data.config_foam || ''}</textarea>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <label class="form-label">Số lượng</label>
