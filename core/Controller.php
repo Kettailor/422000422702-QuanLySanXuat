@@ -36,15 +36,14 @@ abstract class Controller
         $adminMainRestricted = $isAdmin && !$isImpersonating && $adminFlow === 'main';
 
         if ($adminMainRestricted) {
-            $allowedControllers = [
-                'dashboard',
-                'auth',
-                'setting',
-                'notifications',
-                'self_salary',
-                'admin',
-                'adminImpersonation',
-                'account',
+                $allowedControllers = [
+                    'dashboard',
+                    'auth',
+                    'setting',
+                    'notifications',
+                    'admin',
+                    'adminImpersonation',
+                    'account',
             ];
             $currentController = $_GET['controller'] ?? 'dashboard';
             if (!in_array($currentController, $allowedControllers, true)) {

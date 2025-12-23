@@ -41,7 +41,7 @@ $showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO']);
 $showHumanResources = $canAccess(['VT_BAN_GIAM_DOC']);
 $showReports = $canAccess(['VT_BAN_GIAM_DOC']);
 $showBill = $canAccess(['VT_KETOAN']);
-$showSalary = $canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC', 'VT_KINH_DOANH']);
+$showSalary = $canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC']);
 $showNotifications = !empty($role);
 $showSupport = $actualRole !== 'VT_ADMIN';
 $showAdminTools = $actualRole === 'VT_ADMIN';
@@ -88,9 +88,6 @@ if ($isAdminMain) {
                 <i class="bi bi-calendar2-check"></i> Lịch sử chấm công
             </a>
         <?php endif; ?>
-        <a class="nav-link <?= $currentController === 'self_salary' ? 'active' : '' ?>" href="?controller=self_salary&action=index">
-            <i class="bi bi-cash-coin"></i> Bảng lương cá nhân
-        </a>
         <?php if ($showWorkshopPlanPersonal): ?>
             <a class="nav-link <?= $currentController === 'workshop_plan_personal' ? 'active' : '' ?>" href="?controller=workshop_plan_personal&action=index">
                 <i class="bi bi-clipboard-check"></i> Kế hoạch được giao
@@ -231,9 +228,6 @@ if ($isAdminMain) {
                 <i class="bi bi-calendar2-check"></i> Lịch sử chấm công
             </a>
         <?php endif; ?>
-        <a class="nav-link <?= $currentController === 'self_salary' ? 'active' : '' ?>" href="?controller=self_salary&action=index">
-            <i class="bi bi-cash-coin"></i> Bảng lương cá nhân
-        </a>
         <?php if ($showWorkshopPlanPersonal): ?>
             <a class="nav-link <?= $currentController === 'workshop_plan_personal' ? 'active' : '' ?>" href="?controller=workshop_plan_personal&action=index">
                 <i class="bi bi-clipboard-check"></i> Kế hoạch được giao
