@@ -219,6 +219,13 @@ class WorkShift extends BaseModel
 
             if (!empty($shiftIds)) {
                 $placeholders = implode(',', array_fill(0, count($shiftIds), '?'));
+                $assignmentSql = "DELETE FROM phan_cong_ke_hoach_xuong WHERE IdCaLamViec IN ({$placeholders})";
+                $assignmentStmt = $this->db->prepare($assignmentSql);
+                foreach ($shiftIds as $index => $shiftId) {
+                    $assignmentStmt->bindValue($index + 1, $shiftId);
+                }
+                $assignmentStmt->execute();
+
                 $attendanceSql = "DELETE FROM cham_cong WHERE IdCaLamViec IN ({$placeholders})";
                 $attendanceStmt = $this->db->prepare($attendanceSql);
                 foreach ($shiftIds as $index => $shiftId) {
