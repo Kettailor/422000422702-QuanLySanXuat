@@ -28,6 +28,9 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
         <a class="nav-link <?= $currentController === 'dashboard' ? 'active' : '' ?>" href="?controller=dashboard&action=index">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
+        <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
+            <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
+        </a>
         <?php if ($canAccess(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC'])): ?>
             <a class="nav-link <?= $currentController === 'order' ? 'active' : '' ?>" href="?controller=order&action=index">
                 <i class="bi bi-receipt"></i> Đơn hàng
@@ -53,7 +56,7 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-stopwatch"></i> Chấm công
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KHO_TRUONG'])): ?>
+        <?php if ($canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_KINH_DOANH'])): ?>
             <a class="nav-link <?= $currentController === 'self_timekeeping' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=index">
                 <i class="bi bi-fingerprint"></i> Tự chấm công
             </a>
@@ -101,16 +104,19 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                 <i class="bi bi-journal-text"></i> Phiếu kho
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_KETOAN', 'VT_KINH_DOANH'])): ?>
+        <?php if ($canAccess(['VT_KETOAN'])): ?>
             <a class="nav-link <?= $currentController === 'bill' ? 'active' : '' ?>" href="?controller=bill&action=index">
                 <i class="bi bi-file-earmark-text"></i> Hóa đơn
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC'])): ?>
+        <?php if ($canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC', 'VT_KINH_DOANH'])): ?>
             <a class="nav-link <?= $currentController === 'salary' ? 'active' : '' ?>" href="?controller=salary&action=index">
                 <i class="bi bi-cash-stack"></i> Bảng lương
             </a>
         <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'notifications' ? 'active' : '' ?>" href="?controller=notifications&action=index">
+            <i class="bi bi-bell"></i> Thông báo
+        </a>
         <?php if ($actualRole === 'VT_ADMIN'): ?>
             <a class="nav-link <?= $currentController === 'adminImpersonation' ? 'active' : '' ?>" href="?controller=adminImpersonation&action=index">
                 <i class="bi bi-person-badge"></i> Giả lập vai trò
@@ -133,14 +139,24 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
         <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
             <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
         </a>
+        <?php if ($canAccess(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC'])): ?>
+            <a class="nav-link <?= $currentController === 'order' ? 'active' : '' ?>" href="?controller=order&action=index">
+                <i class="bi bi-receipt"></i> Đơn hàng
+            </a>
+        <?php endif; ?>
         <?php if ($canAccess(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG'])): ?>
             <a class="nav-link <?= $currentController === 'plan' ? 'active' : '' ?>" href="?controller=plan&action=index">
                 <i class="bi bi-kanban"></i> Kế hoạch sản xuất
             </a>
         <?php endif; ?>
-        <?php if ($canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KHO_TRUONG'])): ?>
+        <?php if ($canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_KINH_DOANH'])): ?>
             <a class="nav-link <?= $currentController === 'self_timekeeping' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=index">
                 <i class="bi bi-fingerprint"></i> Tự chấm công
+            </a>
+        <?php endif; ?>
+        <?php if ($canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC', 'VT_KINH_DOANH'])): ?>
+            <a class="nav-link <?= $currentController === 'salary' ? 'active' : '' ?>" href="?controller=salary&action=index">
+                <i class="bi bi-cash-stack"></i> Bảng lương
             </a>
         <?php endif; ?>
         <a class="nav-link <?= $currentController === 'notifications' ? 'active' : '' ?>" href="?controller=notifications&action=index">
@@ -205,7 +221,13 @@ $canAccess = function (array $roles) use ($role, $actualRole, $isImpersonating):
                                     <?php if ($message): ?>
                                         <div class="text-muted small mt-1"><?= htmlspecialchars($message) ?></div>
                                     <?php endif; ?>
-                                    <?php if ($link): ?>
+                                    <?php if (!empty($notification['id'])): ?>
+                                        <?php
+                                        $redirect = $link ?: '?controller=notifications&action=index';
+                                        $readLink = '?controller=notifications&action=read&id=' . urlencode($notification['id']) . '&redirect=' . urlencode($redirect);
+                                        ?>
+                                        <a href="<?= htmlspecialchars($readLink) ?>" class="stretched-link"></a>
+                                    <?php elseif ($link): ?>
                                         <a href="<?= htmlspecialchars($link) ?>" class="stretched-link"></a>
                                     <?php endif; ?>
                                 </div>

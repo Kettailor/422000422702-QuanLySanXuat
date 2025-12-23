@@ -8,8 +8,10 @@ class OrderController extends Controller
     private OrderDetail $orderDetailModel;
     private ProductConfiguration $configurationModel;
     private ProductBom $bomModel;
+    private SystemActivity $activityModel;
+    private Employee $employeeModel;
 
-    private array $orderStatuses = ['Mới tạo', 'Đang xử lý', 'Chờ giao', 'Hoàn thành', 'Đã hủy'];
+    private array $orderStatuses = ['Chưa có kế hoạch', 'Đang xử lý', 'Hoàn thành', 'Chờ vận chuyển', 'Đã hoàn thành'];
 
     public function __construct()
     {
@@ -20,6 +22,8 @@ class OrderController extends Controller
         $this->orderDetailModel = new OrderDetail();
         $this->configurationModel = new ProductConfiguration();
         $this->bomModel = new ProductBom();
+        $this->activityModel = new SystemActivity();
+        $this->employeeModel = new Employee();
     }
 
     public function index(): void
@@ -73,14 +77,17 @@ class OrderController extends Controller
             $preparedDetails = $this->prepareOrderDetails($orderId, $detailsInput);
             $totalAmount = array_reduce($preparedDetails, static fn ($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
 
+            $currentUser = $this->currentUser();
+            $creatorId = $currentUser['IdNhanVien'] ?? null;
             $data = [
                 'IdDonHang' => $orderId,
                 'YeuCau' => $_POST['YeuCau'] ?? null,
                 'TongTien' => $totalAmount,
-                'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
-                'TrangThai' => $_POST['TrangThai'] ?? $this->orderStatuses[0],
+                'NgayLap' => date('Y-m-d'),
+                'TrangThai' => $this->orderStatuses[0],
                 'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
                 'IdKhachHang' => $customerId,
+                'IdNguoiTao' => $creatorId,
             ];
 
             $this->orderModel->create($data);
@@ -91,6 +98,8 @@ class OrderController extends Controller
 
             $db->commit();
             $this->setFlash('success', 'Tạo đơn hàng thành công.');
+            $this->notifyBoardOrder($orderId, 'Tạo đơn hàng mới');
+            $this->logOrderActivity($creatorId, sprintf('Tạo đơn hàng %s', $orderId));
         } catch (Throwable $exception) {
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
@@ -146,42 +155,112 @@ class OrderController extends Controller
 
         $detailsInput = $_POST['details'] ?? [];
         $contactEmail = trim($_POST['EmailLienHe'] ?? '');
-
-        try {
-            $customerId = $this->resolveCustomer($_POST);
-        } catch (InvalidArgumentException $exception) {
-            Logger::error('Lỗi khi cập nhật đơn hàng: ' . $exception->getMessage());
-            /* $this->setFlash('danger', $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật đơn hàng: Đã xảy ra lỗi, vui lòng kiểm tra log để biết thêm chi tiết.');
-            $this->redirect('?controller=order&action=edit&id=' . urlencode($id));
+        $order = $this->orderModel->find($id);
+        if (!$order) {
+            $this->setFlash('warning', 'Không tìm thấy đơn hàng.');
+            $this->redirect('?controller=order&action=index');
             return;
         }
+
+        $currentUser = $this->currentUser();
+        $editorId = $currentUser['IdNhanVien'] ?? null;
 
         try {
             $db = Database::getInstance()->getConnection();
             $db->beginTransaction();
 
-            $preparedDetails = $this->prepareOrderDetails($id, $detailsInput);
-            $totalAmount = array_reduce($preparedDetails, static fn ($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
+            $existingDetails = $this->orderDetailModel->getByOrder($id);
+            $existingMap = [];
+            foreach ($existingDetails as $detail) {
+                $detailId = $detail['IdTTCTDonHang'] ?? null;
+                if ($detailId) {
+                    $existingMap[$detailId] = $detail;
+                }
+            }
+
+            $inputById = [];
+            foreach ($detailsInput as $detail) {
+                if (!is_array($detail)) {
+                    continue;
+                }
+                $detailId = $detail['detail_id'] ?? null;
+                if ($detailId) {
+                    $inputById[$detailId] = $detail;
+                }
+            }
+
+            if (count($inputById) < count($existingMap)) {
+                throw new InvalidArgumentException('Không được xóa hoặc thay đổi dòng chi tiết khi chỉnh sửa đơn hàng.');
+            }
+
+            $totalAmount = 0.0;
+            $changeNotes = [];
+            foreach ($existingMap as $detailId => $existing) {
+                $input = $inputById[$detailId] ?? [];
+                $currentQuantity = (int) ($existing['SoLuong'] ?? 0);
+                $newQuantity = isset($input['quantity']) ? (int) $input['quantity'] : $currentQuantity;
+                if ($newQuantity < $currentQuantity) {
+                    throw new InvalidArgumentException('Số lượng chỉ được phép tăng, không được giảm.');
+                }
+                if ($newQuantity > $currentQuantity) {
+                    $changeNotes[] = sprintf('Dòng %s tăng số lượng %d → %d', $detailId, $currentQuantity, $newQuantity);
+                }
+
+                $deliveryInput = $input['delivery_date'] ?? null;
+                $delivery = $existing['NgayGiao'] ?? null;
+                if ($deliveryInput !== null && $deliveryInput !== '') {
+                    $timestamp = strtotime($deliveryInput);
+                    $delivery = $timestamp ? date('Y-m-d H:i:s', $timestamp) : null;
+                }
+
+                if (!empty($existing['NgayGiao']) && $delivery) {
+                    $existingTimestamp = strtotime($existing['NgayGiao']);
+                    $newTimestamp = strtotime($delivery);
+                    if ($existingTimestamp && $newTimestamp && $newTimestamp < $existingTimestamp) {
+                        throw new InvalidArgumentException('Ngày giao dự kiến chỉ được phép lùi muộn hơn.');
+                    }
+                }
+                if (!empty($existing['NgayGiao']) && $delivery && $existing['NgayGiao'] !== $delivery) {
+                    $changeNotes[] = sprintf('Dòng %s dời ngày giao %s → %s', $detailId, $existing['NgayGiao'], $delivery);
+                }
+                if ($delivery) {
+                    $newTimestamp = strtotime($delivery);
+                    if ($newTimestamp && $newTimestamp < time()) {
+                        throw new InvalidArgumentException('Ngày giao dự kiến không được sớm hơn thời điểm hiện tại.');
+                    }
+                }
+
+                $unitPrice = (float) ($existing['DonGia'] ?? 0);
+                $vat = (float) ($existing['VAT'] ?? 0);
+                $lineTotal = $newQuantity * $unitPrice * (1 + $vat);
+                $totalAmount += $lineTotal;
+
+                $this->orderDetailModel->update($detailId, [
+                    'SoLuong' => $newQuantity,
+                    'NgayGiao' => $delivery,
+                    'ThanhTien' => $lineTotal,
+                ]);
+            }
 
             $data = [
-                'YeuCau' => $_POST['YeuCau'] ?? null,
+                'YeuCau' => $order['YeuCau'] ?? null,
                 'TongTien' => $totalAmount,
-                'NgayLap' => $_POST['NgayLap'] ?? date('Y-m-d'),
-                'TrangThai' => $_POST['TrangThai'] ?? $this->orderStatuses[0],
+                'NgayLap' => $order['NgayLap'] ?? date('Y-m-d'),
+                'TrangThai' => $order['TrangThai'] ?? $this->orderStatuses[0],
                 'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
-                'IdKhachHang' => $customerId,
+                'IdKhachHang' => $order['IdKhachHang'] ?? null,
             ];
 
             $this->orderModel->update($id, $data);
-            $this->orderDetailModel->deleteByOrder($id);
-
-            foreach ($preparedDetails as $detail) {
-                $this->orderDetailModel->create($detail);
-            }
 
             $db->commit();
             $this->setFlash('success', 'Cập nhật đơn hàng thành công.');
+            $this->notifyBoardOrder($id, 'Cập nhật đơn hàng');
+            if (($order['EmailLienHe'] ?? null) !== ($data['EmailLienHe'] ?? null)) {
+                $changeNotes[] = sprintf('Email liên hệ %s → %s', $order['EmailLienHe'] ?? '---', $data['EmailLienHe'] ?? '---');
+            }
+            $noteText = $changeNotes ? implode('; ', $changeNotes) : 'Cập nhật thông tin đơn hàng.';
+            $this->logOrderActivity($editorId, sprintf('Cập nhật đơn hàng %s: %s', $id, $noteText));
         } catch (Throwable $exception) {
             if (isset($db) && $db->inTransaction()) {
                 $db->rollBack();
@@ -227,6 +306,11 @@ class OrderController extends Controller
         $customer = $order ? $this->customerModel->find($order['IdKhachHang']) : null;
         $orderDetails = $this->orderDetailModel->getByOrder($id);
         $detailedItems = $this->prepareDetailsForDisplay($orderDetails);
+        $creator = null;
+        if (!empty($order['IdNguoiTao'])) {
+            $creator = $this->employeeModel->find($order['IdNguoiTao']);
+        }
+        $activities = $this->activityModel->findByOrderId($id, 20);
 
         $this->render('order/read', [
             'title' => 'Chi tiết đơn hàng',
@@ -234,6 +318,8 @@ class OrderController extends Controller
             'customer' => $customer,
             'orderDetails' => $detailedItems,
             'orderStatuses' => $this->orderStatuses,
+            'creator' => $creator,
+            'activities' => $activities,
         ]);
     }
 
@@ -290,11 +376,13 @@ class OrderController extends Controller
             $configurationId = $detail['configuration_id'] ?? null;
             $configuration = null;
 
+            $configDescription = trim($detail['config_description'] ?? '');
             $configKeycap = trim($detail['config_keycap'] ?? '');
-            $configSwitch = trim($detail['config_switch'] ?? '');
-            $configCase = trim($detail['config_case'] ?? '');
-            $configMain = trim($detail['config_main'] ?? '');
-            $configOthers = trim($detail['config_others'] ?? '');
+            $configMainboard = trim($detail['config_mainboard'] ?? '');
+            $configSwitch = trim($detail['config_switch_type'] ?? '');
+            $configCase = trim($detail['config_case_type'] ?? '');
+            $configLayout = trim($detail['config_layout'] ?? '');
+            $configFoam = trim($detail['config_foam'] ?? '');
 
             if ($configurationMode === 'new') {
                 $configurationName = trim($detail['new_configuration_name'] ?? '');
@@ -308,13 +396,15 @@ class OrderController extends Controller
                 if ($configurationId && $existingConfiguration = $this->configurationModel->find($configurationId)) {
                     $this->configurationModel->update($configurationId, [
                         'TenCauHinh' => $configurationName,
-                        'MoTa' => $configurationDescription ?: ($configKeycap ?: null),
+                        'MoTa' => $configurationDescription ?: ($configDescription ?: null),
                         'GiaBan' => $configurationPrice,
                         'IdSanPham' => $productId,
-                        'Layout' => $configMain ?: null,
+                        'Keycap' => $configKeycap ?: null,
+                        'Mainboard' => $configMainboard ?: null,
+                        'Layout' => $configLayout ?: null,
                         'SwitchType' => $configSwitch ?: null,
                         'CaseType' => $configCase ?: null,
-                        'Foam' => $configOthers ?: null,
+                        'Foam' => $configFoam ?: null,
                     ]);
                     $bomId = $existingConfiguration['IdBOM'] ?? null;
                     if ($bomId) {
@@ -339,14 +429,16 @@ class OrderController extends Controller
                     $this->configurationModel->create([
                         'IdCauHinh' => $configurationId,
                         'TenCauHinh' => $configurationName,
-                        'MoTa' => $configurationDescription ?: ($configKeycap ?: null),
+                        'MoTa' => $configurationDescription ?: ($configDescription ?: null),
                         'GiaBan' => $configurationPrice,
                         'IdSanPham' => $productId,
                         'IdBOM' => $bomId,
-                        'Layout' => $configMain ?: null,
+                        'Keycap' => $configKeycap ?: null,
+                        'Mainboard' => $configMainboard ?: null,
+                        'Layout' => $configLayout ?: null,
                         'SwitchType' => $configSwitch ?: null,
                         'CaseType' => $configCase ?: null,
-                        'Foam' => $configOthers ?: null,
+                        'Foam' => $configFoam ?: null,
                     ]);
                     $configuration = $this->configurationModel->find($configurationId);
                 }
@@ -364,12 +456,14 @@ class OrderController extends Controller
             }
 
             if ($configuration) {
+                $configKeycap = $configKeycap ?: trim((string)($configuration['Keycap'] ?? ''));
+                $configMainboard = $configMainboard ?: trim((string)($configuration['Mainboard'] ?? ''));
                 $configSwitch = $configSwitch ?: trim((string)($configuration['SwitchType'] ?? ''));
                 $configCase = $configCase ?: trim((string)($configuration['CaseType'] ?? ''));
-                $configMain = $configMain ?: trim((string)($configuration['Layout'] ?? ''));
-                $configOthers = $configOthers ?: trim((string)($configuration['Foam'] ?? ''));
-                if ($configKeycap === '' && !empty($configuration['MoTa'])) {
-                    $configKeycap = trim((string)$configuration['MoTa']);
+                $configLayout = $configLayout ?: trim((string)($configuration['Layout'] ?? ''));
+                $configFoam = $configFoam ?: trim((string)($configuration['Foam'] ?? ''));
+                if ($configDescription === '' && !empty($configuration['MoTa'])) {
+                    $configDescription = trim((string)$configuration['MoTa']);
                 }
             }
 
@@ -393,11 +487,13 @@ class OrderController extends Controller
             $metaPayload = [
                 'note' => $note !== '' ? $note : null,
                 'configuration' => array_filter([
+                    'description' => $configDescription !== '' ? $configDescription : null,
                     'keycap' => $configKeycap !== '' ? $configKeycap : null,
-                    'switch' => $configSwitch !== '' ? $configSwitch : null,
-                    'case' => $configCase !== '' ? $configCase : null,
-                    'main' => $configMain !== '' ? $configMain : null,
-                    'others' => $configOthers !== '' ? $configOthers : null,
+                    'mainboard' => $configMainboard !== '' ? $configMainboard : null,
+                    'layout' => $configLayout !== '' ? $configLayout : null,
+                    'switch_type' => $configSwitch !== '' ? $configSwitch : null,
+                    'case_type' => $configCase !== '' ? $configCase : null,
+                    'foam' => $configFoam !== '' ? $configFoam : null,
                 ]),
                 'source' => [
                     'product' => $productMode,
@@ -432,11 +528,13 @@ class OrderController extends Controller
         $meta = [
             'note' => null,
             'configuration' => [
+                'description' => null,
                 'keycap' => null,
-                'switch' => null,
-                'case' => null,
-                'main' => null,
-                'others' => null,
+                'mainboard' => null,
+                'layout' => null,
+                'switch_type' => null,
+                'case_type' => null,
+                'foam' => null,
             ],
             'source' => [
                 'product' => 'existing',
@@ -454,6 +552,19 @@ class OrderController extends Controller
                 }
                 if (isset($decoded['configuration']) && is_array($decoded['configuration'])) {
                     $meta['configuration'] = array_merge($meta['configuration'], array_intersect_key($decoded['configuration'], $meta['configuration']));
+                    $meta['configuration']['description'] = $meta['configuration']['description'] ?? ($decoded['configuration']['description'] ?? null);
+                    $meta['configuration']['keycap'] = $meta['configuration']['keycap'] ?? ($decoded['configuration']['keycap'] ?? null);
+                    $meta['configuration']['mainboard'] = $meta['configuration']['mainboard'] ?? ($decoded['configuration']['mainboard'] ?? null);
+                    $meta['configuration']['layout'] = $meta['configuration']['layout'] ?? ($decoded['configuration']['main'] ?? null);
+                    $meta['configuration']['switch_type'] = $meta['configuration']['switch_type'] ?? ($decoded['configuration']['switch'] ?? null);
+                    $meta['configuration']['case_type'] = $meta['configuration']['case_type'] ?? ($decoded['configuration']['case'] ?? null);
+                    $meta['configuration']['foam'] = $meta['configuration']['foam'] ?? ($decoded['configuration']['others'] ?? null);
+                    if ($meta['configuration']['description'] === null && !empty($meta['configuration']['keycap'])) {
+                        $meta['configuration']['description'] = $meta['configuration']['keycap'];
+                    }
+                    if ($meta['configuration']['mainboard'] === null && !empty($decoded['configuration']['main'])) {
+                        $meta['configuration']['mainboard'] = $decoded['configuration']['main'];
+                    }
                 }
                 if (isset($decoded['source']) && is_array($decoded['source'])) {
                     $meta['source'] = array_merge($meta['source'], array_intersect_key($decoded['source'], $meta['source']));
@@ -497,13 +608,18 @@ class OrderController extends Controller
                 'unit_price' => (float)($detail['DonGia'] ?? 0),
                 'vat' => $vatPercent,
                 'delivery_date' => $delivery,
+                'min_delivery_date' => $delivery,
                 'requirement' => $detail['YeuCau'] ?? '',
                 'note' => $meta['note'] ?? '',
-                'config_keycap' => $meta['configuration']['keycap'] ?? '',
-                'config_switch' => $meta['configuration']['switch'] ?? '',
-                'config_case' => $meta['configuration']['case'] ?? '',
-                'config_main' => $meta['configuration']['main'] ?? '',
-                'config_others' => $meta['configuration']['others'] ?? '',
+                'config_description' => $meta['configuration']['description'] ?? ($detail['MoTaCauHinh'] ?? ''),
+                'config_keycap' => $meta['configuration']['keycap'] ?? ($detail['Keycap'] ?? ''),
+                'config_mainboard' => $meta['configuration']['mainboard'] ?? ($detail['Mainboard'] ?? ''),
+                'config_layout' => $meta['configuration']['layout'] ?? ($detail['Layout'] ?? ''),
+                'config_switch_type' => $meta['configuration']['switch_type'] ?? ($detail['SwitchType'] ?? ''),
+                'config_case_type' => $meta['configuration']['case_type'] ?? ($detail['CaseType'] ?? ''),
+                'config_foam' => $meta['configuration']['foam'] ?? ($detail['Foam'] ?? ''),
+                'detail_id' => $detail['IdTTCTDonHang'] ?? '',
+                'min_quantity' => (int)($detail['SoLuong'] ?? 1),
             ];
         }, $details);
     }
@@ -513,6 +629,54 @@ class OrderController extends Controller
         return array_map(function (array $detail): array {
             return $this->parseDetailMeta($detail);
         }, $details);
+    }
+
+    private function notifyBoardOrder(string $orderId, string $title): void
+    {
+        $notificationStore = new NotificationStore();
+        $notificationSetting = new NotificationSetting();
+        $channel = $notificationSetting->getValue('board_channel') ?? 'board_notification';
+        $recipients = $notificationSetting->getRecipients('board_recipients');
+
+        $entry = [
+            'channel' => $channel,
+            'title' => $title,
+            'message' => sprintf('Đơn hàng %s cần được lập kế hoạch.', $orderId),
+            'link' => '?controller=order&action=read&id=' . urlencode($orderId),
+            'metadata' => [
+                'order_id' => $orderId,
+            ],
+        ];
+
+        if (empty($recipients)) {
+            $notificationStore->push($entry);
+            return;
+        }
+
+        $entries = [];
+        foreach ($recipients as $recipient) {
+            $entries[] = $entry + ['recipient' => $recipient];
+        }
+
+        $notificationStore->pushMany($entries);
+    }
+
+    private function logOrderActivity(?string $userId, string $action): void
+    {
+        if (!$userId) {
+            return;
+        }
+
+        try {
+            $this->activityModel->create([
+                'IdHoatDong' => uniqid('HD'),
+                'HanhDong' => $action,
+                'ThoiGian' => date('Y-m-d H:i:s'),
+                'IdNguoiDung' => $userId,
+            ]);
+        } catch (Throwable $exception) {
+            Logger::error('Lỗi khi ghi nhật ký đơn hàng: ' . $exception->getMessage());
+        }
     }
 
     private function resolveCustomer(array $input, ?string $fallbackCustomerId = null): string

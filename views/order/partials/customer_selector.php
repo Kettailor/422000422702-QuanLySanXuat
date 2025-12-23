@@ -2,32 +2,72 @@
 $selectedCustomerId = $selectedCustomerId ?? null;
 $customerFormData = $customerFormData ?? ['name' => '', 'phone' => '', 'email' => '', 'address' => '', 'type' => ''];
 $customerMode = $customerMode ?? 'existing';
+$isCustomerLocked = $isCustomerLocked ?? false;
 ?>
-<div class="col-lg-6" data-customer-selector>
+<div class="col-lg-6" data-customer-selector <?= $isCustomerLocked ? 'data-customer-locked="1"' : '' ?>>
     <label class="form-label">Khách hàng</label>
     <div class="btn-group w-100 mb-2" role="group" aria-label="Lựa chọn khách hàng">
         <button type="button"
                 class="btn btn-outline-primary customer-mode-btn <?= $customerMode === 'existing' ? 'active' : '' ?>"
-                data-mode="existing">
+                data-mode="existing"
+                <?= $isCustomerLocked ? 'disabled' : '' ?>>
             Chọn từ danh sách
         </button>
         <button type="button"
                 class="btn btn-outline-primary customer-mode-btn <?= $customerMode === 'new' ? 'active' : '' ?>"
-                data-mode="new">
+                data-mode="new"
+                <?= $isCustomerLocked ? 'disabled' : '' ?>>
             Thêm khách hàng mới
         </button>
     </div>
     <input type="hidden" name="customer_mode" value="<?= htmlspecialchars($customerMode) ?>" data-customer-field="mode">
     <div class="existing-customer-fields" data-customer-field="existing">
-        <select name="customer_existing_id" class="form-select" <?= $customerMode === 'existing' ? 'required' : '' ?>>
+        <select name="customer_existing_id" class="form-select" <?= $customerMode === 'existing' ? 'required' : '' ?> <?= $isCustomerLocked ? 'disabled' : '' ?>>
             <option value="">-- Chọn khách hàng/đối tác --</option>
             <?php foreach ($customers as $customer): ?>
                 <option value="<?= htmlspecialchars($customer['IdKhachHang']) ?>"
+                        data-name="<?= htmlspecialchars($customer['HoTen'] ?? '') ?>"
+                        data-company="<?= htmlspecialchars($customer['TenCongTy'] ?? '') ?>"
+                        data-phone="<?= htmlspecialchars($customer['SoDienThoai'] ?? '') ?>"
+                        data-email="<?= htmlspecialchars($customer['Email'] ?? '') ?>"
+                        data-address="<?= htmlspecialchars($customer['DiaChi'] ?? '') ?>"
+                        data-type="<?= htmlspecialchars($customer['LoaiKhachHang'] ?? '') ?>"
                     <?= $customer['IdKhachHang'] === $selectedCustomerId ? 'selected' : '' ?>>
                     <?= htmlspecialchars($customer['HoTen']) ?><?= !empty($customer['TenCongTy']) ? ' - ' . htmlspecialchars($customer['TenCongTy']) : '' ?>
                 </option>
             <?php endforeach; ?>
         </select>
+        <?php if ($isCustomerLocked): ?>
+            <input type="hidden" name="customer_existing_id" value="<?= htmlspecialchars((string) $selectedCustomerId) ?>">
+        <?php endif; ?>
+        <div class="border rounded p-3 bg-light mt-3" data-customer-field="existing-info">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Tên khách hàng</label>
+                    <input type="text" class="form-control" data-customer-info="name" readonly>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Tên công ty dự án</label>
+                    <input type="text" class="form-control" data-customer-info="company" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="text" class="form-control" data-customer-info="phone" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" data-customer-info="email" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Nhóm khách hàng</label>
+                    <input type="text" class="form-control" data-customer-info="type" readonly>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Địa chỉ</label>
+                    <textarea class="form-control" rows="2" data-customer-info="address" readonly></textarea>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="border rounded p-3 bg-light new-customer-fields <?= $customerMode === 'new' ? '' : 'd-none' ?>" data-customer-field="new">
         <div class="row g-3">
@@ -84,7 +124,30 @@ $customerMode = $customerMode ?? 'existing';
                 const existingSection = wrapper.querySelector('[data-customer-field="existing"]');
                 const newSection = wrapper.querySelector('[data-customer-field="new"]');
                 const existingSelect = existingSection.querySelector('select');
+                const existingInfoWrapper = existingSection.querySelector('[data-customer-field="existing-info"]');
                 const newInputs = newSection.querySelectorAll('input, textarea');
+                const isLocked = wrapper.getAttribute('data-customer-locked') === '1';
+
+                function fillExistingInfo() {
+                    if (!existingInfoWrapper) {
+                        return;
+                    }
+
+                    const selectedOption = existingSelect.options[existingSelect.selectedIndex];
+                    const infoMap = {
+                        name: selectedOption?.getAttribute('data-name') || '',
+                        company: selectedOption?.getAttribute('data-company') || '',
+                        phone: selectedOption?.getAttribute('data-phone') || '',
+                        email: selectedOption?.getAttribute('data-email') || '',
+                        address: selectedOption?.getAttribute('data-address') || '',
+                        type: selectedOption?.getAttribute('data-type') || ''
+                    };
+
+                    existingInfoWrapper.querySelectorAll('[data-customer-info]').forEach(function (field) {
+                        const key = field.getAttribute('data-customer-info');
+                        field.value = infoMap[key] || '';
+                    });
+                }
 
                 function setMode(mode) {
                     modeInput.value = mode;
@@ -103,6 +166,7 @@ $customerMode = $customerMode ?? 'existing';
                                 input.removeAttribute('required');
                             }
                         });
+                        fillExistingInfo();
                     } else {
                         existingSection.classList.add('d-none');
                         existingSelect.setAttribute('disabled', 'disabled');
@@ -119,9 +183,14 @@ $customerMode = $customerMode ?? 'existing';
 
                 wrapper.querySelectorAll('.customer-mode-btn').forEach(function (button) {
                     button.addEventListener('click', function () {
+                        if (isLocked) {
+                            return;
+                        }
                         setMode(button.getAttribute('data-mode'));
                     });
                 });
+
+                existingSelect.addEventListener('change', fillExistingInfo);
 
                 setMode(modeInput.value || 'existing');
             });
