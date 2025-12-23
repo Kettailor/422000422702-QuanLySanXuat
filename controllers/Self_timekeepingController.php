@@ -32,10 +32,6 @@ class Self_timekeepingController extends Controller
         $shift = $this->isFixedShiftRole($roleId)
             ? $this->workShiftModel->findFixedShiftForTimestamp($now)
             : $this->workShiftModel->findShiftForTimestamp($now);
-        if ($shift && $employeeId && !$this->isFixedShiftRole($roleId)
-            && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
-            $shift = null;
-        }
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId) : null;
         $geofence = $this->getGeofenceConfig();
 
@@ -59,10 +55,6 @@ class Self_timekeepingController extends Controller
         $shift = $this->isFixedShiftRole($roleId)
             ? $this->workShiftModel->findFixedShiftForTimestamp($now)
             : $this->workShiftModel->findShiftForTimestamp($now);
-        if ($shift && $employeeId && !$this->isFixedShiftRole($roleId)
-            && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
-            $shift = null;
-        }
         $openRecord = $employeeId ? $this->timekeepingModel->getOpenRecordForEmployee($employeeId) : null;
         $geofence = $this->getGeofenceConfig();
         if ($this->isFixedShiftRole($roleId)) {
@@ -178,12 +170,6 @@ class Self_timekeepingController extends Controller
                     : $this->workShiftModel->findShiftForTimestamp($now);
                 if (!$shift) {
                     $this->setFlash('danger', 'Hiện tại không nằm trong ca làm việc nào.');
-                    $this->redirect('?controller=self_timekeeping&action=index');
-                    return;
-                }
-                if (!$this->isFixedShiftRole($roleId)
-                    && !$this->planAssignmentModel->isEmployeeAssignedForTimestamp($employeeId, $now)) {
-                    $this->setFlash('danger', 'Bạn chưa được phân công ca làm hiện tại.');
                     $this->redirect('?controller=self_timekeeping&action=index');
                     return;
                 }

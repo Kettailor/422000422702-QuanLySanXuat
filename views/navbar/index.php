@@ -29,12 +29,12 @@ $workshopManagerRoles = [
 ];
 
 $showOrders = $canAccess(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC']);
-$showPlan = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showPlan = $canAccess(['VT_BAN_GIAM_DOC']);
 $showWorkshopPlan = $canAccess(array_merge($workshopManagerRoles, ['VT_NHANVIEN_SANXUAT']));
 $showWorkshopPlanPersonal = in_array($role, ['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO'], true);
 $showWorkshop = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
 $showTimekeeping = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
-$showSelfTimekeeping = $canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KINH_DOANH']);
+$showSelfTimekeeping = !empty($role);
 $showQuality = $canAccess(array_merge(['VT_KIEM_SOAT_CL', 'VT_BAN_GIAM_DOC'], $workshopManagerRoles));
 $showWarehouse = $canAccess(array_merge(['VT_NHANVIEN_KHO'], $workshopManagerRoles));
 $showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO']);
