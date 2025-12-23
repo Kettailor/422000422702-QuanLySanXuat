@@ -218,13 +218,14 @@ $types = $types ?? [];
 
                     <div class="mb-3">
                         <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
-                        <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required>
+                        <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required data-live-search="true">
                             <?php foreach ($managers as $manager): ?>
                                 <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>" <?= $manager['IdNhanVien'] === ($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '') ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($manager['HoTen']) ?><?= !empty($manager['ChucVu']) ? ' · ' . htmlspecialchars($manager['ChucVu']) : '' ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <div class="form-text text-muted">Nhập để tìm nhanh theo họ tên/chức vụ.</div>
                     </div>
 
                     <div class="summary-card mt-3">
