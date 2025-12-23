@@ -224,7 +224,7 @@ class InventorySheet extends BaseModel
 
     public function getFormOptions(): array
     {
-        $warehouses = $this->db->query('SELECT IdKho, TenKho, TenLoaiKho FROM KHO ORDER BY TenKho')->fetchAll();
+        $warehouses = $this->db->query('SELECT KHO.IdKho, KHO.TenKho, KHO.TenLoaiKho, KHO.IdXuong, XUONG.TenXuong FROM KHO LEFT JOIN XUONG ON XUONG.IdXuong = KHO.IdXuong ORDER BY KHO.TenKho')->fetchAll();
         $employees = $this->db->query('SELECT IdNhanVien, HoTen FROM NHAN_VIEN ORDER BY HoTen')->fetchAll();
         $types = $this->db->query('SELECT DISTINCT LoaiPhieu FROM PHIEU ORDER BY LoaiPhieu')->fetchAll(PDO::FETCH_COLUMN) ?: [];
 

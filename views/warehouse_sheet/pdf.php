@@ -86,7 +86,6 @@ $classification = $classification ?? null;
         <th style="width: 22%;">Tên lô</th>
         <th style="width: 25%;">Mặt hàng</th>
         <th style="width: 10%;">Số lượng</th>
-        <th style="width: 10%;">Thực nhận/xuất</th>
         <th style="width: 10%;">Đơn vị</th>
     </tr>
     </thead>
@@ -103,18 +102,16 @@ $classification = $classification ?? null;
                     <div class="muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></div>
                 </td>
                 <td class="text-end"><?= number_format($detail['SoLuong'] ?? 0) ?></td>
-                <td class="text-end"><?= number_format($detail['ThucNhan'] ?? 0) ?></td>
                 <td class="text-center"><?= htmlspecialchars($detail['DonViTinh'] ?? $detail['DonVi'] ?? '-') ?></td>
             </tr>
         <?php endforeach; ?>
     <?php endif; ?>
     </tbody>
-    <tfoot>
+<tfoot>
     <tr>
         <th colspan="3" class="text-end">Tổng cộng</th>
         <th class="text-end"><?= number_format($document['TongMatHang'] ?? 0) ?> mặt hàng</th>
-        <th class="text-end"><?= number_format($document['TongSoLuong'] ?? 0) ?></th>
-        <th></th>
+        <th class="text-center"><?= number_format($document['TongSoLuong'] ?? 0) ?></th>
     </tr>
     </tfoot>
 </table>
