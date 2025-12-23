@@ -13,6 +13,7 @@ class Workshop_planController extends Controller
     private Warehouse $warehouseModel;
     private Material $materialModel;
     private Workshop $workshopModel;
+    private Employee $employeeModel;
 
     public function __construct()
     {
@@ -28,6 +29,7 @@ class Workshop_planController extends Controller
         $this->warehouseModel = new Warehouse();
         $this->materialModel = new Material();
         $this->workshopModel = new Workshop();
+        $this->employeeModel = new Employee();
     }
 
     public function read(): void
@@ -201,6 +203,13 @@ class Workshop_planController extends Controller
         $availableEmployees = array_merge($warehouseEmployees, $productionEmployees);
         $planAssignments = $this->planAssignmentModel->getByPlan($planId);
         $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
+        $shiftMap = [];
+        foreach ($workShifts as $shift) {
+            $shiftId = $shift['IdCaLamViec'] ?? null;
+            if ($shiftId) {
+                $shiftMap[$shiftId] = $shift;
+            }
+        }
 
         $this->render('workshop_plan/assign', [
             'title' => 'Phân công kế hoạch xưởng',
@@ -278,6 +287,30 @@ class Workshop_planController extends Controller
             if (!isset($editableShiftIds[$shiftId]) && !isset($addOnlyShiftIds[$shiftId])) {
                 unset($assignmentsInput[$shiftId]);
             }
+        }
+
+        $conflicts = (!empty($plan['IdXuong']) && !empty($assignmentsInput))
+            ? $this->planAssignmentModel->findDayShiftConflicts($plan['IdXuong'], $planId, $assignmentsInput, $shiftMap)
+            : [];
+        if (!empty($conflicts)) {
+            $messages = [];
+            foreach ($conflicts as $conflict) {
+                $employeeLabel = $conflict['employee_name'] ?: $conflict['employee_id'];
+                $workDate = $conflict['work_date'] ?? '';
+                $formattedDate = $workDate ? date('d/m/Y', strtotime($workDate)) : '';
+                $planCode = $conflict['plan_id'] ? (' • KH ' . $conflict['plan_id']) : '';
+                $messages[] = trim(sprintf('%s (%s) • %s • %s%s',
+                    $employeeLabel,
+                    $conflict['employee_id'],
+                    $formattedDate,
+                    $conflict['shift_label'] ?? '',
+                    $planCode
+                ));
+            }
+
+            $this->setFlash('danger', 'Trùng phân công ca trong ngày: ' . implode('; ', $messages));
+            $this->redirect('?controller=workshop_plan&action=assign&id=' . urlencode($planId));
+            return;
         }
 
         try {

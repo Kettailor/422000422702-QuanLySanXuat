@@ -135,7 +135,7 @@ if ($isAdminMain) {
         <?php endif; ?>
         <?php if ($showTimekeeping): ?>
             <a class="nav-link <?= $currentController === 'timekeeping' ? 'active' : '' ?>" href="?controller=timekeeping&action=index">
-                <i class="bi bi-stopwatch"></i> Chấm công
+                <i class="bi bi-stopwatch"></i> Phân công &amp; chấm công
             </a>
         <?php endif; ?>
         <?php if ($showHumanResources): ?>

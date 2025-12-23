@@ -11,7 +11,7 @@ class TimekeepingController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG']);
+        $this->authorize(array_merge(['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG'], $this->getWorkshopManagerRoles()));
         $this->timekeepingModel = new Timekeeping();
         $this->employeeModel = new Employee();
         $this->workShiftModel = new WorkShift();
@@ -178,8 +178,8 @@ class TimekeepingController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
 
-        if (!in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG'], true)) {
-            $this->setFlash('danger', 'Bạn không có quyền thực hiện chức năng chấm công.');
+        if (!in_array($role, array_merge(['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG'], $this->getWorkshopManagerRoles()), true)) {
+            $this->setFlash('danger', 'Bạn không có quyền thực hiện chức năng phân công và chấm công.');
             $this->redirect('?controller=dashboard&action=index');
         }
 
@@ -192,7 +192,7 @@ class TimekeepingController extends Controller
             return $this->employeeModel->getActiveEmployees();
         }
 
-        if ($role === 'VT_KHO_TRUONG') {
+        if ($role === 'VT_KHO_TRUONG' || $role === 'VT_TRUONG_XUONG_LUU_TRU') {
             return $this->employeeModel->getEmployeesByRoleIds(['VT_NHANVIEN_KHO'], 'Đang làm việc');
         }
 
@@ -208,7 +208,7 @@ class TimekeepingController extends Controller
         $employees = [];
         foreach ($managedWorkshops as $workshopId) {
             $assignments = $this->assignmentModel->getAssignmentsByWorkshop($workshopId);
-            $groups = $role === 'VT_QUANLY_XUONG' ? ['nhan_vien_kho'] : ['nhan_vien_kho', 'nhan_vien_san_xuat'];
+            $groups = ($role === 'VT_TRUONG_XUONG_LUU_TRU') ? ['nhan_vien_kho'] : ['nhan_vien_kho', 'nhan_vien_san_xuat'];
             foreach ($groups as $group) {
                 foreach ($assignments[$group] ?? [] as $employee) {
                     $id = $employee['IdNhanVien'] ?? null;
@@ -237,11 +237,7 @@ class TimekeepingController extends Controller
         $user = $this->currentUser();
         $allowedEmployees = $this->getAssignableEmployees($role, $user['IdNhanVien'] ?? null);
         if (empty($allowedEmployees)) {
-            $this->setFlash('danger', $role === 'VT_KHO_TRUONG'
-                ? 'Bạn chỉ có thể chấm công cho nhân viên kho.'
-                : ($role === 'VT_QUANLY_XUONG'
-                    ? 'Bạn chỉ có thể chấm công cho nhân viên kho thuộc xưởng mình quản lý.'
-                    : 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.'));
+            $this->setFlash('danger', $this->resolveAssignmentRestrictionMessage($role));
             $this->redirect('?controller=timekeeping&action=index');
         }
 
@@ -251,14 +247,33 @@ class TimekeepingController extends Controller
         }));
 
         if (empty($filtered)) {
-            $this->setFlash('danger', $role === 'VT_KHO_TRUONG'
-                ? 'Bạn chỉ có thể chấm công cho nhân viên kho.'
-                : ($role === 'VT_QUANLY_XUONG'
-                    ? 'Bạn chỉ có thể chấm công cho nhân viên kho thuộc xưởng mình quản lý.'
-                    : 'Bạn chỉ có thể chấm công cho nhân viên thuộc xưởng mình quản lý.'));
+            $this->setFlash('danger', $this->resolveAssignmentRestrictionMessage($role));
             $this->redirect('?controller=timekeeping&action=index');
         }
 
         return $filtered;
+    }
+
+    private function resolveAssignmentRestrictionMessage(string $role): string
+    {
+        if ($role === 'VT_KHO_TRUONG' || $role === 'VT_TRUONG_XUONG_LUU_TRU') {
+            return 'Bạn chỉ có thể chấm công và phân công cho nhân viên kho thuộc phạm vi quản lý.';
+        }
+
+        if (in_array($role, $this->getWorkshopManagerRoles(), true)) {
+            return 'Bạn chỉ có thể chấm công và phân công cho nhân sự thuộc các xưởng bạn quản lý.';
+        }
+
+        return 'Bạn chỉ có thể chấm công cho nhân sự thuộc phạm vi được phân quyền.';
+    }
+
+    private function getWorkshopManagerRoles(): array
+    {
+        return [
+            'VT_TRUONG_XUONG_KIEM_DINH',
+            'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI',
+            'VT_TRUONG_XUONG_SAN_XUAT',
+            'VT_TRUONG_XUONG_LUU_TRU',
+        ];
     }
 }

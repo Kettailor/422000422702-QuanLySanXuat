@@ -39,10 +39,9 @@ class WorkshopAssignment
 
     public function getWorkshopsManagedBy(string $employeeId): array
     {
-        $sql = 'SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employeeId AND VaiTro = :role';
+        $sql = 'SELECT IdXuong FROM xuong WHERE XUONGTRUONG_IdNhanVien = :employeeId';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':employeeId', $employeeId);
-        $stmt->bindValue(':role', 'truong_xuong');
         $stmt->execute();
 
         return array_column($stmt->fetchAll(), 'IdXuong');
