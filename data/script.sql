@@ -185,7 +185,13 @@ CREATE TABLE `ca_lam` (
 -- Đang đổ dữ liệu cho bảng `ca_lam`
 --
 
--- (Dữ liệu ca làm sẽ được sinh tự động theo kế hoạch xưởng)
+INSERT INTO `ca_lam` (`IdCaLamViec`, `TenCa`, `LoaiCa`, `NgayLamViec`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TongSL`, `IdKeHoachSanXuatXuong`, `LOIdLo`) VALUES
+('CA_FIX_0501_S', 'Ca sáng', 'Cố định', '2023-05-01', '2023-05-01 06:30:00', '2023-05-01 14:00:00', 0, NULL, NULL),
+('CA_FIX_0501_T', 'Ca trưa', 'Cố định', '2023-05-01', '2023-05-01 14:00:00', '2023-05-01 22:00:00', 0, NULL, NULL),
+('CA_FIX_0501_D', 'Ca tối', 'Cố định', '2023-05-01', '2023-05-01 22:00:00', '2023-05-02 06:00:00', 0, NULL, NULL),
+('CA_FIX_0502_S', 'Ca sáng', 'Cố định', '2023-05-02', '2023-05-02 06:30:00', '2023-05-02 14:00:00', 0, NULL, NULL),
+('CA_FIX_0502_T', 'Ca trưa', 'Cố định', '2023-05-02', '2023-05-02 14:00:00', '2023-05-02 22:00:00', 0, NULL, NULL),
+('CA_FIX_0502_D', 'Ca tối', 'Cố định', '2023-05-02', '2023-05-02 22:00:00', '2023-05-03 06:00:00', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -213,7 +219,15 @@ CREATE TABLE `cham_cong` (
 -- Đang đổ dữ liệu cho bảng `cham_cong`
 --
 
--- (Không seed dữ liệu chấm công)
+INSERT INTO `cham_cong` (`IdChamCong`, `NHANVIEN IdNhanVien`, `ThoiGIanRa`, `ThoiGianVao`, `ViTriVaoLat`, `ViTriVaoLng`, `ViTriVaoAccuracy`, `ViTriRaLat`, `ViTriRaLng`, `ViTriRaAccuracy`, `XUONGTRUONG IdNhanVien`, `IdCaLamViec`, `GhiChu`) VALUES
+('CC0001', 'NV009', '2023-05-01 14:00:00', '2023-05-01 06:30:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0501_S', 'Chấm công mẫu'),
+('CC0002', 'NV010', '2023-05-01 14:00:00', '2023-05-01 06:45:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0501_S', 'Chấm công mẫu'),
+('CC0003', 'NV011', '2023-05-01 22:00:00', '2023-05-01 14:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0501_T', 'Chấm công mẫu'),
+('CC0004', 'NV012', '2023-05-01 22:00:00', '2023-05-01 14:10:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV008', 'CA_FIX_0501_T', 'Chấm công mẫu'),
+('CC0005', 'NV018', '2023-05-02 06:00:00', '2023-05-01 22:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0501_D', 'Chấm công mẫu'),
+('CC0006', 'NV009', '2023-05-02 14:00:00', '2023-05-02 06:30:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0502_S', 'Chấm công mẫu'),
+('CC0007', 'NV013', '2023-05-02 22:00:00', '2023-05-02 14:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV008', 'CA_FIX_0502_T', 'Chấm công mẫu'),
+('CC0008', 'NV019', '2023-05-03 06:00:00', '2023-05-02 22:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV008', 'CA_FIX_0502_D', 'Chấm công mẫu');
 
 -- --------------------------------------------------------
 
