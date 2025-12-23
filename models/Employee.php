@@ -38,23 +38,24 @@ class Employee extends BaseModel
             return [];
         }
 
-        $placeholders = [];
-        foreach ($workshopIds as $index => $workshopId) {
-            $placeholders[':workshop' . $index] = $workshopId;
-        }
+        $placeholderString = implode(', ', array_fill(0, count($workshopIds), '?'));
 
         $sql = 'SELECT DISTINCT nv.*
                 FROM nhan_vien nv
                 LEFT JOIN xuong_nhan_vien xnv ON xnv.IdNhanVien = nv.IdNhanVien
-                WHERE nv.TrangThai = :status
-                  AND (nv.idXuong IN (' . implode(', ', array_keys($placeholders)) . ')
-                       OR xnv.IdXuong IN (' . implode(', ', array_keys($placeholders)) . '))
+                WHERE nv.TrangThai = ?
+                  AND (nv.idXuong IN (' . $placeholderString . ')
+                       OR xnv.IdXuong IN (' . $placeholderString . '))
                 ORDER BY nv.HoTen';
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':status', 'Đang làm việc');
-        foreach ($placeholders as $placeholder => $value) {
-            $stmt->bindValue($placeholder, $value);
+        $paramIndex = 1;
+        $stmt->bindValue($paramIndex++, 'Đang làm việc');
+        foreach ($workshopIds as $workshopId) {
+            $stmt->bindValue($paramIndex++, $workshopId);
+        }
+        foreach ($workshopIds as $workshopId) {
+            $stmt->bindValue($paramIndex++, $workshopId);
         }
         $stmt->execute();
 
