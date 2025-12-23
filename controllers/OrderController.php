@@ -636,29 +636,19 @@ class OrderController extends Controller
         $notificationStore = new NotificationStore();
         $notificationSetting = new NotificationSetting();
         $channel = $notificationSetting->getValue('board_channel') ?? 'board_notification';
-        $recipients = $notificationSetting->getRecipients('board_recipients');
 
         $entry = [
             'channel' => $channel,
             'title' => $title,
             'message' => sprintf('Đơn hàng %s cần được lập kế hoạch.', $orderId),
             'link' => '?controller=order&action=read&id=' . urlencode($orderId),
+            'recipient_role' => 'VT_BAN_GIAM_DOC',
             'metadata' => [
                 'order_id' => $orderId,
             ],
         ];
 
-        if (empty($recipients)) {
-            $notificationStore->push($entry);
-            return;
-        }
-
-        $entries = [];
-        foreach ($recipients as $recipient) {
-            $entries[] = $entry + ['recipient' => $recipient];
-        }
-
-        $notificationStore->pushMany($entries);
+        $notificationStore->push($entry);
     }
 
     private function logOrderActivity(?string $userId, string $action): void
