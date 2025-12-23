@@ -1,6 +1,9 @@
 <?php
 $employeeCount = count($employees);
 $roleMap = $roleMap ?? [];
+$scopeNote = $scopeNote ?? null;
+$showSalaryLink = $showSalaryLink ?? true;
+$showTimekeepingLink = $showTimekeepingLink ?? true;
 $activeEmployees = array_filter($employees, static function ($employee) {
     return ($employee['TrangThai'] ?? '') === 'Đang làm việc';
 });
@@ -34,8 +37,12 @@ $activeRate = $employeeCount > 0 ? round(($activeCount / $employeeCount) * 100, 
         <p class="text-muted mb-0">Tổng quan lực lượng lao động, biến động nhân sự và các chỉ số vận hành liên quan.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="?controller=salary&action=index" class="btn btn-outline-info"><i class="bi bi-cash-stack me-2"></i>Bảng lương</a>
-        <a href="?controller=timekeeping&action=index" class="btn btn-outline-secondary"><i class="bi bi-calendar-check me-2"></i>Chấm công</a>
+        <?php if ($showSalaryLink): ?>
+            <a href="?controller=salary&action=index" class="btn btn-outline-info"><i class="bi bi-cash-stack me-2"></i>Bảng lương</a>
+        <?php endif; ?>
+        <?php if ($showTimekeepingLink): ?>
+            <a href="?controller=timekeeping&action=index" class="btn btn-outline-secondary"><i class="bi bi-calendar-check me-2"></i>Chấm công</a>
+        <?php endif; ?>
         <a href="?controller=human_resources&action=create" class="btn btn-primary"><i class="bi bi-person-plus me-2"></i>Thêm nhân sự</a>
     </div>
 </div>
@@ -85,7 +92,7 @@ $activeRate = $employeeCount > 0 ? round(($activeCount / $employeeCount) * 100, 
 
 <div class="alert alert-info d-flex align-items-center" role="alert">
     <i class="bi bi-lightning-charge me-2"></i>
-    <div>Đồng bộ dữ liệu lương, kế hoạch sản xuất và chấm công để tối ưu chi phí nhân sự và năng suất vận hành.</div>
+    <div><?= htmlspecialchars($scopeNote ?? 'Đồng bộ dữ liệu lương, kế hoạch sản xuất và chấm công để tối ưu chi phí nhân sự và năng suất vận hành.') ?></div>
 </div>
 
 <div class="card p-4">

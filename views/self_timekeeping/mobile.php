@@ -164,28 +164,74 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
     const lngInput = document.getElementById('geo-longitude');
     const accuracyInput = document.getElementById('geo-accuracy');
     const submitButton = document.getElementById('submit-button');
+    const accuracyThreshold = 100;
+    const baseDisabled = submitButton ? submitButton.hasAttribute('disabled') : true;
+    let bestAccuracy = null;
+    let consecutiveGood = 0;
+    let watchId = null;
 
     if (!navigator.geolocation) {
         status.textContent = 'Trình duyệt không hỗ trợ định vị.';
         return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const { latitude, longitude, accuracy } = position.coords;
-            latInput.value = latitude.toFixed(6);
-            lngInput.value = longitude.toFixed(6);
-            accuracyInput.value = Math.round(accuracy);
-            status.textContent = `Vị trí: ${latInput.value}, ${lngInput.value} (±${accuracyInput.value}m)`;
-        },
-        () => {
-            status.textContent = 'Không thể lấy vị trí. Vui lòng bật GPS hoặc cấp quyền định vị.';
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-    );
-
-    if (submitButton && submitButton.hasAttribute('disabled')) {
+    if (submitButton) {
+        submitButton.disabled = true;
         submitButton.classList.add('disabled');
     }
+
+    const updateSubmitState = (isReady) => {
+        if (!submitButton) {
+            return;
+        }
+        if (baseDisabled) {
+            submitButton.disabled = true;
+            submitButton.classList.add('disabled');
+            return;
+        }
+        submitButton.disabled = !isReady;
+        submitButton.classList.toggle('disabled', !isReady);
+    };
+
+    const handlePosition = (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        latInput.value = latitude.toFixed(6);
+        lngInput.value = longitude.toFixed(6);
+        accuracyInput.value = Math.round(accuracy);
+
+        if (bestAccuracy === null || accuracy < bestAccuracy) {
+            bestAccuracy = accuracy;
+        }
+
+        if (accuracy > accuracyThreshold) {
+            consecutiveGood = 0;
+            status.textContent = `Đang tăng độ chính xác vị trí (tốt nhất ±${Math.round(bestAccuracy)}m, hiện ±${accuracyInput.value}m)...`;
+            updateSubmitState(false);
+            return;
+        }
+
+        consecutiveGood += 1;
+        status.textContent = `Vị trí: ${latInput.value}, ${lngInput.value} (±${accuracyInput.value}m)`;
+        if (consecutiveGood >= 2) {
+            updateSubmitState(true);
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        } else {
+            updateSubmitState(false);
+        }
+    };
+
+    const handlePositionError = () => {
+        status.textContent = 'Không thể lấy vị trí. Vui lòng bật GPS hoặc cấp quyền định vị.';
+        updateSubmitState(false);
+    };
+
+    watchId = navigator.geolocation.watchPosition(
+        handlePosition,
+        handlePositionError,
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
 })();
 </script>

@@ -4,7 +4,7 @@ class AdminController extends Controller
 {
     public function __construct()
     {
-        $this->authorize(['VT_ADMIN']);
+        $this->authorize(['VT_ADMIN', 'VT_BAN_GIAM_DOC']);
     }
 
     public function ticket(): void

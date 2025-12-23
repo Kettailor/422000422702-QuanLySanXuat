@@ -11,7 +11,7 @@ class PlanController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG']);
+        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG']);
         $this->planModel = new ProductionPlan();
         $this->orderDetailModel = new OrderDetail();
         $this->workshopPlanModel = new WorkshopPlan();
@@ -22,6 +22,7 @@ class PlanController extends Controller
 
     public function index(): void
     {
+        $role = $this->currentRole();
         $plans = $this->planModel->getPlansWithOrders();
         $pendingDetails = $this->orderDetailModel->getPendingForPlanning();
         $pendingOrders = $this->groupPendingOrders($pendingDetails);
@@ -38,11 +39,18 @@ class PlanController extends Controller
             'plans' => $plans,
             'pendingOrders' => $pendingOrders,
             'stats' => $stats,
+            'canManagePlan' => $this->canManagePlans($role),
         ]);
     }
 
     public function create(): void
     {
+        if (!$this->canManagePlans($this->currentRole())) {
+            $this->setFlash('danger', 'Bạn chỉ có thể xem kế hoạch sản xuất.');
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
         $pendingDetails = $this->orderDetailModel->getPendingForPlanning();
         $pendingOrders = $this->groupPendingOrders($pendingDetails);
 
@@ -74,6 +82,12 @@ class PlanController extends Controller
     public function store(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
+        if (!$this->canManagePlans($this->currentRole())) {
+            $this->setFlash('danger', 'Bạn không có quyền lập kế hoạch sản xuất.');
             $this->redirect('?controller=plan&action=index');
             return;
         }
@@ -189,6 +203,12 @@ class PlanController extends Controller
 
     public function delete(): void
     {
+        if (!$this->canManagePlans($this->currentRole())) {
+            $this->setFlash('danger', 'Bạn không có quyền xóa kế hoạch sản xuất.');
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
         $id = $_GET['id'] ?? null;
         if (!$id) {
             $this->redirect('?controller=plan&action=index');
@@ -478,6 +498,18 @@ class PlanController extends Controller
         }
 
         return true;
+    }
+
+    private function currentRole(): ?string
+    {
+        $user = $this->currentUser();
+
+        return $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+    }
+
+    private function canManagePlans(?string $role): bool
+    {
+        return in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true);
     }
 
     private function resolveDateRuleMessage(string $message): string

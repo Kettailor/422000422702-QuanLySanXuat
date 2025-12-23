@@ -92,16 +92,17 @@ class Self_timekeepingController extends Controller
         $latitude = trim($_POST['latitude'] ?? '');
         $longitude = trim($_POST['longitude'] ?? '');
         $accuracy = trim($_POST['accuracy'] ?? '');
+        $location = $this->normalizeLocation($latitude, $longitude, $accuracy);
         $geofence = $this->getGeofenceConfig();
 
         if ($geofence) {
-            if ($latitude === '' || $longitude === '' || !is_numeric($latitude) || !is_numeric($longitude)) {
+            if ($location['lat'] === null || $location['lng'] === null) {
                 $this->setFlash('danger', 'Không xác định được vị trí. Vui lòng bật định vị để chấm công.');
                 $this->redirect('?controller=self_timekeeping&action=index');
                 return;
             }
 
-            $distance = $this->distanceMeters((float) $latitude, (float) $longitude, $geofence['lat'], $geofence['lng']);
+            $distance = $this->distanceMeters($location['lat'], $location['lng'], $geofence['lat'], $geofence['lng']);
             if ($distance > $geofence['radius']) {
                 $this->setFlash('danger', 'Bạn đang ở ngoài phạm vi chấm công cho phép.');
                 $this->redirect('?controller=self_timekeeping&action=index');
@@ -121,24 +122,33 @@ class Self_timekeepingController extends Controller
         try {
         $workDate = date('Y-m-d');
         $openRecord = $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate);
-            if ($openRecord) {
-                $recordId = $openRecord['IdChamCong'] ?? null;
-                if (!$recordId) {
-                    throw new RuntimeException('Không thể xác định bản ghi chấm công.');
-                }
-                $this->timekeepingModel->updateCheckOut($recordId, $now);
-                $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
-            } else {
-                $this->timekeepingModel->createForShift(
-                    $employeeId,
-                    $now,
-                    null,
-                    $shift['IdCaLamViec'],
-                    $note,
-                    $employeeId
-                );
-                $this->setFlash('success', 'Đã ghi nhận giờ vào ca.');
+        if ($openRecord) {
+            $recordId = $openRecord['IdChamCong'] ?? null;
+            if (!$recordId) {
+                throw new RuntimeException('Không thể xác định bản ghi chấm công.');
             }
+            $this->timekeepingModel->updateCheckOut(
+                $recordId,
+                $now,
+                $location['lat'],
+                $location['lng'],
+                $location['accuracy']
+            );
+            $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
+        } else {
+            $this->timekeepingModel->createForShift(
+                $employeeId,
+                $now,
+                null,
+                $shift['IdCaLamViec'],
+                $note,
+                $employeeId,
+                $location['lat'],
+                $location['lng'],
+                $location['accuracy']
+            );
+            $this->setFlash('success', 'Đã ghi nhận giờ vào ca.');
+        }
         } catch (Throwable $exception) {
             Logger::error('Không thể tự chấm công: ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể ghi nhận chấm công. Vui lòng thử lại.');
@@ -176,6 +186,19 @@ class Self_timekeepingController extends Controller
         $a = sin($latDelta / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lonDelta / 2) ** 2;
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         return $earthRadius * $c;
+    }
+
+    private function normalizeLocation(string $latitude, string $longitude, string $accuracy): array
+    {
+        $lat = is_numeric($latitude) ? (float) $latitude : null;
+        $lng = is_numeric($longitude) ? (float) $longitude : null;
+        $acc = is_numeric($accuracy) ? (float) $accuracy : null;
+
+        return [
+            'lat' => $lat,
+            'lng' => $lng,
+            'accuracy' => $acc,
+        ];
     }
 
     private function loadNotifications(?string $employeeId): array

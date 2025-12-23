@@ -115,7 +115,7 @@ class Factory_planController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true)) {
             return $this->workshopModel->getAllWithManagers();
         }
 
@@ -304,7 +304,7 @@ class Factory_planController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
             return true;
         }
 

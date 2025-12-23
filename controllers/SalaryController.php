@@ -18,12 +18,12 @@ class SalaryController extends Controller
 
     private function canManagePayrolls(?string $role): bool
     {
-        return in_array($role, ['VT_KETOAN', 'VT_ADMIN'], true);
+        return in_array($role, ['VT_KETOAN'], true);
     }
 
     private function canApprovePayrolls(?string $role): bool
     {
-        return in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
+        return in_array($role, ['VT_BAN_GIAM_DOC'], true);
     }
 
     private function requireManagePermission(): void

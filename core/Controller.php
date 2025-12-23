@@ -31,8 +31,9 @@ abstract class Controller
         $actualRole = $user['ActualIdVaiTro'] ?? $role;
         $isAdmin = $actualRole === 'VT_ADMIN';
         $isImpersonating = !empty($user['IsImpersonating']);
+        $adminBypassEnabled = $_SESSION['admin_bypass_enabled'] ?? true;
 
-        if ($isAdmin) {
+        if ($isAdmin && $adminBypassEnabled) {
             if ($isImpersonating) {
                 $username = $user['TenDangNhap'] ?? 'unknown';
                 error_log(sprintf(

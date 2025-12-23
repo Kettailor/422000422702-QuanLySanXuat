@@ -104,7 +104,8 @@ class WorkshopController extends Controller
 
         $workshop = $this->workshopModel->find($id);
         $assignments = $this->assignmentModel->getAssignmentsByWorkshop($id);
-        $employees = $this->canAssign() ? $this->employeeModel->getActiveEmployees() : [];
+        $canAssignStaff = $this->canAssignStaff($id);
+        $employees = $canAssignStaff ? $this->employeeModel->getActiveEmployees() : [];
 
         $this->render('workshop/edit', [
             'title' => 'Cập nhật thông tin xưởng',
@@ -113,8 +114,8 @@ class WorkshopController extends Controller
             'employeeGroups' => $this->groupEmployeesByRole($employees),
             'selectedWarehouse' => array_column($assignments['nhan_vien_kho'] ?? [], 'IdNhanVien'),
             'selectedProduction' => array_column($assignments['nhan_vien_san_xuat'] ?? [], 'IdNhanVien'),
-            'canAssign' => $this->canAssign(),
-            'canViewAssignments' => $this->canAssign(),
+            'canAssign' => $canAssignStaff,
+            'canViewAssignments' => $canAssignStaff,
             'staffList' => $this->buildStaffList($assignments),
         ]);
     }
@@ -138,7 +139,7 @@ class WorkshopController extends Controller
 
         $data = $this->extractWorkshopData($_POST);
         $assignments = $this->extractAssignments($_POST);
-        $canAssign = $this->canAssign();
+        $canAssign = $this->canAssignStaff($id);
         unset($data['IdXuong']);
         unset($data['XUONGTRUONG_IdNhanVien']);
 
@@ -198,7 +199,7 @@ class WorkshopController extends Controller
 
         $workshop = $id ? $this->workshopModel->find($id) : null;
         $assignments = $id ? $this->assignmentModel->getAssignmentsByWorkshop($id) : [];
-        $canViewAssignments = $this->canAssign();
+        $canViewAssignments = $this->canAssignStaff($id);
 
         $this->render('workshop/read', [
             'title' => 'Chi tiết xưởng sản xuất',
@@ -386,7 +387,22 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        return in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true);
+        return in_array($role, ['VT_BAN_GIAM_DOC'], true);
+    }
+
+    private function canAssignStaff(string $workshopId): bool
+    {
+        if ($this->canAssign()) {
+            return true;
+        }
+
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        if ($role !== 'VT_QUANLY_XUONG') {
+            return false;
+        }
+
+        return $this->canViewWorkshop($workshopId);
     }
 
     private function isWorkshopManager(): bool
@@ -405,18 +421,12 @@ class WorkshopController extends Controller
         }
 
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
             return true;
         }
 
         if ($role === 'VT_QUANLY_XUONG') {
-            $employeeId = $user['IdNhanVien'] ?? null;
-            if (!$employeeId) {
-                return false;
-            }
-
-            $workshop = $this->workshopModel->find($workshopId);
-            return $workshop && ($workshop['XUONGTRUONG_IdNhanVien'] ?? null) === $employeeId;
+            return true;
         }
 
         return false;
@@ -432,7 +442,7 @@ class WorkshopController extends Controller
         $user = $this->currentUser();
         $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
 
-        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
             return $this->workshopModel->getAllWithManagers();
         }
 
