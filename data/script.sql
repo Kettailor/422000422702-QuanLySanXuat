@@ -536,7 +536,27 @@ CREATE TABLE `nguoi_dung` (
 -- Đang đổ dữ liệu cho bảng `nguoi_dung`
 --
 
--- (Dữ liệu đã được lược bỏ)
+INSERT INTO `nguoi_dung` (`IdNguoiDung`, `TenDangNhap`, `MatKhau`, `TrangThai`, `IdNhanVien`, `IdVaiTro`) VALUES
+('ND001', 'user01', '123456', 'Hoạt động', 'NV001', 'VT_ADMIN'),
+('ND002', 'user02', '123456', 'Hoạt động', 'NV002', 'VT_BAN_GIAM_DOC'),
+('ND003', 'user03', '123456', 'Hoạt động', 'NV003', 'VT_KETOAN'),
+('ND004', 'user04', '123456', 'Hoạt động', 'NV004', 'VT_KINH_DOANH'),
+('ND005', 'user05', '123456', 'Hoạt động', 'NV005', 'VT_TRUONG_XUONG_SAN_XUAT'),
+('ND006', 'user06', '123456', 'Hoạt động', 'NV006', 'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI'),
+('ND007', 'user07', '123456', 'Hoạt động', 'NV007', 'VT_TRUONG_XUONG_KIEM_DINH'),
+('ND008', 'user08', '123456', 'Hoạt động', 'NV008', 'VT_TRUONG_XUONG_LUU_TRU'),
+('ND009', 'user09', '123456', 'Hoạt động', 'NV009', 'VT_NHANVIEN_SANXUAT'),
+('ND010', 'user10', '123456', 'Hoạt động', 'NV010', 'VT_NHANVIEN_SANXUAT'),
+('ND011', 'user11', '123456', 'Hoạt động', 'NV011', 'VT_NHANVIEN_SANXUAT'),
+('ND012', 'user12', '123456', 'Hoạt động', 'NV012', 'VT_NHANVIEN_KHO'),
+('ND013', 'user13', '123456', 'Hoạt động', 'NV013', 'VT_NHANVIEN_KHO'),
+('ND014', 'user14', '123456', 'Hoạt động', 'NV014', 'VT_KIEM_SOAT_CL'),
+('ND015', 'user15', '123456', 'Hoạt động', 'NV015', 'VT_KIEM_SOAT_CL'),
+('ND016', 'user16', '123456', 'Hoạt động', 'NV016', 'VT_KINH_DOANH'),
+('ND017', 'user17', '123456', 'Hoạt động', 'NV017', 'VT_KINH_DOANH'),
+('ND018', 'user18', '123456', 'Hoạt động', 'NV018', 'VT_NHANVIEN_SANXUAT'),
+('ND019', 'user19', '123456', 'Hoạt động', 'NV019', 'VT_NHANVIEN_KHO'),
+('ND020', 'user20', '123456', 'Hoạt động', 'NV020', 'VT_NHANVIEN_SANXUAT');
 
 -- --------------------------------------------------------
 
@@ -587,7 +607,27 @@ CREATE TABLE `nhan_vien` (
 -- Đang đổ dữ liệu cho bảng `nhan_vien`
 --
 
--- (Dữ liệu đã được lược bỏ)
+INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`, `IdVaiTro`) VALUES
+('NV001', 'Nguyễn Văn An', '1986-04-12', 1, 'Quản trị hệ thống', 4, 'Đang làm việc', 'Hà Nội', '2023-01-05 08:00:00', NULL, NULL, 'VT_ADMIN'),
+('NV002', 'Trần Thị Bình', '1980-09-20', 0, 'Giám đốc điều hành', 5, 'Đang làm việc', 'Hà Nội', '2022-11-01 08:00:00', NULL, NULL, 'VT_BAN_GIAM_DOC'),
+('NV003', 'Lê Văn Cường', '1988-06-10', 1, 'Kế toán trưởng', 4, 'Đang làm việc', 'Hà Nội', '2023-02-15 08:00:00', NULL, NULL, 'VT_KETOAN'),
+('NV004', 'Phạm Thị Diệu', '1992-03-08', 0, 'Nhân viên kinh doanh', 3, 'Đang làm việc', 'Hà Nội', '2023-04-20 08:00:00', NULL, NULL, 'VT_KINH_DOANH'),
+('NV005', 'Vũ Văn Dũng', '1985-12-19', 1, 'Xưởng trưởng sản xuất', 4, 'Đang làm việc', 'Bắc Ninh', '2022-12-12 08:00:00', NULL, NULL, 'VT_TRUONG_XUONG_SAN_XUAT'),
+('NV006', 'Đặng Thị Hương', '1987-07-14', 0, 'Xưởng trưởng lắp ráp', 4, 'Đang làm việc', 'Bắc Ninh', '2022-12-20 08:00:00', NULL, NULL, 'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI'),
+('NV007', 'Hoàng Văn Khánh', '1989-02-11', 1, 'Xưởng trưởng kiểm định', 4, 'Đang làm việc', 'Bắc Ninh', '2023-01-18 08:00:00', NULL, NULL, 'VT_TRUONG_XUONG_KIEM_DINH'),
+('NV008', 'Nguyễn Thị Lan', '1990-10-05', 0, 'Xưởng trưởng lưu trữ', 4, 'Đang làm việc', 'Bắc Ninh', '2023-01-25 08:00:00', NULL, NULL, 'VT_TRUONG_XUONG_LUU_TRU'),
+('NV009', 'Lê Văn Minh', '1995-08-22', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-03-01 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
+('NV010', 'Phạm Thị Ngọc', '1996-04-18', 0, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-03-05 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
+('NV011', 'Đinh Văn Phúc', '1994-12-01', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-03-08 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
+('NV012', 'Trần Thị Quỳnh', '1993-11-15', 0, 'Nhân viên kho', 2, 'Đang làm việc', 'Hải Phòng', '2023-03-10 08:00:00', NULL, NULL, 'VT_NHANVIEN_KHO'),
+('NV013', 'Phan Văn Sơn', '1991-05-09', 1, 'Nhân viên kho', 2, 'Đang làm việc', 'Hải Phòng', '2023-03-12 08:00:00', NULL, NULL, 'VT_NHANVIEN_KHO'),
+('NV014', 'Nguyễn Thị Trang', '1992-01-27', 0, 'Nhân viên kiểm soát CL', 3, 'Đang làm việc', 'Hà Nội', '2023-02-02 08:00:00', NULL, NULL, 'VT_KIEM_SOAT_CL'),
+('NV015', 'Đỗ Văn Tuấn', '1990-07-30', 1, 'Nhân viên kiểm soát CL', 3, 'Đang làm việc', 'Hà Nội', '2023-02-06 08:00:00', NULL, NULL, 'VT_KIEM_SOAT_CL'),
+('NV016', 'Lý Thị Vân', '1994-09-09', 0, 'Nhân viên kinh doanh', 3, 'Đang làm việc', 'Hà Nội', '2023-03-15 08:00:00', NULL, NULL, 'VT_KINH_DOANH'),
+('NV017', 'Ngô Văn Xuyên', '1993-02-02', 1, 'Nhân viên kinh doanh', 3, 'Đang làm việc', 'Hà Nội', '2023-03-18 08:00:00', NULL, NULL, 'VT_KINH_DOANH'),
+('NV018', 'Bùi Thị Yến', '1997-06-21', 0, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-04-01 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
+('NV019', 'Trịnh Văn Zũng', '1996-12-12', 1, 'Nhân viên kho', 2, 'Đang làm việc', 'Hải Phòng', '2023-04-05 08:00:00', NULL, NULL, 'VT_NHANVIEN_KHO'),
+('NV020', 'Nguyễn Thị Ánh', '1995-03-03', 0, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-04-10 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT');
 
 -- --------------------------------------------------------
 
