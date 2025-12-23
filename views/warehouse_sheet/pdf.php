@@ -9,8 +9,8 @@ $classification = $classification ?? null;
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 13px; color: #0f172a; }
-        h1 { font-size: 20px; text-align: center; margin: 0 0 12px 0; text-transform: uppercase; }
+        body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 13px; color: #0f172a; margin: 18px; }
+        h1 { font-size: 20px; text-align: center; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.06em; }
         .text-center { text-align: center; }
         .text-end { text-align: right; }
         .mb-0 { margin-bottom: 0; }
@@ -19,7 +19,7 @@ $classification = $classification ?? null;
         .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
         .table th, .table td { border: 1px solid #cbd5e1; padding: 6px 8px; }
         .table th { background: #f8fafc; }
-        .meta-grid { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; margin-bottom: 8px; }
+        .meta-grid { display: grid; grid-template-columns: 160px 1fr; gap: 6px 12px; margin-bottom: 10px; }
         .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; border: 1px solid #cbd5e1; }
         .badge-in { background: #ecfdf3; color: #166534; border-color: #bbf7d0; }
         .badge-out { background: #fef2f2; color: #991b1b; border-color: #fecdd3; }
@@ -27,17 +27,22 @@ $classification = $classification ?? null;
         .signature { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; text-align: center; }
         .signature .title { font-weight: 600; margin-bottom: 48px; }
         .muted { color: #475569; }
+        .header-row { width: 100%; margin-bottom: 12px; }
+        .section-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; color: #0f172a; }
+        .bordered { border: 1px dashed #cbd5e1; padding: 10px; border-radius: 6px; background: #fff; }
     </style>
 </head>
 <body>
-<table style="width: 100%; margin-bottom: 16px;">
+<table class="header-row">
     <tr>
         <td>
-            <strong>ĐƠN VỊ:</strong> SV5TOT<br>
-            <strong>Kho:</strong> <?= htmlspecialchars($warehouse['TenKho'] ?? ($document['IdKho'] ?? '-')) ?><br>
-            <strong>Địa chỉ:</strong> <?= htmlspecialchars($warehouse['DiaChi'] ?? 'Chưa cập nhật') ?>
+            <div class="section-label">Đơn vị</div>
+            <div><strong>SV5TOT</strong></div>
+            <div><strong>Kho:</strong> <?= htmlspecialchars($warehouse['TenKho'] ?? ($document['IdKho'] ?? '-')) ?></div>
+            <div><strong>Địa chỉ:</strong> <?= htmlspecialchars($warehouse['DiaChi'] ?? 'Chưa cập nhật') ?></div>
         </td>
         <td class="text-end">
+            <div class="section-label mb-1">Loại chứng từ</div>
             <div class="badge <?= ($classification['direction'] ?? 'inbound') === 'inbound' ? 'badge-in' : 'badge-out' ?>">
                 <?= htmlspecialchars($classification['direction_label'] ?? '') ?>
             </div>
@@ -50,21 +55,23 @@ $classification = $classification ?? null;
 
 <h1><?= htmlspecialchars($classification['title'] ?? 'PHIẾU KHO') ?></h1>
 
-<div class="meta-grid">
-    <div>Mã phiếu:</div>
-    <div><strong><?= htmlspecialchars($document['IdPhieu'] ?? '-') ?></strong></div>
-    <div>Ngày lập:</div>
-    <div><?= !empty($document['NgayLP']) ? date('d/m/Y', strtotime($document['NgayLP'])) : '-' ?></div>
-    <div>Ngày xác nhận:</div>
-    <div><?= !empty($document['NgayXN']) ? date('d/m/Y', strtotime($document['NgayXN'])) : '-' ?></div>
-    <div>Đối tác/Đơn vị:</div>
-    <div><?= htmlspecialchars($document['DoiTac'] ?? '-') ?> (<?= htmlspecialchars($document['LoaiDoiTac'] ?? '') ?>)</div>
-    <div>Lý do:</div>
-    <div><?= nl2br(htmlspecialchars($document['LyDo'] ?? '-')) ?></div>
-    <div>Số tham chiếu:</div>
-    <div><?= htmlspecialchars($document['SoThamChieu'] ?? '-') ?></div>
-    <div>Tổng giá trị:</div>
-    <div><strong><?= number_format($document['TongTien'] ?? 0, 0, ',', '.') ?> đ</strong></div>
+<div class="bordered">
+    <div class="meta-grid">
+        <div>Mã phiếu:</div>
+        <div><strong><?= htmlspecialchars($document['IdPhieu'] ?? '-') ?></strong></div>
+        <div>Ngày lập:</div>
+        <div><?= !empty($document['NgayLP']) ? date('d/m/Y', strtotime($document['NgayLP'])) : '-' ?></div>
+        <div>Ngày xác nhận:</div>
+        <div><?= !empty($document['NgayXN']) ? date('d/m/Y', strtotime($document['NgayXN'])) : '-' ?></div>
+        <div>Đối tác/Đơn vị:</div>
+        <div><?= htmlspecialchars($document['DoiTac'] ?? '-') ?> (<?= htmlspecialchars($document['LoaiDoiTac'] ?? '') ?>)</div>
+        <div>Lý do:</div>
+        <div><?= nl2br(htmlspecialchars($document['LyDo'] ?? '-')) ?></div>
+        <div>Số tham chiếu:</div>
+        <div><?= htmlspecialchars($document['SoThamChieu'] ?? '-') ?></div>
+        <div>Tổng giá trị:</div>
+        <div><strong><?= number_format($document['TongTien'] ?? 0, 0, ',', '.') ?> đ</strong></div>
+    </div>
 </div>
 
 <table class="table">
