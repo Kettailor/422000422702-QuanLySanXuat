@@ -37,8 +37,8 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
                             <div class="text-uppercase small text-muted">Thông tin kho</div>
                             <h5 class="fw-semibold mb-0">Định danh & loại kho</h5>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary border">Mã tự sinh</span>
-                    </div>
+                            <span class="badge bg-primary-subtle text-primary border">Mã tự sinh</span>
+                        </div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Tên kho <span class="text-danger">*</span></label>
@@ -86,7 +86,7 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
                     <h6 class="fw-semibold mb-3">Thông tin quản lý kho</h6>
                     <div class="mb-3">
                         <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
-                        <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required>
+                        <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required data-live-search="true">
                             <option value="" disabled selected>Chọn nhân viên quản kho</option>
                             <?php foreach ($managers as $manager): ?>
                                 <option value="<?= htmlspecialchars($manager['IdNhanVien']) ?>">
@@ -94,10 +94,7 @@ $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mã nhân viên quản kho</label>
-                        <input type="text" name="IdQuanKho" class="form-control" placeholder="VD: NV004">
+                        <div class="form-text text-muted">Nhập để tìm nhanh theo họ tên/ chức vụ.</div>
                     </div>
                     <div class="text-muted small">Mã kho và mã lô sẽ được tạo tự động khi lưu để đồng bộ với hệ thống phiếu.</div>
                 </div>

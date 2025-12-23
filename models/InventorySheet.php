@@ -10,7 +10,7 @@ class InventorySheet extends BaseModel
     /**
      * Lấy danh sách phiếu nhập/xuất kho cùng thông tin bổ sung.
      */
-    public function getDocuments(?string $filterType = null, int $limit = 50): array
+    public function getDocuments(?string $filterType = null, int $limit = 50, ?array $warehouseIds = null): array
     {
         $conditions = [];
         $params = [];
@@ -21,6 +21,24 @@ class InventorySheet extends BaseModel
         } elseif ($filterType === 'outbound') {
             $conditions[] = 'PHIEU.LoaiPhieu LIKE :outboundType';
             $params[':outboundType'] = 'Phiếu xuất%';
+        }
+
+        if ($warehouseIds !== null) {
+            $normalizedIds = array_values(array_filter($warehouseIds, static function ($value): bool {
+                return $value !== null && $value !== '';
+            }));
+
+            if (empty($normalizedIds)) {
+                return [];
+            }
+
+            $placeholders = [];
+            foreach ($normalizedIds as $index => $warehouseId) {
+                $placeholder = ':warehouse' . $index;
+                $placeholders[] = $placeholder;
+                $params[$placeholder] = $warehouseId;
+            }
+            $conditions[] = 'PHIEU.IdKho IN (' . implode(', ', $placeholders) . ')';
         }
 
         $whereClause = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
@@ -90,27 +108,69 @@ class InventorySheet extends BaseModel
     /**
      * Thống kê tổng quan về các phiếu kho.
      */
-    public function getDocumentSummary(): array
+    public function getDocumentSummary(?array $warehouseIds = null): array
     {
+        $conditions = [];
+        $params = [];
+
+        if ($warehouseIds !== null) {
+            $normalizedIds = array_values(array_filter($warehouseIds, static function ($value): bool {
+                return $value !== null && $value !== '';
+            }));
+
+            if (empty($normalizedIds)) {
+                return [
+                    'total_documents' => 0,
+                    'inbound_documents' => 0,
+                    'outbound_documents' => 0,
+                    'total_value' => 0.0,
+                    'monthly_trend' => [],
+                ];
+            }
+
+            $placeholders = [];
+            foreach ($normalizedIds as $index => $warehouseId) {
+                $placeholder = ':warehouse' . $index;
+                $placeholders[] = $placeholder;
+                $params[$placeholder] = $warehouseId;
+            }
+
+            $conditions[] = 'IdKho IN (' . implode(', ', $placeholders) . ')';
+        }
+
+        $whereClause = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
         $summarySql = 'SELECT
                             COUNT(*) AS total_documents,
                             SUM(CASE WHEN LoaiPhieu LIKE "Phiếu nhập%" THEN 1 ELSE 0 END) AS inbound_documents,
                             SUM(CASE WHEN LoaiPhieu LIKE "Phiếu xuất%" THEN 1 ELSE 0 END) AS outbound_documents,
                             SUM(TongTien) AS total_value
-                        FROM PHIEU';
+                        FROM PHIEU
+                        ' . $whereClause;
 
-        $summary = $this->db->query($summarySql)->fetch() ?: [];
+        $stmt = $this->db->prepare($summarySql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+        $summary = $stmt->fetch() ?: [];
 
         $trendSql = 'SELECT
                             DATE_FORMAT(NgayLP, "%Y-%m") AS thang,
                             COUNT(*) AS so_phieu,
                             SUM(TongTien) AS tong_tien
                         FROM PHIEU
+                        ' . $whereClause . '
                         GROUP BY DATE_FORMAT(NgayLP, "%Y-%m")
                         ORDER BY thang DESC
                         LIMIT 6';
 
-        $trend = $this->db->query($trendSql)->fetchAll();
+        $trendStmt = $this->db->prepare($trendSql);
+        foreach ($params as $key => $value) {
+            $trendStmt->bindValue($key, $value);
+        }
+        $trendStmt->execute();
+        $trend = $trendStmt->fetchAll();
 
         return [
             'total_documents' => (int) ($summary['total_documents'] ?? 0),

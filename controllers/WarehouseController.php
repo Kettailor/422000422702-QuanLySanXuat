@@ -8,6 +8,11 @@ class WarehouseController extends Controller
     private Workshop $workshopModel;
     private Employee $employeeModel;
     private Product $productModel;
+    private ?array $visibleWarehouseIds = null;
+    private const WAREHOUSE_TYPE_KEYWORDS = [
+        'finished' => ['thành phẩm', 'thanh pham'],
+        'quality' => ['lỗi', 'xu ly', 'xử lý'],
+    ];
 
     public function __construct()
     {
@@ -22,14 +27,16 @@ class WarehouseController extends Controller
 
     public function index(): void
     {
-        $warehouses = $this->warehouseModel->getWithSupervisor();
+        $visibleIds = $this->getVisibleWarehouseIds();
+        $warehouses = $this->warehouseModel->getWithSupervisor($visibleIds);
         $summary = $this->warehouseModel->getWarehouseSummary($warehouses);
-        $documents = $this->sheetModel->getDocuments(null, 200);
+        $documents = $this->sheetModel->getDocuments(null, 200, $visibleIds);
         $documentGroups = $this->buildDocumentGroups($documents);
         $warehouseGroups = $this->warehouseModel->groupWarehousesByType($warehouses, $summary['by_type'] ?? []);
         $employees = $this->employeeModel->getActiveEmployees();
         $entryForms = $this->buildWarehouseEntryForms($warehouseGroups);
         $products = $this->getProductOptionsByType();
+        $lotOptionsByType = $this->getLotOptionsByType($warehouses);
         $this->render('warehouse/index', [
             'title' => 'Kho & tồn kho',
             'warehouses' => $warehouses,
@@ -37,14 +44,21 @@ class WarehouseController extends Controller
             'documentGroups' => $documentGroups,
             'warehouseGroups' => $warehouseGroups,
             'warehouseEntryForms' => $entryForms,
+            'outboundDocumentTypes' => $this->getOutboundDocumentTypes(),
             'employees' => $employees,
             'productOptionsByType' => $products,
+            'lotOptionsByType' => $lotOptionsByType,
         ]);
     }
 
     public function read(): void
     {
         $id = $_GET['id'] ?? null;
+        if (!$this->isWarehouseAccessible($id)) {
+            $this->setFlash('danger', 'Bạn không có quyền xem kho này.');
+            $this->redirect('?controller=warehouse&action=index');
+        }
+
         $warehouse = $id ? $this->warehouseModel->findWithSupervisor($id) : null;
         $lots = $id ? $this->lotModel->getLotsByWarehouse($id) : [];
         $this->render('warehouse/read', [
@@ -56,6 +70,11 @@ class WarehouseController extends Controller
 
     public function create(): void
     {
+        if ($this->isWarehouseStaffRestricted()) {
+            $this->setFlash('danger', 'Bạn chỉ được xem kho được phân công. Vui lòng liên hệ quản lý để tạo kho mới.');
+            $this->redirect('?controller=warehouse&action=index');
+        }
+
         $options = $this->warehouseModel->getFormOptions();
         $this->render('warehouse/create', [
             'title' => 'Thêm kho mới',
@@ -105,6 +124,11 @@ class WarehouseController extends Controller
     public function edit(): void
     {
         $id = $_GET['id'] ?? null;
+        if (!$this->isWarehouseAccessible($id)) {
+            $this->setFlash('danger', 'Bạn không có quyền chỉnh sửa kho này.');
+            $this->redirect('?controller=warehouse&action=index');
+        }
+
         $warehouse = $id ? $this->warehouseModel->find($id) : null;
         $options = $this->warehouseModel->getFormOptions();
         $this->render('warehouse/edit', [
@@ -164,6 +188,11 @@ class WarehouseController extends Controller
 
         if (!$id) {
             $this->setFlash('danger', 'Không xác định được kho cần xóa.');
+            $this->redirect('?controller=warehouse&action=index');
+        }
+
+        if (!$this->isWarehouseAccessible($id)) {
+            $this->setFlash('danger', 'Bạn không có quyền xóa kho này.');
             $this->redirect('?controller=warehouse&action=index');
         }
 
@@ -404,6 +433,59 @@ class WarehouseController extends Controller
         };
     }
 
+    private function getLotOptionsByType(array $warehouses): array
+    {
+        $visibleIds = $this->getVisibleWarehouseIds();
+        $lots = $this->lotModel->getSelectableLots(400, $visibleIds);
+        $warehouseTypeMap = [];
+        foreach ($warehouses as $warehouse) {
+            $typeKey = $this->resolveWarehouseTypeKey($warehouse['TenLoaiKho'] ?? '');
+            $warehouseTypeMap[$warehouse['IdKho'] ?? ''] = $typeKey;
+        }
+
+        $grouped = [
+            'material' => [],
+            'finished' => [],
+            'quality' => [],
+        ];
+
+        foreach ($lots as $lot) {
+            $warehouseId = $lot['IdKho'] ?? '';
+            $typeKey = $warehouseTypeMap[$warehouseId] ?? 'material';
+            $grouped[$typeKey][] = [
+                'id' => $lot['IdLo'] ?? '',
+                'name' => $lot['TenLo'] ?? ($lot['IdLo'] ?? ''),
+                'quantity' => (int) ($lot['SoLuong'] ?? 0),
+                'warehouse_id' => $warehouseId,
+                'warehouse_name' => $lot['TenKho'] ?? '',
+                'product_id' => $lot['IdSanPham'] ?? '',
+                'product_name' => $lot['TenSanPham'] ?? '',
+                'unit' => $lot['DonVi'] ?? '',
+            ];
+        }
+
+        return $grouped;
+    }
+
+    private function resolveWarehouseTypeKey(string $type): string
+    {
+        $normalized = $this->normalizeText($type);
+
+        foreach (self::WAREHOUSE_TYPE_KEYWORDS['finished'] as $keyword) {
+            if (str_contains($normalized, $keyword)) {
+                return 'finished';
+            }
+        }
+
+        foreach (self::WAREHOUSE_TYPE_KEYWORDS['quality'] as $keyword) {
+            if (str_contains($normalized, $keyword)) {
+                return 'quality';
+            }
+        }
+
+        return 'material';
+    }
+
     private function documentTypeStartsWith(?string $type, string $needle): bool
     {
         if ($type === null || $type === '') {
@@ -415,5 +497,60 @@ class WarehouseController extends Controller
         }
 
         return stripos($type, $needle) === 0;
+    }
+
+    private function getVisibleWarehouseIds(): ?array
+    {
+        if ($this->visibleWarehouseIds !== null) {
+            return $this->visibleWarehouseIds;
+        }
+
+        $user = $this->currentUser();
+        if (!$user) {
+            return [];
+        }
+
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC'], true)) {
+            $this->visibleWarehouseIds = null;
+            return $this->visibleWarehouseIds;
+        }
+
+        if ($role === 'VT_NHANVIEN_KHO') {
+            $employeeId = $user['IdNhanVien'] ?? null;
+            $this->visibleWarehouseIds = $employeeId ? $this->warehouseModel->getWarehouseIdsBySupervisor($employeeId) : [];
+            return $this->visibleWarehouseIds;
+        }
+
+        $this->visibleWarehouseIds = null;
+        return $this->visibleWarehouseIds;
+    }
+
+    private function isWarehouseAccessible(?string $warehouseId): bool
+    {
+        if ($warehouseId === null || $warehouseId === '') {
+            return false;
+        }
+
+        $visibleIds = $this->getVisibleWarehouseIds();
+
+        return $visibleIds === null || in_array($warehouseId, $visibleIds, true);
+    }
+
+    private function isWarehouseStaffRestricted(): bool
+    {
+        $user = $this->currentUser();
+        $role = $user['ActualIdVaiTro'] ?? $user['IdVaiTro'] ?? null;
+
+        return $role === 'VT_NHANVIEN_KHO';
+    }
+
+    private function getOutboundDocumentTypes(): array
+    {
+        return [
+            'material' => 'Phiếu xuất nguyên liệu',
+            'finished' => 'Phiếu xuất thành phẩm',
+            'quality' => 'Phiếu xuất xử lý lỗi',
+        ];
     }
 }

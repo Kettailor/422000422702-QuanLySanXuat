@@ -16,8 +16,33 @@ class Warehouse extends BaseModel
     /**
      * Lấy danh sách kho kèm theo thông tin quản kho và số liệu tổng hợp.
      */
-    public function getWithSupervisor(): array
+    public function getWithSupervisor(?array $warehouseIds = null): array
     {
+        $conditions = [];
+        $params = [];
+
+        if ($warehouseIds !== null) {
+            $normalized = array_values(array_filter($warehouseIds, static function ($value): bool {
+                return $value !== null && $value !== '';
+            }));
+
+            if (empty($normalized)) {
+                return [];
+            }
+
+            $placeholders = [];
+
+            foreach ($normalized as $index => $warehouseId) {
+                $placeholder = ':warehouse' . $index;
+                $placeholders[] = $placeholder;
+                $params[$placeholder] = $warehouseId;
+            }
+
+            $conditions[] = 'KHO.IdKho IN (' . implode(', ', $placeholders) . ')';
+        }
+
+        $whereClause = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
         $sql = 'SELECT
                     KHO.IdKho,
                     KHO.TenKho,
@@ -59,9 +84,18 @@ class Warehouse extends BaseModel
                     FROM PHIEU
                     GROUP BY IdKho
                 ) AS doc_stats ON doc_stats.IdKho = KHO.IdKho
+                ' . $whereClause . '
                 ORDER BY KHO.TenKho';
 
-        $warehouses = $this->db->query($sql)->fetchAll();
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($params as $placeholder => $value) {
+            $stmt->bindValue($placeholder, $value);
+        }
+
+        $stmt->execute();
+
+        $warehouses = $stmt->fetchAll();
 
         return array_map(function (array $warehouse): array {
             $warehouse['TenLoaiKho'] = $this->normalizeWarehouseType($warehouse['TenLoaiKho'] ?? null);
@@ -235,6 +269,16 @@ class Warehouse extends BaseModel
     public function getWarehouseTypeOptions(): array
     {
         return self::WAREHOUSE_TYPES;
+    }
+
+    public function getWarehouseIdsBySupervisor(string $employeeId): array
+    {
+        $sql = 'SELECT IdKho FROM KHO WHERE NHAN_VIEN_KHO_IdNhanVien = :employee';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':employee', $employeeId);
+        $stmt->execute();
+
+        return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
     }
 
     public function groupWarehousesByType(array $warehouses, ?array $typeSummary = null): array
