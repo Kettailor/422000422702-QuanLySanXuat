@@ -154,8 +154,8 @@
                                     <span class="chip text-primary bg-primary-subtle"><?= count($staffList) ?> nhân sự</span>
                                     <?php
                                     $warehouseCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Kho'));
-                                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
-                                    ?>
+                    $productionCount = count(array_filter($staffList, fn($m) => ($m['role'] ?? '') === 'Sản xuất'));
+                    ?>
                                     <span class="chip text-success bg-success-subtle">Kho: <?= $warehouseCount ?></span>
                                     <span class="chip text-info bg-info-subtle">Sản xuất: <?= $productionCount ?></span>
                                 </div>

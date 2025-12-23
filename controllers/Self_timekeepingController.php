@@ -140,35 +140,35 @@ class Self_timekeepingController extends Controller
         $note = implode(' | ', $noteParts);
 
         try {
-        $workDate = date('Y-m-d');
-        $openRecord = $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate);
-        if ($openRecord) {
-            $recordId = $openRecord['IdChamCong'] ?? null;
-            if (!$recordId) {
-                throw new RuntimeException('Không thể xác định bản ghi chấm công.');
+            $workDate = date('Y-m-d');
+            $openRecord = $this->timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate);
+            if ($openRecord) {
+                $recordId = $openRecord['IdChamCong'] ?? null;
+                if (!$recordId) {
+                    throw new RuntimeException('Không thể xác định bản ghi chấm công.');
+                }
+                $this->timekeepingModel->updateCheckOut(
+                    $recordId,
+                    $now,
+                    $location['lat'],
+                    $location['lng'],
+                    $location['accuracy'],
+                );
+                $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
+            } else {
+                $this->timekeepingModel->createForShift(
+                    $employeeId,
+                    $now,
+                    null,
+                    $shift['IdCaLamViec'],
+                    $note,
+                    $employeeId,
+                    $location['lat'],
+                    $location['lng'],
+                    $location['accuracy'],
+                );
+                $this->setFlash('success', 'Đã ghi nhận giờ vào ca.');
             }
-            $this->timekeepingModel->updateCheckOut(
-                $recordId,
-                $now,
-                $location['lat'],
-                $location['lng'],
-                $location['accuracy']
-            );
-            $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
-        } else {
-            $this->timekeepingModel->createForShift(
-                $employeeId,
-                $now,
-                null,
-                $shift['IdCaLamViec'],
-                $note,
-                $employeeId,
-                $location['lat'],
-                $location['lng'],
-                $location['accuracy']
-            );
-            $this->setFlash('success', 'Đã ghi nhận giờ vào ca.');
-        }
         } catch (Throwable $exception) {
             Logger::error('Không thể tự chấm công: ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể ghi nhận chấm công. Vui lòng thử lại.');

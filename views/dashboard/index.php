@@ -168,7 +168,7 @@ $resolveNotificationScope = static function (array $notification): array {
                                 <td>
                                     <?php
                                     $isCurrent = $shift && (($shift['IdCaLamViec'] ?? null) === ($item['IdCaLamViec'] ?? null));
-                                    ?>
+                            ?>
                                     <span class="badge <?= $isCurrent ? 'badge-soft-success' : 'badge-soft-secondary' ?>">
                                         <?= $isCurrent ? 'Đang diễn ra' : 'Sắp tới' ?>
                                     </span>
@@ -433,14 +433,14 @@ $resolveNotificationScope = static function (array $notification): array {
                             <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
                                 <?php
                                 $monthLabel = $payroll['ThangNam'] ?? '';
-                                if (preg_match('/^(\d{4})-(\d{2})$/', (string) $monthLabel, $monthMatches)) {
-                                    $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
-                                } elseif (preg_match('/^(\d{4})(\d{2})$/', (string) $monthLabel, $monthMatches)) {
-                                    $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
-                                } elseif (preg_match('/^(\d{2})\/(\d{4})$/', (string) $monthLabel, $monthMatches)) {
-                                    $monthLabel = $monthMatches[1] . '/' . $monthMatches[2];
-                                }
-                                ?>
+                            if (preg_match('/^(\d{4})-(\d{2})$/', (string) $monthLabel, $monthMatches)) {
+                                $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
+                            } elseif (preg_match('/^(\d{4})(\d{2})$/', (string) $monthLabel, $monthMatches)) {
+                                $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
+                            } elseif (preg_match('/^(\d{2})\/(\d{4})$/', (string) $monthLabel, $monthMatches)) {
+                                $monthLabel = $monthMatches[1] . '/' . $monthMatches[2];
+                            }
+                            ?>
                                 <div>
                                     <div class="fw-semibold"><?= htmlspecialchars($payroll['HoTen']) ?></div>
                                     <div class="small text-muted">Tháng <?= htmlspecialchars($monthLabel) ?></div>
@@ -868,7 +868,7 @@ $resolveNotificationScope = static function (array $notification): array {
                             <tbody>
                             <?php foreach ($pendingPayrolls as $payroll): ?>
                                 <?php
-                                $monthLabel = $payroll['ThangNam'] ?? '';
+                            $monthLabel = $payroll['ThangNam'] ?? '';
                                 if (preg_match('/^(\d{4})-(\d{2})$/', (string) $monthLabel, $monthMatches)) {
                                     $monthLabel = $monthMatches[2] . '/' . $monthMatches[1];
                                 }

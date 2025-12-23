@@ -148,10 +148,10 @@ class QualityReport extends BaseModel
         $prefix = 'BBTP' . date('Ymd');
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_thanh_pham WHERE IdBienBanDanhGiaSP LIKE :prefix");
         $stmt->execute([':prefix' => $prefix . '%']);
-        $count = (int)$stmt->fetchColumn() + 1;
+        $count = (int) $stmt->fetchColumn() + 1;
 
         do {
-            $suffix = str_pad((string)$count, 2, '0', STR_PAD_LEFT);
+            $suffix = str_pad((string) $count, 2, '0', STR_PAD_LEFT);
             $newId = $prefix . $suffix;
             $check = $this->db->prepare("SELECT 1 FROM bien_ban_danh_gia_thanh_pham WHERE IdBienBanDanhGiaSP = :id LIMIT 1");
             $check->execute([':id' => $newId]);
@@ -169,7 +169,7 @@ class QualityReport extends BaseModel
     {
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM ttct_bien_ban_danh_gia_thanh_pham WHERE IdBienBanDanhGiaSP = :id");
         $stmt->execute([':id' => $idBienBan]);
-        $count = (int)$stmt->fetchColumn();
+        $count = (int) $stmt->fetchColumn();
         $suffix = ($count < 26) ? chr(65 + $count) : $count + 1;
         return 'CT' . $idBienBan . $suffix;
     }
@@ -180,7 +180,7 @@ class QualityReport extends BaseModel
         string $tieuChi,
         int $diemDat,
         ?string $ghiChu = null,
-        ?string $fileName = null
+        ?string $fileName = null,
     ): bool {
         $idChiTiet = $this->generateChiTietId($idBienBan);
         $sql = 'INSERT INTO ttct_bien_ban_danh_gia_thanh_pham
@@ -193,7 +193,7 @@ class QualityReport extends BaseModel
             ':Diem' => $diemDat,
             ':GC'   => $ghiChu,
             ':HA'   => $fileName,
-            ':IdBB' => $idBienBan
+            ':IdBB' => $idBienBan,
         ]);
     }
 
@@ -212,11 +212,11 @@ class QualityReport extends BaseModel
         $unchecked = $this->db->query($sqlUnchecked)->fetchColumn();
 
         return [
-            'total'     => (int)$total,
-            'checked'   => (int)$checked,
-            'passed'    => (int)$passed,
-            'failed'    => (int)$failed,
-            'unchecked' => (int)$unchecked,
+            'total'     => (int) $total,
+            'checked'   => (int) $checked,
+            'passed'    => (int) $passed,
+            'failed'    => (int) $failed,
+            'unchecked' => (int) $unchecked,
         ];
     }
 
@@ -291,7 +291,7 @@ class QualityReport extends BaseModel
             $stmt = $this->db->prepare(
                 "
                 DELETE FROM bien_ban_danh_gia_thanh_pham 
-                WHERE IdBienBanDanhGiaSP = :id" . ($idLo ? " AND IdLo = :lo" : "")
+                WHERE IdBienBanDanhGiaSP = :id" . ($idLo ? " AND IdLo = :lo" : ""),
             );
 
             $params = [':id' => $idBienBan];

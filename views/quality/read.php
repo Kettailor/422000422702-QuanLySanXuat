@@ -124,7 +124,7 @@
             <div class="info-box text-center">
               <div class="info-label">Tiêu chí đạt</div>
               <div class="info-value text-success fs-5">
-                <?= (int)$report['TongTCD'] ?>
+                <?= (int) $report['TongTCD'] ?>
               </div>
             </div>
           </div>
@@ -133,7 +133,7 @@
             <div class="info-box text-center">
               <div class="info-label">Không đạt</div>
               <div class="info-value text-danger fs-5">
-                <?= (int)$report['TongTCKD'] ?>
+                <?= (int) $report['TongTCKD'] ?>
               </div>
             </div>
           </div>

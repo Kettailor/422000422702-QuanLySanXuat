@@ -49,7 +49,7 @@ class WorkshopPlanAssignment extends BaseModel
             if (!empty($assignmentsByShift)) {
                 $insert = $this->db->prepare(
                     'INSERT INTO phan_cong_ke_hoach_xuong (IdPhanCong, IdKeHoachSanXuatXuong, IdNhanVien, IdCaLamViec, VaiTro, NgayPhanCong)
-                     VALUES (:id, :planId, :employeeId, :shiftId, :role, :assignedAt)'
+                     VALUES (:id, :planId, :employeeId, :shiftId, :role, :assignedAt)',
                 );
                 $assignedAt = date('Y-m-d H:i:s');
 
@@ -84,7 +84,7 @@ class WorkshopPlanAssignment extends BaseModel
         array $assignmentsByShift,
         array $editableShiftIds,
         array $addOnlyShiftIds,
-        string $role = 'nhan_vien_san_xuat'
+        string $role = 'nhan_vien_san_xuat',
     ): void {
         $this->db->beginTransaction();
 
@@ -105,7 +105,7 @@ class WorkshopPlanAssignment extends BaseModel
                 $delete = $this->db->prepare(
                     'DELETE FROM phan_cong_ke_hoach_xuong
                      WHERE IdKeHoachSanXuatXuong = ?
-                       AND IdCaLamViec IN (' . $placeholders . ')'
+                       AND IdCaLamViec IN (' . $placeholders . ')',
                 );
                 $delete->bindValue(1, $planId);
                 $index = 2;
@@ -118,7 +118,7 @@ class WorkshopPlanAssignment extends BaseModel
 
             $insert = $this->db->prepare(
                 'INSERT INTO phan_cong_ke_hoach_xuong (IdPhanCong, IdKeHoachSanXuatXuong, IdNhanVien, IdCaLamViec, VaiTro, NgayPhanCong)
-                 VALUES (:id, :planId, :employeeId, :shiftId, :role, :assignedAt)'
+                 VALUES (:id, :planId, :employeeId, :shiftId, :role, :assignedAt)',
             );
             $assignedAt = date('Y-m-d H:i:s');
 

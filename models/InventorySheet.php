@@ -361,7 +361,7 @@ class InventorySheet extends BaseModel
                 $this->columnCache['DoiTac'],
                 $this->columnCache['SoThamChieu'],
                 $this->columnCache['LyDo'],
-                $this->columnCache['GhiChu']
+                $this->columnCache['GhiChu'],
             );
         }
     }

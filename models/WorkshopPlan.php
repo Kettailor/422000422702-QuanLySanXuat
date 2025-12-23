@@ -112,7 +112,7 @@ class WorkshopPlan extends BaseModel
         return $grouped;
     }
 
-    public function getMaterialStock (string $id): ?array 
+    public function getMaterialStock(string $id): ?array
     {
         $sql = "
         SELECT

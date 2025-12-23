@@ -51,9 +51,9 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
             </div>
             <div class="text-muted small mb-3">
                 <?= $shift
-                    ? 'Ca ' . htmlspecialchars($shift['TenCa'] ?? $shift['IdCaLamViec']) . ' (' .
-                        htmlspecialchars($formatDate($shift['ThoiGianBatDau'] ?? null, 'H:i')) . ' - ' .
-                        htmlspecialchars($formatDate($shift['ThoiGianKetThuc'] ?? null, 'H:i')) . ')'
+                    ? 'Ca ' . htmlspecialchars($shift['TenCa'] ?? $shift['IdCaLamViec']) . ' ('
+                        . htmlspecialchars($formatDate($shift['ThoiGianBatDau'] ?? null, 'H:i')) . ' - '
+                        . htmlspecialchars($formatDate($shift['ThoiGianKetThuc'] ?? null, 'H:i')) . ')'
                     : 'Chưa đến ca làm hoặc đã hết ca.' ?>
             </div>
 

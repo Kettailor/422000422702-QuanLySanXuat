@@ -40,7 +40,7 @@
                     <dd class="col-sm-7"><?= number_format($warehouse['TongSoLuongLo']) ?> / năng lực <?= number_format($warehouse['TongSL']) ?></dd>
                     <dt class="col-sm-5">Tỷ lệ sử dụng</dt>
                     <dd class="col-sm-7">
-                        <span class="badge <?= ($warehouse['TyLeSuDung'] ?? 0) > 85 ? 'badge-soft-danger' : (( $warehouse['TyLeSuDung'] ?? 0) > 60 ? 'badge-soft-warning' : 'badge-soft-success') ?>">
+                        <span class="badge <?= ($warehouse['TyLeSuDung'] ?? 0) > 85 ? 'badge-soft-danger' : (($warehouse['TyLeSuDung'] ?? 0) > 60 ? 'badge-soft-warning' : 'badge-soft-success') ?>">
                             <?= number_format($warehouse['TyLeSuDung'] ?? 0, 1) ?>%
                         </span>
                     </dd>

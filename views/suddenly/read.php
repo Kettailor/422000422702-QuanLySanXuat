@@ -39,11 +39,11 @@
             </tr>
             <tr>
               <th class="bg-light">Tổng tiêu chí đạt</th>
-              <td><?= (int)($report['TongTieuChiDat'] ?? 0) ?></td>
+              <td><?= (int) ($report['TongTieuChiDat'] ?? 0) ?></td>
             </tr>
             <tr>
               <th class="bg-light">Tổng tiêu chí không đạt</th>
-              <td><?= (int)($report['TongTieuChiKhongDat'] ?? 0) ?></td>
+              <td><?= (int) ($report['TongTieuChiKhongDat'] ?? 0) ?></td>
             </tr>
 
             <th class="bg-light">Ngày tạo</th>

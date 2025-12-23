@@ -42,7 +42,7 @@ class SuddenlyController extends Controller
         if (!empty($_GET['msg'])) {
             $flash = [
                 'type'    => $_GET['type'] ?? 'success',
-                'message' => $_GET['msg']
+                'message' => $_GET['msg'],
             ];
         }
 
@@ -53,7 +53,7 @@ class SuddenlyController extends Controller
             'dashboard'   => $dashboard,
             'listBienBan' => $listBienBan,
             'filter'      => $filter,
-            'flash'       => $flash
+            'flash'       => $flash,
         ]);
     }
 
@@ -109,7 +109,7 @@ class SuddenlyController extends Controller
         $this->render('suddenly/read', [
             'title'   => 'Chi tiết biên bản đột xuất',
             'report'  => $report,
-            'details' => $details
+            'details' => $details,
         ]);
     }
 
@@ -131,7 +131,7 @@ class SuddenlyController extends Controller
         $date = date('Ymd');
         $stmt2 = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_dot_xuat WHERE IdBienBanDanhGiaDX LIKE :prefix");
         $stmt2->execute([':prefix' => 'BBDX' . $date . '%']);
-        $count = (int)$stmt2->fetchColumn() + 1;
+        $count = (int) $stmt2->fetchColumn() + 1;
         $maBienBan = 'BBDX' . $date . str_pad($count, 2, '0', STR_PAD_LEFT);
 
         $type = $_GET['type'] ?? 'production';
@@ -164,8 +164,8 @@ class SuddenlyController extends Controller
         }
 
         // Nhận diện AJAX (fetch)
-        $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+            && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         // Helper trả lỗi
         $fail = function (string $msg, string $type = 'warning') use ($isAjax) {
@@ -174,12 +174,12 @@ class SuddenlyController extends Controller
                 echo json_encode([
                     'success' => false,
                     'type'    => $type,
-                    'message' => $msg
+                    'message' => $msg,
                 ]);
                 exit;
             }
             $this->redirect(
-                '?controller=suddenly&action=create&msg=' . urlencode($msg) . '&type=' . $type
+                '?controller=suddenly&action=create&msg=' . urlencode($msg) . '&type=' . $type,
             );
             exit;
         };
@@ -259,12 +259,16 @@ class SuddenlyController extends Controller
             $tongTCD = 0;
             $tongTCKD = 0;
             $uploadDir = __DIR__ . '/../uploads/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
 
             foreach ($arrTieuChi as $i => $tieuChi) {
-                if (trim($tieuChi) === '') continue;
+                if (trim($tieuChi) === '') {
+                    continue;
+                }
 
-                $diem    = (float)$arrDiemDat[$i];
+                $diem    = (float) $arrDiemDat[$i];
                 $ghiChu  = trim($arrGhiChu[$i] ?? '');
                 $fileName = null;
 
@@ -278,13 +282,16 @@ class SuddenlyController extends Controller
                     $idBienBan,
                     $loaiTieuChi,
                     $tieuChi,
-                    (int)$diem,
+                    (int) $diem,
                     $ghiChu,
-                    $fileName
+                    $fileName,
                 );
 
-                if ($diem >= 9) $tongTCD++;
-                else $tongTCKD++;
+                if ($diem >= 9) {
+                    $tongTCD++;
+                } else {
+                    $tongTCKD++;
+                }
             }
 
             $ketQuaTong = ($tongTCKD > 0) ? 'Không đạt' : 'Đạt';
@@ -301,13 +308,13 @@ class SuddenlyController extends Controller
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => true,
-                    'message' => $msg
+                    'message' => $msg,
                 ]);
                 exit;
             }
 
             $this->redirect(
-                '?controller=suddenly&action=index&msg=' . urlencode($msg) . '&type=success'
+                '?controller=suddenly&action=index&msg=' . urlencode($msg) . '&type=success',
             );
         } catch (Throwable $e) {
             $db->rollBack();
@@ -316,15 +323,15 @@ class SuddenlyController extends Controller
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => false,
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
                 ]);
                 exit;
             }
 
             $this->redirect(
-                '?controller=suddenly&action=create&msg=' .
-                    urlencode('Không thể lưu biên bản: ' . $e->getMessage()) .
-                    '&type=danger'
+                '?controller=suddenly&action=create&msg='
+                    . urlencode('Không thể lưu biên bản: ' . $e->getMessage())
+                    . '&type=danger',
             );
         }
     }

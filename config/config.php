@@ -13,6 +13,6 @@ return [
         'name' => getenv("APP_NAME") ?: 'Quản lý sản xuất',
     ],
     'auth' => [
-        'default_password' => getenv("DEFAULT_PASSWORD") ?: '1111'
-    ]
+        'default_password' => getenv("DEFAULT_PASSWORD") ?: '1111',
+    ],
 ];

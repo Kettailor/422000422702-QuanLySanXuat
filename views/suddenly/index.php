@@ -1,31 +1,37 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+    session_start();
 }
 
 // Tính tổng hợp số liệu dựa trên $listBienBan
 $summary = [
-  'tong_bien_ban' => count($listBienBan),
-  'so_dat' => 0,
-  'so_khong_dat' => 0,
-  'so_production' => 0,
-  'so_worker' => 0,
+    'tong_bien_ban' => count($listBienBan),
+    'so_dat' => 0,
+    'so_khong_dat' => 0,
+    'so_production' => 0,
+    'so_worker' => 0,
 ];
 
 // Danh sách loại production
 $productionList = ['Lắp ráp cơ khí', 'Điện tử - bo mạch', 'Đóng gói - tem nhãn', 'Kiểm thử sản phẩm', 'An toàn & vệ sinh'];
 
 foreach ($listBienBan as $r) {
-  $loai = trim($r['LoaiTieuChi'] ?? '');
-  $ketqua = trim((string)($r['KetQua'] ?? ''));
+    $loai = trim($r['LoaiTieuChi'] ?? '');
+    $ketqua = trim((string) ($r['KetQua'] ?? ''));
 
-  // Kết quả đạt / không đạt
-  if ($ketqua === 'Đạt') $summary['so_dat']++;
-  elseif ($ketqua === 'Không đạt') $summary['so_khong_dat']++;
+    // Kết quả đạt / không đạt
+    if ($ketqua === 'Đạt') {
+        $summary['so_dat']++;
+    } elseif ($ketqua === 'Không đạt') {
+        $summary['so_khong_dat']++;
+    }
 
-  // Loại biên bản
-  if (in_array($loai, $productionList)) $summary['so_production']++;
-  else $summary['so_worker']++;
+    // Loại biên bản
+    if (in_array($loai, $productionList)) {
+        $summary['so_production']++;
+    } else {
+        $summary['so_worker']++;
+    }
 }
 ?>
 
@@ -375,12 +381,12 @@ foreach ($listBienBan as $r) {
         </thead>
         <tbody>
           <?php foreach ($listBienBan as $r):
-            $loai = trim($r['LoaiTieuChi'] ?? '');
-            $typeGroup = in_array($loai, $productionList) ? 'production' : 'worker';
-            $badgeClass = $typeGroup;
-            $ketqua = trim((string)($r['KetQua'] ?? ''));
-            $status = ($ketqua === 'Đạt') ? 'passed' : (($ketqua === 'Không đạt') ? 'failed' : 'unchecked');
-          ?>
+              $loai = trim($r['LoaiTieuChi'] ?? '');
+              $typeGroup = in_array($loai, $productionList) ? 'production' : 'worker';
+              $badgeClass = $typeGroup;
+              $ketqua = trim((string) ($r['KetQua'] ?? ''));
+              $status = ($ketqua === 'Đạt') ? 'passed' : (($ketqua === 'Không đạt') ? 'failed' : 'unchecked');
+              ?>
             <tr data-type="<?= $typeGroup ?>" data-status="<?= $status ?>">
               <td class="fw-semibold"><?= htmlspecialchars($r['IdBienBanDanhGiaDX']) ?></td>
               <td><?= htmlspecialchars($r['TenXuong'] ?? '—') ?></td>
@@ -389,10 +395,14 @@ foreach ($listBienBan as $r) {
               <td class="text-center"><?= !empty($r['ThoiGian']) ? date('d/m/Y', strtotime($r['ThoiGian'])) : '—' ?></td>
               <td>
                 <?php
-                if ($ketqua === 'Đạt') echo '<span class="badge-result success">Đạt</span>';
-                elseif ($ketqua === 'Không đạt') echo '<span class="badge-result failed">Không đạt</span>';
-                else echo '<span class="badge-result unchecked">Chưa kiểm tra</span>';
-                ?>
+                    if ($ketqua === 'Đạt') {
+                        echo '<span class="badge-result success">Đạt</span>';
+                    } elseif ($ketqua === 'Không đạt') {
+                        echo '<span class="badge-result failed">Không đạt</span>';
+                    } else {
+                        echo '<span class="badge-result unchecked">Chưa kiểm tra</span>';
+                    }
+              ?>
               </td>
               <td class="text-end">
                 <a href="?controller=suddenly&action=read&id=<?= urlencode($r['IdBienBanDanhGiaDX']) ?>" class="btn-action btn-detail me-2">Chi tiết</a>

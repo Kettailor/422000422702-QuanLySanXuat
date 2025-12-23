@@ -167,7 +167,7 @@ class Workshop_planController extends Controller
         $this->workShiftModel->ensureDefaultShiftsForPlan(
             $planId,
             $plan['ThoiGianBatDau'] ?? null,
-            $plan['ThoiGianKetThuc'] ?? null
+            $plan['ThoiGianKetThuc'] ?? null,
         );
 
         $assignments = $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong'] ?? '');
@@ -259,7 +259,7 @@ class Workshop_planController extends Controller
                     $assignmentsInput,
                     $editableShiftIds,
                     $addOnlyShiftIds,
-                    'nhan_vien_san_xuat'
+                    'nhan_vien_san_xuat',
                 );
                 $this->setFlash('success', 'Đã cập nhật phân công nhân sự theo ca.');
             }
@@ -294,7 +294,7 @@ class Workshop_planController extends Controller
         $this->workShiftModel->ensureDefaultShiftsForPlan(
             $planId,
             $plan['ThoiGianBatDau'] ?? null,
-            $plan['ThoiGianKetThuc'] ?? null
+            $plan['ThoiGianKetThuc'] ?? null,
         );
 
         $planAssignments = $this->planAssignmentModel->getByPlan($planId);
@@ -385,7 +385,7 @@ class Workshop_planController extends Controller
                     'lot_id' => $lotId,
                     'quantity' => $quantity,
                 ],
-                null
+                null,
             );
             $this->setFlash('success', 'Đã cập nhật tiến độ và tạo lô thành phẩm.');
         } catch (Throwable $exception) {
@@ -446,7 +446,7 @@ class Workshop_planController extends Controller
         $message = sprintf(
             'Kế hoạch xưởng %s cập nhật nguyên liệu (%d mục). Vui lòng kiểm tra tồn kho.',
             $plan['IdKeHoachSanXuatXuong'] ?? '',
-            count($requirements)
+            count($requirements),
         );
 
         $entries = [];

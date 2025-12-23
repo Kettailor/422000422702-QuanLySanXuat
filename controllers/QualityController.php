@@ -24,7 +24,7 @@ class QualityController extends Controller
         if (!empty($_GET['msg'])) {
             $flash = [
                 'type' => $_GET['type'] ?? 'success',
-                'message' => $_GET['msg']
+                'message' => $_GET['msg'],
             ];
         }
 
@@ -34,7 +34,7 @@ class QualityController extends Controller
             'summary'   => $summary,
             'dashboard' => $dashboard,
             'listLo'    => $listLo,
-            'flash'     => $flash
+            'flash'     => $flash,
         ]);
     }
 
@@ -77,7 +77,7 @@ class QualityController extends Controller
               AND HinhAnh <> ''
         ");
             $stmtImg->execute([
-                ':id' => $report['IdBienBanDanhGiaSP']
+                ':id' => $report['IdBienBanDanhGiaSP'],
             ]);
             $images = $stmtImg->fetchAll(PDO::FETCH_COLUMN);
 
@@ -105,7 +105,7 @@ class QualityController extends Controller
                 'report'    => $report,
                 'images'    => $images,
                 'isReport'  => true,
-                'nguoiLap'  => $nguoiLap   // 👈 TRUYỀN SANG VIEW
+                'nguoiLap'  => $nguoiLap,   // 👈 TRUYỀN SANG VIEW
             ]);
         }
     }
@@ -121,7 +121,7 @@ class QualityController extends Controller
             $db = $this->qualityModel->getConnection();
             $stmt = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_thanh_pham WHERE IdLo = :idLo");
             $stmt->execute([':idLo' => $idLo]);
-            $exists = (int)$stmt->fetchColumn() > 0;
+            $exists = (int) $stmt->fetchColumn() > 0;
 
             if ($exists) {
                 $this->redirect('?controller=quality&action=index&msg=' . urlencode("Lô $idLo đã có biên bản, không thể tạo mới.") . '&type=warning');
@@ -138,7 +138,7 @@ class QualityController extends Controller
         $this->render('quality/create', [
             'title'    => 'Lập biên bản đánh giá thành phẩm',
             'loInfo'   => $loInfo,
-            'criteria' => $criteria
+            'criteria' => $criteria,
         ]);
     }
 
@@ -155,7 +155,7 @@ class QualityController extends Controller
             $db = $this->qualityModel->getConnection();
             $stmt = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_thanh_pham WHERE IdLo = :idLo");
             $stmt->execute([':idLo' => $idLo]);
-            if ((int)$stmt->fetchColumn() > 0) {
+            if ((int) $stmt->fetchColumn() > 0) {
                 $this->redirect('?controller=quality&action=index&msg=' . urlencode("Lô $idLo đã có biên bản, không thể tạo mới.") . '&type=warning');
             }
         }
@@ -188,9 +188,11 @@ class QualityController extends Controller
             $tongTCKD = 0;
 
             foreach ($arrTieuChi as $i => $tieuChi) {
-                if (trim($tieuChi) === '') continue;
+                if (trim($tieuChi) === '') {
+                    continue;
+                }
 
-                $diem = max(0, min(10, (float)($arrDiemDat[$i] ?? 0)));
+                $diem = max(0, min(10, (float) ($arrDiemDat[$i] ?? 0)));
                 $ghiChu = trim($arrGhiChu[$i] ?? '');
                 $fileName = null;
 
@@ -219,10 +221,13 @@ class QualityController extends Controller
                 }
 
 
-                $this->qualityModel->insertChiTietTieuChi($idBienBan, $tieuChi, (int)$diem, $ghiChu, $fileName);
+                $this->qualityModel->insertChiTietTieuChi($idBienBan, $tieuChi, (int) $diem, $ghiChu, $fileName);
 
-                if ($diem >= 9) $tongTCD++;
-                else $tongTCKD++;
+                if ($diem >= 9) {
+                    $tongTCD++;
+                } else {
+                    $tongTCKD++;
+                }
             }
 
             $ketQuaTong = ($tongTCKD > 0) ? 'Không đạt' : 'Đạt';

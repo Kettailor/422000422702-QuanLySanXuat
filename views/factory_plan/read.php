@@ -11,10 +11,10 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         return '-';
     }
     $timestamp = strtotime($value);
-if ($timestamp === false) {
-    return '-';
-}
-return date($format, $timestamp);
+    if ($timestamp === false) {
+        return '-';
+    }
+    return date($format, $timestamp);
 };
 
 $statusBadge = static function (string $status): string {
@@ -208,7 +208,7 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php  foreach($stockNeed as $tmp ) { ?>
+                        <?php  foreach ($stockNeed as $tmp) { ?>
                         <tr>
                             <td>
                                 <div class="fw-semibold"><?= $tmp['TenNL'] ?></div>
@@ -218,7 +218,7 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
                             <td class="text-end"><?= $tmp['SoLuongTon'] ?></td>
                             <td><?= $tmp['TenLo'] ?></td>
                             <td class="text-center">
-                                <?php if( $tmp['SoLuongTon'] <= $tmp['SoLuongCan'] ) { ?>
+                                <?php if ($tmp['SoLuongTon'] <= $tmp['SoLuongCan']) { ?>
                                 <button class="btn btn-sm btn-outline-primary send-notification-btn"
                                         data-id-nguyen-lieu="<?= htmlspecialchars($tmp['IdNguyenLieu']) ?>"
                                         data-ten-nl="<?= htmlspecialchars($tmp['TenNL']) ?>"

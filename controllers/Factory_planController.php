@@ -271,9 +271,9 @@ class Factory_planController extends Controller
                 'ten' => $data['TenNL'],
                 'so_luong_can' => $data['SoLuongCan'],
                 'so_luong_ton' => $data['SoLuongTon'],
-                'ten_lo' => $data['TenLo']
+                'ten_lo' => $data['TenLo'],
             ],
-            'message' => 'Yêu cầu cung cấp nguyên liệu.'
+            'message' => 'Yêu cầu cung cấp nguyên liệu.',
         ];
 
         if (file_put_contents($filepath, json_encode($notificationContent, JSON_PRETTY_PRINT))) {

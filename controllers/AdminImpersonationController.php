@@ -14,7 +14,7 @@ class AdminImpersonationController extends Controller
         $this->authorize(['VT_ADMIN']);
 
         $roles = $this->roleModel->all(200);
-        $roles = array_filter($roles, fn (array $role) => $role['IdVaiTro'] !== 'VT_ADMIN');
+        $roles = array_filter($roles, fn(array $role) => $role['IdVaiTro'] !== 'VT_ADMIN');
         $impersonatedRole = Impersonation::getImpersonatedRole();
         $adminBypassEnabled = $_SESSION['admin_bypass_enabled'] ?? true;
         $canToggleAdminBypass = true;

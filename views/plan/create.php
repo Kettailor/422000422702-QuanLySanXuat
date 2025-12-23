@@ -73,10 +73,10 @@ foreach ($configurationDetails as $detail) {
                                 <?php endif; ?>
                                 <?php
                                 $orderEmail = $order['EmailLienHe'] ?? null;
-                                if (!$orderEmail && !empty($order['details'][0]['Email'])) {
-                                    $orderEmail = $order['details'][0]['Email'];
-                                }
-                                ?>
+                            if (!$orderEmail && !empty($order['details'][0]['Email'])) {
+                                $orderEmail = $order['details'][0]['Email'];
+                            }
+                            ?>
                                 <?php if (!empty($orderEmail)): ?>
                                     <div class="text-muted small">Email: <?= htmlspecialchars($orderEmail) ?></div>
                                 <?php endif; ?>
@@ -200,11 +200,11 @@ foreach ($configurationDetails as $detail) {
                                 <label class="form-label fw-semibold">Trạng thái kế hoạch</label>
                                 <select name="TrangThai" class="form-select">
                                     <?php
-                                    $statuses = ['Đã lập kế hoạch', 'Đang triển khai', 'Chờ phê duyệt'];
-                                    $currentStatus = $selectedOrderDetail['TrangThai'] ?? 'Đã lập kế hoạch';
-                                    foreach ($statuses as $status):
-                                        $selected = ($status === $currentStatus) ? 'selected' : '';
-                                        ?>
+                                $statuses = ['Đã lập kế hoạch', 'Đang triển khai', 'Chờ phê duyệt'];
+$currentStatus = $selectedOrderDetail['TrangThai'] ?? 'Đã lập kế hoạch';
+foreach ($statuses as $status):
+    $selected = ($status === $currentStatus) ? 'selected' : '';
+    ?>
                                         <option value="<?= htmlspecialchars($status) ?>" <?= $selected ?>><?= htmlspecialchars($status) ?></option>
                                     <?php endforeach; ?>
                                 </select>

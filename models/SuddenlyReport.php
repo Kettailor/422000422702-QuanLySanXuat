@@ -68,7 +68,7 @@ class SuddenlyReport extends BaseModel
         $stmt->execute([':id' => $idBienBan]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: [
             'TongTieuChiDat' => 0,
-            'TongTieuChiKhongDat' => 0
+            'TongTieuChiKhongDat' => 0,
         ];
     }
 
@@ -84,16 +84,16 @@ class SuddenlyReport extends BaseModel
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: [
             'tong_bien_ban' => 0,
             'so_dat' => 0,
-            'so_khong_dat' => 0
+            'so_khong_dat' => 0,
         ];
     }
 
     /** Dashboard tổng quan */
     public function getDashboardSummary(): array
     {
-        $total  = (int)$this->db->query("SELECT COUNT(*) FROM bien_ban_danh_gia_dot_xuat")->fetchColumn();
-        $passed = (int)$this->db->query("SELECT COUNT(*) FROM bien_ban_danh_gia_dot_xuat WHERE KetQua = 'Đạt'")->fetchColumn();
-        $failed = (int)$this->db->query("SELECT COUNT(*) FROM bien_ban_danh_gia_dot_xuat WHERE KetQua = 'Không đạt'")->fetchColumn();
+        $total  = (int) $this->db->query("SELECT COUNT(*) FROM bien_ban_danh_gia_dot_xuat")->fetchColumn();
+        $passed = (int) $this->db->query("SELECT COUNT(*) FROM bien_ban_danh_gia_dot_xuat WHERE KetQua = 'Đạt'")->fetchColumn();
+        $failed = (int) $this->db->query("SELECT COUNT(*) FROM bien_ban_danh_gia_dot_xuat WHERE KetQua = 'Không đạt'")->fetchColumn();
 
         return compact('total', 'passed', 'failed');
     }
@@ -132,8 +132,8 @@ class SuddenlyReport extends BaseModel
             WHERE IdBienBanDanhGiaDX LIKE :prefix
         ");
         $stmt->execute([':prefix' => $prefix . '%']);
-        $count = (int)$stmt->fetchColumn() + 1;
-        return $prefix . str_pad((string)$count, 2, '0', STR_PAD_LEFT);
+        $count = (int) $stmt->fetchColumn() + 1;
+        return $prefix . str_pad((string) $count, 2, '0', STR_PAD_LEFT);
     }
 
     /** Tạo biên bản cha */
@@ -153,7 +153,7 @@ class SuddenlyReport extends BaseModel
         string $tieuChi,
         int $diemDat,
         ?string $ghiChu = null,
-        ?string $fileName = null
+        ?string $fileName = null,
     ): bool {
         // Sinh ID chi tiết biên bản: CTBBDX20251102A, B, C...
         $stmt = $this->db->prepare("
@@ -162,7 +162,7 @@ class SuddenlyReport extends BaseModel
             WHERE IdBienBanDanhGiaDX = :id
         ");
         $stmt->execute([':id' => $idBienBan]);
-        $suffix = chr(65 + (int)$stmt->fetchColumn());
+        $suffix = chr(65 + (int) $stmt->fetchColumn());
         $idChiTiet = 'CT' . $idBienBan . $suffix;
 
         $sql = "INSERT INTO ttct_bien_ban_danh_gia_dot_xuat
@@ -176,7 +176,7 @@ class SuddenlyReport extends BaseModel
             ':Diem'     => $diemDat,
             ':GhiChu'   => $ghiChu,
             ':HinhAnh'  => $fileName,
-            ':IdBB'     => $idBienBan
+            ':IdBB'     => $idBienBan,
         ]);
     }
 
@@ -191,7 +191,7 @@ class SuddenlyReport extends BaseModel
             ':tcd' => $tongTCD,
             ':tckd' => $tongTCKD,
             ':kq'  => $ketQua,
-            ':id'  => $idBienBan
+            ':id'  => $idBienBan,
         ]);
     }
 
