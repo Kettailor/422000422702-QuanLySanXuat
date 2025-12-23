@@ -220,7 +220,7 @@ foreach ($configurationDetails as $detail) {
                                         <th style="width: 180px;">Hạn chót</th>
                                     </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody data-assignment-body>
                                     <?php foreach ($componentAssignments as $index => $component): ?>
                                         <?php $allowedTypes = $component['allowed_workshop_types'] ?? []; ?>
                                         <tr data-assignment-row data-allowed-types="<?= htmlspecialchars(json_encode(array_values($allowedTypes))) ?>">
@@ -452,7 +452,7 @@ foreach ($configurationDetails as $detail) {
             const addAssignmentButton = document.querySelector('[data-add-assignment]');
             if (addAssignmentButton) {
                 addAssignmentButton.addEventListener('click', () => {
-                    const tbody = document.querySelector('tbody');
+                    const tbody = document.querySelector('[data-assignment-body]');
                     if (!tbody) return;
                     const index = document.querySelectorAll('[data-assignment-row]').length;
                     const row = buildAssignmentRow(index);
