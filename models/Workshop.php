@@ -116,4 +116,48 @@ class Workshop extends BaseModel
 
         return $stmt->fetchAll();
     }
+
+    public function getAssignedManagerIds(): array
+    {
+        $stmt = $this->db->query('SELECT DISTINCT XUONGTRUONG_IdNhanVien FROM xuong WHERE XUONGTRUONG_IdNhanVien IS NOT NULL');
+        return array_values(array_filter(array_column($stmt->fetchAll(), 'XUONGTRUONG_IdNhanVien')));
+    }
+
+    public function getManagersByWorkshopIds(array $ids): array
+    {
+        $ids = array_values(array_filter($ids));
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = [];
+        $bindings = [];
+        foreach ($ids as $index => $id) {
+            $key = ':id' . $index;
+            $placeholders[] = $key;
+            $bindings[$key] = $id;
+        }
+
+        $sql = 'SELECT IdXuong, XUONGTRUONG_IdNhanVien
+                FROM xuong
+                WHERE IdXuong IN (' . implode(',', $placeholders) . ')';
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($bindings as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll();
+        $map = [];
+        foreach ($rows as $row) {
+            $workshopId = $row['IdXuong'] ?? null;
+            if (!$workshopId) {
+                continue;
+            }
+            $map[$workshopId] = $row['XUONGTRUONG_IdNhanVien'] ?? null;
+        }
+
+        return $map;
+    }
 }

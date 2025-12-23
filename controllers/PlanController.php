@@ -104,7 +104,7 @@ class PlanController extends Controller
         }
 
         $currentUser = $this->currentUser();
-        $actorId = $currentUser['IdNhanVien'] ?? null;
+        $actorId = $currentUser['IdNhanVien'] ?? ($_POST['BanGiamDoc'] ?? null);
 
         if (!$actorId) {
             $this->setFlash('danger', 'Không xác định được người lập kế hoạch. Vui lòng đăng nhập lại.');
@@ -121,7 +121,7 @@ class PlanController extends Controller
 
         $startTime = $this->normalizeDateTimeInput($_POST['ThoiGianBD'] ?? null);
         $endTime = $this->normalizeDateTimeInput($_POST['ThoiGianKetThuc'] ?? null);
-        $status = $_POST['TrangThai'] ?? 'Đã lập kế hoạch';
+        $status = 'Đang triển khai';
 
         if (!$this->validatePlanDates($startTime, $endTime)) {
             $this->setFlash('danger', 'Ngày bắt đầu không được bé hơn ngày hiện tại và hạn chót phải lớn hơn hoặc bằng ngày bắt đầu.');
@@ -177,6 +177,7 @@ class PlanController extends Controller
                 $this->orderModel->update($orderId, ['TrangThai' => 'Đang xử lý']);
             }
 
+            $this->notifyWorkshopManagers($assignments);
 
             $this->setFlash('success', 'Đã lập kế hoạch sản xuất và giao nhiệm vụ cho các xưởng.');
         } catch (PDOException $exception) {
@@ -289,6 +290,7 @@ class PlanController extends Controller
                 'configuration_label' => $component['TenCauHinh'] ?? null,
                 'unit' => $component['DonVi'] ?? 'sp',
                 'default_status' => $component['TrangThaiMacDinh'] ?? null,
+                'allowed_workshop_types' => ['Lắp ráp và đóng gói'],
             ];
         }
 
@@ -307,10 +309,12 @@ class PlanController extends Controller
                 'configuration_details' => $configurationDetails,
                 'detail_key' => null,
                 'detail_value' => null,
+                'allowed_workshop_types' => ['Lắp ráp và đóng gói'],
             ];
         }
 
-        return $this->appendConfigurationDetailAssignments($assignments, $configurationDetails, max(1, $quantity), $orderDetail);
+        $assignments = $this->appendConfigurationDetailAssignments($assignments, $configurationDetails, max(1, $quantity), $orderDetail);
+        return $this->ensureInspectionAssignment($assignments, max(1, $quantity), $orderDetail);
     }
 
     private function buildConfigurationDetails(array $orderDetail): array
@@ -381,12 +385,101 @@ class PlanController extends Controller
                 'configuration_details' => $configurationDetails,
                 'detail_key' => $detail['key'],
                 'detail_value' => $detail['value'],
+                'allowed_workshop_types' => ['Sản xuất'],
             ];
 
             $existingLabels[] = $normalizer($displayLabel);
         }
 
         return $assignments;
+    }
+
+    private function ensureInspectionAssignment(array $assignments, int $quantity, array $orderDetail): array
+    {
+        $hasInspection = false;
+        foreach ($assignments as $assignment) {
+            if (($assignment['category'] ?? null) === 'inspection') {
+                $hasInspection = true;
+                break;
+            }
+        }
+
+        if ($hasInspection) {
+            return $assignments;
+        }
+
+        $assignments[] = [
+            'id' => null,
+            'configuration_id' => $orderDetail['IdCauHinh'] ?? null,
+            'label' => 'Kiểm định sản phẩm',
+            'category' => 'inspection',
+            'default_quantity' => $quantity,
+            'quantity_ratio' => 1.0,
+            'default_workshop' => null,
+            'configuration_label' => $orderDetail['TenCauHinh'] ?? null,
+            'unit' => $orderDetail['DonVi'] ?? 'sp',
+            'default_status' => 'Đang chuẩn bị',
+            'configuration_details' => $this->buildConfigurationDetails($orderDetail),
+            'detail_key' => null,
+            'detail_value' => null,
+            'allowed_workshop_types' => ['Kiểm định sản xuất', 'Kiểm định lắp ráp'],
+        ];
+
+        return $assignments;
+    }
+
+    private function notifyWorkshopManagers(array $assignments): void
+    {
+        if (empty($assignments)) {
+            return;
+        }
+
+        $workshopIds = [];
+        foreach ($assignments as $assignment) {
+            $workshopId = $assignment['IdXuong'] ?? null;
+            if ($workshopId) {
+                $workshopIds[$workshopId] = true;
+            }
+        }
+
+        if (empty($workshopIds)) {
+            return;
+        }
+
+        $managerMap = $this->workshopModel->getManagersByWorkshopIds(array_keys($workshopIds));
+        $entries = [];
+        foreach ($assignments as $assignment) {
+            $workshopId = $assignment['IdXuong'] ?? null;
+            if (!$workshopId) {
+                continue;
+            }
+            $managerId = $managerMap[$workshopId] ?? null;
+            if (!$managerId) {
+                continue;
+            }
+
+            $planId = $assignment['IdKeHoachSanXuatXuong'] ?? null;
+            if (!$planId) {
+                continue;
+            }
+
+            $entries[] = [
+                'channel' => 'workshop_plan',
+                'recipient' => $managerId,
+                'title' => 'Có kế hoạch mới cho xưởng',
+                'message' => sprintf('Kế hoạch xưởng %s vừa được tạo. Vui lòng kiểm tra và phân công.', $planId),
+                'link' => '?controller=workshop_plan&action=read&id=' . urlencode($planId),
+                'metadata' => [
+                    'workshop_id' => $workshopId,
+                    'workshop_plan_id' => $planId,
+                ],
+            ];
+        }
+
+        if (!empty($entries)) {
+            $store = new NotificationStore();
+            $store->pushMany($entries);
+        }
     }
 
     private function extractAssignments(array $input, array $context): array

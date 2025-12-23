@@ -199,19 +199,6 @@ foreach ($configurationDetails as $detail) {
                                 <input type="datetime-local" name="ThoiGianKetThuc" class="form-control" value="<?= htmlspecialchars($defaultEnd) ?>" data-plan-end required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Trạng thái kế hoạch</label>
-                                <select name="TrangThai" class="form-select">
-                                    <?php
-                                    $statuses = ['Đã lập kế hoạch', 'Đang triển khai', 'Chờ phê duyệt'];
-                                    $currentStatus = $selectedOrderDetail['TrangThai'] ?? 'Đã lập kế hoạch';
-                                    foreach ($statuses as $status):
-                                        $selected = ($status === $currentStatus) ? 'selected' : '';
-                                        ?>
-                                        <option value="<?= htmlspecialchars($status) ?>" <?= $selected ?>><?= htmlspecialchars($status) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
                                 <label class="form-label fw-semibold">Người lập kế hoạch</label>
                                 <div class="border rounded-3 p-3 bg-light-subtle">
                                     <div class="fw-semibold mb-1">
@@ -250,7 +237,8 @@ foreach ($configurationDetails as $detail) {
                                     </thead>
                                     <tbody>
                                     <?php foreach ($componentAssignments as $index => $component): ?>
-                                        <tr data-assignment-row>
+                                        <?php $allowedTypes = $component['allowed_workshop_types'] ?? []; ?>
+                                        <tr data-assignment-row data-allowed-types="<?= htmlspecialchars(json_encode(array_values($allowedTypes))) ?>">
                                             <td>
                                                 <input type="hidden" name="component_assignments[<?= $index ?>][component_id]" value="<?= htmlspecialchars($component['id'] ?? '') ?>">
                                                 <input type="hidden" name="component_assignments[<?= $index ?>][configuration_id]" value="<?= htmlspecialchars($component['configuration_id'] ?? '') ?>">
@@ -274,7 +262,7 @@ foreach ($configurationDetails as $detail) {
                                                     <option value="">-- Chọn xưởng --</option>
                                                     <?php foreach ($workshops as $workshop): ?>
                                                         <?php $selected = ($workshop['IdXuong'] ?? null) === ($component['default_workshop'] ?? null) ? 'selected' : ''; ?>
-                                                        <option value="<?= htmlspecialchars($workshop['IdXuong'] ?? '') ?>" <?= $selected ?>>
+                                                        <option value="<?= htmlspecialchars($workshop['IdXuong'] ?? '') ?>" data-workshop-type="<?= htmlspecialchars($workshop['LoaiXuong'] ?? '') ?>" <?= $selected ?>>
                                                             <?= htmlspecialchars($workshop['TenXuong'] ?? 'Xưởng sản xuất') ?>
                                                         </option>
                                                     <?php endforeach; ?>
@@ -349,6 +337,47 @@ foreach ($configurationDetails as $detail) {
                 });
             }
 
+            function applyWorkshopFilter(row) {
+                if (!row) return;
+                const select = row.querySelector('select[name^="component_assignments"]');
+                if (!select) return;
+                const allowedTypes = JSON.parse(row.getAttribute('data-allowed-types') || '[]');
+                const options = Array.from(select.querySelectorAll('option'));
+                const allowedSet = new Set(allowedTypes.map((type) => type.toLowerCase()));
+                let hasAllowed = false;
+
+                options.forEach((option) => {
+                    const optionType = (option.getAttribute('data-workshop-type') || '').toLowerCase();
+                    if (!option.value) {
+                        option.hidden = false;
+                        option.disabled = false;
+                        return;
+                    }
+                    if (allowedSet.size === 0 || allowedSet.has(optionType)) {
+                        option.hidden = false;
+                        option.disabled = false;
+                        hasAllowed = true;
+                    } else {
+                        option.hidden = true;
+                        option.disabled = true;
+                    }
+                });
+
+                if (!hasAllowed && allowedSet.size > 0) {
+                    options.forEach((option) => {
+                        option.hidden = false;
+                        option.disabled = false;
+                    });
+                }
+
+                if (select.selectedOptions.length === 0 || (select.selectedOptions[0] && select.selectedOptions[0].disabled)) {
+                    const firstValid = options.find((option) => !option.disabled && option.value);
+                    if (firstValid) {
+                        select.value = firstValid.value;
+                    }
+                }
+            }
+
             function markEdited(event) {
                 event.target.dataset.userEdited = 'true';
             }
@@ -384,6 +413,7 @@ foreach ($configurationDetails as $detail) {
                 input.addEventListener('input', setMinDates);
             });
 
+            document.querySelectorAll('[data-assignment-row]').forEach(applyWorkshopFilter);
             setMinDates();
         });
     </script>

@@ -58,6 +58,12 @@ class WorkshopAssignment
         return array_column($stmt->fetchAll(), 'IdXuong');
     }
 
+    public function getAssignedEmployeeIds(): array
+    {
+        $stmt = $this->db->query('SELECT DISTINCT IdNhanVien FROM xuong_nhan_vien');
+        return array_values(array_filter(array_column($stmt->fetchAll(), 'IdNhanVien')));
+    }
+
     public function syncAssignments(
         string $workshopId,
         array $warehouseIds,
