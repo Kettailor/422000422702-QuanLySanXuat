@@ -10,6 +10,7 @@ class PlanController extends Controller
     private  WorkshopPlanMaterialDetail $workShopPlanDetail;
     private Order $orderModel;
     private Employee $employeeModel;
+    private User $userModel;
 
     public function __construct()
     {
@@ -22,6 +23,7 @@ class PlanController extends Controller
         $this->workShopPlanDetail = new WorkshopPlanMaterialDetail();
         $this->orderModel = new Order();
         $this->employeeModel = new Employee();
+        $this->userModel = new User();
     }
 
     public function index(): void
@@ -69,14 +71,7 @@ class PlanController extends Controller
             }
         }
 
-        $currentUser = $this->currentUser();
-        $employeeId = $currentUser['IdNhanVien'] ?? null;
-        if ($employeeId) {
-            $employee = $this->employeeModel->find($employeeId);
-            if (!empty($employee['HoTen'])) {
-                $currentUser['HoTen'] = $employee['HoTen'];
-            }
-        }
+        $currentUser = $this->resolvePlannerUser($this->currentUser());
 
         $this->render('plan/create', [
             'title' => 'Lập kế hoạch sản xuất',
@@ -112,7 +107,7 @@ class PlanController extends Controller
             return;
         }
 
-        $currentUser = $this->currentUser();
+        $currentUser = $this->resolvePlannerUser($this->currentUser());
         $actorId = $currentUser['IdNhanVien'] ?? ($_POST['BanGiamDoc'] ?? null);
 
         if (!$actorId) {
@@ -638,5 +633,33 @@ class PlanController extends Controller
         }
 
         return 'Không thể tạo kế hoạch, vui lòng kiểm tra lại thời gian.';
+    }
+
+    private function resolvePlannerUser(?array $user): ?array
+    {
+        if (!$user) {
+            return $user;
+        }
+
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if (!$employeeId) {
+            $username = $user['TenDangNhap'] ?? null;
+            if ($username) {
+                $account = $this->userModel->findByUsername($username);
+                $employeeId = $account['IdNhanVien'] ?? null;
+                if ($employeeId) {
+                    $user['IdNhanVien'] = $employeeId;
+                }
+            }
+        }
+
+        if ($employeeId) {
+            $employee = $this->employeeModel->find($employeeId);
+            if (!empty($employee['HoTen'])) {
+                $user['HoTen'] = $employee['HoTen'];
+            }
+        }
+
+        return $user;
     }
 }
