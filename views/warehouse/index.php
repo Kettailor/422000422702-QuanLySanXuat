@@ -7,6 +7,7 @@ $warehouseEntryForms = $warehouseEntryForms ?? [];
 $employees = $employees ?? [];
 $productOptionsByType = $productOptionsByType ?? [];
 $outboundDocumentTypes = $outboundDocumentTypes ?? [];
+$lotOptionsByType = $lotOptionsByType ?? [];
 $documentGroupsJson = htmlspecialchars(json_encode($documentGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 $lotMeta = [
     'material' => [
@@ -235,6 +236,7 @@ $lotPrefixMap = [
     <?php $formUi = $form['ui'] ?? []; ?>
     <?php $optionsForType = $productOptionsByType[$typeKey] ?? []; ?>
     <?php $productOptionsJson = htmlspecialchars(json_encode($optionsForType, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8'); ?>
+    <?php $lotOptionsJson = htmlspecialchars(json_encode($lotOptionsByType[$typeKey] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8'); ?>
     <?php $lotInfo = $lotMeta[$typeKey] ?? $lotMetaDefault; ?>
     <?php $lotPrefix = $lotPrefixMap[$typeKey] ?? 'LONL'; ?>
     <section class="warehouse-section" id="warehouse-group-<?= htmlspecialchars($typeKey) ?>">
@@ -247,9 +249,16 @@ $lotPrefixMap = [
                     <?php endif; ?>
                 </div>
                 <?php if ($form): ?>
-                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>">
-                        <i class="bi bi-plus-lg me-2"></i><?= htmlspecialchars($form['submit_label']) ?>
-                    </button>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" data-direction-target="inbound">
+                            <i class="bi bi-plus-lg me-2"></i><?= htmlspecialchars($form['submit_label']) ?>
+                        </button>
+                        <?php if (!empty($outboundDocumentTypes[$typeKey])): ?>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" data-direction-target="outbound">
+                                <i class="bi bi-box-arrow-up me-2"></i>Xuất <?= htmlspecialchars($group['label']) ?>
+                            </button>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -339,13 +348,17 @@ $lotPrefixMap = [
 
     <?php if ($form): ?>
         <?php $formDisabled = empty($group['warehouses']); ?>
-        <?php $defaultDate = date('Y-m-d'); ?>
+        <?php $defaultDate = ''; ?>
         <?php $firstWarehouseId = $group['warehouses'][0]['IdKho'] ?? ''; ?>
-        <div class="modal fade" id="warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" tabindex="-1" aria-hidden="true" data-warehouse-entry-modal data-entry-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>">
+        <?php
+            $inboundTitle = $form['modal_title'] ?? ('Lập phiếu cho ' . $group['label']);
+            $outboundTitle = 'Xuất ' . ($group['label'] ?? 'kho');
+        ?>
+        <div class="modal fade" id="warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" tabindex="-1" aria-hidden="true" data-warehouse-entry-modal data-entry-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>" data-inbound-title="<?= htmlspecialchars($inboundTitle) ?>" data-outbound-title="<?= htmlspecialchars($outboundTitle) ?>">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title"><?= htmlspecialchars($form['modal_title'] ?? ('Lập phiếu cho ' . $group['label'])) ?></h5>
+                        <h5 class="modal-title" data-modal-title><?= htmlspecialchars($inboundTitle) ?></h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                     </div>
                     <div class="modal-body">
@@ -358,15 +371,20 @@ $lotPrefixMap = [
                                 Hiện chưa có kho nào trong nhóm này. Vui lòng thêm kho trước khi lập phiếu.
                             </div>
                         <?php else: ?>
-                            <form method="post" action="?controller=warehouse_sheet&action=store" class="row g-4" data-warehouse-entry-form data-products='<?= $productOptionsJson ?>' data-lot-prefix='<?= htmlspecialchars($lotPrefix) ?>'>
+                            <form method="post" action="?controller=warehouse_sheet&action=store" class="row g-4" data-warehouse-entry-form data-products='<?= $productOptionsJson ?>' data-lot-prefix='<?= htmlspecialchars($lotPrefix) ?>' data-lots='<?= $lotOptionsJson ?>'>
                                 <input type="hidden" name="quick_entry" value="1">
-                                <input type="hidden" name="LoaiPhieu" value="<?= htmlspecialchars($form['document_type']) ?>">
+                                <div class="col-md-6">
+                                    <label class="form-label">Loại phiếu <span class="text-danger">*</span></label>
+                                    <select name="LoaiPhieu" class="form-select" required data-direction-select>
+                                    <option value="<?= htmlspecialchars($form['document_type']) ?>" selected><?= htmlspecialchars($form['document_type']) ?></option>
+                                        <?php if (!empty($outboundDocumentTypes[$typeKey])): ?>
+                                            <option value="<?= htmlspecialchars($outboundDocumentTypes[$typeKey]) ?>"><?= htmlspecialchars($outboundDocumentTypes[$typeKey]) ?></option>
+                                        <?php endif; ?>
+                                    </select>
+                                    <div class="form-text">Chỉ cập nhật tồn khi được đánh dấu xác nhận.</div>
+                                </div>
                                 <input type="hidden" name="redirect" value="?controller=warehouse&action=index">
                                 <input type="hidden" name="WarehouseType" value="<?= htmlspecialchars($typeKey) ?>">
-                                <div class="col-md-6">
-                                    <label class="form-label">Loại phiếu</label>
-                                    <input type="text" class="form-control" value="<?= htmlspecialchars($form['document_type']) ?>" readonly>
-                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Loại đối tác <span class="text-danger">*</span></label>
                                     <select name="LoaiDoiTac" class="form-select" required>
@@ -379,13 +397,21 @@ $lotPrefixMap = [
                                 <input type="hidden" name="IdPhieu" data-field="IdPhieu" data-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>">
                                 <div class="col-md-6">
                                     <label class="form-label">Kho áp dụng <span class="text-danger">*</span></label>
-                                    <select name="IdKho" class="form-select" required>
+                                    <select name="IdKho" class="form-select" required data-field="Warehouse">
                                         <?php foreach ($group['warehouses'] as $warehouseOption): ?>
                                             <option value="<?= htmlspecialchars($warehouseOption['IdKho']) ?>" <?= $warehouseOption['IdKho'] === $firstWarehouseId ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($warehouseOption['TenKho']) ?> (<?= htmlspecialchars($warehouseOption['IdKho']) ?>)
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
+                                </div>
+                                <div class="col-md-6 d-none" data-outbound-only>
+                                    <label class="form-label">Chọn lô để xuất <span class="text-danger">*</span></label>
+                                    <select name="Quick_IdLo_Existing" class="form-select" data-field="ExistingLot">
+                                        <option value="">-- Chọn lô trong kho --</option>
+                                    </select>
+                                    <div class="small text-muted mt-1" data-existing-lot-info></div>
+                                    <div class="form-text">Chỉ hiển thị lô thuộc kho đã chọn.</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Đối tác/đơn vị <span class="text-danger">*</span></label>
@@ -397,7 +423,11 @@ $lotPrefixMap = [
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Ngày xác nhận</label>
-                                    <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($defaultDate) ?>" data-synced="1">
+                                    <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($defaultDate) ?>" data-confirm-date>
+                                    <div class="form-check mt-1">
+                                        <input class="form-check-input" type="checkbox" value="1" id="confirm-now-<?= htmlspecialchars($typeKey) ?>" data-confirm-toggle>
+                                        <label class="form-check-label" for="confirm-now-<?= htmlspecialchars($typeKey) ?>">Xác nhận và cập nhật tồn ngay</label>
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Tổng giá trị (đ)</label>
@@ -451,13 +481,13 @@ $lotPrefixMap = [
                                     <p class="text-muted small mb-3"><?= htmlspecialchars($lotInfo['description']) ?></p>
                                 </div>
                                 <input type="hidden" name="Quick_IdLo" data-field="IdLo" data-prefix="<?= htmlspecialchars($lotPrefix) ?>">
-                                <div class="col-md-6">
+                                <div class="col-md-6" data-inbound-only>
                                     <label class="form-label"><?= htmlspecialchars($formUi['lot_name_label'] ?? 'Tên lô') ?> <span class="text-danger">*</span></label>
-                                    <input type="text" name="Quick_TenLo" class="form-control" required placeholder="<?= htmlspecialchars($formUi['lot_name_label'] ?? 'Tên lô nhập kho') ?>">
+                                    <input type="text" name="Quick_TenLo" class="form-control" required placeholder="<?= htmlspecialchars($formUi['lot_name_label'] ?? 'Tên lô nhập kho') ?>" data-inbound-required>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6" data-inbound-only>
                                     <label class="form-label"><?= htmlspecialchars($formUi['product_label'] ?? 'Sản phẩm/nguyên liệu') ?> <span class="text-danger">*</span></label>
-                                    <select name="Quick_IdSanPham" class="form-select" required data-field="Product">
+                                    <select name="Quick_IdSanPham" class="form-select" required data-field="Product" data-inbound-required>
                                         <option value="">-- <?= htmlspecialchars($formUi['product_placeholder'] ?? 'Chọn mặt hàng cần nhập') ?> --</option>
                                         <?php foreach ($optionsForType as $product): ?>
                                             <option value="<?= htmlspecialchars($product['id']) ?>" data-unit="<?= htmlspecialchars($product['unit']) ?>">
@@ -472,15 +502,11 @@ $lotPrefixMap = [
                                 <div class="col-md-6">
                                     <label class="form-label">Đơn vị tính</label>
                                     <input type="text" name="Quick_DonViTinh" class="form-control" placeholder="<?= htmlspecialchars($formUi['unit_hint'] ?? 'Tự động theo sản phẩm') ?>" data-field="ProductUnit" readonly>
+                                    <div class="form-text" data-outbound-only>Đơn vị tự động lấy theo lô đang chọn.</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label"><?= htmlspecialchars($formUi['quantity_label'] ?? 'Số lượng dự kiến') ?> <span class="text-danger">*</span></label>
                                     <input type="number" name="Quick_SoLuong" class="form-control" min="1" required data-field="Quantity" placeholder="Nhập số lượng theo đơn vị">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label"><?= htmlspecialchars($formUi['received_label'] ?? 'Số lượng thực nhận') ?></label>
-                                    <input type="number" name="Quick_ThucNhan" class="form-control" min="0" data-field="ReceivedQuantity" placeholder="Mặc định theo số lượng dự kiến">
-                                    <div class="form-text">Giữ trống để hệ thống tự dùng số lượng dự kiến.</div>
                                 </div>
                                 <div class="col-12 d-flex justify-content-end">
                                     <button type="submit" class="btn btn-success">
@@ -532,7 +558,7 @@ $lotPrefixMap = [
                             <th>Lý do</th>
                             <th>Tổng tiền</th>
                             <th>Mặt hàng</th>
-                            <th>Thực nhận</th>
+                            <th>Tổng số lượng</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
                         </thead>
@@ -572,8 +598,37 @@ $lotPrefixMap = [
                 productMap = {};
             }
 
+            var lotOptions = [];
+            try {
+                lotOptions = JSON.parse(form.getAttribute('data-lots') || '[]');
+            } catch (error) {
+                lotOptions = [];
+            }
+
+            var lotByWarehouse = {};
+            lotOptions.forEach(function (lot) {
+                var warehouseId = lot.warehouse_id || '';
+                if (!warehouseId) {
+                    return;
+                }
+                if (!lotByWarehouse[warehouseId]) {
+                    lotByWarehouse[warehouseId] = [];
+                }
+                lotByWarehouse[warehouseId].push({
+                    id: lot.id,
+                    name: lot.name || lot.id,
+                    quantity: Number(lot.quantity || 0),
+                    unit: lot.unit || '',
+                    productId: lot.product_id || '',
+                    productName: lot.product_name || '',
+                });
+            });
+
             var productSelect = form.querySelector('[data-field="Product"]');
             var productUnitInput = form.querySelector('[data-field="ProductUnit"]');
+            var warehouseSelect = form.querySelector('[data-field="Warehouse"]');
+            var existingLotSelect = form.querySelector('[data-field="ExistingLot"]');
+            var existingLotInfo = form.querySelector('[data-existing-lot-info]');
 
             var updateProductUnit = function () {
                 if (!productSelect || !productUnitInput) {
@@ -596,6 +651,63 @@ $lotPrefixMap = [
 
             if (productSelect) {
                 productSelect.addEventListener('change', updateProductUnit);
+            }
+
+            var fillExistingLots = function () {
+                if (!existingLotSelect) {
+                    return;
+                }
+                var warehouseId = warehouseSelect ? warehouseSelect.value : '';
+                var options = lotByWarehouse[warehouseId] || [];
+                existingLotSelect.innerHTML = '<option value=\"\">-- Chọn lô trong kho --</option>';
+                options.forEach(function (lot) {
+                    var opt = document.createElement('option');
+                    opt.value = lot.id;
+                    opt.textContent = lot.name + ' (' + lot.id + ') - Tồn: ' + (lot.quantity || 0);
+                    opt.dataset.unit = lot.unit || '';
+                    opt.dataset.quantity = lot.quantity || 0;
+                    opt.dataset.productId = lot.productId || '';
+                    opt.dataset.productName = lot.productName || '';
+                    existingLotSelect.appendChild(opt);
+                });
+            };
+
+            var updateExistingLotInfo = function () {
+                if (!existingLotSelect || !existingLotInfo) {
+                    return;
+                }
+                var selected = existingLotSelect.options[existingLotSelect.selectedIndex] || null;
+                if (!selected || !selected.value) {
+                    existingLotInfo.textContent = 'Chọn lô để xem tồn hiện tại.';
+                    return;
+                }
+                var qty = selected.dataset.quantity || 0;
+                var unit = selected.dataset.unit || '';
+                var productName = selected.dataset.productName || '';
+                existingLotInfo.textContent = 'Tồn khả dụng: ' + qty + (unit ? (' ' + unit) : '') + (productName ? (' | Sản phẩm: ' + productName) : '');
+            };
+
+            if (warehouseSelect) {
+                warehouseSelect.addEventListener('change', function () {
+                    fillExistingLots();
+                    updateExistingLotInfo();
+                });
+            }
+
+            if (existingLotSelect) {
+                existingLotSelect.addEventListener('change', function () {
+                    var selected = existingLotSelect.options[existingLotSelect.selectedIndex] || null;
+                    if (productUnitInput && selected && selected.dataset.unit) {
+                        productUnitInput.value = selected.dataset.unit;
+                    }
+                    if (selected && selected.dataset.quantity && selected.dataset.quantity !== '') {
+                        var available = Number(selected.dataset.quantity);
+                        if (!Number.isNaN(available) && quantityInput) {
+                            quantityInput.value = Math.min(available, Number(quantityInput.value || available) || available);
+                        }
+                    }
+                    updateExistingLotInfo();
+                });
             }
 
             var buildId = function (pre) {
@@ -652,52 +764,104 @@ $lotPrefixMap = [
 
             var dateInput = form.querySelector('input[name="NgayLP"]');
             var confirmInput = form.querySelector('input[name="NgayXN"]');
+            var confirmToggle = form.querySelector('[data-confirm-toggle]');
+            var directionSelect = form.querySelector('[data-direction-select]');
+            var inboundFields = form.querySelectorAll('[data-inbound-only]');
+            var outboundFields = form.querySelectorAll('[data-outbound-only]');
+            var inboundRequired = form.querySelectorAll('[data-inbound-required]');
+            var modalId = modalEl.getAttribute('id');
+            var directionTriggers = document.querySelectorAll('[data-direction-target][data-bs-target="#' + modalId + '"]');
+            var modalTitle = modalEl.querySelector('[data-modal-title]');
+            var inboundTitle = modalEl.getAttribute('data-inbound-title') || '';
+            var outboundTitle = modalEl.getAttribute('data-outbound-title') || inboundTitle;
 
-            if (dateInput && confirmInput) {
-                var syncDates = function () {
-                    if (!confirmInput.value || confirmInput.dataset.synced === '1') {
-                        confirmInput.value = dateInput.value;
-                        confirmInput.dataset.synced = '1';
+            if (confirmToggle && confirmInput) {
+                confirmToggle.addEventListener('change', function () {
+                    if (confirmToggle.checked) {
+                        var now = new Date();
+                        var yyyy = now.getFullYear();
+                        var mm = String(now.getMonth() + 1).padStart(2, '0');
+                        var dd = String(now.getDate()).padStart(2, '0');
+                        confirmInput.value = `${yyyy}-${mm}-${dd}`;
+                    } else {
+                        confirmInput.value = '';
                     }
-                };
-
-                syncDates();
-
-                dateInput.addEventListener('change', syncDates);
-                confirmInput.addEventListener('input', function () {
-                    confirmInput.dataset.synced = '0';
                 });
             }
 
-            var quantityInput = form.querySelector('[data-field="Quantity"]');
-            var receivedInput = form.querySelector('[data-field="ReceivedQuantity"]');
-            var syncReceivedQuantity = null;
+            var toggleDirection = function () {
+                var isOutbound = false;
+                if (directionSelect && directionSelect.value) {
+                    var normalized = directionSelect.value.toLowerCase();
+                    isOutbound = normalized.indexOf('xuất') !== -1 || normalized.indexOf('xuat') !== -1;
+                }
 
-            if (quantityInput && receivedInput) {
-                syncReceivedQuantity = function () {
-                    if (!receivedInput.value || receivedInput.dataset.syncedQuantity === '1') {
-                        receivedInput.value = quantityInput.value;
-                        receivedInput.dataset.syncedQuantity = '1';
-                    }
-                };
-
-                quantityInput.addEventListener('input', syncReceivedQuantity);
-                receivedInput.addEventListener('input', function () {
-                    receivedInput.dataset.syncedQuantity = '0';
+                inboundFields.forEach(function (el) {
+                    el.classList.toggle('d-none', isOutbound);
                 });
+                outboundFields.forEach(function (el) {
+                    el.classList.toggle('d-none', !isOutbound);
+                });
+                inboundRequired.forEach(function (el) {
+                    if (isOutbound) {
+                        el.removeAttribute('required');
+                    } else {
+                        el.setAttribute('required', 'required');
+                    }
+                });
+                if (existingLotSelect) {
+                    if (isOutbound) {
+                        existingLotSelect.setAttribute('required', 'required');
+                    } else {
+                        existingLotSelect.removeAttribute('required');
+                        existingLotSelect.value = '';
+                    }
+                    updateExistingLotInfo();
+                }
+                if (productUnitInput && isOutbound && existingLotSelect) {
+                    var selected = existingLotSelect.options[existingLotSelect.selectedIndex] || null;
+                    if (selected && selected.dataset.unit) {
+                        productUnitInput.value = selected.dataset.unit;
+                    }
+                }
 
-                syncReceivedQuantity();
-            }
+                if (modalTitle) {
+                    modalTitle.textContent = isOutbound ? outboundTitle : inboundTitle;
+                }
+            };
 
             modalEl.addEventListener('show.bs.modal', function () {
                 updateId();
                 updateLotId();
-                if (syncReceivedQuantity) {
-                    receivedInput.dataset.syncedQuantity = '1';
-                    syncReceivedQuantity();
-                }
                 updateProductUnit();
+                fillExistingLots();
+                toggleDirection();
+                updateExistingLotInfo();
             });
+
+            if (directionSelect) {
+                directionSelect.addEventListener('change', toggleDirection);
+            }
+
+            if (directionTriggers.length) {
+                directionTriggers.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var target = btn.getAttribute('data-direction-target') || '';
+                        if (!directionSelect) {
+                            return;
+                        }
+                        if (target === 'outbound' && existingLotSelect) {
+                            var outboundOption = directionSelect.querySelector('option[value*="xuất"], option[value*="xuat"]');
+                            if (outboundOption) {
+                                directionSelect.value = outboundOption.value;
+                            }
+                        } else {
+                            directionSelect.selectedIndex = 0;
+                        }
+                        toggleDirection();
+                    });
+                });
+            }
         });
     });
 </script>
@@ -901,7 +1065,7 @@ $lotPrefixMap = [
                 row.appendChild(quantityCell);
 
                 var receivedCell = document.createElement('td');
-                receivedCell.textContent = formatNumber(doc.TongThucNhan || doc.TongSoLuong || 0);
+                receivedCell.textContent = formatNumber(doc.TongSoLuong || 0);
                 row.appendChild(receivedCell);
 
                 var actionsCell = document.createElement('td');

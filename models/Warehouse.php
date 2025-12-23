@@ -296,6 +296,30 @@ class Warehouse extends BaseModel
         return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
     }
 
+    public function getWarehouseIdsByWorkshops(array $workshopIds): array
+    {
+        $workshopIds = array_values(array_filter($workshopIds));
+
+        if (empty($workshopIds)) {
+            return [];
+        }
+
+        $placeholders = [];
+        foreach ($workshopIds as $index => $workshopId) {
+            $placeholders[':workshop' . $index] = $workshopId;
+        }
+
+        $sql = 'SELECT IdKho FROM KHO WHERE IdXuong IN (' . implode(', ', array_keys($placeholders)) . ')';
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($placeholders as $placeholder => $value) {
+            $stmt->bindValue($placeholder, $value);
+        }
+        $stmt->execute();
+
+        return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
+    }
+
     public function groupWarehousesByType(array $warehouses, ?array $typeSummary = null): array
     {
         $emptyTypeSummary = $this->getEmptyTypeSummary();

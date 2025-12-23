@@ -7,10 +7,26 @@ $actionUrl = $actionUrl ?? '?controller=warehouse_sheet&action=store';
 $isEdit = $isEdit ?? false;
 $products = $products ?? [];
 $lots = $lots ?? [];
+$workshops = $workshops ?? [];
+$warehouseWorkshopMap = $warehouseWorkshopMap ?? [];
+$currentUser = $currentUser ?? null;
+$approvers = $approvers ?? [];
+$approversJson = htmlspecialchars(json_encode($approvers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 $details = $details ?? [];
 $productsJson = htmlspecialchars(json_encode($products, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
+$warehousesJson = htmlspecialchars(json_encode($warehouses, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8');
+$currentWarehouseId = $document['IdKho'] ?? '';
+$currentApprover = $approvers[$currentWarehouseId] ?? null;
+$defaultWorkshopId = $warehouseWorkshopMap[$currentWarehouseId]['IdXuong'] ?? '';
+$warehouseWorkshopMapJson = htmlspecialchars(json_encode($warehouseWorkshopMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
+$isExternalPartner = in_array($document['LoaiDoiTac'] ?? '', ['Nhà cung cấp', 'Khách hàng'], true);
+$partnerScope = $isExternalPartner ? 'external' : 'internal';
+$partnerExternalType = $isExternalPartner ? ($document['LoaiDoiTac'] ?? 'Nhà cung cấp') : 'Nhà cung cấp';
+$partnerExternalName = $isExternalPartner ? ($document['DoiTac'] ?? '') : '';
+$currentUserName = $currentUser['HoTen'] ?? ($document['NHAN_VIENIdNhanVien'] ?? '');
+$currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien'] ?? '');
 ?>
 
 <div class="card border-0 shadow-sm">
@@ -38,16 +54,37 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Loại đối tác <span class="text-danger">*</span></label>
-                            <?php $partnerType = $document['LoaiDoiTac'] ?? 'Nội bộ'; ?>
-                            <select name="LoaiDoiTac" class="form-select" required>
-                                <?php foreach (['Nội bộ', 'Nhà cung cấp', 'Khách hàng', 'Xưởng khác'] as $option): ?>
-                                    <option value="<?= htmlspecialchars($option) ?>" <?= $partnerType === $option ? 'selected' : '' ?>><?= htmlspecialchars($option) ?></option>
+                            <select name="PartnerScope" class="form-select" data-partner-scope>
+                                <option value="internal" <?= $partnerScope === 'internal' ? 'selected' : '' ?>>Nội bộ</option>
+                                <option value="external" <?= $partnerScope === 'external' ? 'selected' : '' ?>>Bên ngoài</option>
+                            </select>
+                            <div class="form-text">Nội bộ: chọn xưởng/kho nội bộ. Bên ngoài: khách hàng/nhà cung cấp.</div>
+                        </div>
+                        <div class="col-md-6 <?= $partnerScope === 'external' ? '' : 'd-none' ?>" data-partner-external>
+                            <label class="form-label fw-semibold">Loại đơn vị bên ngoài <span class="text-danger">*</span></label>
+                            <select name="PartnerExternalType" class="form-select">
+                                <?php foreach (['Nhà cung cấp', 'Khách hàng'] as $option): ?>
+                                    <option value="<?= htmlspecialchars($option) ?>" <?= $partnerExternalType === $option ? 'selected' : '' ?>><?= htmlspecialchars($option) ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <label class="form-label fw-semibold mt-2">Tên đơn vị <span class="text-danger">*</span></label>
+                            <input type="text" name="PartnerExternalName" class="form-control" value="<?= htmlspecialchars($partnerExternalName) ?>" placeholder="Nhập tên khách hàng/nhà cung cấp">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Đối tác/đơn vị <span class="text-danger">*</span></label>
-                            <input type="text" name="DoiTac" class="form-control" required value="<?= htmlspecialchars($document['DoiTac'] ?? 'Nội bộ') ?>" placeholder="Ví dụ: Nhà cung cấp switch Lotus">
+                        <div class="col-md-6 <?= $partnerScope === 'internal' ? '' : 'd-none' ?>" data-partner-internal>
+                            <label class="form-label fw-semibold">Xưởng nội bộ <span class="text-danger">*</span></label>
+                            <select name="PartnerWorkshop" class="form-select">
+                                <option value="">-- Chọn xưởng --</option>
+                                <?php foreach ($workshops as $workshop): ?>
+                                    <option value="<?= htmlspecialchars($workshop['IdXuong'] ?? '') ?>" <?= ($workshop['IdXuong'] ?? '') === $defaultWorkshopId ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($workshop['TenXuong'] ?? $workshop['IdXuong'] ?? '') ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <label class="form-label fw-semibold mt-2">Kho nội bộ <span class="text-danger">*</span></label>
+                            <select name="PartnerWarehouse" class="form-select">
+                                <option value="">-- Chọn kho --</option>
+                            </select>
+                            <div class="form-text">Hệ thống sẽ tự điền đối tác theo xưởng/kho đã chọn.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Số chứng từ tham chiếu</label>
@@ -98,26 +135,21 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
 
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Người lập phiếu <span class="text-danger">*</span></label>
-                <select class="form-select" name="NguoiLap" required>
-                    <option value="">-- Chọn nhân viên --</option>
-                    <?php foreach ($employees as $employee): ?>
-                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($employee['HoTen']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="form-control-plaintext"><?= htmlspecialchars($currentUserName) ?: 'Không xác định' ?></div>
+                <input type="hidden" name="NguoiLap" value="<?= htmlspecialchars($currentUserId) ?>">
             </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">Người xác nhận <span class="text-danger">*</span></label>
-                <select class="form-select" name="NguoiXacNhan">
-                    <option value="">-- Chọn nhân viên --</option>
-                    <?php foreach ($employees as $employee): ?>
-                        <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>" <?= ($document['NHAN_VIENIdNhanVien2'] ?? '') === $employee['IdNhanVien'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($employee['HoTen']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Xưởng trưởng xác nhận <span class="text-danger">*</span></label>
+    <div class="form-control-plaintext" data-role="approver-display">
+        <?php if ($currentApprover): ?>
+            <?= htmlspecialchars($currentApprover['HoTen'] ?? '') ?><?= !empty($currentApprover['ChucVu']) ? ' · ' . htmlspecialchars($currentApprover['ChucVu']) : '' ?>
+        <?php else: ?>
+            <span class="text-muted">Chọn kho để hiển thị xưởng trưởng.</span>
+        <?php endif; ?>
+    </div>
+    <input type="hidden" name="NguoiXacNhan" value="<?= htmlspecialchars($document['NHAN_VIENIdNhanVien2'] ?? ($currentApprover['IdNhanVien'] ?? '')) ?>" data-role="approver-input">
+    <div class="form-text text-muted">Hệ thống tự động gán xưởng trưởng của kho làm người xác nhận.</div>
+</div>
 
             <div class="col-12">
                 <label class="form-label fw-semibold">Lý do/Nội dung nghiệp vụ <span class="text-danger">*</span></label>
@@ -166,7 +198,6 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                             <th>Tên lô</th>
                             <th>Mặt hàng</th>
                             <th>Số lượng</th>
-                            <th>Thực nhận</th>
                             <th>Đơn vị</th>
                         </tr>
                         </thead>
@@ -180,7 +211,6 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                                     <small class="text-muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></small>
                                 </td>
                                 <td><?= number_format($detail['SoLuong'] ?? 0) ?></td>
-                                <td><?= number_format($detail['ThucNhan'] ?? 0) ?></td>
                                 <td><?= htmlspecialchars($detail['DonViTinh'] ?? $detail['DonVi'] ?? '') ?></td>
                             </tr>
                         <?php endforeach; ?>
@@ -206,35 +236,37 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
             <div class="table-responsive">
                 <table class="table align-middle table-hover" id="detail-table">
                     <thead class="table-light">
-                    <tr>
-                        <th class="text-nowrap">Hình thức</th>
-                        <th class="text-nowrap">Mã lô</th>
-                        <th>Tên lô</th>
-                        <th>Mặt hàng</th>
-                        <th class="text-nowrap">Số lượng</th>
-                        <th class="text-nowrap">Thực nhận</th>
-                        <th class="text-nowrap">Đơn vị</th>
-                        <th></th>
-                    </tr>
+                        <tr>
+                            <th class="text-nowrap">Hình thức</th>
+                            <th class="text-nowrap">Mã lô</th>
+                            <th>Tên lô</th>
+                            <th>Mặt hàng</th>
+                            <th class="text-nowrap">Số lượng</th>
+                            <th class="text-nowrap">Đơn vị</th>
+                            <th></th>
+                        </tr>
                     </thead>
                     <tbody data-detail-rows></tbody>
                 </table>
             </div>
             <div class="bg-light border rounded-3 p-3 small mb-0">
                 <div class="fw-semibold mb-1">Lưu ý nghiệp vụ</div>
-                <ul class="mb-0">
-                    <li>Phiếu nhập có thể tạo lô mới hoặc cập nhật lô sẵn có.</li>
-                    <li>Phiếu xuất chỉ được chọn lô đã tồn tại trong kho.</li>
-                    <li>Số lượng thực nhận để trống sẽ mặc định bằng số lượng kế hoạch.</li>
-                </ul>
+                    <ul class="mb-0">
+                        <li>Phiếu nhập có thể tạo lô mới hoặc cập nhật lô sẵn có.</li>
+                        <li>Phiếu xuất chỉ được chọn lô đã tồn tại trong kho.</li>
+                        <li>Số lượng nhập/xuất là cơ sở duy nhất để cập nhật tồn kho.</li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const products = JSON.parse('<?= $productsJson ?>');
             const lots = JSON.parse('<?= $lotsJson ?>');
+            const approvers = JSON.parse('<?= $approversJson ?>');
+            const warehouses = JSON.parse('<?= $warehousesJson ?>');
+            const warehouseMap = JSON.parse('<?= $warehouseWorkshopMapJson ?>');
             const lotMap = {};
             lots.forEach(lot => {
                 lotMap[lot.IdLo] = lot;
@@ -251,6 +283,90 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
             const addRowBtn = document.querySelector('[data-action="add-detail-row"]');
             const warehouseSelect = document.querySelector('select[name="IdKho"]');
             const typeInput = document.querySelector('input[name="LoaiPhieu"]');
+            const approverDisplay = document.querySelector('[data-role="approver-display"]');
+            const approverInput = document.querySelector('[data-role="approver-input"]');
+            const partnerScopeSelect = document.querySelector('[data-partner-scope]');
+            const partnerExternal = document.querySelector('[data-partner-external]');
+            const partnerInternal = document.querySelector('[data-partner-internal]');
+            const partnerExternalType = document.querySelector('select[name="PartnerExternalType"]');
+            const partnerExternalName = document.querySelector('input[name="PartnerExternalName"]');
+            const partnerWorkshopSelect = document.querySelector('select[name="PartnerWorkshop"]');
+            const partnerWarehouseSelect = document.querySelector('select[name="PartnerWarehouse"]');
+
+            const updateApprover = () => {
+                if (!warehouseSelect || !approverDisplay || !approverInput) {
+                    return;
+                }
+                const warehouseId = warehouseSelect.value || '';
+                const approver = approvers[warehouseId] || null;
+
+                if (approver) {
+                    approverDisplay.textContent = approver.HoTen || approver.IdNhanVien || '';
+                    if (approver.ChucVu) {
+                        approverDisplay.textContent += ' · ' + approver.ChucVu;
+                    }
+                    approverInput.value = approver.IdNhanVien || '';
+                } else {
+                    approverDisplay.innerHTML = '<span class=\"text-muted\">Chọn kho để hiển thị xưởng trưởng.</span>';
+                    approverInput.value = '';
+                }
+            };
+
+            const filterWarehousesByWorkshop = (workshopId) => {
+                return warehouses.filter((w) => !workshopId || (w.IdXuong || '') === workshopId);
+            };
+
+            const updatePartnerInternal = () => {
+                if (!partnerWorkshopSelect || !partnerWarehouseSelect) return;
+
+                const workshopId = partnerWorkshopSelect.value || '';
+                const currentWarehouseId = warehouseSelect ? warehouseSelect.value : '';
+                const options = filterWarehousesByWorkshop(workshopId);
+
+                partnerWarehouseSelect.innerHTML = '<option value=\"\">-- Chọn kho --</option>';
+                options.forEach((w) => {
+                    const opt = document.createElement('option');
+                    opt.value = w.IdKho || '';
+                    opt.textContent = w.TenKho || w.IdKho || '';
+                    if (w.IdKho === currentWarehouseId) {
+                        opt.selected = true;
+                    }
+                    partnerWarehouseSelect.appendChild(opt);
+                });
+            };
+
+            const syncWorkshopByWarehouse = () => {
+                if (!warehouseSelect || !partnerWorkshopSelect) return;
+                const selected = warehouseMap[warehouseSelect.value] || {};
+                if (selected.IdXuong) {
+                    partnerWorkshopSelect.value = selected.IdXuong;
+                }
+                updatePartnerInternal();
+            };
+
+            const togglePartnerScope = () => {
+                const scope = partnerScopeSelect ? partnerScopeSelect.value : 'internal';
+                if (partnerExternal) {
+                    partnerExternal.classList.toggle('d-none', scope !== 'external');
+                }
+                if (partnerInternal) {
+                    partnerInternal.classList.toggle('d-none', scope !== 'internal');
+                }
+                if (partnerExternalName) {
+                    partnerExternalName.required = scope === 'external';
+                }
+                if (partnerExternalType) {
+                    partnerExternalType.disabled = scope !== 'external';
+                }
+                if (partnerWorkshopSelect) {
+                    partnerWorkshopSelect.disabled = scope !== 'internal';
+                    partnerWorkshopSelect.required = scope === 'internal';
+                }
+                if (partnerWarehouseSelect) {
+                    partnerWarehouseSelect.disabled = scope !== 'internal';
+                    partnerWarehouseSelect.required = scope === 'internal';
+                }
+            };
 
             const resolveWarehouseType = () => {
                 const selectedOption = warehouseSelect ? warehouseSelect.options[warehouseSelect.selectedIndex] : null;
@@ -286,7 +402,6 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                 const productSelect = row.querySelector('[data-field="product"]');
                 const lotSelect = row.querySelector('[data-field="existing-lot"]');
                 const quantityInput = row.querySelector('[data-field="quantity"]');
-                const receivedInput = row.querySelector('[data-field="received"]');
                 const unitInput = row.querySelector('[data-field="unit"]');
                 const modeHidden = row.querySelector('[data-field="mode-hidden"]');
 
@@ -336,29 +451,12 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                     }
                 }
 
-                const syncReceived = () => {
-                    if (!receivedInput.value || receivedInput.dataset.synced === '1') {
-                        receivedInput.value = quantityInput.value;
-                        receivedInput.dataset.synced = '1';
-                    }
-                };
-
-                if (quantityInput && receivedInput) {
-                    quantityInput.removeEventListener('input', quantityInput._syncHandler || (() => {}));
-                    quantityInput._syncHandler = () => syncReceived();
-                    quantityInput.addEventListener('input', quantityInput._syncHandler);
-                    syncReceived();
-                }
-
                 if (!isNew && lotSelect) {
                     const selectedLot = lotMap[lotSelect.value] || null;
                     if (selectedLot) {
                         unitInput.value = selectedLot.DonVi || '';
                         if (quantityInput && quantityInput.value === '') {
                             quantityInput.value = selectedLot.SoLuong || 0;
-                        }
-                        if (receivedInput && receivedInput.value === '') {
-                            receivedInput.value = selectedLot.SoLuong || 0;
                         }
                     }
                 }
@@ -431,7 +529,6 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                         </select>
                     </td>
                     <td><input type="number" min="1" class="form-control form-control-sm" name="Detail_SoLuong[]" data-field="quantity" required></td>
-                    <td><input type="number" min="0" class="form-control form-control-sm" name="Detail_ThucNhan[]" data-field="received"></td>
                     <td><input type="text" class="form-control form-control-sm" name="Detail_DonVi[]" data-field="unit" placeholder="Đơn vị"></td>
                     <td class="text-end">
                         <button type="button" class="btn btn-sm btn-outline-danger" data-action="remove-row"><i class="bi bi-x"></i></button>
@@ -490,7 +587,11 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                         }
                         updateRowMode(row);
                     });
+                    updateApprover();
+                    syncWorkshopByWarehouse();
                 });
+                updateApprover();
+                syncWorkshopByWarehouse();
             }
 
             if (typeInput) {
@@ -499,6 +600,16 @@ $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8'
                 });
             }
 
+            if (partnerScopeSelect) {
+                partnerScopeSelect.addEventListener('change', togglePartnerScope);
+            }
+
+            if (partnerWorkshopSelect) {
+                partnerWorkshopSelect.addEventListener('change', updatePartnerInternal);
+            }
+
+            togglePartnerScope();
+            updatePartnerInternal();
             addRow();
         });
     </script>
