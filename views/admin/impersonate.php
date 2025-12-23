@@ -23,36 +23,31 @@
                         </div>
                     <?php endif; ?>
 
-                    <?php if (!empty($canToggleAdminBypass)): ?>
+                    <?php if (!empty($canToggleAdminFlow)): ?>
                         <div class="alert alert-light border mb-3">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                <div>
-                                    <div class="fw-semibold">Toàn quyền quản trị hệ thống</div>
-                                    <small class="text-muted">
-                                        <?= ($adminBypassEnabled ?? true)
-                                            ? 'Đang bật: bỏ qua mọi giới hạn để kiểm thử nhanh.'
-                                            : 'Đang tắt: áp dụng giới hạn theo vai trò để kiểm tra phân quyền.' ?>
-                                    </small>
-                                </div>
-                                <form method="post" action="?controller=adminImpersonation&action=updateBypass">
-                                    <div class="form-check form-switch m-0">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="admin_bypass" name="admin_bypass" value="1" <?= ($adminBypassEnabled ?? true) ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="admin_bypass">Bật toàn quyền</label>
-                                    </div>
-                                    <div class="text-end mt-3">
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">Lưu cấu hình quyền</button>
-                                    </div>
+                            <div class="fw-semibold mb-1">Luồng quản trị</div>
+                            <p class="text-muted small mb-3">
+                                Luồng chính: sử dụng đầy đủ chức năng cá nhân và quản trị theo quyền chuẩn.
+                                Luồng test: mở toàn quyền và truy cập toàn bộ dữ liệu để kiểm thử nhanh.
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <form method="post" action="?controller=adminImpersonation&action=updateFlow">
+                                    <input type="hidden" name="admin_flow" value="main">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm<?= ($adminFlow ?? 'main') === 'main' ? ' active' : '' ?>">
+                                        Luồng chính
+                                    </button>
+                                </form>
+                                <form method="post" action="?controller=adminImpersonation&action=updateFlow">
+                                    <input type="hidden" name="admin_flow" value="test">
+                                    <button type="submit" class="btn btn-outline-success btn-sm<?= ($adminFlow ?? 'main') === 'test' ? ' active' : '' ?>">
+                                        Luồng test (toàn quyền)
+                                    </button>
                                 </form>
                             </div>
-                            <div class="d-flex flex-wrap gap-2 mt-3">
-                                <form method="post" action="?controller=adminImpersonation&action=updateBypass">
-                                    <input type="hidden" name="admin_bypass" value="0">
-                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Luồng chính</button>
-                                </form>
-                                <form method="post" action="?controller=adminImpersonation&action=updateBypass">
-                                    <input type="hidden" name="admin_bypass" value="1">
-                                    <button type="submit" class="btn btn-outline-success btn-sm">Luồng test (toàn quyền)</button>
-                                </form>
+                            <div class="mt-3">
+                                <span class="badge <?= ($adminFlow ?? 'main') === 'test' ? 'bg-success' : 'bg-secondary' ?>">
+                                    <?= ($adminFlow ?? 'main') === 'test' ? 'Đang ở luồng test' : 'Đang ở luồng chính' ?>
+                                </span>
                             </div>
                         </div>
                     <?php endif; ?>

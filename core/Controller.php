@@ -31,7 +31,8 @@ abstract class Controller
         $actualRole = $user['ActualIdVaiTro'] ?? $role;
         $isAdmin = $actualRole === 'VT_ADMIN';
         $isImpersonating = !empty($user['IsImpersonating']);
-        $adminBypassEnabled = $_SESSION['admin_bypass_enabled'] ?? true;
+        $adminFlow = $_SESSION['admin_flow'] ?? 'main';
+        $adminBypassEnabled = $adminFlow === 'test';
 
         if ($isAdmin && $adminBypassEnabled) {
             if ($isImpersonating) {
