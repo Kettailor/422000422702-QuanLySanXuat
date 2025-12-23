@@ -508,11 +508,6 @@ $lotPrefixMap = [
                                     <label class="form-label"><?= htmlspecialchars($formUi['quantity_label'] ?? 'Số lượng dự kiến') ?> <span class="text-danger">*</span></label>
                                     <input type="number" name="Quick_SoLuong" class="form-control" min="1" required data-field="Quantity" placeholder="Nhập số lượng theo đơn vị">
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label"><?= htmlspecialchars($formUi['received_label'] ?? 'Số lượng thực nhận') ?></label>
-                                    <input type="number" name="Quick_ThucNhan" class="form-control" min="0" data-field="ReceivedQuantity" placeholder="Mặc định theo số lượng dự kiến">
-                                    <div class="form-text">Giữ trống để hệ thống tự dùng số lượng dự kiến.</div>
-                                </div>
                                 <div class="col-12 d-flex justify-content-end">
                                     <button type="submit" class="btn btn-success">
                                         <i class="bi bi-check-circle me-1"></i> <?= htmlspecialchars($form['submit_label']) ?>
@@ -563,7 +558,7 @@ $lotPrefixMap = [
                             <th>Lý do</th>
                             <th>Tổng tiền</th>
                             <th>Mặt hàng</th>
-                            <th>Thực nhận</th>
+                            <th>Tổng số lượng</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
                         </thead>
@@ -835,33 +830,9 @@ $lotPrefixMap = [
                 }
             };
 
-            var quantityInput = form.querySelector('[data-field="Quantity"]');
-            var receivedInput = form.querySelector('[data-field="ReceivedQuantity"]');
-            var syncReceivedQuantity = null;
-
-            if (quantityInput && receivedInput) {
-                syncReceivedQuantity = function () {
-                    if (!receivedInput.value || receivedInput.dataset.syncedQuantity === '1') {
-                        receivedInput.value = quantityInput.value;
-                        receivedInput.dataset.syncedQuantity = '1';
-                    }
-                };
-
-                quantityInput.addEventListener('input', syncReceivedQuantity);
-                receivedInput.addEventListener('input', function () {
-                    receivedInput.dataset.syncedQuantity = '0';
-                });
-
-                syncReceivedQuantity();
-            }
-
             modalEl.addEventListener('show.bs.modal', function () {
                 updateId();
                 updateLotId();
-                if (syncReceivedQuantity) {
-                    receivedInput.dataset.syncedQuantity = '1';
-                    syncReceivedQuantity();
-                }
                 updateProductUnit();
                 fillExistingLots();
                 toggleDirection();
@@ -1094,7 +1065,7 @@ $lotPrefixMap = [
                 row.appendChild(quantityCell);
 
                 var receivedCell = document.createElement('td');
-                receivedCell.textContent = formatNumber(doc.TongThucNhan || doc.TongSoLuong || 0);
+                receivedCell.textContent = formatNumber(doc.TongSoLuong || 0);
                 row.appendChild(receivedCell);
 
                 var actionsCell = document.createElement('td');
