@@ -167,12 +167,17 @@ class PlanController extends Controller
             foreach ($assignments as $assignment) {
                 $this->workshopPlanModel->create($assignment);
                 if (isset($assignment['IdKeHoachSanXuatXuong'])) {
-
-                    $this->workShopPlanDetail->createWorkshopPlanDetail(
-                        $assignment['IdKeHoachSanXuatXuong'], // <-- Dùng cái này
-                        $orderDetail['IdCauHinh'],
-                        $assignment['SoLuong'] // <-- Nên dùng số lượng phân cho xưởng đó
-                    );
+                    try {
+                        $this->workShopPlanDetail->createWorkshopPlanDetail(
+                            $assignment['IdKeHoachSanXuatXuong'],
+                            $orderDetail['IdCauHinh'],
+                            $assignment['SoLuong']
+                        );
+                    } catch (Throwable $exception) {
+                        Logger::warn(
+                            'Không tìm thấy cấu hình nguyên liệu cho mã: ' . $orderDetail['IdCauHinh']
+                        );
+                    }
                 }
             }
 
