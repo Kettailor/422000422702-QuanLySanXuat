@@ -738,9 +738,11 @@ CREATE TABLE `vai_tro` (
 INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
 ('VT_ADMIN', 'Quản trị hệ thống'),
 ('VT_BAN_GIAM_DOC', 'Ban giám đốc'),
-('VT_QUANLY_XUONG', 'Xưởng trưởng'),
+('VT_TRUONG_XUONG_KIEM_DINH', 'Xưởng trưởng kiểm định'),
+('VT_TRUONG_XUONG_LAP_RAP_DONG_GOI', 'Xưởng trưởng lắp ráp và đóng gói'),
+('VT_TRUONG_XUONG_SAN_XUAT', 'Xưởng trưởng sản xuất'),
+('VT_TRUONG_XUONG_LUU_TRU', 'Xưởng trưởng lưu trữ hàng hóa'),
 ('VT_KETOAN', 'Kế toán'),
-('VT_KHO_TRUONG', 'Kho trưởng'),
 ('VT_KIEM_SOAT_CL', 'Nhân viên kiểm soát chất lượng'),
 ('VT_KINH_DOANH', 'Nhân viên kinh doanh'),
 ('VT_NHANVIEN_KHO', 'Nhân viên kho'),
@@ -1337,113 +1339,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
---
--- Dữ liệu mẫu phục vụ kiểm thử
---
-SET FOREIGN_KEY_CHECKS=0;
-
-INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietBi`, `SlNhanVien`, `SoLuongCongNhan`, `TenQuyTrinh`, `CongSuatToiDa`, `CongSuatDangSuDung`, `LoaiXuong`, `TrangThai`, `MoTa`, `XUONGTRUONG_IdNhanVien`) VALUES
-('XUONG01', 'Xưởng Lắp Ráp A', 'Bình Dương', '2025-12-10', 40, 25, 15, 'Lắp ráp linh kiện', 500, 320, 'Xưởng lắp ráp và đóng gói', 'Hoạt động', 'Xưởng lắp ráp bàn phím cơ', 'NV_SX01'),
-('XUONG02', 'Xưởng Hoàn Thiện B', 'Bình Dương', '2025-12-20', 30, 20, 12, 'Hoàn thiện & QC', 400, 250, 'Xưởng sản xuất', 'Hoạt động', 'Xưởng hoàn thiện và đóng gói', 'NV_SX02'),
-('XUONG03', 'Xưởng Kiểm Định C', 'Bình Dương', '2025-12-12', 28, 18, 12, 'Lắp ráp module', 360, 220, 'Xưởng kiểm định', 'Hoạt động', 'Xưởng lắp ráp module', 'NV103'),
-('XUONG04', 'Xưởng Lưu Trữ D', 'Bình Dương', '2025-12-14', 24, 16, 10, 'Kiểm tra chất lượng', 320, 200, 'Xưởng lưu trữ hàng hóa', 'Hoạt động', 'Xưởng kiểm tra chất lượng', 'NV102');
-
-INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`, `IdVaiTro`) VALUES
-('NV_GD01', 'Trần Thị Minh', '2025-12-22', 0, 'Giám đốc điều hành', 6, 'Đang làm việc', 'Quận 1, TP.HCM', '2025-12-15 08:00:00', NULL, NULL, 'VT_BAN_GIAM_DOC'),
-('NV_ADMIN', 'Nguyễn Văn An', '2025-12-15', 1, 'Quản trị hệ thống', 4, 'Đang làm việc', 'Thủ Đức, TP.HCM', '2025-12-01 08:00:00', NULL, NULL, 'VT_ADMIN'),
-('NV_KT01', 'Đặng Thị Hạnh', '2025-12-19', 0, 'Kế toán tổng hợp', 4, 'Đang làm việc', 'Phú Nhuận, TP.HCM', '2025-12-12 08:00:00', NULL, NULL, 'VT_KETOAN'),
-('NV_KHO01', 'Vũ Minh Tuấn', '2025-12-30', 1, 'Kho trưởng', 4, 'Đang làm việc', 'Thuận An, Bình Dương', '2025-12-05 08:00:00', NULL, 'XUONG01', 'VT_KHO_TRUONG'),
-('NV_KHO02', 'Ngô Hải Yến', '2025-12-12', 0, 'Kho trưởng', 4, 'Đang làm việc', 'Dĩ An, Bình Dương', '2025-12-12 08:00:00', NULL, 'XUONG02', 'VT_KHO_TRUONG'),
-('NV_KNV01', 'Bùi Văn Phúc', '2025-12-17', 1, 'Nhân viên kho', 3, 'Đang làm việc', 'Thuận An, Bình Dương', '2025-12-10 08:00:00', NULL, 'XUONG01', 'VT_NHANVIEN_KHO'),
-('NV_KD01', 'Đỗ Thanh Mai', '2025-12-09', 0, 'Nhân viên kinh doanh', 3, 'Đang làm việc', 'Quận 7, TP.HCM', '2025-12-05 08:00:00', NULL, NULL, 'VT_KINH_DOANH'),
-('NV_QC01', 'Hoàng Gia Bảo', '2025-12-02', 1, 'Kiểm soát chất lượng', 3, 'Đang làm việc', 'Thuận An, Bình Dương', '2025-12-15 08:00:00', NULL, 'XUONG01', 'VT_KIEM_SOAT_CL'),
-('NV_SX01', 'Phan Quốc Thịnh', '2025-12-21', 1, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Thuận An, Bình Dương', '2025-12-01 08:00:00', NULL, 'XUONG01', 'VT_NHANVIEN_SANXUAT'),
-('NV_SX02', 'Nguyễn Thảo Vy', '2025-12-13', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Dĩ An, Bình Dương', '2025-12-15 08:00:00', NULL, 'XUONG02', 'VT_NHANVIEN_SANXUAT'),
-('NV101', 'Nhân viên 101', '2025-12-01', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Bình Dương', '2025-12-01 08:00:00', NULL, 'XUONG01', 'VT_NHANVIEN_SANXUAT'),
-('NV102', 'Nhân viên 102', '2025-12-02', 1, 'Nhân viên kho', 3, 'Đang làm việc', 'Bình Dương', '2025-12-02 08:00:00', NULL, 'XUONG04', 'VT_NHANVIEN_KHO'),
-('NV103', 'Nhân viên 103', '2025-12-03', 0, 'Kiểm soát chất lượng', 3, 'Đang làm việc', 'Bình Dương', '2025-12-03 08:00:00', NULL, 'XUONG03', 'VT_KIEM_SOAT_CL'),
-('NV104', 'Nhân viên 104', '2025-12-04', 1, 'Nhân viên kinh doanh', 3, 'Đang làm việc', 'TP.HCM', '2025-12-04 08:00:00', NULL, NULL, 'VT_KINH_DOANH'),
-('NV105', 'Nhân viên 105', '2025-12-05', 0, 'Kế toán tổng hợp', 3, 'Đang làm việc', 'TP.HCM', '2025-12-05 08:00:00', NULL, NULL, 'VT_KETOAN'),
-('NV106', 'Nhân viên 106', '2025-12-06', 1, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Bình Dương', '2025-12-06 08:00:00', NULL, 'XUONG02', 'VT_NHANVIEN_SANXUAT'),
-('NV107', 'Nhân viên 107', '2025-12-07', 0, 'Nhân viên kho', 3, 'Đang làm việc', 'Bình Dương', '2025-12-07 08:00:00', NULL, 'XUONG01', 'VT_NHANVIEN_KHO'),
-('NV108', 'Nhân viên 108', '2025-12-08', 1, 'Kiểm soát chất lượng', 3, 'Đang làm việc', 'Bình Dương', '2025-12-08 08:00:00', NULL, 'XUONG02', 'VT_KIEM_SOAT_CL'),
-('NV111', 'Nhân viên 111', '2025-12-11', 0, 'Nhân viên sản xuất', 3, 'Đang làm việc', 'Bình Dương', '2025-12-11 08:00:00', NULL, 'XUONG01', 'VT_NHANVIEN_SANXUAT'),
-('NV112', 'Nhân viên 112', '2025-12-12', 1, 'Nhân viên kho', 3, 'Đang làm việc', 'Bình Dương', '2025-12-12 08:00:00', NULL, 'XUONG02', 'VT_NHANVIEN_KHO'),
-('NV113', 'Nhân viên 113', '2025-12-13', 0, 'Kiểm soát chất lượng', 3, 'Đang làm việc', 'Bình Dương', '2025-12-13 08:00:00', NULL, 'XUONG01', 'VT_KIEM_SOAT_CL'),
-('NV117', 'Nhân viên 117', '2025-12-17', 0, 'Nhân viên kho', 3, 'Đang làm việc', 'Bình Dương', '2025-12-17 08:00:00', NULL, 'XUONG01', 'VT_NHANVIEN_KHO'),
-('NV118', 'Nhân viên 118', '2025-12-18', 1, 'Kiểm soát chất lượng', 3, 'Đang làm việc', 'Bình Dương', '2025-12-18 08:00:00', NULL, 'XUONG02', 'VT_KIEM_SOAT_CL');
-
-INSERT INTO `xuong_nhan_vien` (`IdXuong`, `IdNhanVien`, `VaiTro`) VALUES
-('XUONG01', 'NV_SX01', 'Xưởng trưởng'),
-('XUONG01', 'NV_QC01', 'Kiểm soát chất lượng'),
-('XUONG01', 'NV_KNV01', 'Nhân viên kho'),
-('XUONG01', 'NV_KHO01', 'Kho trưởng'),
-('XUONG01', 'NV101', 'Nhân viên sản xuất'),
-('XUONG02', 'NV_SX02', 'Xưởng trưởng'),
-('XUONG02', 'NV_KHO02', 'Kho trưởng'),
-('XUONG02', 'NV112', 'Nhân viên kho'),
-('XUONG02', 'NV103', 'Kiểm soát chất lượng'),
-('XUONG02', 'NV106', 'Nhân viên sản xuất'),
-('XUONG03', 'NV103', 'Xưởng trưởng'),
-('XUONG03', 'NV113', 'Kiểm soát chất lượng'),
-('XUONG03', 'NV117', 'Nhân viên kho'),
-('XUONG04', 'NV102', 'Xưởng trưởng');
-
-INSERT INTO `nguoi_dung` (`IdNguoiDung`, `TenDangNhap`, `MatKhau`, `TrangThai`, `IdNhanVien`, `IdVaiTro`) VALUES
-('ND_GD01', 'giamdoc', '123456', 'Hoạt động', 'NV_GD01', 'VT_BAN_GIAM_DOC'),
-('ND_ADMIN', 'admin', '123456', 'Hoạt động', 'NV_ADMIN', 'VT_ADMIN'),
-('ND_KT01', 'ketoan', '123456', 'Hoạt động', 'NV_KT01', 'VT_KETOAN'),
-('ND_KHO01', 'kho_a', '123456', 'Hoạt động', 'NV_KHO01', 'VT_KHO_TRUONG'),
-('ND_KHO02', 'kho_b', '123456', 'Hoạt động', 'NV_KHO02', 'VT_KHO_TRUONG'),
-('ND_KNV01', 'kho_nv', '123456', 'Hoạt động', 'NV_KNV01', 'VT_NHANVIEN_KHO'),
-('ND_KD01', 'kinhdoanh', '123456', 'Hoạt động', 'NV_KD01', 'VT_KINH_DOANH'),
-('ND_QC01', 'qc_a', '123456', 'Hoạt động', 'NV_QC01', 'VT_KIEM_SOAT_CL'),
-('ND_SX01', 'sx_a', '123456', 'Hoạt động', 'NV_SX01', 'VT_NHANVIEN_SANXUAT'),
-('ND_SX02', 'sx_b', '123456', 'Hoạt động', 'NV_SX02', 'VT_NHANVIEN_SANXUAT'),
-('ND101', 'user101', '123456', 'Hoạt động', 'NV101', 'VT_NHANVIEN_SANXUAT'),
-('ND102', 'user102', '123456', 'Hoạt động', 'NV102', 'VT_NHANVIEN_KHO'),
-('ND103', 'user103', '123456', 'Hoạt động', 'NV103', 'VT_KIEM_SOAT_CL'),
-('ND104', 'user104', '123456', 'Hoạt động', 'NV104', 'VT_KINH_DOANH'),
-('ND105', 'user105', '123456', 'Hoạt động', 'NV105', 'VT_KETOAN'),
-('ND106', 'user106', '123456', 'Hoạt động', 'NV106', 'VT_NHANVIEN_SANXUAT'),
-('ND107', 'user107', '123456', 'Hoạt động', 'NV107', 'VT_NHANVIEN_KHO'),
-('ND108', 'user108', '123456', 'Hoạt động', 'NV108', 'VT_KIEM_SOAT_CL'),
-('ND111', 'user111', '123456', 'Hoạt động', 'NV111', 'VT_NHANVIEN_SANXUAT'),
-('ND112', 'user112', '123456', 'Hoạt động', 'NV112', 'VT_NHANVIEN_KHO'),
-('ND113', 'user113', '123456', 'Hoạt động', 'NV113', 'VT_KIEM_SOAT_CL'),
-('ND117', 'user117', '123456', 'Hoạt động', 'NV117', 'VT_NHANVIEN_KHO'),
-('ND118', 'user118', '123456', 'Hoạt động', 'NV118', 'VT_KIEM_SOAT_CL');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-SET FOREIGN_KEY_CHECKS=1;

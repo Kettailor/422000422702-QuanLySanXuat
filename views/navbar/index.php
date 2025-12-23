@@ -21,17 +21,24 @@ $canAccess = function (array $roles) use ($role, $actualRole, $adminFullAccess):
     return in_array($role, $roles, true);
 };
 
+$workshopManagerRoles = [
+    'VT_TRUONG_XUONG_KIEM_DINH',
+    'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI',
+    'VT_TRUONG_XUONG_SAN_XUAT',
+    'VT_TRUONG_XUONG_LUU_TRU',
+];
+
 $showOrders = $canAccess(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC']);
-$showPlan = $canAccess(['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG', 'VT_KHO_TRUONG']);
-$showWorkshopPlan = $canAccess(['VT_QUANLY_XUONG', 'VT_NHANVIEN_SANXUAT']);
+$showPlan = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showWorkshopPlan = $canAccess(array_merge($workshopManagerRoles, ['VT_NHANVIEN_SANXUAT']));
 $showWorkshopPlanPersonal = in_array($role, ['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO'], true);
-$showWorkshop = $canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
-$showTimekeeping = $canAccess(['VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG']);
-$showSelfTimekeeping = $canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_KINH_DOANH']);
-$showQuality = $canAccess(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
-$showWarehouse = $canAccess(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_QUANLY_XUONG']);
-$showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG']);
-$showHumanResources = $canAccess(['VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG']);
+$showWorkshop = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showTimekeeping = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showSelfTimekeeping = $canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KINH_DOANH']);
+$showQuality = $canAccess(array_merge(['VT_KIEM_SOAT_CL', 'VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showWarehouse = $canAccess(array_merge(['VT_NHANVIEN_KHO'], $workshopManagerRoles));
+$showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO']);
+$showHumanResources = $canAccess(['VT_BAN_GIAM_DOC']);
 $showReports = $canAccess(['VT_BAN_GIAM_DOC']);
 $showBill = $canAccess(['VT_KETOAN']);
 $showSalary = $canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC', 'VT_KINH_DOANH']);
