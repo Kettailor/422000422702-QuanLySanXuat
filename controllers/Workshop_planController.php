@@ -583,6 +583,12 @@ class Workshop_planController extends Controller
             return;
         }
 
+        if (!$this->isCurrentShift($planId, $shiftId)) {
+            $this->setFlash('danger', 'Chỉ được cập nhật tiến độ cho ca hiện tại.');
+            $this->redirect('?controller=workshop_plan&action=progress&id=' . urlencode($planId));
+            return;
+        }
+
         $warehouse = $this->warehouseModel->findFinishedWarehouseByWorkshop($plan['IdXuong'] ?? null);
         if (!$warehouse) {
             $this->setFlash('danger', 'Không tìm thấy kho thành phẩm cho xưởng.');
@@ -731,6 +737,32 @@ class Workshop_planController extends Controller
 
         $normalized = mb_strtolower(trim($status));
         return str_contains($normalized, 'đủ');
+    }
+
+    private function isCurrentShift(string $planId, string $shiftId): bool
+    {
+        $shifts = $this->workShiftModel->getShiftsByPlan($planId);
+        $shift = null;
+        foreach ($shifts as $item) {
+            if (($item['IdCaLamViec'] ?? null) === $shiftId) {
+                $shift = $item;
+                break;
+            }
+        }
+
+        if (!$shift) {
+            return false;
+        }
+
+        $now = time();
+        $start = strtotime($shift['ThoiGianBatDau'] ?? '');
+        $end = strtotime($shift['ThoiGianKetThuc'] ?? '');
+
+        if ($start === false || $end === false) {
+            return false;
+        }
+
+        return $now >= $start && $now <= $end;
     }
 
     private function notifyWarehouseAssignments(array $plan, array $requirements): void
