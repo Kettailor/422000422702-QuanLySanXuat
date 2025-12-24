@@ -148,6 +148,11 @@ class Workshop_planController extends Controller
                 $invalidMaterials[] = $materialId;
                 continue;
             }
+            $requiredInput = (int) ($input['required'] ?? $input['SoLuongThucTe'] ?? $input['SoLuong'] ?? 0);
+            if ($requiredInput < 0) {
+                $requiredInput = 0;
+            }
+
             $perUnit = $input['per_unit'] ?? $input['SoLuongTrenDonVi'] ?? null;
             $perUnitValue = null;
             if ($perUnit !== null && $perUnit !== '') {
@@ -157,14 +162,16 @@ class Workshop_planController extends Controller
                 }
             }
 
-            $requiredInput = (int) ($input['required'] ?? $input['SoLuongThucTe'] ?? $input['SoLuong'] ?? 0);
-            if ($requiredInput < 0) {
-                $requiredInput = 0;
-            }
-
             $required = $requiredInput;
             if ($perUnitValue !== null) {
                 $perUnitValue = (float) ceil($perUnitValue);
+                if ($perUnitValue <= 0) {
+                    $perUnitValue = 1;
+                }
+            }
+
+            if ($planQuantity > 0 && $requiredInput > 0) {
+                $perUnitValue = (float) ceil($requiredInput / $planQuantity);
                 if ($perUnitValue <= 0) {
                     $perUnitValue = 1;
                 }
@@ -176,12 +183,6 @@ class Workshop_planController extends Controller
 
             if ($required < 0) {
                 $required = 0;
-            }
-            if ($perUnitValue === null && $planQuantity > 0 && $required > 0) {
-                $perUnitValue = (float) ceil($required / $planQuantity);
-                if ($perUnitValue <= 0) {
-                    $perUnitValue = 1;
-                }
             }
             $requirements[] = [
                 'id' => $materialId,

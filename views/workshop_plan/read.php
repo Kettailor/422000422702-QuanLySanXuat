@@ -310,6 +310,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    const syncUnitFromRequired = (row) => {
+        if (!planQuantity) {
+            return;
+        }
+        const perUnitInput = row.querySelector('.material-per-unit');
+        const requiredInput = row.querySelector('.material-required');
+        if (!perUnitInput || !requiredInput) {
+            return;
+        }
+        const requiredValue = parseFloat(requiredInput.value || '0');
+        if (!Number.isFinite(requiredValue) || requiredValue <= 0) {
+            return;
+        }
+        const perUnitValue = Math.ceil(requiredValue / planQuantity);
+        if (!Number.isNaN(perUnitValue) && perUnitValue > 0) {
+            perUnitInput.value = perUnitValue;
+        }
+    };
+
     if (addRowBtn && rowsContainer) {
         addRowBtn.addEventListener('click', function() {
             const index = rowsContainer.querySelectorAll('tr').length;
@@ -338,6 +357,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (perUnitInput) {
                 perUnitInput.addEventListener('input', () => syncRequiredFromUnit(row));
             }
+            const requiredInput = row.querySelector('.material-required');
+            if (requiredInput) {
+                requiredInput.addEventListener('input', () => syncUnitFromRequired(row));
+            }
         });
     }
 
@@ -346,6 +369,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const perUnitInput = row.querySelector('.material-per-unit');
             if (perUnitInput) {
                 perUnitInput.addEventListener('input', () => syncRequiredFromUnit(row));
+            }
+            const requiredInput = row.querySelector('.material-required');
+            if (requiredInput) {
+                requiredInput.addEventListener('input', () => syncUnitFromRequired(row));
             }
         });
     }
