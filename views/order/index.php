@@ -12,7 +12,9 @@ $statusCounts = array_reduce($orders, static function (array $carry, array $orde
         <h3 class="fw-bold mb-1">Quản lý đơn hàng</h3>
         <p class="text-muted mb-0">Theo dõi tiến độ sản xuất, trạng thái kế hoạch và giao hàng theo từng khách hàng.</p>
     </div>
-    <a href="?controller=order&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Tạo đơn hàng</a>
+    <?php if ($canAccess(['VT_KINH_DOANH'])): ?>
+      <a href="?controller=order&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Tạo đơn hàng</a>
+    <?php endif; ?>
 </div>
 
 <div class="row g-3 mb-4">
