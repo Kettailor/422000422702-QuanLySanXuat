@@ -661,7 +661,9 @@ class Workshop_planController extends Controller
             $db = Database::getInstance()->getConnection();
             $db->beginTransaction();
             $this->inventoryLotModel->createLot($lotPayload);
-            $status = ($quantity >= (int) ($plan['SoLuong'] ?? 0)) ? 'Hoàn thành' : 'Đang sản xuất';
+            $totalProduced = $this->historyModel->getProducedQuantity($planId) + $quantity;
+            $planTotal = (int) ($plan['SoLuong'] ?? 0);
+            $status = ($planTotal > 0 && $totalProduced >= $planTotal) ? 'Hoàn thành' : 'Đang sản xuất';
             $this->workshopPlanModel->update($planId, ['TrangThai' => $status]);
             foreach ($consumptions as $materialId => $consumed) {
                 $this->materialModel->adjustStock($materialId, -$consumed);
