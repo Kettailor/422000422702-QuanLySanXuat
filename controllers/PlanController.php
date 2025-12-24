@@ -739,7 +739,7 @@ class PlanController extends Controller
 
     private function canManagePlans(?string $role): bool
     {
-        return in_array($role, ['VT_BAN_GIAM_DOC', 'VT_QUANLY_XUONG'], true);
+        return $role === 'VT_BAN_GIAM_DOC';
     }
 
     private function resolveDateRuleMessage(string $message): string
