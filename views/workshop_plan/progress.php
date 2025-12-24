@@ -2,6 +2,18 @@
 $plan = $plan ?? null;
 $availableShifts = $availableShifts ?? [];
 $canUpdateProgress = $canUpdateProgress ?? false;
+$currentShift = null;
+if (!empty($availableShifts)) {
+    $nowTs = time();
+    foreach ($availableShifts as $shift) {
+        $startTs = strtotime($shift['ThoiGianBatDau'] ?? '');
+        $endTs = strtotime($shift['ThoiGianKetThuc'] ?? '');
+        if ($startTs !== false && $endTs !== false && $nowTs >= $startTs && $nowTs <= $endTs) {
+            $currentShift = $shift;
+            break;
+        }
+    }
+}
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
@@ -10,7 +22,7 @@ $canUpdateProgress = $canUpdateProgress ?? false;
         <p class="text-muted mb-0">Ghi nhận sản lượng hoàn thành theo ca đã phân công.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong'] ?? '') ?>" class="btn btn-outline-secondary">
+        <a href="?controller=factory_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong'] ?? '') ?>" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Chi tiết kế hoạch
         </a>
     </div>
@@ -22,19 +34,19 @@ $canUpdateProgress = $canUpdateProgress ?? false;
     <div class="alert alert-light border">Cần đủ nguyên liệu và có phân công theo ca để cập nhật tiến độ.</div>
 <?php elseif (empty($availableShifts)): ?>
     <div class="alert alert-light border">Chưa có ca làm việc đã phân công cho kế hoạch xưởng.</div>
+<?php elseif (!$currentShift): ?>
+    <div class="alert alert-warning">Chỉ được cập nhật tiến độ trong thời gian ca hiện tại.</div>
 <?php else: ?>
     <form method="post" action="?controller=workshop_plan&action=updateProgress">
         <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
+        <input type="hidden" name="shift_id" value="<?= htmlspecialchars($currentShift['IdCaLamViec'] ?? '') ?>">
         <div class="card p-4">
             <div class="mb-3">
                 <label class="form-label fw-semibold">Ca làm việc</label>
-                <select name="shift_id" class="form-select" required>
-                    <option value="">Chọn ca làm việc</option>
-                    <?php foreach ($availableShifts as $shift): ?>
-                        <option value="<?= htmlspecialchars($shift['IdCaLamViec'] ?? '') ?>">
-                            <?= htmlspecialchars(($shift['TenCa'] ?? '') . ' • ' . ($shift['NgayLamViec'] ?? '')) ?>
-                        </option>
-                    <?php endforeach; ?>
+                <select class="form-select" disabled>
+                    <option value="<?= htmlspecialchars($currentShift['IdCaLamViec'] ?? '') ?>">
+                        <?= htmlspecialchars(($currentShift['TenCa'] ?? '') . ' • ' . ($currentShift['NgayLamViec'] ?? '')) ?>
+                    </option>
                 </select>
             </div>
             <div class="mb-3">

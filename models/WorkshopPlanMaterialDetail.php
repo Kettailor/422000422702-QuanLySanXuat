@@ -28,15 +28,25 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
             // 3. Chuẩn bị câu lệnh INSERT vào bảng chi tiết
             $sqlInsert = "INSERT INTO " . $this->table . " 
-                          (IdCTKHSXX, SoLuong, IdKeHoachSanXuatXuong, IdNguyenLieu) 
-                          VALUES (:idDetail, :quantity, :planId, :materialId)";
+                          (IdCTKHSXX, SoLuong, SoLuongTrenDonVi, IdKeHoachSanXuatXuong, IdNguyenLieu) 
+                          VALUES (:idDetail, :quantity, :ratio, :planId, :materialId)";
             
             $stmtInsert = $this->db->prepare($sqlInsert);
 
             // 4. Duyệt qua từng nguyên liệu để tính toán và lưu vào DB
             foreach ($materials as $material) {
                 // Tính tổng số lượng cần = Số lượng SX * Định mức
-                $neededQty = $productionQuantity * $material['TyLeSoLuong'];
+                $ratio = (float) ($material['TyLeSoLuong'] ?? 1);
+                if ($ratio < 0) {
+                    $ratio = 0;
+                }
+                if ($ratio > 0) {
+                    $ratio = (float) ceil($ratio);
+                }
+                if ($ratio <= 0) {
+                    $ratio = 1;
+                }
+                $neededQty = (int) ceil($productionQuantity * $ratio);
 
                 // Tạo ID chi tiết (Ví dụ: CT + Timestamp + Random để tránh trùng)
                 // Bạn có thể tùy chỉnh lại logic sinh ID này theo quy tắc của dự án
@@ -44,6 +54,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
                 $stmtInsert->bindValue(':idDetail', $idDetail);
                 $stmtInsert->bindValue(':quantity', $neededQty);
+                $stmtInsert->bindValue(':ratio', $ratio);
                 $stmtInsert->bindValue(':planId', $workshopPlanId);
                 $stmtInsert->bindValue(':materialId', $material['IdNguyenLieu']);
                 
@@ -70,6 +81,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
                        ct.IdKeHoachSanXuatXuong,
                        ct.IdNguyenLieu,
                        ct.SoLuong AS SoLuongKeHoach,
+                       ct.SoLuongTrenDonVi,
                        nl.TenNL,
                        nl.DonVi,
                        nl.SoLuong AS SoLuongTonKho
@@ -100,10 +112,25 @@ class WorkshopPlanMaterialDetail extends BaseModel
             }
 
             if (!isset($normalized[$id])) {
-                $normalized[$id] = 0;
+                $normalized[$id] = [
+                    'quantity' => 0,
+                    'ratio' => null,
+                ];
             }
 
-            $normalized[$id] += $quantity;
+            $normalized[$id]['quantity'] += $quantity;
+
+            $ratio = $material['per_unit'] ?? $material['SoLuongTrenDonVi'] ?? null;
+            if ($ratio !== null && $ratio !== '') {
+                $ratio = (float) ceil((float) $ratio);
+                if ($ratio < 0) {
+                    $ratio = 0;
+                }
+                if ($ratio <= 0) {
+                    $ratio = 1;
+                }
+                $normalized[$id]['ratio'] = $ratio;
+            }
         }
 
         $this->db->beginTransaction();
@@ -117,13 +144,14 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
             if (!empty($normalized)) {
                 $insert = $this->db->prepare(
-                    'INSERT INTO chi_tiet_ke_hoach_san_xuat_xuong (IdCTKHSXX, SoLuong, IdKeHoachSanXuatXuong, IdNguyenLieu)
-                     VALUES (:id, :quantity, :planId, :materialId)'
+                    'INSERT INTO chi_tiet_ke_hoach_san_xuat_xuong (IdCTKHSXX, SoLuong, SoLuongTrenDonVi, IdKeHoachSanXuatXuong, IdNguyenLieu)
+                     VALUES (:id, :quantity, :ratio, :planId, :materialId)'
                 );
 
-                foreach ($normalized as $materialId => $quantity) {
+                foreach ($normalized as $materialId => $entry) {
                     $insert->bindValue(':id', uniqid('CT'));
-                    $insert->bindValue(':quantity', $quantity);
+                    $insert->bindValue(':quantity', $entry['quantity']);
+                    $insert->bindValue(':ratio', $entry['ratio']);
                     $insert->bindValue(':planId', $planId);
                     $insert->bindValue(':materialId', $materialId);
                     $insert->execute();
@@ -137,5 +165,18 @@ class WorkshopPlanMaterialDetail extends BaseModel
             }
             throw $exception;
         }
+    }
+
+    public function adjustPlannedQuantity(string $planId, string $materialId, int $quantityDelta): void
+    {
+        $stmt = $this->db->prepare(
+            'UPDATE chi_tiet_ke_hoach_san_xuat_xuong
+             SET SoLuong = GREATEST(0, SoLuong + :delta)
+             WHERE IdKeHoachSanXuatXuong = :planId AND IdNguyenLieu = :materialId'
+        );
+        $stmt->bindValue(':delta', $quantityDelta, PDO::PARAM_INT);
+        $stmt->bindValue(':planId', $planId);
+        $stmt->bindValue(':materialId', $materialId);
+        $stmt->execute();
     }
 }

@@ -14,6 +14,7 @@ class Workshop_planController extends Controller
     private Material $materialModel;
     private Workshop $workshopModel;
     private Employee $employeeModel;
+    private ProductionPlan $productionPlanModel;
 
     public function __construct()
     {
@@ -30,6 +31,7 @@ class Workshop_planController extends Controller
         $this->materialModel = new Material();
         $this->workshopModel = new Workshop();
         $this->employeeModel = new Employee();
+        $this->productionPlanModel = new ProductionPlan();
     }
 
     public function read(): void
@@ -136,6 +138,7 @@ class Workshop_planController extends Controller
 
         $requirements = [];
         $invalidMaterials = [];
+        $planQuantity = (int) ($plan['SoLuong'] ?? 0);
         foreach ($materialsInput as $input) {
             $materialId = $input['IdNguyenLieu'] ?? $input['id'] ?? null;
             if (!$materialId) {
@@ -145,13 +148,44 @@ class Workshop_planController extends Controller
                 $invalidMaterials[] = $materialId;
                 continue;
             }
-            $required = (int) ($input['required'] ?? $input['SoLuongThucTe'] ?? $input['SoLuong'] ?? 0);
+            $requiredInput = (int) ($input['required'] ?? $input['SoLuongThucTe'] ?? $input['SoLuong'] ?? 0);
+            if ($requiredInput < 0) {
+                $requiredInput = 0;
+            }
+
+            $perUnit = $input['per_unit'] ?? $input['SoLuongTrenDonVi'] ?? null;
+            $perUnitValue = null;
+            if ($perUnit !== null && $perUnit !== '') {
+                $perUnitValue = (float) $perUnit;
+                if ($perUnitValue < 0) {
+                    $perUnitValue = 0;
+                }
+            }
+
+            $required = $requiredInput;
+            if ($perUnitValue !== null) {
+                $perUnitValue = (float) ceil($perUnitValue);
+                if ($perUnitValue <= 0) {
+                    $perUnitValue = 1;
+                }
+            }
+
+            if ($requiredInput > 0 && $planQuantity > 0) {
+                $perUnitValue = (float) ceil($requiredInput / $planQuantity);
+                if ($perUnitValue <= 0) {
+                    $perUnitValue = 1;
+                }
+            } elseif ($perUnitValue !== null && $perUnitValue > 0 && $planQuantity > 0) {
+                $required = (int) ceil($planQuantity * $perUnitValue);
+            }
+
             if ($required < 0) {
                 $required = 0;
             }
             $requirements[] = [
                 'id' => $materialId,
                 'required' => $required,
+                'per_unit' => $perUnitValue,
             ];
         }
 
@@ -549,6 +583,12 @@ class Workshop_planController extends Controller
             return;
         }
 
+        if (!$this->isCurrentShift($planId, $shiftId)) {
+            $this->setFlash('danger', 'Chỉ được cập nhật tiến độ cho ca hiện tại.');
+            $this->redirect('?controller=workshop_plan&action=progress&id=' . urlencode($planId));
+            return;
+        }
+
         $warehouse = $this->warehouseModel->findFinishedWarehouseByWorkshop($plan['IdXuong'] ?? null);
         if (!$warehouse) {
             $this->setFlash('danger', 'Không tìm thấy kho thành phẩm cho xưởng.');
@@ -561,12 +601,18 @@ class Workshop_planController extends Controller
         if (!empty($plan['TenCauHinh'])) {
             $lotDefaultName .= ' - ' . $plan['TenCauHinh'];
         }
+        $productId = $plan['IdSanPham'] ?? null;
+        if (!$productId && !empty($plan['IdKeHoachSanXuat'])) {
+            $rootPlan = $this->productionPlanModel->getPlanWithRelations($plan['IdKeHoachSanXuat']);
+            $productId = $rootPlan['IdSanPham'] ?? null;
+        }
+
         $lotPayload = [
             'IdLo' => $lotId,
             'TenLo' => $lotName !== '' ? $lotName : $lotDefaultName,
             'SoLuong' => $quantity,
             'LoaiLo' => 'Thành phẩm',
-            'IdSanPham' => $plan['IdSanPham'] ?? null,
+            'IdSanPham' => $productId,
             'IdKho' => $warehouse['IdKho'] ?? null,
         ];
 
@@ -577,9 +623,58 @@ class Workshop_planController extends Controller
         }
 
         try {
+            $materials = $this->materialDetailModel->getByWorkshopPlan($planId);
+            $planQuantity = (int) ($plan['SoLuong'] ?? 0);
+            $consumptions = [];
+            foreach ($materials as $material) {
+                $materialId = $material['IdNguyenLieu'] ?? null;
+                if (!$materialId) {
+                    continue;
+                }
+                $perUnit = $material['SoLuongTrenDonVi'] ?? null;
+                if (($perUnit === null || $perUnit === '') && $planQuantity > 0) {
+                    $perUnit = ((float) ($material['SoLuongKeHoach'] ?? 0)) / $planQuantity;
+                }
+                $perUnit = (float) ($perUnit ?? 0);
+                if ($perUnit > 0) {
+                    $perUnit = (float) ceil($perUnit);
+                }
+                if ($perUnit <= 0) {
+                    $perUnit = 1;
+                }
+                if ($perUnit <= 0) {
+                    continue;
+                }
+                $consumed = (int) ceil($quantity * $perUnit);
+                if ($consumed <= 0) {
+                    continue;
+                }
+                $consumptions[$materialId] = ($consumptions[$materialId] ?? 0) + $consumed;
+            }
+
+            if (!empty($consumptions)) {
+                $inventory = $this->materialModel->findMany(array_keys($consumptions));
+                foreach ($consumptions as $materialId => $consumed) {
+                    $stock = (int) ($inventory[$materialId]['SoLuong'] ?? 0);
+                    if ($consumed > $stock) {
+                        $this->setFlash('danger', 'Tồn kho nguyên liệu không đủ để cập nhật tiến độ.');
+                        $this->redirect('?controller=workshop_plan&action=progress&id=' . urlencode($planId));
+                        return;
+                    }
+                }
+            }
+
+            $db = Database::getInstance()->getConnection();
+            $db->beginTransaction();
             $this->inventoryLotModel->createLot($lotPayload);
-            $status = ($quantity >= (int) ($plan['SoLuong'] ?? 0)) ? 'Hoàn thành' : 'Đang sản xuất';
+            $totalProduced = $this->historyModel->getProducedQuantity($planId) + $quantity;
+            $planTotal = (int) ($plan['SoLuong'] ?? 0);
+            $status = ($planTotal > 0 && $totalProduced >= $planTotal) ? 'Hoàn thành' : 'Đang sản xuất';
             $this->workshopPlanModel->update($planId, ['TrangThai' => $status]);
+            foreach ($consumptions as $materialId => $consumed) {
+                $this->materialModel->adjustStock($materialId, -$consumed);
+                $this->materialDetailModel->adjustPlannedQuantity($planId, $materialId, -$consumed);
+            }
             $this->historyModel->log(
                 $planId,
                 $status,
@@ -593,8 +688,12 @@ class Workshop_planController extends Controller
                 ],
                 null
             );
+            $db->commit();
             $this->setFlash('success', 'Đã cập nhật tiến độ và tạo lô thành phẩm.');
         } catch (Throwable $exception) {
+            if (isset($db) && $db->inTransaction()) {
+                $db->rollBack();
+            }
             Logger::error('Không thể cập nhật tiến độ kế hoạch ' . $planId . ': ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể cập nhật tiến độ, vui lòng kiểm tra log.');
         }
@@ -638,6 +737,32 @@ class Workshop_planController extends Controller
 
         $normalized = mb_strtolower(trim($status));
         return str_contains($normalized, 'đủ');
+    }
+
+    private function isCurrentShift(string $planId, string $shiftId): bool
+    {
+        $shifts = $this->workShiftModel->getShiftsByPlan($planId);
+        $shift = null;
+        foreach ($shifts as $item) {
+            if (($item['IdCaLamViec'] ?? null) === $shiftId) {
+                $shift = $item;
+                break;
+            }
+        }
+
+        if (!$shift) {
+            return false;
+        }
+
+        $now = time();
+        $start = strtotime($shift['ThoiGianBatDau'] ?? '');
+        $end = strtotime($shift['ThoiGianKetThuc'] ?? '');
+
+        if ($start === false || $end === false) {
+            return false;
+        }
+
+        return $now >= $start && $now <= $end;
     }
 
     private function notifyWarehouseAssignments(array $plan, array $requirements): void

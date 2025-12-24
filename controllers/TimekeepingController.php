@@ -114,6 +114,28 @@ class TimekeepingController extends Controller
             return;
         }
 
+        $workDate = date('Y-m-d');
+        $shiftDate = $shift['NgayLamViec'] ?? null;
+        if ($shiftDate && $shiftDate !== $workDate) {
+            $this->setFlash('danger', 'Chỉ được chấm công cho ca trong ngày hôm nay.');
+            $this->redirect($this->buildRedirect($shiftId, $workDate));
+            return;
+        }
+
+        $employeeShiftMap = $this->planAssignmentModel->getAssignmentsByEmployeesForDate($employeeIds, $workDate);
+        $invalidEmployees = [];
+        foreach ($employeeIds as $employeeId) {
+            $shiftIds = $employeeShiftMap[$employeeId] ?? [];
+            if (!in_array($shiftId, $shiftIds, true)) {
+                $invalidEmployees[] = $employeeId;
+            }
+        }
+        if (!empty($invalidEmployees)) {
+            $this->setFlash('danger', 'Một số nhân viên chưa được phân công ca này trong ngày hôm nay.');
+            $this->redirect($this->buildRedirect($shiftId, $workDate));
+            return;
+        }
+
         $normalizedCheckIn = $this->normalizeDateTime($checkIn);
         $normalizedCheckOut = $checkOut ? $this->normalizeDateTime($checkOut) : null;
 
@@ -123,7 +145,6 @@ class TimekeepingController extends Controller
             return;
         }
 
-        $workDate = date('Y-m-d');
         $checkInTimestamp = strtotime($normalizedCheckIn);
         $workDateTimestamp = strtotime($workDate . ' 00:00:00');
         if ($checkInTimestamp === false || $workDateTimestamp === false) {

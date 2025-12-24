@@ -202,6 +202,7 @@ INSERT INTO `cham_cong` (`IdChamCong`, `NHANVIEN IdNhanVien`, `ThoiGIanRa`, `Tho
 CREATE TABLE `chi_tiet_ke_hoach_san_xuat_xuong` (
   `IdCTKHSXX` varchar(50) NOT NULL,
   `SoLuong` int(10) DEFAULT NULL,
+  `SoLuongTrenDonVi` float DEFAULT 1,
   `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
   `IdNguyenLieu` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
