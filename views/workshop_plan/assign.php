@@ -161,11 +161,11 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
 
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0">
-                <h5 class="mb-0">Bộ lọc phân công</h5>
+                <h5 class="mb-0">Bước 1: Chọn ngày và ca cần phân công</h5>
             </div>
             <div class="card-body">
                 <div class="row g-3 align-items-end">
-                    <div class="col-lg-4">
+                    <div class="col-lg-6">
                         <div class="fw-semibold mb-2">Chọn ngày phân công</div>
                         <div class="d-flex flex-wrap gap-2">
                             <?php foreach ($planDates as $dateKey): ?>
@@ -176,7 +176,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    <div class="col-lg-4">
+                    <div class="col-lg-6">
                         <div class="fw-semibold mb-2">Chọn ca</div>
                         <div class="d-flex flex-wrap gap-2">
                             <?php foreach ($shiftTypes as $type): ?>
@@ -187,9 +187,25 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                             <?php endforeach; ?>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Bước 2: Chọn nhân viên cho ca đã chọn</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
                     <div class="col-lg-4">
                         <label class="form-label fw-semibold">Tìm nhân viên</label>
                         <input type="text" class="form-control" id="employee-search" placeholder="Nhập tên nhân viên...">
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="bg-light border rounded-3 p-3">
+                            <div class="fw-semibold mb-1">Nhân viên đã chọn</div>
+                            <div class="text-muted small" id="selected-employee-summary">Chưa chọn nhân viên nào.</div>
+                        </div>
                     </div>
                 </div>
 
@@ -198,7 +214,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="fw-semibold">Danh sách nhân viên</div>
-                                <span class="text-muted small">Chọn nhiều nhân viên để phân công nhanh.</span>
+                                <span class="text-muted small">Chọn nhân viên rồi bấm “Thêm vào ca đã chọn”.</span>
                             </div>
                             <div class="row g-2 assignment-employee-list" id="employee-list">
                                 <?php foreach ($availableEmployees as $employee): ?>
@@ -222,9 +238,12 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                 <?php endforeach; ?>
                             </div>
                             <div class="mt-3 d-flex justify-content-end">
-                                <button type="button" class="btn btn-primary" id="bulk-assign-btn">
-                                    <i class="bi bi-plus-circle me-2"></i>Thêm vào ca đã chọn
-                                </button>
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-primary" id="bulk-assign-btn">
+                                        <i class="bi bi-plus-circle me-2"></i>Thêm vào ca đã chọn
+                                    </button>
+                                    <div class="text-muted small mt-2">Thao tác này chỉ lưu tạm trên màn hình, nhấn “Lưu phân công” để ghi vào hệ thống.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -232,7 +251,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
             </div>
         </div>
 
-        <div id="assignment-cards" class="d-none">
+        <div id="assignment-cards">
             <?php foreach ($shiftsByDate as $dateKey => $shifts): ?>
                 <?php
                     $isToday = $dateKey === $today;
@@ -363,22 +382,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateFilters = document.querySelectorAll('.assignment-date');
     const shiftFilters = document.querySelectorAll('.assignment-shift');
     const assignmentCards = document.getElementById('assignment-cards');
+    const selectedSummary = document.getElementById('selected-employee-summary');
     const shiftCards = document.querySelectorAll('.shift-card');
     const shiftGroups = document.querySelectorAll('.shift-group');
+    const instruction = 'Chọn ngày và ca trước khi thêm nhân viên vào ca.';
 
     const applyFilters = () => {
         const activeDates = Array.from(dateFilters).filter(cb => cb.checked).map(cb => cb.value);
         const activeShifts = Array.from(shiftFilters).filter(cb => cb.checked).map(cb => cb.value);
 
+        const hasDate = activeDates.length > 0;
+        const hasShift = activeShifts.length > 0;
+
         shiftGroups.forEach(group => {
             const date = group.dataset.date;
-            group.style.display = activeDates.includes(date) ? '' : 'none';
+            group.style.display = hasDate && hasShift && activeDates.includes(date) ? '' : 'none';
         });
 
         shiftCards.forEach(card => {
             const date = card.dataset.date;
             const type = card.dataset.shiftType;
-            const visible = activeDates.includes(date) && activeShifts.includes(type);
+            const visible = hasDate && hasShift && activeDates.includes(date) && activeShifts.includes(type);
             card.style.display = visible ? '' : 'none';
         });
     };
@@ -413,6 +437,28 @@ document.addEventListener('DOMContentLoaded', function() {
         feedback.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
+    const updateSelectedEmployees = () => {
+        const selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked')).map(cb => cb.value);
+        const selectedNames = Array.from(document.querySelectorAll('.employee-checkbox:checked'))
+            .map(cb => cb.closest('.employee-item')?.querySelector('.fw-semibold')?.textContent?.trim())
+            .filter(Boolean);
+
+        if (selectedSummary) {
+            if (selectedEmployees.length > 0) {
+                selectedSummary.textContent = `Đã chọn ${selectedEmployees.length} nhân viên: ${selectedNames.join(', ')}`;
+                selectedSummary.classList.remove('text-muted');
+            } else {
+                selectedSummary.textContent = 'Chưa chọn nhân viên nào.';
+                selectedSummary.classList.add('text-muted');
+            }
+        }
+    };
+
+    document.querySelectorAll('.employee-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateSelectedEmployees);
+    });
+    updateSelectedEmployees();
+
     if (bulkAssignBtn) {
         bulkAssignBtn.addEventListener('click', function() {
             const selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked')).map(cb => cb.value);
@@ -421,14 +467,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            const activeDates = Array.from(dateFilters).filter(cb => cb.checked).map(cb => cb.value);
+            const activeShifts = Array.from(shiftFilters).filter(cb => cb.checked).map(cb => cb.value);
+            if (activeDates.length === 0 || activeShifts.length === 0) {
+                showFeedback(instruction);
+                return;
+            }
+
             const activeCards = Array.from(shiftCards).filter(card => card.style.display !== 'none' && card.dataset.editable === '1');
             if (activeCards.length === 0) {
                 showFeedback('Không có ca nào đủ điều kiện để phân công. Hãy kiểm tra lại bộ lọc hoặc chọn ngày hợp lệ.');
                 return;
-            }
-
-            if (assignmentCards) {
-                assignmentCards.classList.remove('d-none');
             }
 
             activeCards.forEach(card => {

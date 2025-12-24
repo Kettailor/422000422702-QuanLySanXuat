@@ -41,6 +41,46 @@ $dayEnd = $workDate ? ($workDate . 'T23:59') : '';
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const employeeCheckboxes = document.querySelectorAll('input[name="employee_id[]"]');
+    const shiftSelect = document.getElementById('shift-select');
+    const checkInInput = document.getElementById('check-in-input');
+    const checkOutInput = document.getElementById('check-out-input');
+    const noteInput = document.getElementById('note-input');
+    const summary = document.getElementById('employee-selected-summary');
+    const shiftHint = document.getElementById('shift-hint');
+
+    const updateState = () => {
+        const selected = Array.from(employeeCheckboxes).filter(cb => cb.checked);
+        const hasSelection = selected.length > 0;
+        if (summary) {
+            summary.textContent = hasSelection
+                ? `Đã chọn ${selected.length} nhân viên.`
+                : 'Chưa chọn nhân viên.';
+        }
+        if (shiftSelect) {
+            shiftSelect.disabled = !hasSelection;
+        }
+        if (checkInInput) {
+            checkInInput.disabled = !hasSelection;
+        }
+        if (checkOutInput) {
+            checkOutInput.disabled = !hasSelection;
+        }
+        if (noteInput) {
+            noteInput.disabled = !hasSelection;
+        }
+        if (shiftHint) {
+            shiftHint.classList.toggle('d-none', hasSelection);
+        }
+    };
+
+    employeeCheckboxes.forEach(cb => cb.addEventListener('change', updateState));
+    updateState();
+});
+</script>
+
 <div class="row g-4">
     <div class="col-lg-7">
         <div class="card border-0 shadow-sm h-100">
@@ -58,25 +98,6 @@ $dayEnd = $workDate ? ($workDate . 'T23:59') : '';
             </div>
             <div class="card-body">
                 <form method="post" action="?controller=timekeeping&action=store" class="row g-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Ca làm việc</label>
-                        <select name="shift_id" class="form-select" required>
-                            <option value="">Chọn ca làm việc</option>
-                            <?php foreach ($shifts as $item): ?>
-                                <?php $id = $item['IdCaLamViec'] ?? ''; ?>
-                                <option value="<?= htmlspecialchars($id) ?>" <?= $id === $shiftId ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars(($item['TenCa'] ?? $id) . ' • ' . ($item['NgayLamViec'] ?? '')) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <?php if ($shift): ?>
-                            <div class="text-muted small mt-2">
-                                <?= htmlspecialchars($shift['LoaiCa'] ?? '') ?> • <?= htmlspecialchars($formatDate($shift['ThoiGianBatDau'] ?? null, 'H:i')) ?>
-                                <?= !empty($shift['ThoiGianKetThuc']) ? '→ ' . htmlspecialchars($formatDate($shift['ThoiGianKetThuc'] ?? null, 'H:i')) : '' ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nhân viên</label>
                         <div class="border rounded-3 p-2 bg-light" style="max-height: 320px; overflow: auto;">
@@ -100,25 +121,46 @@ $dayEnd = $workDate ? ($workDate . 'T23:59') : '';
                             </div>
                         </div>
                         <div class="text-muted small mt-2">Chọn nhiều nhân viên để phân công và ghi nhận chấm công cùng lúc.</div>
+                        <div class="text-muted small mt-1" id="employee-selected-summary">Chưa chọn nhân viên.</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Ca làm việc</label>
+                        <select name="shift_id" class="form-select" required id="shift-select" disabled>
+                            <option value="">Chọn ca làm việc</option>
+                            <?php foreach ($shifts as $item): ?>
+                                <?php $id = $item['IdCaLamViec'] ?? ''; ?>
+                                <option value="<?= htmlspecialchars($id) ?>" <?= $id === $shiftId ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars(($item['TenCa'] ?? $id) . ' • ' . ($item['NgayLamViec'] ?? '')) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="text-muted small mt-2" id="shift-hint">Chọn nhân viên trước để hiển thị ca.</div>
+                        <?php if ($shift): ?>
+                            <div class="text-muted small mt-2">
+                                <?= htmlspecialchars($shift['LoaiCa'] ?? '') ?> • <?= htmlspecialchars($formatDate($shift['ThoiGianBatDau'] ?? null, 'H:i')) ?>
+                                <?= !empty($shift['ThoiGianKetThuc']) ? '→ ' . htmlspecialchars($formatDate($shift['ThoiGianKetThuc'] ?? null, 'H:i')) : '' ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Giờ vào</label>
                         <input type="datetime-local" name="check_in" class="form-control"
                                value="<?= htmlspecialchars($defaultCheckIn) ?>" min="<?= htmlspecialchars($dayStart) ?>"
-                               max="<?= htmlspecialchars($dayEnd) ?>" required>
+                               max="<?= htmlspecialchars($dayEnd) ?>" required disabled id="check-in-input">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Giờ ra (tuỳ chọn)</label>
                         <input type="datetime-local" name="check_out" class="form-control"
                                value="<?= htmlspecialchars($defaultCheckOut) ?>" min="<?= htmlspecialchars($dayStart) ?>"
-                               max="<?= htmlspecialchars($dayEnd) ?>">
+                               max="<?= htmlspecialchars($dayEnd) ?>" disabled id="check-out-input">
                     </div>
 
                     <div class="col-12">
                         <label class="form-label fw-semibold">Ghi chú</label>
-                        <textarea name="note" rows="3" class="form-control" placeholder="Ví dụ: Tăng ca, hỗ trợ kho, ..."></textarea>
+                        <textarea name="note" rows="3" class="form-control" placeholder="Ví dụ: Tăng ca, hỗ trợ kho, ..." id="note-input" disabled></textarea>
                     </div>
 
                     <div class="col-12 d-flex justify-content-end">

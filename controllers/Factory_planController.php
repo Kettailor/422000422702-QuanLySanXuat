@@ -88,6 +88,11 @@ class Factory_planController extends Controller
             && ($typeConfig['supports_progress'] ?? true)
             && $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null)
             && !empty($planAssignments);
+        $isCancelled = $plan ? $this->isPlanCancelled($plan) : false;
+        if ($isCancelled) {
+            $canUpdateProgress = false;
+        }
+        $canDelete = $plan ? $this->canModifyPlan($plan) && !$isCancelled : false;
 
         $this->render('factory_plan/read', [
             'title' => 'Chi tiết hạng mục xưởng',
@@ -97,6 +102,8 @@ class Factory_planController extends Controller
             'progress' => $plan ? $this->calculateProgress($plan['ThoiGianBatDau'] ?? null, $plan['ThoiGianKetThuc'] ?? null, $plan['TrangThai'] ?? null) : null,
             'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
             'canUpdateProgress' => $canUpdateProgress,
+            'canDelete' => $canDelete,
+            'isCancelled' => $isCancelled,
             'typeConfig' => $typeConfig,
             'isStorageManager' => $this->isStorageManager(),
         ]);
@@ -400,25 +407,7 @@ class Factory_planController extends Controller
         $user = $this->currentUser();
         $role = $user ? $this->resolveAccessRole($user) : null;
 
-        if (in_array($role, ['VT_BAN_GIAM_DOC'], true)) {
-            return true;
-        }
-
-        if (in_array($role, $this->getWorkshopManagerRoles(), true)) {
-            if ($this->isStorageManager()) {
-                return false;
-            }
-            $employeeId = $user['IdNhanVien'] ?? null;
-            if (!$employeeId) {
-                return false;
-            }
-
-            $managedWorkshops = $this->workshopModel->getByManager($employeeId);
-            $managedIds = array_column($managedWorkshops, 'IdXuong');
-            return in_array($plan['IdXuong'] ?? null, $managedIds, true);
-        }
-
-        return false;
+        return in_array($role, ['VT_BAN_GIAM_DOC'], true);
     }
 
     private function calculateProgress(?string $start, ?string $end, ?string $status): array
@@ -476,6 +465,11 @@ class Factory_planController extends Controller
 
         $normalized = mb_strtolower(trim($status));
         return str_contains($normalized, 'đủ');
+    }
+
+    private function isPlanCancelled(array $plan): bool
+    {
+        return ($plan['TrangThai'] ?? '') === 'Hủy';
     }
 
     private function getWorkshopTypeConfig(?string $workshopType): array
