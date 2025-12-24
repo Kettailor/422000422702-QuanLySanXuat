@@ -176,10 +176,10 @@ foreach ($materialOptions as $option) {
                                     if ($perUnit === null || $perUnit === '') {
                                         $perUnit = 0;
                                     }
-                                    $perUnitValue = rtrim(rtrim(number_format((float) $perUnit, 4, '.', ''), '0'), '.');
+                                    $perUnitValue = (int) ceil((float) $perUnit);
                                     ?>
                                     <div class="input-group input-group-sm">
-                                        <input type="number" min="0" step="0.0001" class="form-control material-per-unit" name="materials[<?= $index ?>][per_unit]" value="<?= htmlspecialchars($perUnitValue) ?>" <?= $isCancelled ? 'disabled' : '' ?>>
+                                        <input type="number" min="0" step="1" class="form-control material-per-unit" name="materials[<?= $index ?>][per_unit]" value="<?= htmlspecialchars($perUnitValue) ?>" <?= $isCancelled ? 'disabled' : '' ?>>
                                     </div>
                                 </td>
                                 <td>
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!Number.isFinite(perUnitValue)) {
             return;
         }
-        const computed = Math.ceil(planQuantity * perUnitValue);
+        const computed = Math.ceil(planQuantity * Math.ceil(perUnitValue));
         if (!Number.isNaN(computed)) {
             requiredInput.value = computed;
         }
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="text-end">Đang tra cứu</td>
                 <td>
                     <div class="input-group input-group-sm">
-                        <input type="number" min="0" step="0.0001" class="form-control material-per-unit" name="materials[${index}][per_unit]" value="0">
+                        <input type="number" min="0" step="1" class="form-control material-per-unit" name="materials[${index}][per_unit]" value="0">
                     </div>
                 </td>
                 <td>

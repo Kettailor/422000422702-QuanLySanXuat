@@ -163,6 +163,10 @@ class Workshop_planController extends Controller
             }
 
             $required = $requiredInput;
+            if ($perUnitValue !== null && $perUnitValue > 0) {
+                $perUnitValue = (float) ceil($perUnitValue);
+            }
+
             if ($perUnitValue !== null && $perUnitValue > 0 && $planQuantity > 0) {
                 $required = (int) ceil($planQuantity * $perUnitValue);
             }
@@ -171,7 +175,7 @@ class Workshop_planController extends Controller
                 $required = 0;
             }
             if ($perUnitValue === null && $planQuantity > 0 && $required > 0) {
-                $perUnitValue = $required / $planQuantity;
+                $perUnitValue = (float) ceil($required / $planQuantity);
             }
             $requirements[] = [
                 'id' => $materialId,
@@ -621,6 +625,9 @@ class Workshop_planController extends Controller
                     $perUnit = ((float) ($material['SoLuongKeHoach'] ?? 0)) / $planQuantity;
                 }
                 $perUnit = (float) ($perUnit ?? 0);
+                if ($perUnit > 0) {
+                    $perUnit = (float) ceil($perUnit);
+                }
                 if ($perUnit <= 0) {
                     continue;
                 }

@@ -40,6 +40,9 @@ class WorkshopPlanMaterialDetail extends BaseModel
                 if ($ratio < 0) {
                     $ratio = 0;
                 }
+                if ($ratio > 0) {
+                    $ratio = (float) ceil($ratio);
+                }
                 $neededQty = (int) ceil($productionQuantity * $ratio);
 
                 // Tạo ID chi tiết (Ví dụ: CT + Timestamp + Random để tránh trùng)
@@ -116,7 +119,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
             $ratio = $material['per_unit'] ?? $material['SoLuongTrenDonVi'] ?? null;
             if ($ratio !== null && $ratio !== '') {
-                $ratio = (float) $ratio;
+                $ratio = (float) ceil((float) $ratio);
                 if ($ratio < 0) {
                     $ratio = 0;
                 }
