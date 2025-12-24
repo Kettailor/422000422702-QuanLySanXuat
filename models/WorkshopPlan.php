@@ -72,6 +72,30 @@ class WorkshopPlan extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function updateStatusByPlan(string $planId, string $status): bool
+    {
+        $sql = 'UPDATE ke_hoach_san_xuat_xuong
+                SET TrangThai = :status
+                WHERE IdKeHoachSanXuat = :planId';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':status', $status);
+        $stmt->bindValue(':planId', $planId);
+
+        return $stmt->execute();
+    }
+
+    public function updateEndTimeByPlan(string $planId, string $endTime): bool
+    {
+        $sql = 'UPDATE ke_hoach_san_xuat_xuong
+                SET ThoiGianKetThuc = :endTime
+                WHERE IdKeHoachSanXuat = :planId';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':endTime', $endTime);
+        $stmt->bindValue(':planId', $planId);
+
+        return $stmt->execute();
+    }
+
     public function getByPlanIds(array $planIds): array
     {
         $planIds = array_values(array_filter($planIds));

@@ -218,6 +218,106 @@ class PlanController extends Controller
         ]);
     }
 
+    public function updateDeadline(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
+        if (!$this->canManagePlans($this->currentRole())) {
+            $this->setFlash('danger', 'Bạn không có quyền chỉnh sửa kế hoạch sản xuất.');
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
+        $id = $_POST['IdKeHoachSanXuat'] ?? null;
+        $plan = $id ? $this->planModel->getPlanWithRelations($id) : null;
+        if (!$plan) {
+            $this->setFlash('warning', 'Không tìm thấy kế hoạch sản xuất.');
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
+        $currentStatus = $plan['TrangThai'] ?? '';
+        if (in_array($currentStatus, ['Hoàn thành', 'Hủy'], true)) {
+            $this->setFlash('danger', 'Không thể chỉnh sửa hạn chót khi kế hoạch đã hoàn tất hoặc bị hủy.');
+            $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
+        $endTime = $this->normalizeDateTimeInput($_POST['ThoiGianKetThuc'] ?? null);
+        if (!$endTime) {
+            $this->setFlash('danger', 'Vui lòng nhập hạn chót hợp lệ.');
+            $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
+        $startTime = $plan['ThoiGianBD'] ?? null;
+        if ($startTime && strtotime($endTime) < strtotime($startTime)) {
+            $this->setFlash('danger', 'Hạn chót phải lớn hơn hoặc bằng thời gian bắt đầu.');
+            $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
+        try {
+            $this->planModel->update($id, ['ThoiGianKetThuc' => $endTime]);
+            $this->workshopPlanModel->updateEndTimeByPlan($id, $endTime);
+            $this->setFlash('success', 'Đã cập nhật hạn chót kế hoạch.');
+        } catch (Throwable $exception) {
+            Logger::error('Lỗi khi cập nhật hạn chót kế hoạch ' . $id . ': ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể cập nhật hạn chót, vui lòng kiểm tra log.');
+        }
+
+        $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
+    }
+
+    public function cancel(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
+        if (!$this->canManagePlans($this->currentRole())) {
+            $this->setFlash('danger', 'Bạn không có quyền hủy kế hoạch sản xuất.');
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
+        $id = $_POST['IdKeHoachSanXuat'] ?? null;
+        $plan = $id ? $this->planModel->getPlanWithRelations($id) : null;
+        if (!$plan) {
+            $this->setFlash('warning', 'Không tìm thấy kế hoạch sản xuất.');
+            $this->redirect('?controller=plan&action=index');
+            return;
+        }
+
+        $currentStatus = $plan['TrangThai'] ?? '';
+        if ($currentStatus === 'Hoàn thành') {
+            $this->setFlash('danger', 'Không thể hủy kế hoạch đã hoàn thành.');
+            $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
+        if ($currentStatus === 'Hủy') {
+            $this->setFlash('warning', 'Kế hoạch đã được hủy trước đó.');
+            $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
+        try {
+            $this->planModel->update($id, ['TrangThai' => 'Hủy']);
+            $this->workshopPlanModel->updateStatusByPlan($id, 'Hủy');
+            $this->setFlash('success', 'Đã hủy kế hoạch sản xuất.');
+        } catch (Throwable $exception) {
+            Logger::error('Lỗi khi hủy kế hoạch sản xuất ' . $id . ': ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể hủy kế hoạch, vui lòng kiểm tra log.');
+        }
+
+        $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
+    }
+
     public function delete(): void
     {
         if (!$this->canManagePlans($this->currentRole())) {
