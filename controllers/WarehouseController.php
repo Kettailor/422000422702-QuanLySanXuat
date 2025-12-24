@@ -79,7 +79,7 @@ class WarehouseController extends Controller
         }
 
         $options = $this->warehouseModel->getFormOptions();
-        $workshops = $this->workshopModel->all(200);
+        $workshops = $this->getAccessibleWorkshops();
         $this->render('warehouse/create', [
             'title' => 'Thêm kho mới',
             'managers' => $options['managers'],
@@ -115,7 +115,9 @@ class WarehouseController extends Controller
         ];
 
         try {
-            if (!$this->employeeModel->isEmployeeInWorkshop($data['NHAN_VIEN_KHO_IdNhanVien'], $data['IdXuong'])) {
+            if (!$this->canAccessWorkshop($data['IdXuong'])) {
+                $this->setFlash('danger', 'Bạn chỉ có thể tạo kho trong xưởng được phân công.');
+            } elseif (!$this->employeeModel->isEmployeeInWorkshop($data['NHAN_VIEN_KHO_IdNhanVien'], $data['IdXuong'])) {
                 $this->setFlash('danger', 'Nhân viên quản kho phải thuộc xưởng đã chọn.');
             } elseif (empty($this->employeeModel->getActiveEmployeesByWorkshop($data['IdXuong'] ?? ''))) {
                 $this->setFlash('danger', 'Xưởng chưa có nhân sự để phân công quản kho. Vui lòng cập nhật nhân sự trước.');
@@ -142,7 +144,7 @@ class WarehouseController extends Controller
 
         $warehouse = $id ? $this->warehouseModel->find($id) : null;
         $options = $this->warehouseModel->getFormOptions();
-        $workshops = $this->workshopModel->all(200);
+        $workshops = $this->getAccessibleWorkshops();
         $this->render('warehouse/edit', [
             'title' => 'Cập nhật kho',
             'warehouse' => $warehouse,
@@ -180,7 +182,9 @@ class WarehouseController extends Controller
         ];
 
         try {
-            if (!$this->employeeModel->isEmployeeInWorkshop($data['NHAN_VIEN_KHO_IdNhanVien'], $data['IdXuong'])) {
+            if (!$this->canAccessWorkshop($data['IdXuong'])) {
+                $this->setFlash('danger', 'Bạn chỉ có thể cập nhật kho trong xưởng được phân công.');
+            } elseif (!$this->employeeModel->isEmployeeInWorkshop($data['NHAN_VIEN_KHO_IdNhanVien'], $data['IdXuong'])) {
                 $this->setFlash('danger', 'Nhân viên quản kho phải thuộc xưởng đã chọn.');
             } else {
                 $this->warehouseModel->updateWarehouse($id, $data);
@@ -542,6 +546,50 @@ class WarehouseController extends Controller
         $this->visibleWarehouseIds = $this->resolveWarehouseIdsByWorkshop($user);
 
         return $this->visibleWarehouseIds;
+    }
+
+    private function getAccessibleWorkshops(): array
+    {
+        $user = $this->currentUser();
+        if (!$user) {
+            return [];
+        }
+
+        $role = $this->resolveAccessRole($user);
+        if (in_array($role, ['VT_ADMIN', 'VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG'], true)) {
+            return $this->workshopModel->all(200);
+        }
+
+        if (in_array($role, $this->getWorkshopManagerRoles(), true)) {
+            $employeeId = $user['IdNhanVien'] ?? null;
+            if (!$employeeId) {
+                return [];
+            }
+            $workshopIds = $this->employeeModel->getWorkshopIdsForEmployee($employeeId);
+            return $this->workshopModel->findByIds($workshopIds);
+        }
+
+        return [];
+    }
+
+    private function canAccessWorkshop(?string $workshopId): bool
+    {
+        if ($workshopId === null || $workshopId === '') {
+            return false;
+        }
+
+        $workshops = $this->getAccessibleWorkshops();
+        if (empty($workshops)) {
+            return false;
+        }
+
+        foreach ($workshops as $workshop) {
+            if (($workshop['IdXuong'] ?? null) === $workshopId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isWarehouseAccessible(?string $warehouseId): bool

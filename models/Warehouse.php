@@ -165,6 +165,38 @@ class Warehouse extends BaseModel
         return $result;
     }
 
+    public function findMaterialWarehouseByWorkshop(?string $workshopId): ?array
+    {
+        if (!$workshopId) {
+            return null;
+        }
+
+        $sql = 'SELECT *
+                FROM KHO
+                WHERE IdXuong = :workshopId
+                  AND (
+                    LOWER(TenLoaiKho) LIKE :materialKeyword
+                    OR LOWER(TenLoaiKho) LIKE :materialKeywordAscii
+                  )
+                ORDER BY TenKho
+                LIMIT 1';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':workshopId', $workshopId);
+        $stmt->bindValue(':materialKeyword', '%nguyên%');
+        $stmt->bindValue(':materialKeywordAscii', '%nguyen%');
+        $stmt->execute();
+
+        $warehouse = $stmt->fetch();
+        if (!$warehouse) {
+            return null;
+        }
+
+        $warehouse['TenLoaiKho'] = $this->normalizeWarehouseType($warehouse['TenLoaiKho'] ?? null);
+
+        return $warehouse;
+    }
+
     /**
      * Tính toán số liệu tổng quan cho danh sách kho đã truy vấn.
      */

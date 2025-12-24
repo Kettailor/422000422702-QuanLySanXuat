@@ -42,6 +42,42 @@ class WorkshopPlanAssignment extends BaseModel
         return array_values(array_filter(array_column($stmt->fetchAll(), 'IdKeHoachSanXuatXuong')));
     }
 
+    public function getAssignmentsByEmployeesForDate(array $employeeIds, string $workDate): array
+    {
+        $employeeIds = array_values(array_filter($employeeIds));
+        if (empty($employeeIds) || $workDate === '') {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($employeeIds), '?'));
+        $sql = 'SELECT pc.IdNhanVien, pc.IdCaLamViec
+                FROM phan_cong_ke_hoach_xuong pc
+                JOIN ca_lam ca ON ca.IdCaLamViec = pc.IdCaLamViec
+                WHERE pc.IdNhanVien IN (' . $placeholders . ')
+                  AND ca.NgayLamViec = ?';
+
+        $stmt = $this->db->prepare($sql);
+        $index = 1;
+        foreach ($employeeIds as $employeeId) {
+            $stmt->bindValue($index, $employeeId);
+            $index++;
+        }
+        $stmt->bindValue($index, $workDate);
+        $stmt->execute();
+
+        $map = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $employeeId = $row['IdNhanVien'] ?? null;
+            $shiftId = $row['IdCaLamViec'] ?? null;
+            if (!$employeeId || !$shiftId) {
+                continue;
+            }
+            $map[$employeeId][] = $shiftId;
+        }
+
+        return $map;
+    }
+
     public function isEmployeeAssignedToShift(string $employeeId, string $shiftId): bool
     {
         $sql = 'SELECT 1
