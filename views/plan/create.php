@@ -202,10 +202,6 @@ $nowInput = date('Y-m-d\TH:i');
                 <h5 class="mb-3">Thông tin kế hoạch</h5>
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label">Mã kế hoạch (tùy chọn)</label>
-                        <input type="text" name="IdKeHoachSanXuat" class="form-control" placeholder="Tự động nếu bỏ trống">
-                    </div>
-                    <div class="col-md-4">
                         <label class="form-label">Số lượng kế hoạch</label>
                         <input type="number" min="1" name="SoLuong" class="form-control" value="<?= htmlspecialchars((string) $defaultQuantity) ?>" required>
                     </div>
@@ -215,11 +211,11 @@ $nowInput = date('Y-m-d\TH:i');
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Thời gian bắt đầu</label>
-                        <input type="datetime-local" name="ThoiGianBD" class="form-control" value="<?= htmlspecialchars($formatDateInput($selectedOrderDetail['NgayLap'] ?? null) ?: $nowInput) ?>" required>
+                        <input type="datetime-local" name="ThoiGianBD" class="form-control" value="<?= htmlspecialchars($nowInput) ?>" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Hạn chót</label>
-                        <input type="datetime-local" name="ThoiGianKetThuc" class="form-control" value="<?= htmlspecialchars($formatDateInput($selectedOrderDetail['NgayGiao'] ?? null)) ?>" required>
+                        <input type="datetime-local" name="ThoiGianKetThuc" class="form-control" value="<?= htmlspecialchars($formatDateInput($selectedOrderDetail['NgayGiao'] ?? null) ?: $nowInput) ?>" required>
                     </div>
                 </div>
             </div>
@@ -227,17 +223,20 @@ $nowInput = date('Y-m-d\TH:i');
 
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                     <div>
                         <h5 class="mb-1">Phân công hạng mục sản xuất</h5>
                         <div class="text-muted small">Có thể xóa hạng mục không cần thiết trước khi lưu.</div>
                     </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="add-assignment">
+                        <i class="bi bi-plus-circle me-1"></i>Thêm hạng mục
+                    </button>
                 </div>
                 <?php if (empty($componentAssignments)): ?>
                     <div class="alert alert-warning">Chưa có hạng mục nào được đề xuất cho kế hoạch.</div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table align-middle" id="assignment-table">
+                <?php endif; ?>
+                <div class="table-responsive">
+                    <table class="table align-middle" id="assignment-table" data-next-index="<?= htmlspecialchars((string) count($componentAssignments)) ?>">
                             <thead class="table-light">
                             <tr>
                                 <th>Hạng mục</th>
@@ -259,6 +258,9 @@ $nowInput = date('Y-m-d\TH:i');
                                     }
                                     return in_array($workshop['LoaiXuong'] ?? '', $allowedTypes, true);
                                 });
+                                if (empty($workshopOptions)) {
+                                    $workshopOptions = $workshops;
+                                }
                                 $defaultStart = $formatDateInput($assignment['start'] ?? null)
                                     ?: $formatDateInput($assignment['default_start'] ?? null)
                                     ?: $nowInput;
@@ -269,11 +271,10 @@ $nowInput = date('Y-m-d\TH:i');
                                 ?>
                                 <tr data-assignment-row>
                                     <td>
-                                        <div class="fw-semibold"><?= htmlspecialchars($assignment['label'] ?? 'Hạng mục') ?></div>
+                                        <input type="text" class="form-control" name="component_assignments[<?= $index ?>][label]" value="<?= htmlspecialchars($assignment['label'] ?? '') ?>" placeholder="Tên hạng mục" required>
                                         <?php if (!empty($assignment['configuration_label'])): ?>
-                                            <div class="text-muted small"><?= htmlspecialchars($assignment['configuration_label']) ?></div>
+                                            <div class="text-muted small mt-1"><?= htmlspecialchars($assignment['configuration_label']) ?></div>
                                         <?php endif; ?>
-                                        <input type="hidden" name="component_assignments[<?= $index ?>][label]" value="<?= htmlspecialchars($assignment['label'] ?? '') ?>">
                                         <input type="hidden" name="component_assignments[<?= $index ?>][component_id]" value="<?= htmlspecialchars($assignment['id'] ?? '') ?>">
                                         <input type="hidden" name="component_assignments[<?= $index ?>][configuration_id]" value="<?= htmlspecialchars($assignment['configuration_id'] ?? '') ?>">
                                         <input type="hidden" name="component_assignments[<?= $index ?>][default_status]" value="<?= htmlspecialchars($assignment['default_status'] ?? '') ?>">
@@ -321,15 +322,54 @@ $nowInput = date('Y-m-d\TH:i');
                             </tbody>
                         </table>
                     </div>
-                <?php endif; ?>
+                    <template id="assignment-row-template">
+                        <tr data-assignment-row>
+                            <td>
+                                <input type="text" class="form-control" name="component_assignments[__INDEX__][label]" placeholder="Tên hạng mục" required>
+                                <input type="hidden" name="component_assignments[__INDEX__][component_id]" value="">
+                                <input type="hidden" name="component_assignments[__INDEX__][configuration_id]" value="">
+                                <input type="hidden" name="component_assignments[__INDEX__][default_status]" value="Đang chuẩn bị">
+                            </td>
+                            <td class="text-end">
+                                <input type="number" min="1" class="form-control" style="min-width: 120px;" name="component_assignments[__INDEX__][quantity]" value="<?= htmlspecialchars((string) $defaultQuantity) ?>" required>
+                                <div class="small text-muted mt-1">sp</div>
+                            </td>
+                            <td style="min-width: 180px;">
+                                <select class="form-select" name="component_assignments[__INDEX__][workshop_id]" required>
+                                    <option value="">-- Chọn xưởng --</option>
+                                    <?php foreach ($workshops as $workshop): ?>
+                                        <option value="<?= htmlspecialchars($workshop['IdXuong']) ?>">
+                                            <?= htmlspecialchars($workshop['TenXuong'] ?? $workshop['IdXuong']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                            <td style="min-width: 170px;">
+                                <select class="form-select" name="component_assignments[__INDEX__][status]">
+                                    <?php foreach (['Đang chuẩn bị', 'Đang sản xuất', 'Chờ nghiệm thu', 'Hoàn thành', 'Đang chờ xác nhận'] as $status): ?>
+                                        <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="datetime-local" class="form-control" name="component_assignments[__INDEX__][start]" value="<?= htmlspecialchars($nowInput) ?>" required>
+                            </td>
+                            <td>
+                                <input type="datetime-local" class="form-control" name="component_assignments[__INDEX__][end]" value="<?= htmlspecialchars($formatDateInput($selectedOrderDetail['NgayGiao'] ?? null) ?: $nowInput) ?>" required>
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-remove-assignment>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
             </div>
-            <?php if (!empty($componentAssignments)): ?>
-                <div class="card-footer bg-white border-0 d-flex justify-content-end gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save me-2"></i>Lưu kế hoạch
-                    </button>
-                </div>
-            <?php endif; ?>
+            <div class="card-footer bg-white border-0 d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-2"></i>Lưu kế hoạch
+                </button>
+            </div>
         </div>
     </form>
 <?php endif; ?>
@@ -337,8 +377,23 @@ $nowInput = date('Y-m-d\TH:i');
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const table = document.getElementById('assignment-table');
+        const addButton = document.getElementById('add-assignment');
+        const template = document.getElementById('assignment-row-template');
         if (!table) {
             return;
+        }
+
+        if (addButton && template) {
+            addButton.addEventListener('click', () => {
+                const nextIndex = Number.parseInt(table.dataset.nextIndex ?? '0', 10) || 0;
+                const html = template.innerHTML.replace(/__INDEX__/g, String(nextIndex));
+                table.querySelector('tbody')?.insertAdjacentHTML('beforeend', html);
+                table.dataset.nextIndex = String(nextIndex + 1);
+                const alert = table.parentElement?.querySelector('.alert');
+                if (alert) {
+                    alert.remove();
+                }
+            });
         }
 
         table.addEventListener('click', (event) => {
