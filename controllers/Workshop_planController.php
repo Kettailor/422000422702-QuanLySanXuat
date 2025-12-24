@@ -49,6 +49,7 @@ class Workshop_planController extends Controller
         $typeConfig = $this->getWorkshopTypeConfig($plan['LoaiXuong'] ?? null);
         $materialEnabled = $typeConfig['supports_materials'] ?? true;
         $progressEnabled = $typeConfig['supports_progress'] ?? true;
+        $isCancelled = $this->isPlanCancelled($plan);
 
         $materialSource = 'plan';
         $materialOptions = $materialEnabled ? $this->materialModel->all(500) : [];
@@ -76,6 +77,7 @@ class Workshop_planController extends Controller
             'canUpdateProgress' => $canUpdateProgress,
             'materialEnabled' => $materialEnabled,
             'progressEnabled' => $progressEnabled,
+            'isCancelled' => $isCancelled,
         ]);
     }
 

@@ -8,6 +8,7 @@ $canUpdateProgress = $canUpdateProgress ?? false;
 $planAssignments = $planAssignments ?? [];
 $materialEnabled = $materialEnabled ?? true;
 $progressEnabled = $progressEnabled ?? true;
+$isCancelled = $isCancelled ?? false;
 
 $materialOptionHtml = '<option value="">Chọn nguyên liệu</option>';
 foreach ($materialOptions as $option) {
@@ -37,6 +38,11 @@ foreach ($materialOptions as $option) {
 <?php if (!$plan): ?>
     <div class="alert alert-warning">Không tìm thấy kế hoạch xưởng.</div>
 <?php else: ?>
+    <?php if ($isCancelled): ?>
+        <div class="alert alert-warning">
+            Kế hoạch xưởng đã hủy. Bạn chỉ có thể xem chi tiết, các thao tác khác đã được tắt.
+        </div>
+    <?php endif; ?>
         <?php if ($materialEnabled && !empty($materialCheckResult)): ?>
             <div class="alert <?= $materialCheckResult['is_sufficient'] ? 'alert-success' : 'alert-warning' ?>">
                 <div class="fw-semibold mb-2">
@@ -121,7 +127,7 @@ foreach ($materialOptions as $option) {
                         <div class="text-muted small">Sản phẩm mới chưa có định mức. Vui lòng chọn nguyên liệu phù hợp trước khi kiểm tra tồn kho.</div>
                     <?php endif; ?>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="add-material-row" <?= $isCancelled ? 'disabled' : '' ?>>
                     <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
                 </button>
             </div>
@@ -141,7 +147,7 @@ foreach ($materialOptions as $option) {
                         <?php foreach ($materialsForRender as $index => $material): ?>
                             <tr>
                                 <td>
-                                    <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required>
+                                    <select name="materials[<?= $index ?>][IdNguyenLieu]" class="form-select form-select-sm" required <?= $isCancelled ? 'disabled' : '' ?>>
                                         <option value="">Chọn nguyên liệu</option>
                                         <?php foreach ($materialOptions as $option): ?>
                                             <?php $value = $option['IdNguyenLieu'] ?? ''; ?>
@@ -159,7 +165,7 @@ foreach ($materialOptions as $option) {
                                 </td>
                                 <td>
                                     <div class="input-group input-group-sm">
-                                        <input type="number" min="0" class="form-control" name="materials[<?= $index ?>][required]" value="<?= htmlspecialchars($material['SoLuongKeHoach'] ?? 0) ?>" required>
+                                        <input type="number" min="0" class="form-control" name="materials[<?= $index ?>][required]" value="<?= htmlspecialchars($material['SoLuongKeHoach'] ?? 0) ?>" required <?= $isCancelled ? 'disabled' : '' ?>>
                                         <?php if (!empty($material['DonVi'])): ?>
                                             <span class="input-group-text"><?= htmlspecialchars($material['DonVi']) ?></span>
                                         <?php endif; ?>
@@ -173,11 +179,11 @@ foreach ($materialOptions as $option) {
                 <div class="row mb-3">
                     <div class="col-md-8">
                         <label for="note" class="form-label">Ghi chú điều chỉnh / lý do</label>
-                        <textarea name="note" id="note" rows="3" class="form-control" placeholder="Ghi chú cho Ban giám đốc theo dõi..."></textarea>
+                        <textarea name="note" id="note" rows="3" class="form-control" placeholder="Ghi chú cho Ban giám đốc theo dõi..." <?= $isCancelled ? 'disabled' : '' ?>></textarea>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" <?= $isCancelled ? 'disabled' : '' ?>>
                         <i class="bi bi-check2-circle me-2"></i>Kiểm tra tồn kho
                     </button>
                 </div>

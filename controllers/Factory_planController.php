@@ -88,7 +88,11 @@ class Factory_planController extends Controller
             && ($typeConfig['supports_progress'] ?? true)
             && $this->isMaterialSufficient($plan['TinhTrangVatTu'] ?? null)
             && !empty($planAssignments);
-        $canDelete = $plan ? $this->canModifyPlan($plan) : false;
+        $isCancelled = $plan ? $this->isPlanCancelled($plan) : false;
+        if ($isCancelled) {
+            $canUpdateProgress = false;
+        }
+        $canDelete = $plan ? $this->canModifyPlan($plan) && !$isCancelled : false;
 
         $this->render('factory_plan/read', [
             'title' => 'Chi tiết hạng mục xưởng',
@@ -99,6 +103,7 @@ class Factory_planController extends Controller
             'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
             'canUpdateProgress' => $canUpdateProgress,
             'canDelete' => $canDelete,
+            'isCancelled' => $isCancelled,
             'typeConfig' => $typeConfig,
             'isStorageManager' => $this->isStorageManager(),
         ]);
@@ -460,6 +465,11 @@ class Factory_planController extends Controller
 
         $normalized = mb_strtolower(trim($status));
         return str_contains($normalized, 'đủ');
+    }
+
+    private function isPlanCancelled(array $plan): bool
+    {
+        return ($plan['TrangThai'] ?? '') === 'Hủy';
     }
 
     private function getWorkshopTypeConfig(?string $workshopType): array
