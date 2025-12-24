@@ -10,7 +10,7 @@ $canUpdateProgress = $canUpdateProgress ?? false;
         <p class="text-muted mb-0">Ghi nhận sản lượng hoàn thành theo ca đã phân công.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong'] ?? '') ?>" class="btn btn-outline-secondary">
+        <a href="?controller=factory_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong'] ?? '') ?>" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Chi tiết kế hoạch
         </a>
     </div>

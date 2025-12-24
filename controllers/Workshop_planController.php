@@ -14,6 +14,7 @@ class Workshop_planController extends Controller
     private Material $materialModel;
     private Workshop $workshopModel;
     private Employee $employeeModel;
+    private ProductionPlan $productionPlanModel;
 
     public function __construct()
     {
@@ -30,6 +31,7 @@ class Workshop_planController extends Controller
         $this->materialModel = new Material();
         $this->workshopModel = new Workshop();
         $this->employeeModel = new Employee();
+        $this->productionPlanModel = new ProductionPlan();
     }
 
     public function read(): void
@@ -561,12 +563,18 @@ class Workshop_planController extends Controller
         if (!empty($plan['TenCauHinh'])) {
             $lotDefaultName .= ' - ' . $plan['TenCauHinh'];
         }
+        $productId = $plan['IdSanPham'] ?? null;
+        if (!$productId && !empty($plan['IdKeHoachSanXuat'])) {
+            $rootPlan = $this->productionPlanModel->getPlanWithRelations($plan['IdKeHoachSanXuat']);
+            $productId = $rootPlan['IdSanPham'] ?? null;
+        }
+
         $lotPayload = [
             'IdLo' => $lotId,
             'TenLo' => $lotName !== '' ? $lotName : $lotDefaultName,
             'SoLuong' => $quantity,
             'LoaiLo' => 'Thành phẩm',
-            'IdSanPham' => $plan['IdSanPham'] ?? null,
+            'IdSanPham' => $productId,
             'IdKho' => $warehouse['IdKho'] ?? null,
         ];
 

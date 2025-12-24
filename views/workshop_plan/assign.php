@@ -408,13 +408,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         shiftGroups.forEach(group => {
             const date = group.dataset.date;
-            group.style.display = hasDate && hasShift && activeDates.includes(date) ? '' : 'none';
+            if (!hasDate || !hasShift) {
+                group.style.display = '';
+                return;
+            }
+            group.style.display = activeDates.includes(date) ? '' : 'none';
         });
 
         shiftCards.forEach(card => {
             const date = card.dataset.date;
             const type = card.dataset.shiftType;
-            const visible = hasDate && hasShift && activeDates.includes(date) && activeShifts.includes(type);
+            if (!hasDate || !hasShift) {
+                card.style.display = '';
+                return;
+            }
+            const visible = activeDates.includes(date) && activeShifts.includes(type);
             card.style.display = visible ? '' : 'none';
         });
     };
@@ -518,6 +526,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 cb.checked = false;
             });
             updateSelectedEmployees();
+            const firstCard = activeCards[0];
+            if (firstCard) {
+                firstCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         });
     }
 
