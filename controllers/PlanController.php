@@ -267,7 +267,7 @@ class PlanController extends Controller
 
         try {
             $this->planModel->update($id, ['ThoiGianKetThuc' => $endTime]);
-            $this->workshopPlanModel->updateEndTimeByPlan($id, $endTime);
+            $this->notifyWorkshopManagersDeadlineChanged($plan, $endTime);
             $this->setFlash('success', 'Đã cập nhật hạn chót kế hoạch.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi cập nhật hạn chót kế hoạch ' . $id . ': ' . $exception->getMessage());
@@ -648,6 +648,56 @@ class PlanController extends Controller
                 'metadata' => [
                     'workshop_id' => $workshopId,
                     'workshop_plan_id' => $planId,
+                ],
+            ];
+        }
+
+        if (!empty($entries)) {
+            $store = new NotificationStore();
+            $store->pushMany($entries);
+        }
+    }
+
+    private function notifyWorkshopManagersDeadlineChanged(array $plan, string $endTime): void
+    {
+        $planId = $plan['IdKeHoachSanXuat'] ?? null;
+        if (!$planId) {
+            return;
+        }
+
+        $workshopPlans = $this->workshopPlanModel->getByPlan($planId);
+        if (empty($workshopPlans)) {
+            return;
+        }
+
+        $workshopIds = [];
+        foreach ($workshopPlans as $workshopPlan) {
+            $workshopId = $workshopPlan['IdXuong'] ?? null;
+            if ($workshopId) {
+                $workshopIds[$workshopId] = true;
+            }
+        }
+
+        if (empty($workshopIds)) {
+            return;
+        }
+
+        $managerMap = $this->workshopModel->getManagersByWorkshopIds(array_keys($workshopIds));
+        $entries = [];
+        foreach ($managerMap as $workshopId => $managerId) {
+            if (!$managerId) {
+                continue;
+            }
+
+            $entries[] = [
+                'channel' => 'workshop_plan',
+                'recipient' => $managerId,
+                'title' => 'Cập nhật hạn chót kế hoạch',
+                'message' => sprintf('Kế hoạch %s đã cập nhật hạn chót: %s.', $planId, $endTime),
+                'link' => '?controller=plan&action=read&id=' . urlencode($planId),
+                'metadata' => [
+                    'plan_id' => $planId,
+                    'workshop_id' => $workshopId,
                 ],
             ];
         }
