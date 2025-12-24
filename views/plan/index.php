@@ -56,7 +56,7 @@ $badgeForStatus = static function (string $status): string {
     </div>
     <div class="d-flex flex-wrap gap-2">
         <?php if ($canManagePlan): ?>
-            <a href="?controller=plan&action=create" class="btn btn-primary btn-lg">
+            <a href="?controller=plan&action=create" class="btn btn-primary">
                 <i class="bi bi-magic me-2"></i>Lập kế hoạch mới
             </a>
         <?php endif; ?>

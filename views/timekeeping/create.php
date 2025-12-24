@@ -33,7 +33,7 @@ $dayEnd = $workDate ? ($workDate . 'T23:59') : '';
         </p>
     </div>
     <div class="d-flex gap-2">
-        <span class="badge rounded-pill text-bg-primary px-3 py-2">
+        <span class="badge rounded-pill text-bg-primary px-3 py-2 d-flex align-items-center">
             <i class="bi bi-calendar-event me-1"></i><?= htmlspecialchars($formattedWorkDate) ?>
         </span>
         <a href="?controller=timekeeping&action=index" class="btn btn-outline-secondary">
