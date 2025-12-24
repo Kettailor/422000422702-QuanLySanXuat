@@ -294,14 +294,17 @@ class PlanController extends Controller
         }
 
         $currentStatus = $plan['TrangThai'] ?? '';
-        if ($currentStatus === 'Hoàn thành') {
-            $this->setFlash('danger', 'Không thể hủy kế hoạch đã hoàn thành.');
+        if ($currentStatus === 'Hủy') {
+            $this->setFlash('warning', 'Kế hoạch đã được hủy trước đó.');
             $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
             return;
         }
-
-        if ($currentStatus === 'Hủy') {
-            $this->setFlash('warning', 'Kế hoạch đã được hủy trước đó.');
+        $allowedStatuses = ['Đang chuẩn bị', 'Đang sản xuất'];
+        if (!in_array($currentStatus, $allowedStatuses, true)) {
+            $message = $currentStatus === 'Hoàn thành'
+                ? 'Không thể hủy kế hoạch đã hoàn thành.'
+                : 'Chỉ được hủy kế hoạch khi đang chuẩn bị hoặc đang sản xuất.';
+            $this->setFlash('danger', $message);
             $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
             return;
         }
