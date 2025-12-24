@@ -14,7 +14,7 @@ class PlanController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_BAN_GIAM_DOC']);
+        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_ADMIN']);
         $this->planModel = new ProductionPlan();
         $this->orderDetailModel = new OrderDetail();
         $this->workshopPlanModel = new WorkshopPlan();

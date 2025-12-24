@@ -99,7 +99,7 @@ $statusBadge = static function (string $status): string {
     <?php
     $currentUser = $currentUser ?? [];
     $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
-    $canManage = $roleId === 'VT_BAN_GIAM_DOC';
+    $canManage = in_array($roleId, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
     $status = $plan['TrangThai'] ?? '';
     $canEditDeadline = $canManage && !in_array($status, ['Hoàn thành', 'Hủy'], true);
     $canCancel = $canManage && in_array($status, ['Đang chuẩn bị', 'Đang sản xuất'], true);

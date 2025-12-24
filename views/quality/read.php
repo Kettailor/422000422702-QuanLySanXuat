@@ -1,37 +1,39 @@
 <style>
   .card-header h5 {
-    letter-spacing: .3px;
+    letter-spacing: .5px;
   }
 
   .card-header .text-muted {
-    font-size: 0.85rem;
+    font-size: 1rem;
   }
 
   .report-header {
     background: linear-gradient(135deg, #0d6efd, #0b5ed7);
     color: #fff;
+    font-weight: 700;
+
   }
 
   .info-box {
     background: #f8f9fa;
     border-radius: 10px;
-    padding: 12px 16px;
-    height: 100%;
+    padding: 20px 16px;
+    height: 110%;
   }
 
   .info-label {
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: #6c757d;
   }
 
   .info-value {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1rem;
   }
 
   .result-badge {
     font-size: 1rem;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 20px;
   }
 
@@ -51,12 +53,12 @@
     border-radius: 12px;
     padding: 10px 16px;
     font-family: monospace;
-    font-size: 1rem;
+    font-size: 1.25rem;
     color: #0d6efd;
   }
 
   .report-id-label {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: #6c757d;
     font-family: system-ui;
   }
@@ -158,6 +160,7 @@
     <!-- ===== ẢNH MINH CHỨNG ===== -->
     <div class="card shadow-sm mt-4">
       <div class="card-header fw-semibold">
+        <i class="bi bi-images me-2"></i>
         Hình ảnh minh chứng
       </div>
 
@@ -252,7 +255,7 @@
   document.getElementById('btnHideReport')?.addEventListener('click', () => {
     const idLo = document.getElementById('btnHideReport').dataset.idlo;
 
-    if (!confirm(`Bạn có chắc muốn ẩn biên bản và lô ${idLo} khỏi danh sách?`)) return;
+    if (!confirm(`Bạn có chắc muốn xóa biên bản này không?`)) return;
 
     const hidden = getHiddenLos();
     if (!hidden.includes(idLo)) hidden.push(idLo);

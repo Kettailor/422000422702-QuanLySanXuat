@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th12 18, 2025 lúc 11:29 AM
+-- Thời gian đã tạo: Th12 23, 2025 lúc 08:41 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -47,12 +47,6 @@ CREATE TABLE `bang_luong` (
   `ChuKy` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `bang_luong`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -69,12 +63,6 @@ CREATE TABLE `bien_ban_danh_gia_dot_xuat` (
   `IdNhanVien` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `bien_ban_danh_gia_dot_xuat`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -89,12 +77,6 @@ CREATE TABLE `bien_ban_danh_gia_thanh_pham` (
   `KetQua` varchar(255) DEFAULT NULL,
   `IdLo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `bien_ban_danh_gia_thanh_pham`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -111,12 +93,6 @@ CREATE TABLE `cau_hinh_nguyen_lieu` (
   `Nhan` varchar(255) DEFAULT NULL,
   `DonVi` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `cau_hinh_nguyen_lieu`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -139,12 +115,6 @@ CREATE TABLE `cau_hinh_san_pham` (
   `Foam` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `cau_hinh_san_pham`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -156,12 +126,6 @@ CREATE TABLE `cau_hinh_thong_bao` (
   `GiaTri` text DEFAULT NULL,
   `MoTa` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `cau_hinh_thong_bao`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -242,12 +206,6 @@ CREATE TABLE `chi_tiet_ke_hoach_san_xuat_xuong` (
   `IdNguyenLieu` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `chi_tiet_ke_hoach_san_xuat_xuong`
---
-
--- (Không seed dữ liệu chi tiết nguyên liệu kế hoạch xưởng)
-
 -- --------------------------------------------------------
 
 --
@@ -268,12 +226,6 @@ CREATE TABLE `ct_don_hang` (
   `IdDonHang` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `ct_don_hang`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -290,12 +242,6 @@ CREATE TABLE `ct_hoa_don` (
   `IdLo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `ct_hoa_don`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -310,12 +256,6 @@ CREATE TABLE `ct_phieu` (
   `IdPhieu` varchar(50) NOT NULL,
   `IdLo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `ct_phieu`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -335,12 +275,6 @@ CREATE TABLE `don_hang` (
   `IdNguoiTao` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `don_hang`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -353,12 +287,6 @@ CREATE TABLE `hoat_dong_he_thong` (
   `ThoiGian` datetime DEFAULT NULL,
   `IdNguoiDung` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `hoat_dong_he_thong`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -373,12 +301,6 @@ CREATE TABLE `hoa_don` (
   `LoaiHD` varchar(255) DEFAULT NULL,
   `IdDonHang` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `hoa_don`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -396,12 +318,6 @@ CREATE TABLE `ke_hoach_san_xuat` (
   `IdTTCTDonHang` varchar(50) NOT NULL,
   `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -423,12 +339,6 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
   `IdXuong` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `ke_hoach_san_xuat_xuong`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -447,12 +357,6 @@ CREATE TABLE `khach_hang` (
   `TongTien` float DEFAULT NULL,
   `LoaiKhachHang` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `khach_hang`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -497,21 +401,6 @@ CREATE TABLE `lich_su_ke_hoach_xuong` (
   `NgayThucHien` datetime DEFAULT NULL,
   `ThongTinChiTiet` longtext DEFAULT NULL,
   `IdYeuCauKho` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `phan_cong_ke_hoach_xuong`
---
-
-CREATE TABLE `phan_cong_ke_hoach_xuong` (
-  `IdPhanCong` varchar(50) NOT NULL,
-  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
-  `IdNhanVien` varchar(50) NOT NULL,
-  `IdCaLamViec` varchar(50) NOT NULL,
-  `VaiTro` varchar(255) DEFAULT NULL,
-  `NgayPhanCong` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -677,12 +566,6 @@ CREATE TABLE `phieu` (
   `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `phieu`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -695,12 +578,6 @@ CREATE TABLE `product_components` (
   `MoTa` text DEFAULT NULL,
   `IdSanPham` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `product_components`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -739,12 +616,6 @@ CREATE TABLE `thanh_pham` (
   `IdLo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `thanh_pham`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -761,12 +632,6 @@ CREATE TABLE `ttct_bien_ban_danh_gia_dot_xuat` (
   `IdBienBanDanhGiaDX` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `ttct_bien_ban_danh_gia_dot_xuat`
---
-
--- (Dữ liệu đã được lược bỏ)
-
 -- --------------------------------------------------------
 
 --
@@ -781,12 +646,6 @@ CREATE TABLE `ttct_bien_ban_danh_gia_thanh_pham` (
   `HinhAnh` varchar(255) DEFAULT NULL,
   `IdBienBanDanhGiaSP` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `ttct_bien_ban_danh_gia_thanh_pham`
---
-
--- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
@@ -811,10 +670,15 @@ INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
 ('VT_TRUONG_XUONG_SAN_XUAT', 'Xưởng trưởng sản xuất'),
 ('VT_TRUONG_XUONG_LUU_TRU', 'Xưởng trưởng lưu trữ hàng hóa'),
 ('VT_KETOAN', 'Kế toán'),
+('VT_KHO_TRUONG', 'Kho trưởng'),
 ('VT_KIEM_SOAT_CL', 'Nhân viên kiểm soát chất lượng'),
 ('VT_KINH_DOANH', 'Nhân viên kinh doanh'),
 ('VT_NHANVIEN_KHO', 'Nhân viên kho'),
-('VT_NHANVIEN_SANXUAT', 'Nhân viên sản xuất');
+('VT_NHANVIEN_SANXUAT', 'Nhân viên sản xuất'),
+('VT_TRUONG_XUONG_KIEM_DINH', 'Xưởng trưởng kiểm định'),
+('VT_TRUONG_XUONG_LAP_RAP_DONG_GOI', 'Xưởng trưởng lắp ráp và đóng gói'),
+('VT_TRUONG_XUONG_LUU_TRU', 'Xưởng trưởng lưu trữ hàng hóa'),
+('VT_TRUONG_XUONG_SAN_XUAT', 'Xưởng trưởng sản xuất');
 
 -- --------------------------------------------------------
 
@@ -888,11 +752,17 @@ CREATE TABLE `xuong_cau_hinh_san_pham` (
   `ThuTu` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Đang đổ dữ liệu cho bảng `xuong_cau_hinh_san_pham`
+-- Cấu trúc bảng cho bảng `xuong_nhan_vien`
 --
 
--- (Dữ liệu đã được lược bỏ)
+CREATE TABLE `xuong_nhan_vien` (
+  `IdXuong` varchar(50) NOT NULL,
+  `IdNhanVien` varchar(50) NOT NULL,
+  `VaiTro` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1069,15 +939,6 @@ ALTER TABLE `lich_su_ke_hoach_xuong`
   ADD KEY `FKLSKHX_YeuCauKho` (`IdYeuCauKho`);
 
 --
--- Chỉ mục cho bảng `phan_cong_ke_hoach_xuong`
---
-ALTER TABLE `phan_cong_ke_hoach_xuong`
-  ADD PRIMARY KEY (`IdPhanCong`),
-  ADD KEY `FKPCKHX_KeHoach` (`IdKeHoachSanXuatXuong`),
-  ADD KEY `FKPCKHX_NhanVien` (`IdNhanVien`),
-  ADD KEY `FKPCKHX_CaLam` (`IdCaLamViec`);
-
---
 -- Chỉ mục cho bảng `lo`
 --
 ALTER TABLE `lo`
@@ -1107,6 +968,15 @@ ALTER TABLE `nhan_vien`
   ADD PRIMARY KEY (`IdNhanVien`),
   ADD KEY `idXuong` (`idXuong`),
   ADD KEY `FKNHAN_VIEN_VAI_TRO` (`IdVaiTro`);
+
+--
+-- Chỉ mục cho bảng `phan_cong_ke_hoach_xuong`
+--
+ALTER TABLE `phan_cong_ke_hoach_xuong`
+  ADD PRIMARY KEY (`IdPhanCong`),
+  ADD KEY `FKPCKHX_KeHoach` (`IdKeHoachSanXuatXuong`),
+  ADD KEY `FKPCKHX_NhanVien` (`IdNhanVien`),
+  ADD KEY `FKPCKHX_CaLam` (`IdCaLamViec`);
 
 --
 -- Chỉ mục cho bảng `phieu`
@@ -1158,13 +1028,6 @@ ALTER TABLE `vai_tro`
   ADD PRIMARY KEY (`IdVaiTro`);
 
 --
--- Chỉ mục cho bảng `xuong_nhan_vien`
---
-ALTER TABLE `xuong_nhan_vien`
-  ADD PRIMARY KEY (`IdXuong`,`IdNhanVien`,`VaiTro`),
-  ADD KEY `FKXNV_NhanVien` (`IdNhanVien`);
-
---
 -- Chỉ mục cho bảng `xuong`
 --
 ALTER TABLE `xuong`
@@ -1179,6 +1042,13 @@ ALTER TABLE `xuong_cau_hinh_san_pham`
   ADD KEY `FKXCHSP_SANPHAM` (`IdSanPham`),
   ADD KEY `FKXCHSP_CAU_HINH` (`IdCauHinh`),
   ADD KEY `FKXCHSP_XUONG` (`IdXuong`);
+
+--
+-- Chỉ mục cho bảng `xuong_nhan_vien`
+--
+ALTER TABLE `xuong_nhan_vien`
+  ADD PRIMARY KEY (`IdXuong`,`IdNhanVien`,`VaiTro`),
+  ADD KEY `FKXNV_NhanVien` (`IdNhanVien`);
 
 --
 -- Chỉ mục cho bảng `yeu_cau_xuat_kho`
@@ -1318,14 +1188,6 @@ ALTER TABLE `lich_su_ke_hoach_xuong`
   ADD CONSTRAINT `FKLSKHX_YeuCauKho` FOREIGN KEY (`IdYeuCauKho`) REFERENCES `yeu_cau_xuat_kho` (`IdYeuCau`);
 
 --
--- Các ràng buộc cho bảng `phan_cong_ke_hoach_xuong`
---
-ALTER TABLE `phan_cong_ke_hoach_xuong`
-  ADD CONSTRAINT `FKPCKHX_KeHoach` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
-  ADD CONSTRAINT `FKPCKHX_NhanVien` FOREIGN KEY (`IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`),
-  ADD CONSTRAINT `FKPCKHX_CaLam` FOREIGN KEY (`IdCaLamViec`) REFERENCES `ca_lam` (`IdCaLamViec`);
-
---
 -- Các ràng buộc cho bảng `lo`
 --
 ALTER TABLE `lo`
@@ -1349,8 +1211,16 @@ ALTER TABLE `nguyen_lieu`
 -- Các ràng buộc cho bảng `nhan_vien`
 --
 ALTER TABLE `nhan_vien`
-  ADD CONSTRAINT `nhan_vien_ibfk_1` FOREIGN KEY (`idXuong`) REFERENCES `xuong` (`IdXuong`),
-  ADD CONSTRAINT `FKNHAN_VIEN_VAI_TRO` FOREIGN KEY (`IdVaiTro`) REFERENCES `vai_tro` (`IdVaiTro`);
+  ADD CONSTRAINT `FKNHAN_VIEN_VAI_TRO` FOREIGN KEY (`IdVaiTro`) REFERENCES `vai_tro` (`IdVaiTro`),
+  ADD CONSTRAINT `nhan_vien_ibfk_1` FOREIGN KEY (`idXuong`) REFERENCES `xuong` (`IdXuong`);
+
+--
+-- Các ràng buộc cho bảng `phan_cong_ke_hoach_xuong`
+--
+ALTER TABLE `phan_cong_ke_hoach_xuong`
+  ADD CONSTRAINT `FKPCKHX_CaLam` FOREIGN KEY (`IdCaLamViec`) REFERENCES `ca_lam` (`IdCaLamViec`),
+  ADD CONSTRAINT `FKPCKHX_KeHoach` FOREIGN KEY (`IdKeHoachSanXuatXuong`) REFERENCES `ke_hoach_san_xuat_xuong` (`IdKeHoachSanXuatXuong`),
+  ADD CONSTRAINT `FKPCKHX_NhanVien` FOREIGN KEY (`IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
 
 --
 -- Các ràng buộc cho bảng `phieu`
@@ -1385,19 +1255,19 @@ ALTER TABLE `xuong`
   ADD CONSTRAINT `Xuong truong` FOREIGN KEY (`XUONGTRUONG_IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`);
 
 --
--- Các ràng buộc cho bảng `xuong_nhan_vien`
---
-ALTER TABLE `xuong_nhan_vien`
-  ADD CONSTRAINT `FKXNV_NhanVien` FOREIGN KEY (`IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`),
-  ADD CONSTRAINT `FKXNV_Xuong` FOREIGN KEY (`IdXuong`) REFERENCES `xuong` (`IdXuong`);
-
---
 -- Các ràng buộc cho bảng `xuong_cau_hinh_san_pham`
 --
 ALTER TABLE `xuong_cau_hinh_san_pham`
   ADD CONSTRAINT `FKXCHSP_CAU_HINH` FOREIGN KEY (`IdCauHinh`) REFERENCES `cau_hinh_san_pham` (`IdCauHinh`),
   ADD CONSTRAINT `FKXCHSP_SANPHAM` FOREIGN KEY (`IdSanPham`) REFERENCES `san_pham` (`IdSanPham`),
   ADD CONSTRAINT `FKXCHSP_XUONG` FOREIGN KEY (`IdXuong`) REFERENCES `xuong` (`IdXuong`);
+
+--
+-- Các ràng buộc cho bảng `xuong_nhan_vien`
+--
+ALTER TABLE `xuong_nhan_vien`
+  ADD CONSTRAINT `FKXNV_NhanVien` FOREIGN KEY (`IdNhanVien`) REFERENCES `nhan_vien` (`IdNhanVien`),
+  ADD CONSTRAINT `FKXNV_Xuong` FOREIGN KEY (`IdXuong`) REFERENCES `xuong` (`IdXuong`);
 
 --
 -- Các ràng buộc cho bảng `yeu_cau_xuat_kho`
