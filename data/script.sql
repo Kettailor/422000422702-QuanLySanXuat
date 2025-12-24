@@ -768,18 +768,6 @@ CREATE TABLE `xuong_cau_hinh_san_pham` (
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `xuong_nhan_vien`
---
-
-CREATE TABLE `xuong_nhan_vien` (
-  `IdXuong` varchar(50) NOT NULL,
-  `IdNhanVien` varchar(50) NOT NULL,
-  `VaiTro` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Cấu trúc bảng cho bảng `yeu_cau_xuat_kho`
 --
 
