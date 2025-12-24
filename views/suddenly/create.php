@@ -128,13 +128,26 @@ $type = $type ?? ($_GET['type'] ?? 'production');
   <div id="formMessage" class="alert alert-danger alert-message"></div>
   <input type="hidden" name="LoaiTieuChiHidden" value="<?= htmlspecialchars($type) ?>">
 
-  <div class="card shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4">
+  <div class="card shadow-sm border-0 p-4 mb-4">
     <h5 class="fw-bold section-title mb-3">Thông tin chung</h5>
-    <div class="row mb-3">
+
+    <div class="row g-3 align-items-end">
+
+      <!-- MÃ BIÊN BẢN -->
       <div class="col-md-4">
         <label class="form-label fw-semibold">Mã biên bản</label>
-        <input type="text" class="form-control" name="IdBienBanDanhGiaDX"
-          value="<?= htmlspecialchars($maBienBan) ?>" readonly>
+
+        <div class="input-group">
+          <input type="text"
+            class="form-control fw-semibold"
+            value="<?= htmlspecialchars($maBienBan) ?>"
+            readonly>
+        </div>
+
+        <!-- GỬI VỀ SERVER -->
+        <input type="hidden"
+          name="IdBienBanDanhGiaDX"
+          value="<?= htmlspecialchars($maBienBan) ?>">
       </div>
       <div class="col-md-4">
         <label class="form-label fw-semibold">Thời gian kiểm tra</label>
@@ -152,7 +165,7 @@ $type = $type ?? ($_GET['type'] ?? 'production');
       </div>
     </div>
 
-    <div class="row">
+    <div class="row g-3 mt-1">
       <div class="col-md-6">
         <label class="form-label fw-semibold">Loại tiêu chí</label>
         <select id="LoaiTieuChi" name="LoaiTieuChi" class="form-select">
@@ -165,13 +178,14 @@ $type = $type ?? ($_GET['type'] ?? 'production');
 
       <div class="col-md-4">
         <label class="form-label fw-semibold">Nhân viên kiểm tra</label>
-        <select name="IdNhanVien" class="form-select">
-          <option value="">-- Chọn nhân viên kiểm tra --</option>
-          <?php foreach ($nhanVienList as $nv): ?>
-            <option value="<?= htmlspecialchars($nv['IdNhanVien']) ?>"><?= htmlspecialchars($nv['HoTen']) ?></option>
-          <?php endforeach; ?>
-        </select>
+
+        <!-- Hiển thị họ tên -->
+        <input type="text"
+          class="form-control fw-semibold"
+          value="<?= htmlspecialchars($sessionUser['HoTen']) ?>"
+          readonly>
       </div>
+
     </div>
   </div>
 

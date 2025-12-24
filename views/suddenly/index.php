@@ -396,10 +396,6 @@ foreach ($listBienBan as $r) {
               </td>
               <td class="text-end">
                 <a href="?controller=suddenly&action=read&id=<?= urlencode($r['IdBienBanDanhGiaDX']) ?>" class="btn-action btn-detail me-2">Chi tiết</a>
-                <button class="btn-action btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
-                  data-id="<?= htmlspecialchars($r['IdBienBanDanhGiaDX']) ?>"
-                  data-xuong="<?= htmlspecialchars($r['TenXuong'] ?? '—') ?>">Xóa</button>
-              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>

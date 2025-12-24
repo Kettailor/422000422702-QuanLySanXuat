@@ -27,20 +27,24 @@ class SuddenlyReport extends BaseModel
     public function getBienBanById(string $id): ?array
     {
         $stmt = $this->db->prepare("
-            SELECT 
-                bb.*, 
-                x.TenXuong,
-                nv.HoTen AS NhanVienKiemTra
-            FROM bien_ban_danh_gia_dot_xuat bb
-            LEFT JOIN xuong x ON x.IdXuong = bb.IdXuong
-            LEFT JOIN nhan_vien nv ON nv.IdNhanVien = bb.IdNhanVien
-            WHERE bb.IdBienBanDanhGiaDX = ?
-            LIMIT 1
-        ");
+        SELECT 
+            bb.*,
+            x.TenXuong,
+            nv.HoTen AS NhanVienKiemTra,
+            GROUP_CONCAT(DISTINCT t.LoaiTieuChi SEPARATOR ', ') AS LoaiTieuChi
+        FROM bien_ban_danh_gia_dot_xuat bb
+        LEFT JOIN xuong x ON x.IdXuong = bb.IdXuong
+        LEFT JOIN nhan_vien nv ON nv.IdNhanVien = bb.IdNhanVien
+        LEFT JOIN ttct_bien_ban_danh_gia_dot_xuat t
+            ON t.IdBienBanDanhGiaDX LIKE CONCAT(bb.IdBienBanDanhGiaDX, '%')
+        WHERE bb.IdBienBanDanhGiaDX = ?
+        GROUP BY bb.IdBienBanDanhGiaDX
+        LIMIT 1
+    ");
         $stmt->execute([$id]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row ?: null;
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
+
 
     /** Lấy danh sách chi tiết tiêu chí của biên bản */
     public function getChiTietByBienBan(string $idBienBan): array
@@ -123,18 +127,26 @@ class SuddenlyReport extends BaseModel
     }
 
     /** Sinh mã biên bản tự động */
-    public function generateBienBanId(): string
+    public function generateBienBanId(PDO $db): string
     {
-        $prefix = 'BBDX' . date('Ymd');
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) 
-            FROM bien_ban_danh_gia_dot_xuat 
-            WHERE IdBienBanDanhGiaDX LIKE :prefix
-        ");
-        $stmt->execute([':prefix' => $prefix . '%']);
-        $count = (int)$stmt->fetchColumn() + 1;
-        return $prefix . str_pad((string)$count, 2, '0', STR_PAD_LEFT);
+        $date = date('Ymd');
+        $prefix = 'BBDX' . $date;
+
+        $stmt = $db->prepare("
+        SELECT MAX(CAST(SUBSTRING(IdBienBanDanhGiaDX, 13, 2) AS UNSIGNED))
+        FROM bien_ban_danh_gia_dot_xuat
+        WHERE IdBienBanDanhGiaDX LIKE :prefix
+    ");
+        $stmt->execute([
+            ':prefix' => $prefix . '%'
+        ]);
+
+        $max = (int)$stmt->fetchColumn();
+        $next = $max + 1;
+
+        return $prefix . str_pad($next, 2, '0', STR_PAD_LEFT);
     }
+
 
     /** Tạo biên bản cha */
     public function create(array $data): bool
@@ -226,5 +238,20 @@ class SuddenlyReport extends BaseModel
     public function getConnection(): PDO
     {
         return $this->db;
+    }
+    public function getImagesByReportId(string $idBienBan): array
+    {
+        $sql = "
+        SELECT HinhAnh
+        FROM ttct_bien_ban_danh_gia_dot_xuat
+        WHERE IdBienBanDanhGiaDX = ?
+          AND HinhAnh IS NOT NULL
+          AND HinhAnh <> ''
+    ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$idBienBan]);
+
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 }
