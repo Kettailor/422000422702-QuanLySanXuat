@@ -134,6 +134,10 @@ $statusBadge = static function (string $status): string {
                 <?php if ($canCancel): ?>
                     <form method="post" action="?controller=plan&action=cancel" class="mt-3" onsubmit="return confirm('Bạn chắc chắn muốn hủy kế hoạch này?');">
                         <input type="hidden" name="IdKeHoachSanXuat" value="<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?>">
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú hủy kế hoạch</label>
+                            <textarea name="cancel_note" rows="3" class="form-control" placeholder="Lý do hủy kế hoạch..." required></textarea>
+                        </div>
                         <button class="btn btn-outline-danger" type="submit">
                             <i class="bi bi-x-circle me-2"></i>Hủy kế hoạch sản xuất
                         </button>

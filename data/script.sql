@@ -393,7 +393,8 @@ CREATE TABLE `ke_hoach_san_xuat` (
   `TrangThai` varchar(255) DEFAULT NULL,
   `ThoiGianBD` datetime DEFAULT NULL,
   `IdNguoiLap` varchar(50) NOT NULL,
-  `IdTTCTDonHang` varchar(50) NOT NULL
+  `IdTTCTDonHang` varchar(50) NOT NULL,
+  `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -415,6 +416,7 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
   `ThoiGianBatDau` datetime DEFAULT NULL,
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
+  `GhiChu` text DEFAULT NULL,
   `TinhTrangVatTu` varchar(255) DEFAULT 'Chưa kiểm tra',
   `IdCongDoan` varchar(50) DEFAULT NULL,
   `IdKeHoachSanXuat` varchar(50) NOT NULL,

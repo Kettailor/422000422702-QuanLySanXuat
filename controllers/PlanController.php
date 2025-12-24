@@ -309,9 +309,16 @@ class PlanController extends Controller
             return;
         }
 
+        $note = trim($_POST['cancel_note'] ?? '');
+        if ($note === '') {
+            $this->setFlash('danger', 'Vui lòng nhập ghi chú khi hủy kế hoạch.');
+            $this->redirect('?controller=plan&action=read&id=' . urlencode($id));
+            return;
+        }
+
         try {
-            $this->planModel->update($id, ['TrangThai' => 'Hủy']);
-            $this->workshopPlanModel->updateStatusByPlan($id, 'Hủy');
+            $this->planModel->update($id, ['TrangThai' => 'Hủy', 'GhiChu' => $note]);
+            $this->workshopPlanModel->updateStatusByPlan($id, 'Hủy', $note);
             $this->setFlash('success', 'Đã hủy kế hoạch sản xuất.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi hủy kế hoạch sản xuất ' . $id . ': ' . $exception->getMessage());

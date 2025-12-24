@@ -72,13 +72,15 @@ class WorkshopPlan extends BaseModel
         return $stmt->fetchAll();
     }
 
-    public function updateStatusByPlan(string $planId, string $status): bool
+    public function updateStatusByPlan(string $planId, string $status, ?string $note = null): bool
     {
         $sql = 'UPDATE ke_hoach_san_xuat_xuong
-                SET TrangThai = :status
+                SET TrangThai = :status,
+                    GhiChu = :note
                 WHERE IdKeHoachSanXuat = :planId';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':status', $status);
+        $stmt->bindValue(':note', $note);
         $stmt->bindValue(':planId', $planId);
 
         return $stmt->execute();
