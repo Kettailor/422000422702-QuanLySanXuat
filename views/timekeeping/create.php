@@ -7,6 +7,7 @@ $employees = $employees ?? [];
 $entries = $entries ?? [];
 $defaultCheckIn = $defaultCheckIn ?? '';
 $defaultCheckOut = $defaultCheckOut ?? '';
+$employeeShiftMap = $employeeShiftMap ?? [];
 
 $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
     if (!$value) {
@@ -50,6 +51,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteInput = document.getElementById('note-input');
     const summary = document.getElementById('employee-selected-summary');
     const shiftHint = document.getElementById('shift-hint');
+    const employeeShiftMap = <?= json_encode($employeeShiftMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+
+    const updateShiftOptions = () => {
+        if (!shiftSelect) {
+            return;
+        }
+        const selectedEmployees = Array.from(employeeCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
+        if (selectedEmployees.length === 0) {
+            Array.from(shiftSelect.options).forEach(option => {
+                option.hidden = false;
+                option.disabled = false;
+            });
+            shiftSelect.value = '';
+            return;
+        }
+
+        const allowedSets = selectedEmployees.map(employeeId => new Set(employeeShiftMap[employeeId] || []));
+        let allowed = allowedSets[0];
+        for (let i = 1; i < allowedSets.length; i += 1) {
+            allowed = new Set([...allowed].filter(value => allowedSets[i].has(value)));
+        }
+
+        let hasAllowed = false;
+        Array.from(shiftSelect.options).forEach(option => {
+            if (option.value === '') {
+                option.hidden = false;
+                option.disabled = false;
+                return;
+            }
+            const isAllowed = allowed.has(option.value);
+            option.hidden = !isAllowed;
+            option.disabled = !isAllowed;
+            if (isAllowed) {
+                hasAllowed = true;
+            }
+        });
+
+        if (!hasAllowed) {
+            shiftSelect.value = '';
+        }
+    };
 
     const updateState = () => {
         const selected = Array.from(employeeCheckboxes).filter(cb => cb.checked);
@@ -62,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shiftSelect) {
             shiftSelect.disabled = !hasSelection;
         }
+        updateShiftOptions();
         if (checkInInput) {
             checkInInput.disabled = !hasSelection;
         }

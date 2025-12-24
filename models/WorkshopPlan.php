@@ -192,6 +192,7 @@ WHERE
                        xuong.LoaiXuong,
                        ksx.TrangThai AS TrangThaiTong,
                        san.TenSanPham,
+                       san.IdSanPham,
                        COALESCE(cau.TenCauHinh, xcfg.TenPhanCong) AS TenCauHinh,
                        xcfg.IdCauHinh AS AssignmentConfigurationId,
                        don.IdDonHang,

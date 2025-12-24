@@ -123,7 +123,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
         <p class="text-muted mb-0">Giao nhân sự theo từng ca để cập nhật tiến độ và chấm công.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong'] ?? '') ?>" class="btn btn-outline-secondary">
+        <a href="?controller=factory_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong'] ?? '') ?>" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Chi tiết kế hoạch
         </a>
     </div>
@@ -387,6 +387,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const shiftGroups = document.querySelectorAll('.shift-group');
     const instruction = 'Chọn ngày và ca trước khi thêm nhân viên vào ca.';
 
+    const updateAssignedList = (card) => {
+        const select = card.querySelector('select.assignment-select');
+        const list = card.querySelector('.assigned-list');
+        if (!select || !list) {
+            return;
+        }
+        const selectedNames = Array.from(select.selectedOptions)
+            .map(option => option.textContent.trim())
+            .filter(Boolean);
+        list.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'Chưa có';
+    };
+
     const applyFilters = () => {
         const activeDates = Array.from(dateFilters).filter(cb => cb.checked).map(cb => cb.value);
         const activeShifts = Array.from(shiftFilters).filter(cb => cb.checked).map(cb => cb.value);
@@ -491,11 +503,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         option.selected = true;
                     }
                 });
+                updateAssignedList(card);
+                const dateKey = card.dataset.date;
+                if (dateKey) {
+                    const group = document.querySelector(`.shift-group[data-date="${dateKey}"]`);
+                    if (group) {
+                        group.style.display = '';
+                    }
+                }
+                card.style.display = '';
             });
 
             document.querySelectorAll('.employee-checkbox').forEach(cb => {
                 cb.checked = false;
             });
+            updateSelectedEmployees();
         });
     }
 
@@ -514,8 +536,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
+            updateAssignedList(card);
             card.style.display = 'none';
         });
+    });
+
+    shiftCards.forEach(card => {
+        const select = card.querySelector('select.assignment-select');
+        if (select) {
+            select.addEventListener('change', () => updateAssignedList(card));
+            updateAssignedList(card);
+        }
     });
 });
 </script>
