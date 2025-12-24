@@ -11,11 +11,11 @@ $canAccess = function (array $roles) use ($role, $actualRole, $adminFullAccess):
         return false;
     }
 
-    if ($adminFullAccess || ($actualRole === 'VT_BAN_GIAM_DOC')) {
+    if ($adminFullAccess) {
         return true;
     }
 
-    if (array_intersect(['VT_ADMIN', 'VT_BAN_GIAM_DOC'], $roles) && ($actualRole === 'VT_ADMIN' || $actualRole === 'VT_BAN_GIAM_DOC')) {
+    if (array_intersect(['VT_ADMIN'], $roles) && ($actualRole === 'VT_ADMIN')) {
         return true;
     }
 
@@ -36,7 +36,7 @@ $showWorkshopPlanPersonal = in_array($role, ['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN
 $showWorkshop = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
 $showTimekeeping = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
 $showSelfTimekeeping = !empty($role);
-$showQuality = $canAccess(array_merge(['VT_KIEM_SOAT_CL', 'VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showQuality = $canAccess(array_merge(['VT_KIEM_SOAT_CL'], $workshopManagerRoles));
 $showWarehouse = $canAccess(array_merge(['VT_NHANVIEN_KHO'], $workshopManagerRoles));
 $showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO']);
 $showHumanResources = $canAccess(['VT_BAN_GIAM_DOC']);
