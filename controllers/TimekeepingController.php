@@ -8,6 +8,7 @@ class TimekeepingController extends Controller
     private Workshop $workshopModel;
     private WorkshopPlan $workshopPlanModel;
     private WorkshopAssignment $assignmentModel;
+    private WorkshopPlanAssignment $planAssignmentModel;
 
     public function __construct()
     {
@@ -18,6 +19,7 @@ class TimekeepingController extends Controller
         $this->workshopModel = new Workshop();
         $this->workshopPlanModel = new WorkshopPlan();
         $this->assignmentModel = new WorkshopAssignment();
+        $this->planAssignmentModel = new WorkshopPlanAssignment();
     }
 
     public function index(): void
@@ -64,6 +66,8 @@ class TimekeepingController extends Controller
         }
         $shifts = $this->workShiftModel->getShifts($workDate);
         $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, null, null, null);
+        $employeeIds = array_values(array_filter(array_column($employees, 'IdNhanVien')));
+        $employeeShiftMap = $this->planAssignmentModel->getAssignmentsByEmployeesForDate($employeeIds, $workDate);
 
         $this->render('timekeeping/create', [
             'title' => 'Ghi nhận chấm công',
@@ -73,6 +77,7 @@ class TimekeepingController extends Controller
             'shifts' => $shifts,
             'employees' => $employees,
             'entries' => $entries,
+            'employeeShiftMap' => $employeeShiftMap,
             'defaultCheckIn' => date('Y-m-d\TH:i'),
             'defaultCheckOut' => date('Y-m-d\TH:i'),
         ]);

@@ -5,6 +5,8 @@ $assignments = $assignments ?? [];
 $progress = $progress ?? null;
 $materialStatus = $materialStatus ?? null;
 $canUpdateProgress = $canUpdateProgress ?? false;
+$canDelete = $canDelete ?? false;
+$isCancelled = $isCancelled ?? false;
 $typeConfig = $typeConfig ?? ['supports_materials' => true, 'supports_progress' => true];
 $supportsMaterials = $typeConfig['supports_materials'] ?? true;
 $supportsProgress = $typeConfig['supports_progress'] ?? true;
@@ -67,22 +69,24 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
     </div>
     <div class="d-flex flex-wrap gap-2">
         <?php if ($plan): ?>
-            <form method="post" action="?controller=factory_plan&action=delete&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" onsubmit="return confirm('Xóa kế hoạch xưởng này và làm lại từ đầu?');">
-                <input type="hidden" name="id" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
-                </button>
-            </form>
-            <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+            <?php if (!empty($canDelete)): ?>
+                <form method="post" action="?controller=factory_plan&action=delete&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" onsubmit="return confirm('Xóa kế hoạch xưởng này và làm lại từ đầu?');">
+                    <input type="hidden" name="id" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
+                    </button>
+                </form>
+            <?php endif; ?>
+            <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary <?= $isCancelled ? 'disabled' : '' ?>">
                 <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca
             </a>
             <?php if ($supportsProgress): ?>
-                <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress ? '' : 'disabled' ?>">
+                <a href="?controller=workshop_plan&action=progress&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-primary <?= $canUpdateProgress && !$isCancelled ? '' : 'disabled' ?>">
                     <i class="bi bi-clipboard-check me-2"></i>Cập nhật tiến độ cuối ca
                 </a>
             <?php endif; ?>
             <?php if ($supportsMaterials): ?>
-                <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
+                <a href="?controller=workshop_plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary <?= $isCancelled ? 'disabled' : '' ?>">
                     <i class="bi bi-basket me-2"></i>Chọn thêm nguyên liệu
                 </a>
             <?php endif; ?>
@@ -96,6 +100,9 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
 <?php if (!$plan): ?>
     <div class="alert alert-warning">Không có dữ liệu cho nhiệm vụ này.</div>
 <?php else: ?>
+    <?php if ($isCancelled): ?>
+        <div class="alert alert-warning">Kế hoạch xưởng đã hủy. Chỉ được xem chi tiết, các thao tác đã bị tắt.</div>
+    <?php endif; ?>
     <div class="row g-4 mb-4">
         <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100">
