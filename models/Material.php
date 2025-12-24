@@ -110,4 +110,32 @@ class Material extends BaseModel
             'items' => $resultItems,
         ];
     }
+
+    public function adjustStock(string $materialId, int $quantityDelta, bool $allowNegative = false): void
+    {
+        $stmt = $this->db->prepare(
+            'SELECT SoLuong FROM nguyen_lieu WHERE IdNguyenLieu = :id FOR UPDATE'
+        );
+        $stmt->bindValue(':id', $materialId);
+        $stmt->execute();
+        $current = $stmt->fetchColumn();
+
+        if ($current === false) {
+            throw new RuntimeException('Không tìm thấy nguyên liệu cần cập nhật tồn kho.');
+        }
+
+        $currentQty = (int) $current;
+        $newQty = $currentQty + $quantityDelta;
+
+        if ($newQty < 0 && !$allowNegative) {
+            throw new RuntimeException('Tồn kho nguyên liệu không đủ để trừ.');
+        }
+
+        $update = $this->db->prepare(
+            'UPDATE nguyen_lieu SET SoLuong = :qty WHERE IdNguyenLieu = :id'
+        );
+        $update->bindValue(':qty', $newQty, PDO::PARAM_INT);
+        $update->bindValue(':id', $materialId);
+        $update->execute();
+    }
 }

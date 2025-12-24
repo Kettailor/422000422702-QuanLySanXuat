@@ -60,8 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedEmployees = Array.from(employeeCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
         if (selectedEmployees.length === 0) {
             Array.from(shiftSelect.options).forEach(option => {
-                option.hidden = false;
-                option.disabled = false;
+                const isPlaceholder = option.value === '';
+                option.hidden = !isPlaceholder;
+                option.disabled = !isPlaceholder;
             });
             shiftSelect.value = '';
             return;
@@ -101,10 +102,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `Đã chọn ${selected.length} nhân viên.`
                 : 'Chưa chọn nhân viên.';
         }
-        if (shiftSelect) {
-            shiftSelect.disabled = !hasSelection;
-        }
         updateShiftOptions();
+        if (shiftSelect) {
+            const hasVisibleShift = Array.from(shiftSelect.options).some(option => option.value !== '' && !option.hidden && !option.disabled);
+            shiftSelect.disabled = !hasSelection || !hasVisibleShift;
+        }
         if (checkInInput) {
             checkInInput.disabled = !hasSelection;
         }
@@ -115,7 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
             noteInput.disabled = !hasSelection;
         }
         if (shiftHint) {
-            shiftHint.classList.toggle('d-none', hasSelection);
+            const hasVisibleShift = shiftSelect
+                ? Array.from(shiftSelect.options).some(option => option.value !== '' && !option.hidden && !option.disabled)
+                : false;
+            if (!hasSelection) {
+                shiftHint.textContent = 'Chọn nhân viên trước để hiển thị ca.';
+            } else if (!hasVisibleShift) {
+                shiftHint.textContent = 'Nhân viên đã chọn chưa có ca được phân công hôm nay.';
+            }
+            shiftHint.classList.toggle('d-none', hasSelection && hasVisibleShift);
         }
     };
 

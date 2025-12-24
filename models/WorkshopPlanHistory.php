@@ -49,4 +49,28 @@ class WorkshopPlanHistory extends BaseModel
 
         return $stmt->fetchAll();
     }
+
+    public function getProducedQuantity(string $workshopPlanId): int
+    {
+        $sql = 'SELECT ThongTinChiTiet
+                FROM lich_su_ke_hoach_xuong
+                WHERE IdKeHoachSanXuatXuong = :planId
+                  AND HanhDong = :action';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':planId', $workshopPlanId);
+        $stmt->bindValue(':action', 'Cập nhật tiến độ cuối ca');
+        $stmt->execute();
+
+        $total = 0;
+        foreach ($stmt->fetchAll() as $row) {
+            $details = json_decode($row['ThongTinChiTiet'] ?? '', true);
+            $quantity = (int) ($details['quantity'] ?? 0);
+            if ($quantity > 0) {
+                $total += $quantity;
+            }
+        }
+
+        return $total;
+    }
 }
