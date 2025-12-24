@@ -161,35 +161,19 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
 
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0">
-                <h5 class="mb-0">Bộ lọc phân công</h5>
+                <h5 class="mb-0">Bước 1: Chọn nhân viên để phân công</h5>
             </div>
             <div class="card-body">
                 <div class="row g-3 align-items-end">
                     <div class="col-lg-4">
-                        <div class="fw-semibold mb-2">Chọn ngày phân công</div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <?php foreach ($planDates as $dateKey): ?>
-                                <label class="btn btn-sm btn-outline-primary">
-                                    <input type="checkbox" class="form-check-input me-2 assignment-date" value="<?= htmlspecialchars($dateKey) ?>">
-                                    <?= htmlspecialchars($formatDate($dateKey)) ?>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="fw-semibold mb-2">Chọn ca</div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <?php foreach ($shiftTypes as $type): ?>
-                                <label class="btn btn-sm btn-outline-secondary">
-                                    <input type="checkbox" class="form-check-input me-2 assignment-shift" value="<?= htmlspecialchars($type) ?>">
-                                    <?= htmlspecialchars($type) ?>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
                         <label class="form-label fw-semibold">Tìm nhân viên</label>
                         <input type="text" class="form-control" id="employee-search" placeholder="Nhập tên nhân viên...">
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="bg-light border rounded-3 p-3">
+                            <div class="fw-semibold mb-1">Nhân viên đã chọn</div>
+                            <div class="text-muted small" id="selected-employee-summary">Chưa chọn nhân viên nào.</div>
+                        </div>
                     </div>
                 </div>
 
@@ -232,7 +216,43 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
             </div>
         </div>
 
-        <div id="assignment-cards" class="d-none">
+        <div id="assignment-step" class="d-none">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">Bước 2: Chọn ca làm việc để phân công</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-6">
+                            <div class="fw-semibold mb-2">Chọn ngày phân công</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php foreach ($planDates as $dateKey): ?>
+                                    <label class="btn btn-sm btn-outline-primary">
+                                        <input type="checkbox" class="form-check-input me-2 assignment-date" value="<?= htmlspecialchars($dateKey) ?>">
+                                        <?= htmlspecialchars($formatDate($dateKey)) ?>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="fw-semibold mb-2">Chọn ca</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php foreach ($shiftTypes as $type): ?>
+                                    <label class="btn btn-sm btn-outline-secondary">
+                                        <input type="checkbox" class="form-check-input me-2 assignment-shift" value="<?= htmlspecialchars($type) ?>">
+                                        <?= htmlspecialchars($type) ?>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-muted small mt-3">
+                        Chọn nhân viên trước, sau đó chọn ngày/ca để gán. Hệ thống chỉ hiển thị ca sau khi có nhân viên.
+                    </div>
+                </div>
+            </div>
+
+            <div id="assignment-cards">
             <?php foreach ($shiftsByDate as $dateKey => $shifts): ?>
                 <?php
                     $isToday = $dateKey === $today;
@@ -352,6 +372,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                 </button>
             </div>
         </div>
+        </div>
     </form>
 <?php endif; ?>
 
@@ -363,6 +384,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateFilters = document.querySelectorAll('.assignment-date');
     const shiftFilters = document.querySelectorAll('.assignment-shift');
     const assignmentCards = document.getElementById('assignment-cards');
+    const assignmentStep = document.getElementById('assignment-step');
+    const selectedSummary = document.getElementById('selected-employee-summary');
     const shiftCards = document.querySelectorAll('.shift-card');
     const shiftGroups = document.querySelectorAll('.shift-group');
 
@@ -391,7 +414,6 @@ document.addEventListener('DOMContentLoaded', function() {
         cb.checked = false;
         cb.addEventListener('change', applyFilters);
     });
-    applyFilters();
 
     if (employeeSearch) {
         employeeSearch.addEventListener('input', function() {
@@ -412,6 +434,51 @@ document.addEventListener('DOMContentLoaded', function() {
         feedback.classList.remove('d-none');
         feedback.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
+
+    const updateSelectedEmployees = () => {
+        const selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked')).map(cb => cb.value);
+        const selectedNames = Array.from(document.querySelectorAll('.employee-checkbox:checked'))
+            .map(cb => cb.closest('.employee-item')?.querySelector('.fw-semibold')?.textContent?.trim())
+            .filter(Boolean);
+        const hasSelection = selectedEmployees.length > 0;
+
+        if (selectedSummary) {
+            if (hasSelection) {
+                selectedSummary.textContent = `Đã chọn ${selectedEmployees.length} nhân viên: ${selectedNames.join(', ')}`;
+                selectedSummary.classList.remove('text-muted');
+            } else {
+                selectedSummary.textContent = 'Chưa chọn nhân viên nào.';
+                selectedSummary.classList.add('text-muted');
+            }
+        }
+
+        if (assignmentStep) {
+            assignmentStep.classList.toggle('d-none', !hasSelection);
+        }
+
+        if (!hasSelection) {
+            shiftCards.forEach(card => {
+                card.style.display = 'none';
+            });
+            shiftGroups.forEach(group => {
+                group.style.display = 'none';
+            });
+            return;
+        }
+
+        dateFilters.forEach(cb => {
+            cb.checked = true;
+        });
+        shiftFilters.forEach(cb => {
+            cb.checked = true;
+        });
+        applyFilters();
+    };
+
+    document.querySelectorAll('.employee-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateSelectedEmployees);
+    });
+    updateSelectedEmployees();
 
     if (bulkAssignBtn) {
         bulkAssignBtn.addEventListener('click', function() {
