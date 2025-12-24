@@ -1,6 +1,6 @@
 <?php
 $currentController = $_GET['controller'] ?? 'dashboard';
-$currentAction = $_GET['action'];
+$currentAction = $_GET['action'] ?? 'index';
 $role = is_array($user) ? ($user['IdVaiTro'] ?? null) : null;
 $actualRole = is_array($user) ? ($user['ActualIdVaiTro'] ?? ($user['OriginalIdVaiTro'] ?? $role)) : null;
 $isImpersonating = is_array($user) && !empty($user['IsImpersonating']);
