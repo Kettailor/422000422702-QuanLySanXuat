@@ -28,6 +28,10 @@ class TimekeepingController extends Controller
         $planId = $_GET['plan_id'] ?? null;
         $employeeId = $_GET['employee_id'] ?? null;
         $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, $workshopId, $planId, $employeeId);
+        $accessRole = $this->currentUser()['ActualIdVaiTro'] ?? ($this->currentUser()['IdVaiTro'] ?? null);
+        if ($this->isFixedShiftRole($accessRole)) {
+            $this->workShiftModel->ensureFixedShiftsForDate($workDate ?? date('Y-m-d'));
+        }
         $shifts = $this->workShiftModel->getShifts($workDate);
         $workshops = $this->workshopModel->getAllWithManagers();
         $plans = $this->workshopPlanModel->getDetailedPlans(200);
@@ -54,6 +58,10 @@ class TimekeepingController extends Controller
         $shift = $shiftId ? $this->workShiftModel->find($shiftId) : null;
         $user = $this->currentUser();
         $employees = $this->getAssignableEmployees($role, $user['IdNhanVien'] ?? null);
+        $accessRole = $user['ActualIdVaiTro'] ?? ($user['IdVaiTro'] ?? null);
+        if ($this->isFixedShiftRole($accessRole)) {
+            $this->workShiftModel->ensureFixedShiftsForDate($workDate);
+        }
         $shifts = $this->workShiftModel->getShifts($workDate);
         $entries = $this->timekeepingModel->getRecentRecords(200, null, $workDate, null, null, null);
 
@@ -125,6 +133,41 @@ class TimekeepingController extends Controller
             return;
         }
 
+        [$shiftStartTs, $shiftEndTs] = $this->resolveShiftBounds($shift) ?? [null, null];
+        if ($shiftStartTs !== null && $shiftEndTs !== null) {
+            if ($checkInTimestamp < $shiftStartTs) {
+                $normalizedCheckIn = date('Y-m-d H:i:s', $shiftStartTs);
+                $checkInTimestamp = $shiftStartTs;
+            }
+            if ($checkInTimestamp > $shiftEndTs) {
+                $this->setFlash('danger', 'Giờ vào vượt quá thời gian ca làm.');
+                $this->redirect($this->buildRedirect($shiftId, $workDate));
+                return;
+            }
+            if ($normalizedCheckOut) {
+                $checkOutTimestamp = strtotime($normalizedCheckOut);
+                if ($checkOutTimestamp === false) {
+                    $this->setFlash('danger', 'Thời gian ra ca không hợp lệ.');
+                    $this->redirect($this->buildRedirect($shiftId, $workDate));
+                    return;
+                }
+                if ($checkOutTimestamp < $shiftStartTs) {
+                    $this->setFlash('danger', 'Giờ ra không được trước giờ bắt đầu ca.');
+                    $this->redirect($this->buildRedirect($shiftId, $workDate));
+                    return;
+                }
+                if ($checkOutTimestamp > $shiftEndTs) {
+                    $normalizedCheckOut = date('Y-m-d H:i:s', $shiftEndTs);
+                    $checkOutTimestamp = $shiftEndTs;
+                }
+                if ($checkOutTimestamp < $checkInTimestamp) {
+                    $this->setFlash('danger', 'Giờ ra phải sau giờ vào.');
+                    $this->redirect($this->buildRedirect($shiftId, $workDate));
+                    return;
+                }
+            }
+        }
+
         try {
             $currentUser = $this->currentUser();
             $supervisorId = $currentUser['IdNhanVien'] ?? null;
@@ -158,6 +201,23 @@ class TimekeepingController extends Controller
         }
 
         return date('Y-m-d H:i:s', $timestamp);
+    }
+
+    private function resolveShiftBounds(array $shift): ?array
+    {
+        $start = $shift['ThoiGianBatDau'] ?? null;
+        $end = $shift['ThoiGianKetThuc'] ?? null;
+        if (!$start || !$end) {
+            return null;
+        }
+
+        $startTs = strtotime($start);
+        $endTs = strtotime($end);
+        if ($startTs === false || $endTs === false) {
+            return null;
+        }
+
+        return [$startTs, $endTs];
     }
 
     private function buildRedirect(?string $shiftId, ?string $workDate): string

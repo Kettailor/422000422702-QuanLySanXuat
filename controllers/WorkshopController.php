@@ -103,6 +103,13 @@ class WorkshopController extends Controller
             return;
         }
 
+        $warehouseConflict = $this->validateWarehouseAssignments($data['IdXuong'], $assignments['warehouse']);
+        if ($warehouseConflict) {
+            $this->setFlash('danger', $warehouseConflict);
+            $this->redirect('?controller=workshop&action=create');
+            return;
+        }
+
         try {
             $this->workshopModel->create($data);
             $this->assignManagerRole($data['XUONGTRUONG_IdNhanVien'], $data['LoaiXuong']);
@@ -224,6 +231,13 @@ class WorkshopController extends Controller
             }
         } else {
             unset($data['XUONGTRUONG_IdNhanVien']);
+        }
+
+        $warehouseConflict = $this->validateWarehouseAssignments($id, $assignments['warehouse']);
+        if ($warehouseConflict) {
+            $this->setFlash('danger', $warehouseConflict);
+            $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
+            return;
         }
 
         try {
@@ -1017,6 +1031,38 @@ class WorkshopController extends Controller
         }
 
         return array_values(array_intersect($employeeIds, $allowedIds));
+    }
+
+    private function validateWarehouseAssignments(?string $workshopId, array $warehouseIds): ?string
+    {
+        $warehouseIds = array_values(array_unique(array_filter(array_map('trim', $warehouseIds))));
+        if (empty($warehouseIds)) {
+            return null;
+        }
+
+        $conflicts = [];
+        foreach ($warehouseIds as $employeeId) {
+            $assignedWorkshops = $this->assignmentModel->getWorkshopsByEmployee($employeeId);
+            $assignedWorkshops = array_values(array_filter($assignedWorkshops, static fn ($id) => $id !== $workshopId));
+            if (empty($assignedWorkshops)) {
+                continue;
+            }
+
+            $employee = $this->employeeModel->find($employeeId);
+            $employeeLabel = $employee['HoTen'] ?? $employeeId;
+            $workshopLabels = [];
+            foreach ($assignedWorkshops as $assignedId) {
+                $assignedWorkshop = $this->workshopModel->find($assignedId);
+                $workshopLabels[] = $assignedWorkshop['TenXuong'] ?? $assignedId;
+            }
+            $conflicts[] = sprintf('%s (%s) đang thuộc %s', $employeeLabel, $employeeId, implode(', ', $workshopLabels));
+        }
+
+        if (empty($conflicts)) {
+            return null;
+        }
+
+        return 'Nhân viên kho chỉ được phân cho một xưởng. ' . implode('; ', $conflicts);
     }
 
     private function isValidManagerForType(string $managerId, string $workshopType): bool

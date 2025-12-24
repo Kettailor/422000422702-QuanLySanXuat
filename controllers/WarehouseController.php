@@ -16,7 +16,10 @@ class WarehouseController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_QUANLY_XUONG']);
+        $this->authorize(array_merge(
+            ['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_BAN_GIAM_DOC', 'VT_ADMIN'],
+            $this->getWorkshopManagerRoles()
+        ));
         $this->warehouseModel = new Warehouse();
         $this->lotModel = new InventoryLot();
         $this->sheetModel = new InventorySheet();
@@ -572,7 +575,34 @@ class WarehouseController extends Controller
             return [];
         }
 
+        if ($this->hasStorageWorkshop($workshopIds)) {
+            return null;
+        }
+
         return $this->warehouseModel->getWarehouseIdsByWorkshops($workshopIds);
+    }
+
+    private function hasStorageWorkshop(array $workshopIds): bool
+    {
+        foreach ($workshopIds as $workshopId) {
+            $workshop = $this->workshopModel->find($workshopId);
+            $type = mb_strtolower((string) ($workshop['LoaiXuong'] ?? ''));
+            if (str_contains($type, 'lưu trữ')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getWorkshopManagerRoles(): array
+    {
+        return [
+            'VT_TRUONG_XUONG_KIEM_DINH',
+            'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI',
+            'VT_TRUONG_XUONG_SAN_XUAT',
+            'VT_TRUONG_XUONG_LUU_TRU',
+        ];
     }
 
     private function getManagersByWorkshopRequest(array $workshops, ?string $currentWorkshopId = null): array

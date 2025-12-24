@@ -18,6 +18,9 @@ $statusBadge = static function (string $status): string {
     if ($normalized === '') {
         return 'badge bg-light text-muted';
     }
+    if (str_contains($normalized, 'hủy')) {
+        return 'badge bg-danger-subtle text-danger';
+    }
     if (str_contains($normalized, 'hoàn thành')) {
         return 'badge bg-success-subtle text-success';
     }
@@ -40,9 +43,11 @@ $statusBadge = static function (string $status): string {
             <p class="text-muted mb-0">Không tìm thấy dữ liệu kế hoạch.</p>
         <?php endif; ?>
     </div>
-    <a href="?controller=plan&action=index" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-2"></i>Quay về danh sách
-    </a>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="?controller=plan&action=index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Quay về danh sách
+        </a>
+    </div>
 </div>
 
 <?php if (!$plan): ?>
@@ -90,6 +95,57 @@ $statusBadge = static function (string $status): string {
             </div>
         </div>
     </div>
+
+    <?php
+    $currentUser = $currentUser ?? [];
+    $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
+    $canManage = $roleId === 'VT_BAN_GIAM_DOC';
+    $status = $plan['TrangThai'] ?? '';
+    $canEditDeadline = $canManage && !in_array($status, ['Hoàn thành', 'Hủy'], true);
+    $canCancel = $canManage && in_array($status, ['Đang chuẩn bị', 'Đang sản xuất'], true);
+    ?>
+    <?php if ($canManage): ?>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h6 class="fw-semibold mb-1">Điều chỉnh kế hoạch</h6>
+                        <div class="text-muted small">Chỉnh sửa hạn chót hoặc hủy kế hoạch khi đang chuẩn bị hoặc đang sản xuất.</div>
+                    </div>
+                </div>
+                <?php if ($canEditDeadline): ?>
+                    <form method="post" action="?controller=plan&action=updateDeadline" class="row g-2 align-items-end mt-3">
+                        <input type="hidden" name="IdKeHoachSanXuat" value="<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?>">
+                        <div class="col-md-4">
+                            <label class="form-label">Hạn chót mới</label>
+                            <input type="datetime-local" name="ThoiGianKetThuc" class="form-control" required
+                                   value="<?= !empty($plan['ThoiGianKetThuc']) ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($plan['ThoiGianKetThuc']))) : '' ?>">
+                        </div>
+                        <div class="col-md-auto">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi bi-calendar-check me-2"></i>Cập nhật hạn chót
+                            </button>
+                        </div>
+                    </form>
+                <?php else: ?>
+                    <div class="alert alert-light border mt-3 mb-0">Không thể chỉnh sửa hạn chót khi kế hoạch đã hoàn tất hoặc bị hủy.</div>
+                <?php endif; ?>
+
+                <?php if ($canCancel): ?>
+                    <form method="post" action="?controller=plan&action=cancel" class="mt-3" onsubmit="return confirm('Bạn chắc chắn muốn hủy kế hoạch này?');">
+                        <input type="hidden" name="IdKeHoachSanXuat" value="<?= htmlspecialchars($plan['IdKeHoachSanXuat']) ?>">
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú hủy kế hoạch</label>
+                            <textarea name="cancel_note" rows="3" class="form-control" placeholder="Lý do hủy kế hoạch..." required></textarea>
+                        </div>
+                        <button class="btn btn-outline-danger" type="submit">
+                            <i class="bi bi-x-circle me-2"></i>Hủy kế hoạch sản xuất
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">

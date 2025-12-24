@@ -4,6 +4,8 @@ $managers = $managers ?? [];
 $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
 $types = $types ?? [];
 $employees = $employees ?? [];
+$workshopEmployees = $workshopEmployees ?? [];
+$workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 
 $currentManagerId = $warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? null;
 $currentManager = null;
@@ -185,8 +187,12 @@ foreach ($employees as $employee) {
                             </select>
                         </div>
                         <div class="col">
-                            <label class="form-label">Mã quản kho</label>
-                            <input type="text" name="IdQuanKho" class="form-control" value="<?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '') ?>">
+                            <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
+                            <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required data-role="manager-select">
+                                <option value="" disabled>Chọn nhân viên quản kho</option>
+                            </select>
+                            <div class="form-text text-muted">Danh sách lọc theo xưởng phụ trách.</div>
+                            <div class="form-text text-danger d-none" data-role="no-employee-alert">Xưởng chưa có nhân sự quản kho. Vui lòng thêm nhân viên trước khi cập nhật kho.</div>
                         </div>
                     </div>
 
@@ -227,7 +233,7 @@ foreach ($employees as $employee) {
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
+                        <label class="form-label">Nhân viên hiện tại</label>
                         <div class="form-control-plaintext">
                             <?php if ($currentManager): ?>
                                 <?= htmlspecialchars($currentManager['HoTen']) ?><?= !empty($currentManager['ChucVu']) ? ' · ' . htmlspecialchars($currentManager['ChucVu']) : '' ?>
@@ -237,8 +243,7 @@ foreach ($employees as $employee) {
                                 <span class="text-muted">Chưa phân công</span>
                             <?php endif; ?>
                         </div>
-                        <input type="hidden" name="NHAN_VIEN_KHO_IdNhanVien" value="<?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '') ?>">
-                        <div class="form-text text-muted">Chỉ hiển thị nhân viên đã phân công. Liên hệ quản lý để thay đổi.</div>
+                        <div class="form-text text-muted">Chọn nhân viên mới ở phần thông tin chính nếu muốn thay đổi.</div>
                     </div>
 
                     <div class="summary-card mt-3">
@@ -267,3 +272,50 @@ foreach ($employees as $employee) {
         </form>
     </div>
 <?php endif; ?>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const workshopEmployees = JSON.parse('<?= $workshopEmployeesJson ?>');
+        const workshopSelect = document.querySelector('select[name="IdXuong"]');
+        const managerSelect = document.querySelector('[data-role="manager-select"]');
+        const alertEl = document.querySelector('[data-role="no-employee-alert"]');
+        const currentManagerId = '<?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '', ENT_QUOTES, 'UTF-8') ?>';
+
+        const renderManagers = () => {
+            if (!workshopSelect || !managerSelect) {
+                return;
+            }
+
+            const workshopId = workshopSelect.value || '';
+            const employees = workshopEmployees[workshopId] || [];
+            managerSelect.innerHTML = '<option value="" disabled>Chọn nhân viên quản kho</option>';
+
+            employees.forEach((employee) => {
+                const option = document.createElement('option');
+                option.value = employee.IdNhanVien || '';
+                option.textContent = employee.HoTen || employee.IdNhanVien || '';
+                if (employee.ChucVu) {
+                    option.textContent += ' · ' + employee.ChucVu;
+                }
+                if (option.value === currentManagerId) {
+                    option.selected = true;
+                }
+                managerSelect.appendChild(option);
+            });
+
+            const hasEmployees = employees.length > 0;
+            managerSelect.disabled = !hasEmployees;
+            if (alertEl) {
+                alertEl.classList.toggle('d-none', hasEmployees);
+            }
+        };
+
+        if (workshopSelect) {
+            workshopSelect.addEventListener('change', () => {
+                renderManagers();
+            });
+        }
+
+        renderManagers();
+    });
+</script>

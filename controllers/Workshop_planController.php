@@ -250,6 +250,13 @@ class Workshop_planController extends Controller
         }
 
         $workShifts = $this->workShiftModel->getShiftsByPlan($planId);
+        $shiftMap = [];
+        foreach ($workShifts as $shift) {
+            $shiftId = $shift['IdCaLamViec'] ?? null;
+            if ($shiftId) {
+                $shiftMap[$shiftId] = $shift;
+            }
+        }
         $now = time();
         $today = date('Y-m-d');
         $editableShiftIds = [];
@@ -325,6 +332,7 @@ class Workshop_planController extends Controller
                     $addOnlyShiftIds,
                     $assignmentRole
                 );
+                $this->notifyShiftAssignments($assignmentsInput, $shiftMap, $planId);
                 $this->setFlash('success', 'Đã cập nhật phân công nhân sự theo ca.');
             }
         } catch (Throwable $exception) {
@@ -388,6 +396,62 @@ class Workshop_planController extends Controller
             'availableShifts' => $availableShifts,
             'canUpdateProgress' => $canUpdateProgress,
         ]);
+    }
+
+    private function notifyShiftAssignments(array $assignmentsInput, array $shiftMap, string $planId): void
+    {
+        if (empty($assignmentsInput)) {
+            return;
+        }
+
+        try {
+            $store = new NotificationStore();
+            $entries = [];
+            foreach ($assignmentsInput as $shiftId => $employees) {
+                if (!is_array($employees)) {
+                    continue;
+                }
+                $shift = $shiftMap[$shiftId] ?? [];
+                $shiftLabel = $shift['TenCa'] ?? $shiftId;
+                $start = $shift['ThoiGianBatDau'] ?? null;
+                $end = $shift['ThoiGianKetThuc'] ?? null;
+                $dateLabel = $shift['NgayLamViec'] ?? null;
+                $timeLabel = '';
+                if ($start && $end) {
+                    $timeLabel = sprintf('%s - %s', date('H:i', strtotime($start)), date('H:i', strtotime($end)));
+                }
+                $dateFormatted = $dateLabel ? date('d/m/Y', strtotime($dateLabel)) : '';
+
+                foreach (array_values(array_unique(array_filter(array_map('trim', $employees)))) as $employeeId) {
+                    $messageParts = [
+                        sprintf('Bạn được phân công ca %s', $shiftLabel),
+                    ];
+                    if ($dateFormatted !== '') {
+                        $messageParts[] = 'ngày ' . $dateFormatted;
+                    }
+                    if ($timeLabel !== '') {
+                        $messageParts[] = '(' . $timeLabel . ')';
+                    }
+                    $messageParts[] = 'cho kế hoạch ' . $planId . '.';
+
+                    $entries[] = [
+                        'title' => 'Phân công ca làm việc',
+                        'message' => implode(' ', $messageParts),
+                        'recipient' => $employeeId,
+                        'metadata' => [
+                            'plan_id' => $planId,
+                            'shift_id' => $shiftId,
+                            'shift_label' => $shiftLabel,
+                            'work_date' => $dateLabel,
+                        ],
+                    ];
+                }
+            }
+
+            $store->pushMany($entries);
+        } catch (Throwable $exception) {
+            Logger::error('Không thể gửi thông báo phân công ca: ' . $exception->getMessage());
+        }
     }
 
     public function updateProgress(): void

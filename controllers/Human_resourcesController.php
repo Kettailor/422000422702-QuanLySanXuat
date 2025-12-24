@@ -86,6 +86,7 @@ class Human_resourcesController extends Controller
 
         try {
             $this->employeeModel->create($data);
+            $this->notifyAdminForAccountUpdate('create', $data, null, $selectedRole);
             $this->setFlash('success', 'Thêm nhân sự thành công.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi thêm nhân sự: ' . $e->getMessage());
@@ -150,6 +151,13 @@ class Human_resourcesController extends Controller
 
         try {
             $this->employeeModel->update($id, $data);
+            $previousRole = $employee['IdVaiTro'] ?? null;
+            if ($previousRole !== $selectedRole) {
+                $updatedEmployee = $employee;
+                $updatedEmployee['IdNhanVien'] = $id;
+                $updatedEmployee['HoTen'] = $data['HoTen'] ?? ($employee['HoTen'] ?? null);
+                $this->notifyAdminForAccountUpdate('role_change', $updatedEmployee, $previousRole, $selectedRole);
+            }
             $this->setFlash('success', 'Cập nhật nhân sự thành công.');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi cập nhật nhân sự ' . $id . ': ' . $e->getMessage());
@@ -283,5 +291,55 @@ class Human_resourcesController extends Controller
         }
 
         return (bool) $this->roleModel->find($roleId);
+    }
+
+    private function notifyAdminForAccountUpdate(string $action, array $employee, ?string $oldRole, ?string $newRole): void
+    {
+        try {
+            $store = new NotificationStore();
+            $employeeId = $employee['IdNhanVien'] ?? null;
+            $employeeName = $employee['HoTen'] ?? $employeeId ?? 'Nhân sự';
+            $oldRoleLabel = $this->resolveRoleLabel($oldRole);
+            $newRoleLabel = $this->resolveRoleLabel($newRole);
+            $actor = $this->currentUser();
+            $sender = $actor['HoTen'] ?? 'Hệ thống';
+
+            $message = $action === 'create'
+                ? sprintf('Đã thêm nhân sự %s (%s). Vui lòng cập nhật tài khoản.', $employeeName, $employeeId)
+                : sprintf(
+                    'Vai trò nhân sự %s (%s) đã đổi từ %s sang %s. Vui lòng cập nhật tài khoản.',
+                    $employeeName,
+                    $employeeId,
+                    $oldRoleLabel,
+                    $newRoleLabel
+                );
+
+            $store->push([
+                'title' => 'Cập nhật tài khoản nhân sự',
+                'message' => $message,
+                'sender' => $sender,
+                'recipient_role' => 'VT_ADMIN',
+                'metadata' => [
+                    'action' => $action,
+                    'employee_id' => $employeeId,
+                    'old_role' => $oldRole,
+                    'new_role' => $newRole,
+                    'important' => true,
+                    'priority' => 'high',
+                ],
+            ]);
+        } catch (Throwable $exception) {
+            Logger::error('Không thể gửi thông báo cập nhật tài khoản: ' . $exception->getMessage());
+        }
+    }
+
+    private function resolveRoleLabel(?string $roleId): string
+    {
+        if (!$roleId) {
+            return 'không xác định';
+        }
+
+        $role = $this->roleModel->find($roleId);
+        return $role['TenVaiTro'] ?? $roleId;
     }
 }

@@ -66,6 +66,11 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
                         <li class="d-flex justify-content-between py-2 border-bottom">
                             <div>
                                 <div class="fw-semibold"><?= htmlspecialchars($assignment['TenCa'] ?? 'Ca làm việc') ?></div>
+                                <div class="small text-muted">
+                                    Ngày: <?= htmlspecialchars($formatDate($assignment['NgayLamViec'] ?? null, 'd/m/Y')) ?>
+                                    • <?= htmlspecialchars($formatDate($assignment['ThoiGianBatDau'] ?? null, 'H:i')) ?>
+                                    → <?= htmlspecialchars($formatDate($assignment['ThoiGianKetThuc'] ?? null, 'H:i')) ?>
+                                </div>
                                 <div class="small text-muted">Vai trò: <?= htmlspecialchars($assignment['VaiTro'] ?? 'Nhân viên') ?></div>
                             </div>
                             <span class="text-muted small">ID: <?= htmlspecialchars($assignment['IdCaLamViec'] ?? '-') ?></span>
