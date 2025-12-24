@@ -170,14 +170,12 @@ class Workshop_planController extends Controller
                 }
             }
 
-            if ($planQuantity > 0 && $requiredInput > 0) {
+            if ($requiredInput > 0 && $planQuantity > 0) {
                 $perUnitValue = (float) ceil($requiredInput / $planQuantity);
                 if ($perUnitValue <= 0) {
                     $perUnitValue = 1;
                 }
-            }
-
-            if ($perUnitValue !== null && $perUnitValue > 0 && $planQuantity > 0) {
+            } elseif ($perUnitValue !== null && $perUnitValue > 0 && $planQuantity > 0) {
                 $required = (int) ceil($planQuantity * $perUnitValue);
             }
 
