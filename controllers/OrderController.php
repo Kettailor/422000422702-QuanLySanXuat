@@ -10,6 +10,7 @@ class OrderController extends Controller
     private ProductBom $bomModel;
     private SystemActivity $activityModel;
     private Employee $employeeModel;
+    private ProductionPlan $productionPlanModel;
 
     private array $orderStatuses = ['Chưa có kế hoạch', 'Đang xử lý', 'Hoàn thành', 'Chờ vận chuyển', 'Đã hoàn thành', 'Hủy'];
 
@@ -24,6 +25,7 @@ class OrderController extends Controller
         $this->bomModel = new ProductBom();
         $this->activityModel = new SystemActivity();
         $this->employeeModel = new Employee();
+        $this->productionPlanModel = new ProductionPlan();
     }
 
     public function index(): void
@@ -126,6 +128,11 @@ class OrderController extends Controller
             $this->setFlash('warning', 'Không tìm thấy đơn hàng.');
             $this->redirect('?controller=order&action=index');
         }
+        if (($order['TrangThai'] ?? '') === 'Hủy') {
+            $this->setFlash('danger', 'Đơn hàng đã bị hủy nên không thể chỉnh sửa.');
+            $this->redirect('?controller=order&action=read&id=' . urlencode($id));
+            return;
+        }
 
         $customers = $this->customerModel->all(200);
         $products = $this->productModel->all(500);
@@ -161,6 +168,11 @@ class OrderController extends Controller
         if (!$order) {
             $this->setFlash('warning', 'Không tìm thấy đơn hàng.');
             $this->redirect('?controller=order&action=index');
+            return;
+        }
+        if (($order['TrangThai'] ?? '') === 'Hủy') {
+            $this->setFlash('danger', 'Đơn hàng đã bị hủy nên không thể cập nhật.');
+            $this->redirect('?controller=order&action=read&id=' . urlencode($id));
             return;
         }
 
@@ -301,10 +313,22 @@ class OrderController extends Controller
         }
 
         $currentStatus = $order['TrangThai'] ?? '';
+        if ($currentStatus === 'Hủy') {
+            $this->setFlash('warning', 'Đơn hàng đã bị hủy trước đó.');
+            $this->redirect('?controller=order&action=read&id=' . urlencode($id));
+            return;
+        }
+        $planEligibility = $this->getPlanCancelEligibility($id);
+        if (!$planEligibility['eligible']) {
+            $this->setFlash('danger', $planEligibility['message']);
+            $this->redirect('?controller=order&action=read&id=' . urlencode($id));
+            return;
+        }
         $allowedStatuses = ['Chưa có kế hoạch', 'Đang xử lý'];
         if (!in_array($currentStatus, $allowedStatuses, true)) {
             $this->setFlash('danger', 'Chỉ được hủy đơn hàng khi đang chờ hoặc đang sản xuất.');
             $this->redirect('?controller=order&action=read&id=' . urlencode($id));
+            return;
         }
 
         $reason = trim($_POST['cancel_note'] ?? '');
@@ -351,6 +375,7 @@ class OrderController extends Controller
             $creator = $this->employeeModel->find($order['IdNguoiTao']);
         }
         $activities = $this->activityModel->findByOrderId($id, 20);
+        $planEligibility = $this->getPlanCancelEligibility($id);
 
         $this->render('order/read', [
             'title' => 'Chi tiết đơn hàng',
@@ -360,7 +385,33 @@ class OrderController extends Controller
             'orderStatuses' => $this->orderStatuses,
             'creator' => $creator,
             'activities' => $activities,
+            'canCancelByPlan' => $planEligibility['eligible'],
+            'cancelPlanMessage' => $planEligibility['message'],
         ]);
+    }
+
+    private function getPlanCancelEligibility(string $orderId): array
+    {
+        $plans = $this->productionPlanModel->getByOrder($orderId);
+        if (!$plans) {
+            return [
+                'eligible' => false,
+                'message' => 'Đơn hàng chỉ được hủy khi kế hoạch sản xuất đã bị hủy.',
+            ];
+        }
+
+        $activePlans = array_filter($plans, static fn (array $plan): bool => ($plan['TrangThai'] ?? '') !== 'Hủy');
+        if ($activePlans) {
+            return [
+                'eligible' => false,
+                'message' => 'Cần hủy toàn bộ kế hoạch sản xuất của đơn hàng trước khi hủy đơn.',
+            ];
+        }
+
+        return [
+            'eligible' => true,
+            'message' => 'Kế hoạch sản xuất đã hủy, có thể hủy đơn hàng.',
+        ];
     }
 
     private function prepareOrderDetails(string $orderId, array $detailsInput): array

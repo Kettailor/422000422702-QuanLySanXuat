@@ -95,7 +95,9 @@ $statusCounts = array_reduce($orders, static function (array $carry, array $orde
                     <td class="text-end">
                         <div class="btn-group btn-group-sm" role="group">
                             <a class="btn btn-outline-secondary" href="?controller=order&action=read&id=<?= urlencode($order['IdDonHang']) ?>">Chi tiết</a>
-                            <a class="btn btn-outline-primary" href="?controller=order&action=edit&id=<?= urlencode($order['IdDonHang']) ?>">Sửa</a>
+                            <?php if (($order['TrangThai'] ?? '') !== 'Hủy'): ?>
+                                <a class="btn btn-outline-primary" href="?controller=order&action=edit&id=<?= urlencode($order['IdDonHang']) ?>">Sửa</a>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
