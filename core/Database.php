@@ -24,7 +24,16 @@ class Database
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
 
-        $this->connection = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], $options);
+        try {
+            $this->connection = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], $options);
+            // echo "Kết nối CSDL thành công";
+        }
+        catch (\PDOException $e) {
+            // echo 'không thành công';
+        }
+
+
+        // var_dump($this->connection->getAttribute(PDO::ATTR_CONNECTION_STATUS));
     }
 
     public static function getInstance(): Database

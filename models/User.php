@@ -12,6 +12,7 @@ class User extends BaseModel
         $stmt->bindValue(':username', $username);
         $stmt->execute();
         $result = $stmt->fetch();
+        // var_dump($result);exit;
         return $result ?: null;
     }
 

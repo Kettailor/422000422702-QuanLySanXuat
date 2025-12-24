@@ -56,17 +56,31 @@ class ReportController extends Controller
         $this->render_pdf('report/pdf_template', $data);
         $html = ob_get_clean();
 
-        $dompdf = new Dompdf();
+        // ============ PHẦN SỬA ĐỂ FIX FONT TIẾNG VIỆT ============
+        
+        // Tạo options cho DomPDF
+        $options = new \Dompdf\Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans'); // Font hỗ trợ tiếng Việt
+        $options->set('isPhpEnabled', true);
+        
+        // Khởi tạo DomPDF với options
+        $dompdf = new \Dompdf\Dompdf($options);
+        
+        // =========================================================
+        
         $dompdf->loadHtml($html);
 
         // (Optional) Setup the paper size and orientation
-        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->setPaper('A4', 'portrait'); // Đổi thành portrait cho đẹp hơn
 
         // Render the HTML as PDF
         $dompdf->render();
 
         // Output the generated PDF to Browser
-        $dompdf->stream('report.pdf', ['Attachment' => 0]);
+        $filename = 'Bao_cao_thong_ke_' . date('Y-m-d_His') . '.pdf';
+        $dompdf->stream($filename, ['Attachment' => 0]);
     }
 }
 

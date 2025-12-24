@@ -19,8 +19,13 @@ class AuthController extends Controller
             $username = $_POST['username'] ?? '';
             $password = $_POST['password'] ?? '';
 
+            var_dump($username);
+            var_dump($password);
+
             $user = $this->userModel->findByUsername($username);
-            if ($user && ($user['MatKhau'] === $password || password_verify($password, $user['MatKhau']))) {
+            // var_dump(md5($password));
+            // var_dump(password_verify($password, $user['MatKhau']));
+            if ($user && ($user['MatKhau'] === $password || md5($password) == $user['MatKhau'])) {
                 $role = $this->roleModel->find($user['IdVaiTro']);
                 $_SESSION['user'] = array_merge($user, [
                     'TenVaiTro' => $role['TenVaiTro'] ?? null,
