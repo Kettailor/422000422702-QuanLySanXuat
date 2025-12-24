@@ -393,6 +393,55 @@ class Warehouse extends BaseModel
         return 'KHO' . date('YmdHis');
     }
 
+    public function hasWarehousesForWorkshop(string $workshopId): bool
+    {
+        $stmt = $this->db->prepare('SELECT 1 FROM KHO WHERE IdXuong = :workshopId LIMIT 1');
+        $stmt->bindValue(':workshopId', $workshopId);
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function createDefaultWarehousesForWorkshop(array $workshop, ?string $managerId = null): array
+    {
+        $workshopId = $workshop['IdXuong'] ?? null;
+        if (!$workshopId) {
+            return [];
+        }
+
+        if ($this->hasWarehousesForWorkshop($workshopId)) {
+            return [];
+        }
+
+        $workshopName = $workshop['TenXuong'] ?? $workshopId;
+        $location = $workshop['DiaDiem'] ?? null;
+        $managerId = $managerId ?? ($workshop['XUONGTRUONG_IdNhanVien'] ?? null);
+
+        $created = [];
+        foreach (self::WAREHOUSE_TYPES as $label) {
+            $payload = [
+                'IdKho' => uniqid('KHO'),
+                'TenKho' => trim($label . ' - ' . $workshopName),
+                'TenLoaiKho' => $label,
+                'DiaChi' => $location,
+                'TongSLLo' => 0,
+                'ThanhTien' => 0,
+                'TrangThai' => 'Đang sử dụng',
+                'TongSL' => 0,
+                'IdXuong' => $workshopId,
+                'NHAN_VIEN_KHO_IdNhanVien' => $managerId,
+            ];
+
+            if (!$this->createWarehouse($payload)) {
+                throw new RuntimeException('Không thể tạo kho mặc định cho xưởng ' . $workshopId);
+            }
+
+            $created[] = $payload['IdKho'];
+        }
+
+        return $created;
+    }
+
     public function adjustWarehouseStock(string $warehouseId, int $quantityDelta = 0, int $lotDelta = 0): bool
     {
         $sql = 'UPDATE KHO

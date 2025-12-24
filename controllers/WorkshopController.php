@@ -9,6 +9,7 @@ class WorkshopController extends Controller
     private Employee $employeeModel;
     private WorkshopAssignment $assignmentModel;
     private Warehouse $warehouseModel;
+    private WorkShift $workShiftModel;
 
     public function __construct()
     {
@@ -20,6 +21,7 @@ class WorkshopController extends Controller
         $this->employeeModel = new Employee();
         $this->assignmentModel = new WorkshopAssignment();
         $this->warehouseModel = new Warehouse();
+        $this->workShiftModel = new WorkShift();
     }
 
     public function index(): void
@@ -118,6 +120,10 @@ class WorkshopController extends Controller
                 $assignments['warehouse'],
                 $assignments['production'],
             );
+            if ($this->isStorageWorkshopType($data['LoaiXuong'] ?? null)) {
+                $this->warehouseModel->createDefaultWarehousesForWorkshop($data, $data['XUONGTRUONG_IdNhanVien'] ?? null);
+                $this->workShiftModel->ensureFixedShiftsForDate(date('Y-m-d'));
+            }
             $this->setFlash('success', 'Đã thêm xưởng sản xuất mới.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi thêm xưởng: ' . $exception->getMessage());
@@ -1108,5 +1114,14 @@ class WorkshopController extends Controller
             'VT_TRUONG_XUONG_SAN_XUAT',
             'VT_TRUONG_XUONG_LUU_TRU',
         ];
+    }
+
+    private function isStorageWorkshopType(?string $workshopType): bool
+    {
+        if ($workshopType === null) {
+            return false;
+        }
+
+        return mb_strtolower(trim($workshopType)) === 'xưởng lưu trữ hàng hóa';
     }
 }

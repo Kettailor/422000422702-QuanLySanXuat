@@ -8,6 +8,7 @@ class WarehouseController extends Controller
     private Workshop $workshopModel;
     private Employee $employeeModel;
     private Product $productModel;
+    private WorkshopAssignment $assignmentModel;
     private ?array $visibleWarehouseIds = null;
     private const WAREHOUSE_TYPE_KEYWORDS = [
         'finished' => ['thành phẩm', 'thanh pham'],
@@ -26,6 +27,7 @@ class WarehouseController extends Controller
         $this->workshopModel = new Workshop();
         $this->employeeModel = new Employee();
         $this->productModel = new Product();
+        $this->assignmentModel = new WorkshopAssignment();
     }
 
     public function index(): void
@@ -562,6 +564,10 @@ class WarehouseController extends Controller
             if (!$employeeId) {
                 return [];
             }
+            $managedIds = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
+            if ($this->hasStorageWorkshop($managedIds)) {
+                return $this->workshopModel->all(200);
+            }
             $workshopIds = $this->employeeModel->getWorkshopIdsForEmployee($employeeId);
             return $this->workshopModel->findByIds($workshopIds);
         }
@@ -620,7 +626,8 @@ class WarehouseController extends Controller
             return [];
         }
 
-        if ($this->hasStorageWorkshop($workshopIds)) {
+        $managedIds = $this->assignmentModel->getWorkshopsManagedBy($employeeId);
+        if ($this->hasStorageWorkshop($managedIds)) {
             return null;
         }
 
