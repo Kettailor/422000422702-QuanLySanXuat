@@ -5,6 +5,7 @@ $assignments = $assignments ?? [];
 $progress = $progress ?? null;
 $materialStatus = $materialStatus ?? null;
 $canUpdateProgress = $canUpdateProgress ?? false;
+$canDelete = $canDelete ?? false;
 $typeConfig = $typeConfig ?? ['supports_materials' => true, 'supports_progress' => true];
 $supportsMaterials = $typeConfig['supports_materials'] ?? true;
 $supportsProgress = $typeConfig['supports_progress'] ?? true;
@@ -67,12 +68,14 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
     </div>
     <div class="d-flex flex-wrap gap-2">
         <?php if ($plan): ?>
-            <form method="post" action="?controller=factory_plan&action=delete&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" onsubmit="return confirm('Xóa kế hoạch xưởng này và làm lại từ đầu?');">
-                <input type="hidden" name="id" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
-                </button>
-            </form>
+            <?php if (!empty($canDelete)): ?>
+                <form method="post" action="?controller=factory_plan&action=delete&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" onsubmit="return confirm('Xóa kế hoạch xưởng này và làm lại từ đầu?');">
+                    <input type="hidden" name="id" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
+                    </button>
+                </form>
+            <?php endif; ?>
             <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary">
                 <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca
             </a>
