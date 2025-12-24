@@ -1,443 +1,383 @@
 <?php
-$pendingOrders = $pendingOrders ?? [];
-$selectedOrderDetailId = $selectedOrderDetailId ?? null;
-$selectedOrderDetail = $selectedOrderDetail ?? null;
-$componentAssignments = $componentAssignments ?? [];
-$configurationDetails = $configurationDetails ?? [];
-$workshops = $workshops ?? [];
-$currentUser = $currentUser ?? null;
+$currentController = $_GET['controller'] ?? 'dashboard';
+$currentAction = $_GET['action'] ?? 'index';
+$role = is_array($user) ? ($user['IdVaiTro'] ?? null) : null;
+$actualRole = is_array($user) ? ($user['ActualIdVaiTro'] ?? ($user['OriginalIdVaiTro'] ?? $role)) : null;
+$isImpersonating = is_array($user) && !empty($user['IsImpersonating']);
+$adminFlow = $_SESSION['admin_flow'] ?? 'main';
+$adminFullAccess = $actualRole === 'VT_ADMIN' && !$isImpersonating && $adminFlow === 'test';
+$canAccess = function (array $roles) use ($role, $actualRole, $adminFullAccess): bool {
+    if (!$role) {
+        return false;
+    }
 
-$formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): string {
-    if (!$value) {
-        return '-';
+    if ($adminFullAccess || ($actualRole === 'VT_BAN_GIAM_DOC')) {
+        return true;
     }
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return '-';
+
+    if (array_intersect(['VT_ADMIN', 'VT_BAN_GIAM_DOC'], $roles) && ($actualRole === 'VT_ADMIN' || $actualRole === 'VT_BAN_GIAM_DOC')) {
+        return true;
     }
-    return date($format, $timestamp);
+
+    return in_array($role, $roles, true);
 };
 
-$toDateTimeInput = static function (?string $value, string $fallback = ''): string {
-    if ($value) {
-        $timestamp = strtotime($value);
-        if ($timestamp !== false) {
-            return date('Y-m-d\TH:i', $timestamp);
-        }
-    }
-    return $fallback;
-};
-
-$defaultStart = date('Y-m-d\TH:i');
-$defaultEnd = $toDateTimeInput($selectedOrderDetail['NgayGiao'] ?? null, date('Y-m-d\TH:i', strtotime('+7 days')));
-$selectedQuantity = (int) ($selectedOrderDetail['SoLuong'] ?? 0);
-$configurationHeaders = [
-    'Keycap' => 'Keycap',
-    'Mainboard' => 'Mainboard',
-    'Layout' => 'Layout',
-    'SwitchType' => 'Switch',
-    'CaseType' => 'Case',
-    'Foam' => 'Foam',
+$workshopManagerRoles = [
+    'VT_TRUONG_XUONG_KIEM_DINH',
+    'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI',
+    'VT_TRUONG_XUONG_SAN_XUAT',
+    'VT_TRUONG_XUONG_LUU_TRU',
 ];
-$configurationLookup = [];
-foreach ($configurationDetails as $detail) {
-    $configurationLookup[$detail['key']] = $detail['value'];
+
+$showOrders = $canAccess(['VT_KINH_DOANH', 'VT_BAN_GIAM_DOC']);
+$showPlan = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showWorkshopPlan = $canAccess(array_merge($workshopManagerRoles, ['VT_NHANVIEN_SANXUAT']));
+$showWorkshopPlanPersonal = in_array($role, ['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO'], true);
+$showWorkshop = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showTimekeeping = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showSelfTimekeeping = $canAccess(['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO', 'VT_KINH_DOANH']);
+$showQuality = $canAccess(array_merge(['VT_KIEM_SOAT_CL', 'VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showWarehouse = $canAccess(array_merge(['VT_NHANVIEN_KHO'], $workshopManagerRoles));
+$showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO']);
+$showHumanResources = $canAccess(['VT_BAN_GIAM_DOC']);
+$showReports = $canAccess(['VT_BAN_GIAM_DOC']);
+$showBill = $canAccess(['VT_KETOAN']);
+$showSalary = $canAccess(['VT_KETOAN', 'VT_BAN_GIAM_DOC', 'VT_KINH_DOANH']);
+$showNotifications = !empty($role);
+$showSupport = $actualRole !== 'VT_ADMIN';
+$showAdminTools = $actualRole === 'VT_ADMIN';
+$isAdminMain = $actualRole === 'VT_ADMIN' && !$adminFullAccess;
+$showOperationsSection = $isAdminMain ? false : ($showOrders || $showPlan || $showWorkshopPlan || $showWorkshop || $showTimekeeping || $showHumanResources || $showReports);
+$showQualitySection = $isAdminMain ? false : $showQuality;
+$showWarehouseSection = $isAdminMain ? false : ($showWarehouse || $showWarehouseSheet);
+$showFinanceSection = $isAdminMain ? false : ($showBill || $showSalary);
+
+if ($isAdminMain) {
+    $showOrders = true;
+    $showPlan = true;
+    $showWorkshopPlan = true;
+    $showWorkshop = true;
+    $showTimekeeping = true;
+    $showSelfTimekeeping = true;
+    $showWorkshopPlanPersonal = true;
+    $showQuality = true;
+    $showWarehouse = true;
+    $showWarehouseSheet = true;
+    $showHumanResources = true;
+    $showReports = true;
+    $showBill = true;
+    $showSalary = true;
 }
 ?>
-
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-    <div>
-        <h2 class="fw-bold mb-1">Lập kế hoạch sản xuất</h2>
-        <p class="text-muted mb-0">Chọn đơn hàng cần xử lý, xác nhận thông tin và phân công từng xưởng phụ trách cấu hình sản phẩm.</p>
+<nav class="sidebar">
+    <div class="logo">
+        <a href="?controller=dashboard&action=index" class="logo-link" style="text-decoration: none; color: white; font-weight: 700;">
+            <span class="logo-mark">SV5TOT</span>
+            <span class="logo-subtitle">Production Hub</span>
+        </a>
     </div>
-    <a href="?controller=plan&action=index" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-2"></i>Quay về tổng quan
-    </a>
-</div>
+    <div class="nav flex-column d-none d-lg-flex">
+        <div class="text-uppercase text-muted small px-3 mt-3">Cá nhân</div>
+        <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
+            <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
+        </a>
+        <?php if ($showSelfTimekeeping): ?>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'index' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=index">
+                <i class="bi bi-fingerprint"></i> Tự chấm công
+            </a>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'history' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=history">
+                <i class="bi bi-calendar2-check"></i> Lịch sử chấm công
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'self_salary' ? 'active' : '' ?>" href="?controller=self_salary&action=index">
+            <i class="bi bi-cash-coin"></i> Bảng lương cá nhân
+        </a>
+        <?php if ($showWorkshopPlanPersonal): ?>
+            <a class="nav-link <?= $currentController === 'workshop_plan_personal' ? 'active' : '' ?>" href="?controller=workshop_plan_personal&action=index">
+                <i class="bi bi-clipboard-check"></i> Kế hoạch được giao
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'setting' ? 'active' : '' ?>" href="?controller=setting&action=index">
+            <i class="bi bi-gear"></i> Cài đặt
+        </a>
+        <?php if ($showNotifications): ?>
+            <a class="nav-link <?= $currentController === 'notifications' ? 'active' : '' ?>" href="?controller=notifications&action=index">
+                <i class="bi bi-bell"></i> Thông báo
+            </a>
+        <?php endif; ?>
+        <?php if ($showSupport): ?>
+            <a class="nav-link <?= $currentController === 'support' ? 'active' : '' ?>" href="?controller=support&action=index">
+                <i class="bi bi-life-preserver"></i> Yêu cầu hỗ trợ
+            </a>
+        <?php endif; ?>
 
-<div class="row g-4">
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0">1. Chọn dòng sản phẩm</h5>
-                <span class="text-muted small">Các dòng chưa có kế hoạch sẽ hiển thị tại đây.</span>
-            </div>
-            <div class="card-body p-0">
-                <?php if (empty($pendingOrders)): ?>
-                    <div class="p-4 text-center text-muted">Không còn đơn hàng chờ lập kế hoạch.</div>
-                <?php else: ?>
-                    <div class="list-group list-group-flush">
-                        <?php foreach ($pendingOrders as $order): ?>
-                            <div class="list-group-item py-3">
-                                <div class="fw-semibold mb-1">Đơn <?= htmlspecialchars($order['IdDonHang'] ?? '-') ?></div>
-                                <?php if (!empty($order['TenKhachHang'])): ?>
-                                    <div class="text-muted small">Khách hàng: <?= htmlspecialchars($order['TenKhachHang']) ?></div>
-                                <?php endif; ?>
-                                <?php
-                                $orderEmail = $order['EmailLienHe'] ?? null;
-                                if (!$orderEmail && !empty($order['details'][0]['Email'])) {
-                                    $orderEmail = $order['details'][0]['Email'];
-                                }
-                                ?>
-                                <?php if (!empty($orderEmail)): ?>
-                                    <div class="text-muted small">Email: <?= htmlspecialchars($orderEmail) ?></div>
-                                <?php endif; ?>
-                                <div class="mt-3 vstack gap-2">
-                                    <?php foreach ($order['details'] as $detail): ?>
-                                        <?php $isSelected = ($detail['IdTTCTDonHang'] ?? null) === $selectedOrderDetailId; ?>
-                                        <div class="border rounded-3 p-3 position-relative <?= $isSelected ? 'border-primary shadow-sm' : '' ?>">
-                                            <div class="d-flex justify-content-between align-items-start gap-2">
-                                                <div>
-                                                    <div class="fw-semibold"><?= htmlspecialchars($detail['TenSanPham'] ?? 'Sản phẩm') ?></div>
-                                                    <div class="text-muted small"><?= htmlspecialchars($detail['TenCauHinh'] ?? 'Cấu hình tiêu chuẩn') ?></div>
-                                                </div>
-                                                <div class="text-end">
-                                                    <div class="fw-semibold"><?= htmlspecialchars((string) ($detail['SoLuong'] ?? 0)) ?> <?= htmlspecialchars($detail['DonVi'] ?? 'sp') ?></div>
-                                                    <?php if (!empty($detail['NgayGiao'])): ?>
-                                                        <div class="text-muted small">Giao: <?= $formatDate($detail['NgayGiao']) ?></div>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                            <div class="text-muted small mt-2">
-                                                <?= htmlspecialchars($detail['YeuCauChiTiet'] ?? $detail['YeuCauDonHang'] ?? 'Không có yêu cầu thêm') ?>
-                                            </div>
-                                            <a class="stretched-link" href="?controller=plan&action=create&order_detail_id=<?= urlencode($detail['IdTTCTDonHang'] ?? '') ?>"></a>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
+        <?php if ($showOperationsSection): ?>
+            <div class="text-uppercase text-muted small px-3 mt-3">Vận hành</div>
+        <?php endif; ?>
+        <?php if ($showOrders): ?>
+            <a class="nav-link <?= $currentController === 'order' ? 'active' : '' ?>" href="?controller=order&action=index">
+                <i class="bi bi-receipt"></i> Đơn hàng
+            </a>
+        <?php endif; ?>
+        <?php if ($showPlan): ?>
+            <a class="nav-link <?= $currentController === 'plan' ? 'active' : '' ?>" href="?controller=plan&action=index">
+                <i class="bi bi-kanban"></i> Kế hoạch sản xuất
+            </a>
+        <?php endif; ?>
+        <?php if ($showWorkshopPlan): ?>
+            <a class="nav-link <?= $currentController === 'factory_plan' ? 'active' : '' ?>" href="?controller=factory_plan&action=index">
+                <i class="bi bi-building"></i> Kế hoạch xưởng
+            </a>
+        <?php endif; ?>
+        <?php if ($showWorkshop): ?>
+            <a class="nav-link <?= $currentController === 'workshop' ? 'active' : '' ?>" href="?controller=workshop&action=index">
+                <i class="bi bi-houses"></i> Quản lý xưởng
+            </a>
+        <?php endif; ?>
+        <?php if ($showTimekeeping): ?>
+            <a class="nav-link <?= $currentController === 'timekeeping' ? 'active' : '' ?>" href="?controller=timekeeping&action=index">
+                <i class="bi bi-stopwatch"></i> Phân công &amp; chấm công
+            </a>
+        <?php endif; ?>
+        <?php if ($showHumanResources): ?>
+            <a class="nav-link <?= $currentController === 'human_resources' ? 'active' : '' ?>" href="?controller=human_resources&action=index">
+                <i class="bi bi-people"></i> Nhân sự
+            </a>
+        <?php endif; ?>
+        <?php if ($showReports): ?>
+            <a class="nav-link <?= $currentController === 'report' ? 'active' : '' ?>" href="?controller=report&action=index">
+                <i class="bi bi-file-earmark-bar-graph"></i> Thống kê báo cáo
+            </a>
+        <?php endif; ?>
+
+        <?php if ($showQualitySection): ?>
+        <div class="text-uppercase text-muted small px-3 mt-3">Chất lượng</div>
+        <div class="nav-group">
+            <a class="nav-link <?= in_array($currentController, ['quality', 'suddenly']) ? 'active' : '' ?>"
+            data-bs-toggle="collapse"
+            href="#submenu-quality"
+            role="button"
+            aria-expanded="<?= in_array($currentController, ['quality', 'suddenly']) ? 'true' : 'false' ?>"
+            aria-controls="submenu-quality">
+            <i class="bi bi-shield-check me-2"></i> Chất lượng
+            </a>
+                <div class="collapse <?= in_array($currentController, ['quality', 'suddenly']) ? 'show' : '' ?>" id="submenu-quality">
+                <ul class="btn-toggle-nav list-unstyled fw-normal small ms-3">
+                <li>
+                    <a href="?controller=quality&action=index"
+                    class="nav-link <?= ($currentController === 'quality' && $currentAction === 'index') ? 'active' : '' ?>">
+                    <i class="bi bi-clipboard-data me-1"></i>Đánh giá thành phẩm</a>
+                    <a href="?controller=suddenly&action=index"
+                    class="nav-link <?= ($currentController === 'suddenly' && $currentAction === 'index') ? 'active' : '' ?>">
+                    <i class="bi bi-lightning-charge me-1"></i>Kiểm tra đột xuất</a>
+                </li>
+                </ul>
+                </div>
         </div>
+        <?php endif; ?>
+
+        <?php if ($showWarehouseSection): ?>
+            <div class="text-uppercase text-muted small px-3 mt-3">Kho & vật tư</div>
+        <?php endif; ?>
+        <?php if ($showWarehouse): ?>
+            <a class="nav-link <?= $currentController === 'warehouse' ? 'active' : '' ?>" href="?controller=warehouse&action=index">
+                <i class="bi bi-boxes"></i> Kho hàng
+            </a>
+        <?php endif; ?>
+        <?php if ($showWarehouseSheet): ?>
+            <a class="nav-link <?= $currentController === 'warehouse_sheet' ? 'active' : '' ?>" href="?controller=warehouse_sheet&action=index">
+                <i class="bi bi-journal-text"></i> Phiếu kho
+            </a>
+        <?php endif; ?>
+
+        <?php if ($showFinanceSection): ?>
+            <div class="text-uppercase text-muted small px-3 mt-3">Tài chính</div>
+        <?php endif; ?>
+        <?php if ($showBill): ?>
+            <a class="nav-link <?= $currentController === 'bill' ? 'active' : '' ?>" href="?controller=bill&action=index">
+                <i class="bi bi-file-earmark-text"></i> Hóa đơn
+            </a>
+        <?php endif; ?>
+        <?php if ($showSalary): ?>
+            <a class="nav-link <?= $currentController === 'salary' ? 'active' : '' ?>" href="?controller=salary&action=index">
+                <i class="bi bi-cash-stack"></i> Bảng lương
+            </a>
+        <?php endif; ?>
+
+        <?php if ($showAdminTools): ?>
+            <div class="text-uppercase text-muted small px-3 mt-3">Quản trị</div>
+            <a class="nav-link <?= $currentController === 'adminImpersonation' ? 'active' : '' ?>" href="?controller=adminImpersonation&action=index">
+                <i class="bi bi-person-badge"></i> Giả lập vai trò
+            </a>
+            <a class="nav-link" href="?controller=account&action=index">
+                <i class="bi bi-person-circle"></i> Tài khoản
+            </a>
+            <a class="nav-link" href="?controller=account&action=auditLog">
+                <i class="bi bi-journal-check"></i> Nhật ký hoạt động
+            </a>
+            <a class="nav-link" href="?controller=admin&action=ticket">
+                <i class="bi bi-ticket-detailed"></i> Yêu cầu hỗ trợ
+            </a>
+        <?php endif; ?>
     </div>
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="mb-0">2. Xác nhận thông tin & phân công xưởng</h5>
-                    <span class="text-muted small">Thông tin đơn hàng được tự động điền từ hệ thống.</span>
-                </div>
-            </div>
-            <?php if (!$selectedOrderDetail): ?>
-                <div class="card-body">
-                    <div class="alert alert-light border">
-                        Vui lòng chọn một dòng sản phẩm ở cột bên trái để bắt đầu lập kế hoạch.
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="card-body">
-                    <form method="post" action="?controller=plan&action=store" class="vstack gap-4">
-                        <input type="hidden" name="IdTTCTDonHang" value="<?= htmlspecialchars($selectedOrderDetail['IdTTCTDonHang'] ?? '') ?>">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Khách hàng</label>
-                                <div class="border rounded-3 p-3 bg-light-subtle">
-                                    <div class="fw-semibold"><?= htmlspecialchars($selectedOrderDetail['TenKhachHang'] ?? 'Chưa có thông tin') ?></div>
-                                    <?php if (!empty($selectedOrderDetail['TenCongTy'])): ?>
-                                        <div class="text-muted small">Công ty: <?= htmlspecialchars($selectedOrderDetail['TenCongTy']) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($selectedOrderDetail['SoDienThoai'])): ?>
-                                        <div class="text-muted small">SĐT: <?= htmlspecialchars($selectedOrderDetail['SoDienThoai']) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($selectedOrderDetail['EmailLienHe']) || !empty($selectedOrderDetail['Email'])): ?>
-                                        <div class="text-muted small">Email: <?= htmlspecialchars($selectedOrderDetail['EmailLienHe'] ?? $selectedOrderDetail['Email'] ?? '') ?></div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Sản phẩm</label>
-                                <div class="border rounded-3 p-3 bg-light-subtle">
-                                    <div class="fw-semibold"><?= htmlspecialchars($selectedOrderDetail['TenSanPham'] ?? 'Sản phẩm') ?></div>
-                                    <div class="text-muted small">Cấu hình: <?= htmlspecialchars($selectedOrderDetail['TenCauHinh'] ?? 'Tiêu chuẩn') ?></div>
-                                    <?php if (!empty($configurationDetails)): ?>
-                                        <div class="d-flex flex-wrap gap-2 mt-2">
-                                            <?php foreach ($configurationDetails as $detail): ?>
-                                                <span class="badge text-bg-light">
-                                                    <?= htmlspecialchars($detail['label']) ?>:
-                                                    <span class="fw-semibold ms-1"><?= htmlspecialchars($detail['value']) ?></span>
-                                                </span>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <?php if (!empty(array_filter($configurationLookup))): ?>
-                                <div class="col-12">
-                                    <label class="form-label fw-semibold">Chi tiết cấu hình sản phẩm</label>
-                                    <div class="table-responsive border rounded-3">
-                                        <table class="table table-sm align-middle mb-0">
-                                            <thead class="table-light">
-                                            <tr>
-                                                <?php foreach ($configurationHeaders as $headerLabel): ?>
-                                                    <th><?= htmlspecialchars($headerLabel) ?></th>
-                                                <?php endforeach; ?>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr>
-                                                <?php foreach ($configurationHeaders as $field => $headerLabel): ?>
-                                                    <td><?= htmlspecialchars($configurationLookup[$field] ?? '-') ?></td>
-                                                <?php endforeach; ?>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Số lượng cần sản xuất</label>
-                                <input type="number" min="1" name="SoLuong" value="<?= htmlspecialchars((string) max(1, $selectedQuantity)) ?>" class="form-control" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Ngày bắt đầu</label>
-                                <input type="datetime-local" name="ThoiGianBD" class="form-control" value="<?= htmlspecialchars($toDateTimeInput($selectedOrderDetail['ThoiGianBD'] ?? null, $defaultStart)) ?>" data-plan-start required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Hạn chót giao hàng</label>
-                                <input type="datetime-local" name="ThoiGianKetThuc" class="form-control" value="<?= htmlspecialchars($defaultEnd) ?>" data-plan-end required>
-                            </div>
-                        </div>
-
-                        <div class="border-top"></div>
-
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <h6 class="fw-semibold mb-1">Phân công xưởng theo cấu hình sản phẩm</h6>
-                                    <span class="text-muted small">Điều chỉnh số lượng, thời gian cho từng hạng mục bên dưới.</span>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table align-middle">
-                                    <thead class="table-light">
-                                    <tr>
-                                        <th>Cấu hình / Hạng mục</th>
-                                        <th style="width: 180px;">Xưởng phụ trách</th>
-                                        <th style="width: 140px;">Số lượng</th>
-                                        <th style="width: 180px;">Bắt đầu</th>
-                                        <th style="width: 180px;">Hạn chót</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody data-assignment-body>
-                                    <?php foreach ($componentAssignments as $index => $component): ?>
-                                        <?php $allowedTypes = $component['allowed_workshop_types'] ?? []; ?>
-                                        <tr data-assignment-row data-allowed-types="<?= htmlspecialchars(json_encode(array_values($allowedTypes))) ?>">
-                                            <td>
-                                                <input type="hidden" name="component_assignments[<?= $index ?>][component_id]" value="<?= htmlspecialchars($component['id'] ?? '') ?>">
-                                                <input type="hidden" name="component_assignments[<?= $index ?>][configuration_id]" value="<?= htmlspecialchars($component['configuration_id'] ?? '') ?>">
-                                                <input type="hidden" name="component_assignments[<?= $index ?>][default_status]" value="<?= htmlspecialchars($component['default_status'] ?? '') ?>">
-                                                <input type="text" name="component_assignments[<?= $index ?>][label]" class="form-control" value="<?= htmlspecialchars($component['label'] ?? 'Hạng mục sản xuất') ?>" required>
-                                                <?php if (!empty($component['configuration_label'])): ?>
-                                                    <div class="text-muted small mt-2">Cấu hình: <?= htmlspecialchars($component['configuration_label']) ?></div>
-                                                <?php endif; ?>
-                                                <?php if (!empty($component['detail_key']) && !empty($component['detail_value'])): ?>
-                                                    <div class="text-muted small mt-1">Chi tiết: <?= htmlspecialchars($component['detail_value']) ?></div>
-                                                <?php elseif (!empty($component['configuration_details'])): ?>
-                                                    <div class="d-flex flex-wrap gap-1 mt-2">
-                                                        <?php foreach ($component['configuration_details'] as $detail): ?>
-                                                            <span class="badge rounded-pill text-bg-light"><?= htmlspecialchars($detail['label']) ?>: <?= htmlspecialchars($detail['value']) ?></span>
-                                                        <?php endforeach; ?>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <select name="component_assignments[<?= $index ?>][workshop_id]" class="form-select" required>
-                                                    <option value="">-- Chọn xưởng --</option>
-                                                    <?php foreach ($workshops as $workshop): ?>
-                                                        <?php $selected = ($workshop['IdXuong'] ?? null) === ($component['default_workshop'] ?? null) ? 'selected' : ''; ?>
-                                                        <option value="<?= htmlspecialchars($workshop['IdXuong'] ?? '') ?>" data-workshop-type="<?= htmlspecialchars($workshop['LoaiXuong'] ?? '') ?>" <?= $selected ?>>
-                                                            <?= htmlspecialchars($workshop['TenXuong'] ?? 'Xưởng sản xuất') ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="number" min="1" name="component_assignments[<?= $index ?>][quantity]" class="form-control" value="<?= htmlspecialchars((string) max(1, (int) ($component['default_quantity'] ?? $selectedQuantity))) ?>" required>
-                                                <div class="form-text">
-                                                    <?= htmlspecialchars($component['unit'] ?? 'sp') ?> (tỉ lệ <?= htmlspecialchars(number_format((float) ($component['quantity_ratio'] ?? 1), 2)) ?>)
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <input type="datetime-local" name="component_assignments[<?= $index ?>][start]" class="form-control" value="<?= htmlspecialchars($defaultStart) ?>" data-sync-start>
-                                            </td>
-                                            <td>
-                                                <input type="datetime-local" name="component_assignments[<?= $index ?>][deadline]" class="form-control" value="<?= htmlspecialchars($defaultEnd) ?>" data-sync-end>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="d-flex justify-content-end mt-3">
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-add-assignment>
-                                    <i class="bi bi-plus-circle me-1"></i> Thêm cấu hình / hạng mục
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="?controller=plan&action=index" class="btn btn-light">Hủy</a>
-                            <button type="submit" class="btn btn-primary">Hoàn tất lập kế hoạch</button>
-                        </div>
-                    </form>
-                </div>
+    <div class="nav flex-column d-lg-none">
+        <a class="nav-link <?= $currentController === 'auth' && $currentAction === 'profile' ? 'active' : '' ?>" href="?controller=auth&action=profile">
+            <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
+        </a>
+        <?php if ($showSelfTimekeeping): ?>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'index' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=index">
+                <i class="bi bi-fingerprint"></i> Tự chấm công
+            </a>
+            <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'history' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=history">
+                <i class="bi bi-calendar2-check"></i> Lịch sử chấm công
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'self_salary' ? 'active' : '' ?>" href="?controller=self_salary&action=index">
+            <i class="bi bi-cash-coin"></i> Bảng lương cá nhân
+        </a>
+        <?php if ($showWorkshopPlanPersonal): ?>
+            <a class="nav-link <?= $currentController === 'workshop_plan_personal' ? 'active' : '' ?>" href="?controller=workshop_plan_personal&action=index">
+                <i class="bi bi-clipboard-check"></i> Kế hoạch được giao
+            </a>
+        <?php endif; ?>
+        <a class="nav-link <?= $currentController === 'setting' ? 'active' : '' ?>" href="?controller=setting&action=index">
+            <i class="bi bi-gear"></i> Cài đặt
+        </a>
+        <?php if ($showSupport): ?>
+            <a class="nav-link <?= $currentController === 'support' ? 'active' : '' ?>" href="?controller=support&action=index">
+                <i class="bi bi-life-preserver"></i> Yêu cầu hỗ trợ
+            </a>
+        <?php endif; ?>
+        <?php if ($showOrders): ?>
+            <a class="nav-link <?= $currentController === 'order' ? 'active' : '' ?>" href="?controller=order&action=index">
+                <i class="bi bi-receipt"></i> Đơn hàng
+            </a>
+        <?php endif; ?>
+        <?php if ($showPlan): ?>
+            <a class="nav-link <?= $currentController === 'plan' ? 'active' : '' ?>" href="?controller=plan&action=index">
+                <i class="bi bi-kanban"></i> Kế hoạch sản xuất
+            </a>
+        <?php endif; ?>
+        <?php if ($showWorkshopPlan): ?>
+            <a class="nav-link <?= $currentController === 'factory_plan' ? 'active' : '' ?>" href="?controller=factory_plan&action=index">
+                <i class="bi bi-building"></i> Kế hoạch xưởng
+            </a>
+        <?php endif; ?>
+        <?php if ($showSalary): ?>
+            <a class="nav-link <?= $currentController === 'salary' ? 'active' : '' ?>" href="?controller=salary&action=index">
+                <i class="bi bi-cash-stack"></i> Bảng lương
+            </a>
+        <?php endif; ?>
+        <?php if ($showNotifications): ?>
+            <a class="nav-link <?= $currentController === 'notifications' ? 'active' : '' ?>" href="?controller=notifications&action=index">
+                <i class="bi bi-bell"></i> Thông báo
+            </a>
+        <?php endif; ?>
+    </div>
+    <button class="btn-close position-absolute top-0 end-0 m-3 text-white d-lg-none" data-toggle="sidebar" aria-label="Đóng menu"></button>
+</nav>
+<div class="sidebar-backdrop d-lg-none" data-toggle="sidebar"></div>
+<div class="main-wrapper">
+    <header class="topbar">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-outline-primary d-lg-none" data-toggle="sidebar"><i class="bi bi-list"></i></button>
+            <a href="?controller=dashboard&action=index" class="topbar-brand" style="text-decoration: none; color: var(--text-dark); font-weight: 700;">SV5TOT</a>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <?php if ($isImpersonating): ?>
+                <span class="badge bg-warning text-dark">
+                    Đang giả lập: <?= htmlspecialchars($user['TenVaiTro'] ?? $role ?? 'Không xác định') ?>
+                </span>
+                <a href="?impersonation=stop" class="btn btn-outline-warning btn-sm">Hủy giả lập</a>
+            <?php elseif ($actualRole === 'VT_ADMIN'): ?>
+                <a href="?controller=adminImpersonation&action=index" class="btn btn-outline-secondary btn-sm">Giả lập vai trò</a>
             <?php endif; ?>
+            <div class="dropdown notification-dropdown">
+                <button class="btn btn-light border position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Xem thông báo">
+                    <i class="bi <?= $unreadNotifications > 0 ? 'bi-bell-fill text-primary' : 'bi-bell' ?> fs-5"></i>
+                    <?php if ($unreadNotifications > 0): ?>
+                        <span class="badge rounded-pill bg-danger notification-badge"><?= $unreadNotifications ?></span>
+                    <?php endif; ?>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow notification-menu p-0">
+                    <div class="notification-header px-3 py-2 border-bottom">
+                        <div class="fw-semibold">Thông báo</div>
+                        <small class="text-muted">
+                            <?= $unreadNotifications > 0 ? $unreadNotifications . ' thông báo chưa đọc' : 'Tất cả đã được xem' ?>
+                        </small>
+                    </div>
+                    <div class="notification-list">
+                        <?php if (!empty($notifications)): ?>
+                            <?php foreach ($notifications as $notification): ?>
+                                <?php if (!is_array($notification)) {
+                                    continue;
+                                } ?>
+                                <?php
+                                    $title = $notification['title'] ?? 'Thông báo hệ thống';
+                                    $message = $notification['message'] ?? null;
+                                    $time = $notification['created_at'] ?? ($notification['time'] ?? null);
+                                    $link = $notification['link'] ?? null;
+                                    $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
+                                ?>
+                                <div class="notification-item px-3 py-2 <?= $isRead ? '' : 'notification-unread' ?>">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <span class="fw-semibold text-truncate flex-grow-1"><?= htmlspecialchars($title) ?></span>
+                                        <?php if ($time): ?>
+                                            <small class="text-muted flex-shrink-0"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($time))) ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if ($message): ?>
+                                        <div class="text-muted small mt-1"><?= htmlspecialchars($message) ?></div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($notification['id'])): ?>
+                                        <?php
+                                        $redirect = $link ?: '?controller=notifications&action=index';
+                                        $readLink = '?controller=notifications&action=read&id=' . urlencode($notification['id']) . '&redirect=' . urlencode($redirect);
+                                        ?>
+                                        <a href="<?= htmlspecialchars($readLink) ?>" class="stretched-link"></a>
+                                    <?php elseif ($link): ?>
+                                        <a href="<?= htmlspecialchars($link) ?>" class="stretched-link"></a>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="notification-empty text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                Chưa có thông báo mới
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="notification-footer border-top px-3 py-2">
+                        <a href="?controller=notifications&action=index" class="text-decoration-none small">Xem tất cả thông báo</a>
+                    </div>
+                </div>
+            </div>
+            <a href="?controller=auth&action=profile" class="btn btn-light border d-flex align-items-center gap-2">
+                <i class="bi bi-person-circle"></i>
+                <span>
+                    <?= htmlspecialchars($user['TenDangNhap'] ?? 'Khách') ?>
+                    <?php if (!empty($user['TenVaiTro'])): ?>
+                        <small class="text-muted d-block" style="line-height: 1;">
+                            <?= htmlspecialchars($user['TenVaiTro']) ?>
+                        </small>
+                    <?php endif; ?>
+                </span>
+            </a>
+            <a href="?controller=auth&action=logout" class="btn btn-outline-danger">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
         </div>
-    </div>
-</div>
-
-<?php if ($selectedOrderDetail): ?>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const planStart = document.querySelector('[data-plan-start]');
-            const planEnd = document.querySelector('[data-plan-end]');
-            const startFields = document.querySelectorAll('[data-sync-start]');
-            const endFields = document.querySelectorAll('[data-sync-end]');
-            const defaultQuantity = <?= htmlspecialchars((string) max(1, $selectedQuantity)) ?>;
-            const now = new Date();
-            const toDateTimeLocal = function (date) {
-                const pad = (num) => String(num).padStart(2, '0');
-                return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-            };
-            const todayMin = toDateTimeLocal(now);
-
-            function syncValues(source, targets) {
-                if (!source) return;
-                targets.forEach(function (input) {
-                    if (!input.dataset.userEdited) {
-                        input.value = source.value;
-                    }
-                });
-            }
-
-            function setMinDates() {
-                if (planStart) {
-                    planStart.min = todayMin;
-                }
-                if (planEnd) {
-                    planEnd.min = planStart && planStart.value ? planStart.value : todayMin;
-                }
-                startFields.forEach(function (input) {
-                    input.min = todayMin;
-                });
-                endFields.forEach(function (input) {
-                    const startValue = input.closest('tr')?.querySelector('[data-sync-start]')?.value;
-                    input.min = startValue || (planStart ? planStart.value : todayMin);
-                });
-            }
-
-            function applyWorkshopFilter(row) {
-                if (!row) return;
-                const select = row.querySelector('select[name^="component_assignments"]');
-                if (!select) return;
-                const options = Array.from(select.querySelectorAll('option'));
-                options.forEach((option) => {
-                    option.hidden = false;
-                    option.disabled = false;
-                });
-            }
-
-            function buildAssignmentRow(index) {
-                const row = document.createElement('tr');
-                row.dataset.assignmentRow = '';
-                row.dataset.allowedTypes = JSON.stringify(['Xưởng sản xuất']);
-
-                const optionsSource = document.querySelector('select[name^="component_assignments"]');
-                const optionMarkup = optionsSource
-                    ? Array.from(optionsSource.querySelectorAll('option'))
-                        .filter((option) => option.value)
-                        .map((option) => {
-                            const type = option.getAttribute('data-workshop-type') || '';
-                            return `<option value="${option.value}" data-workshop-type="${type}">${option.textContent}</option>`;
-                        })
-                        .join('')
-                    : '';
-
-                row.innerHTML = `
-                    <td>
-                        <input type="hidden" name="component_assignments[${index}][component_id]" value="">
-                        <input type="hidden" name="component_assignments[${index}][configuration_id]" value="">
-                        <input type="hidden" name="component_assignments[${index}][default_status]" value="">
-                        <input type="text" name="component_assignments[${index}][label]" class="form-control" value="Hạng mục bổ sung" required>
-                        <div class="text-muted small mt-2">Tùy chỉnh hạng mục nếu cần.</div>
-                    </td>
-                    <td>
-                        <select name="component_assignments[${index}][workshop_id]" class="form-select" required>
-                            <option value="">-- Chọn xưởng --</option>
-                            ${optionMarkup}
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" min="1" name="component_assignments[${index}][quantity]" class="form-control" value="${defaultQuantity}" required>
-                        <div class="form-text">sp (tỉ lệ 1.00)</div>
-                    </td>
-                    <td>
-                        <input type="datetime-local" name="component_assignments[${index}][start]" class="form-control" value="${planStart ? planStart.value : ''}" data-sync-start>
-                    </td>
-                    <td>
-                        <input type="datetime-local" name="component_assignments[${index}][deadline]" class="form-control" value="${planEnd ? planEnd.value : ''}" data-sync-end>
-                    </td>
-                `;
-
-                return row;
-            }
-
-            function markEdited(event) {
-                event.target.dataset.userEdited = 'true';
-            }
-
-            startFields.forEach(function (input) {
-                input.addEventListener('change', markEdited);
-                input.addEventListener('input', markEdited);
-            });
-            endFields.forEach(function (input) {
-                input.addEventListener('change', markEdited);
-                input.addEventListener('input', markEdited);
-            });
-
-            if (planStart) {
-                planStart.addEventListener('change', function () {
-                    syncValues(planStart, startFields);
-                    setMinDates();
-                });
-            }
-            if (planEnd) {
-                planEnd.addEventListener('change', function () {
-                    syncValues(planEnd, endFields);
-                    setMinDates();
-                });
-            }
-
-            startFields.forEach(function (input) {
-                input.addEventListener('change', setMinDates);
-                input.addEventListener('input', setMinDates);
-            });
-            endFields.forEach(function (input) {
-                input.addEventListener('change', setMinDates);
-                input.addEventListener('input', setMinDates);
-            });
-
-            const addAssignmentButton = document.querySelector('[data-add-assignment]');
-            if (addAssignmentButton) {
-                addAssignmentButton.addEventListener('click', () => {
-                    const tbody = document.querySelector('[data-assignment-body]');
-                    if (!tbody) return;
-                    const index = document.querySelectorAll('[data-assignment-row]').length;
-                    const row = buildAssignmentRow(index);
-                    tbody.appendChild(row);
-                    row.querySelectorAll('[data-sync-start], [data-sync-end]').forEach((input) => {
-                        input.addEventListener('change', setMinDates);
-                        input.addEventListener('input', setMinDates);
-                    });
-                    applyWorkshopFilter(row);
-                    setMinDates();
-                });
-            }
-
-            document.querySelectorAll('[data-assignment-row]').forEach(applyWorkshopFilter);
-            setMinDates();
-        });
-    </script>
-<?php endif; ?>
+    </header>
+    <main class="content-wrapper">
+        <?php if (!empty($flash)): ?>
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+                <div class="toast align-items-center text-bg-<?= $flash['type'] ?> border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <?= htmlspecialchars($flash['message']) ?>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>

@@ -1,5 +1,6 @@
 <?php
 $currentController = $_GET['controller'] ?? 'dashboard';
+$currentAction = $_GET['action'] ?? 'index';
 $role = is_array($user) ? ($user['IdVaiTro'] ?? null) : null;
 $actualRole = is_array($user) ? ($user['ActualIdVaiTro'] ?? ($user['OriginalIdVaiTro'] ?? $role)) : null;
 $isImpersonating = is_array($user) && !empty($user['IsImpersonating']);
@@ -52,20 +53,20 @@ $showWarehouseSection = $isAdminMain ? false : ($showWarehouse || $showWarehouse
 $showFinanceSection = $isAdminMain ? false : ($showBill || $showSalary);
 
 if ($isAdminMain) {
-    $showOrders = false;
-    $showPlan = false;
-    $showWorkshopPlan = false;
-    $showWorkshop = false;
-    $showTimekeeping = false;
-    $showSelfTimekeeping = false;
-    $showWorkshopPlanPersonal = false;
-    $showQuality = false;
-    $showWarehouse = false;
-    $showWarehouseSheet = false;
-    $showHumanResources = false;
-    $showReports = false;
-    $showBill = false;
-    $showSalary = false;
+    $showOrders = true;
+    $showPlan = true;
+    $showWorkshopPlan = true;
+    $showWorkshop = true;
+    $showTimekeeping = true;
+    $showSelfTimekeeping = true;
+    $showWorkshopPlanPersonal = true;
+    $showQuality = true;
+    $showWarehouse = true;
+    $showWarehouseSheet = true;
+    $showHumanResources = true;
+    $showReports = true;
+    $showBill = true;
+    $showSalary = true;
 }
 ?>
 <nav class="sidebar">
