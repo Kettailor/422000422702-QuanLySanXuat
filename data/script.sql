@@ -552,6 +552,21 @@ INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `phan_cong_ke_hoach_xuong`
+--
+
+CREATE TABLE `phan_cong_ke_hoach_xuong` (
+  `IdPhanCong` varchar(50) NOT NULL,
+  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
+  `IdNhanVien` varchar(50) NOT NULL,
+  `IdCaLamViec` varchar(50) NOT NULL,
+  `VaiTro` varchar(50) DEFAULT NULL,
+  `NgayPhanCong` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `phieu`
 --
 
