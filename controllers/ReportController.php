@@ -13,7 +13,6 @@ class ReportController extends Controller
         $materialModel = new Material();
         $productModel = new Product();
 
-        // var_dump($orderDetailModel->getAllWithOrderInfo());
 
         $data = [
             'bills' => $billModel->all(10000),
@@ -31,7 +30,6 @@ class ReportController extends Controller
     {
         if (!class_exists('Dompdf\Dompdf')) {
             var_dump('sdd');
-            // Redirect back or show an error message
             header('Location: ?controller=report&action=index&error=pdf_lib_missing');
             exit;
         }
@@ -59,13 +57,10 @@ class ReportController extends Controller
         $dompdf = new Dompdf();
         $dompdf->loadHtml($html);
 
-        // (Optional) Setup the paper size and orientation
         $dompdf->setPaper('A4', 'landscape');
 
-        // Render the HTML as PDF
         $dompdf->render();
 
-        // Output the generated PDF to Browser
         $dompdf->stream('report.pdf', ['Attachment' => 0]);
     }
 }

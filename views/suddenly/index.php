@@ -445,7 +445,6 @@ foreach ($listBienBan as $r) {
     });
   });
 
-  // Tìm kiếm
   document.getElementById('searchInput').addEventListener('input', function() {
     const kw = this.value.toLowerCase();
     document.querySelectorAll('#lotTable tbody tr').forEach(row => {
@@ -453,7 +452,6 @@ foreach ($listBienBan as $r) {
     });
   });
 
-  // Lọc theo kết quả
   function filterByResult(type) {
     const rows = document.querySelectorAll('#lotTable tr[data-status]');
     rows.forEach(row => {
@@ -463,7 +461,6 @@ foreach ($listBienBan as $r) {
     });
   }
 
-  // Modal xóa
   document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('confirmDeleteModal');
     const message = document.getElementById('deleteMessage');

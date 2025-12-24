@@ -21,7 +21,6 @@ class QualityController extends Controller
         $dashboard = $this->qualityModel->getDashboardSummary();
         $listLo    = $this->qualityModel->getDanhSachLo();
 
-        // ✅ Lấy flash qua query string
         $flash = null;
         if (!empty($_GET['msg'])) {
             $flash = [
@@ -57,7 +56,6 @@ class QualityController extends Controller
 
         $db = $this->qualityModel->getConnection();
 
-        // ===== LẤY BIÊN BẢN =====
         $stmt = $db->prepare("
         SELECT bb.*
         FROM bien_ban_danh_gia_thanh_pham bb
@@ -70,7 +68,6 @@ class QualityController extends Controller
 
         if ($report) {
 
-            // ===== LẤY ẢNH MINH CHỨNG =====
             $stmtImg = $db->prepare("
             SELECT HinhAnh
             FROM ttct_bien_ban_danh_gia_thanh_pham
@@ -83,7 +80,6 @@ class QualityController extends Controller
             ]);
             $images = $stmtImg->fetchAll(PDO::FETCH_COLUMN);
 
-            // ===== LẤY NGƯỜI LẬP (HỌ TÊN) =====
             $nguoiLap = $_SESSION['user']['TenDangNhap'] ?? 'Không xác định';
 
             $idNV = $_SESSION['user']['IdNhanVien'] ?? null;
@@ -101,13 +97,12 @@ class QualityController extends Controller
                 }
             }
 
-            // ===== RENDER VIEW =====
             $this->render('quality/read', [
                 'title'     => 'Chi tiết biên bản đánh giá',
                 'report'    => $report,
                 'images'    => $images,
                 'isReport'  => true,
-                'nguoiLap'  => $nguoiLap,   // 👈 TRUYỀN SANG VIEW
+                'nguoiLap'  => $nguoiLap,
             ]);
         }
     }
@@ -255,13 +250,12 @@ class QualityController extends Controller
     public function delete(): void
     {
         $idBienBan = $_GET['id'] ?? null;
-        $idLo = $_GET['IdLo'] ?? null; // nếu bạn cần IdLo cho mục đích khác vẫn giữ
+        $idLo = $_GET['IdLo'] ?? null;
 
         if (!$idBienBan) {
             $this->redirect('?controller=quality&action=index&msg=' . urlencode('Thiếu mã biên bản để xóa.') . '&type=warning');
         }
 
-        // Gọi model đúng cú pháp
         $deleted = $this->qualityModel->deleteBienBanCascade($idBienBan);
 
         if ($deleted) {
@@ -316,7 +310,6 @@ class QualityController extends Controller
             ]);
         }
 
-        error_log(print_r($_POST, true));
         $criteriaPath = __DIR__ . '/../storage/quality_criteria.json';
         $idXuong = $_POST['idXuong'] ?? null;
         $criterion = trim($_POST['criterion'] ?? '');

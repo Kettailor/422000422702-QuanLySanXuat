@@ -311,9 +311,6 @@
     </form>
 </div>
 <script>
-    // ===========================
-    // GẮN SỰ KIỆN CHO TỪNG DÒNG TIÊU CHÍ
-    // ===========================
     document.querySelectorAll("#criteria-body tr").forEach(tr => attachEvents(tr));
 
     function attachEvents(row) {
@@ -370,9 +367,6 @@
         }
     }
 
-    // ===========================
-    // SUMMARY
-    // ===========================
     function updateSummary() {
         let pass = 0,
             fail = 0,
@@ -403,22 +397,17 @@
 
 
 
-    // ===========================
-    // UPLOAD ẢNH – CHỌN NHIỀU LẦN (VIRTUAL FILE STORE)
-    // ===========================
 
-    let fileStore = []; // Danh sách file ảo lưu tất cả ảnh đã chọn
+    let fileStore = []; 
     const fileInput = document.querySelector('input[name="FileMinhChung[]"]');
     const previewList = document.getElementById("preview-list");
 
-    // Khi chọn ảnh
     fileInput.addEventListener("change", () => {
 
         Array.from(fileInput.files).forEach(f => fileStore.push(f));
         renderPreview();
     });
 
-    // Render danh sách ảnh
     function renderPreview() {
         previewList.innerHTML = "";
 
@@ -444,7 +433,6 @@
 
         previewList.appendChild(ul);
 
-        // Gắn nút xoá
         previewList.querySelectorAll("button").forEach(btn => {
             btn.addEventListener("click", () => {
                 const i = btn.getAttribute("data-i");
@@ -456,12 +444,8 @@
 
 
 
-    // ===========================
-    // SUBMIT – VALIDATE + GỬI FILE STORE
-    // ===========================
     document.querySelector("form").addEventListener("submit", e => {
 
-        // Kiểm tra điểm
         for (let inp of document.querySelectorAll(".diem-dat")) {
             const val = Number(inp.value);
             if (inp.value.trim() === "" || isNaN(val) || val < 1 || val > 10) {
@@ -472,7 +456,6 @@
             }
         }
 
-        // Kiểm tra ảnh
         if (fileStore.length === 0) {
             e.preventDefault();
             showMessage("⚠️ Yêu cầu tải lên ít nhất một hình ảnh minh chứng.", "warning");
@@ -481,7 +464,6 @@
 
         document.querySelector("form").addEventListener("submit", e => {
 
-            // Kiểm tra điểm
             for (let inp of document.querySelectorAll(".diem-dat")) {
                 const val = Number(inp.value);
                 if (inp.value.trim() === "" || isNaN(val) || val < 1 || val > 10) {
@@ -492,22 +474,17 @@
                 }
             }
 
-            // Kiểm tra ảnh
             if (fileStore.length === 0) {
                 e.preventDefault();
                 showMessage("⚠️ Yêu cầu tải lên ít nhất một hình ảnh minh chứng.", "warning");
                 return;
             }
-
-            // ✅ KHÔNG preventDefault → để form submit bình thường
-            // PHP sẽ xử lý + redirect
         });
 
 
 
     });
 
-    // HIỆN THÔNG BÁO
     function showMessage(msg, type = "warning") {
         let box = document.getElementById("form-message");
 

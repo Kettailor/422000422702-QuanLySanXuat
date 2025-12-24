@@ -11,7 +11,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
             // 1. Bắt đầu transaction để đảm bảo toàn vẹn dữ liệu
             $this->db->beginTransaction();
 
-            // kiểm tra nguyên liệu có kh
+            // kiểm tra nguyên liệu có không
             $sqlGetBOM = "SELECT IdNguyenLieu, TyLeSoLuong 
                           FROM cau_hinh_nguyen_lieu 
                           WHERE IdCauHinh = :configId";

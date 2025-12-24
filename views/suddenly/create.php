@@ -6,19 +6,15 @@ $type = $type ?? ($_GET['type'] ?? 'production');
     table-layout: fixed;
   }
 
-  /* ===== CELL ALIGN ===== */
   #criteria-table td {
     vertical-align: middle;
   }
 
   #criteria-table thead th {
     vertical-align: bottom;
-    /* CHỐT: header nằm thấp */
     padding-bottom: 6px;
-    /* ép sát input */
   }
 
-  /* ===== MÃ ===== */
   #criteria-table th:nth-child(1),
   #criteria-table td:nth-child(1) {
     width: 90px;
@@ -26,76 +22,60 @@ $type = $type ?? ($_GET['type'] ?? 'production');
     white-space: nowrap;
   }
 
-  /* ===== TIÊU CHÍ ===== */
   #criteria-table th:nth-child(2),
   #criteria-table td:nth-child(2) {
     width: 400px;
   }
 
-  /* ===== ĐIỂM ĐẠT ===== */
   #criteria-table th:nth-child(3),
   #criteria-table td:nth-child(3) {
     width: 100px;
     text-align: center;
   }
 
-  /* ===== GHI CHÚ ===== */
   #criteria-table th:nth-child(4),
   #criteria-table td:nth-child(4) {
     width: 220px;
     text-align: left;
   }
 
-  /* ĐẨY CHỮ "GHI CHÚ" SANG PHẢI NHẸ */
   #criteria-table thead th:nth-child(4) {
     padding-left: 100px;
   }
 
 
-  /* ===== KẾT QUẢ ===== */
   #criteria-table th:nth-child(5),
   #criteria-table td:nth-child(5) {
     width: 130px;
     text-align: center;
   }
 
-  /* ===== TEXT TIÊU CHÍ ===== */
   #criteria-table input[name="TieuChi[]"] {
     white-space: normal;
     line-height: 1.4;
   }
 
 
-  /* ===== ALERT + SECTION TITLE GIỮ NGUYÊN ===== */
   .alert-message {
     display: none;
     margin-bottom: 15px;
     animation: fadeIn 0.3s ease-in-out;
   }
 
-  /* ===== THU NHỎ Ô KẾT LUẬN (ĐÚNG HTML HIỆN TẠI) ===== */
-
-  /* Container 4 ô */
   .card .d-flex.flex-wrap.mb-3 {
     gap: 12px;
-    /* nhỏ hơn gap-3 mặc định */
   }
 
-  /* Từng ô kết luận */
   .card .d-flex.flex-wrap.mb-3>.flex-fill {
     padding: 8px 10px !important;
-    /* ghi đè p-3 của Bootstrap */
     min-height: 68px;
-    /* ép thấp lại */
   }
 
-  /* Tiêu đề trong ô */
   .card .d-flex.flex-wrap.mb-3>.flex-fill .text-secondary {
     font-size: 0.8rem;
     margin-bottom: 2px;
   }
 
-  /* Giá trị số */
   .card .d-flex.flex-wrap.mb-3>.flex-fill .fs-4 {
     font-size: 1.25rem !important;
     line-height: 1.2;
@@ -133,7 +113,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
 
     <div class="row g-3 align-items-end">
 
-      <!-- MÃ BIÊN BẢN -->
       <div class="col-md-4">
         <label class="form-label fw-semibold">Mã biên bản</label>
 
@@ -144,7 +123,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
             readonly>
         </div>
 
-        <!-- GỬI VỀ SERVER -->
         <input type="hidden"
           name="IdBienBanDanhGiaDX"
           value="<?= htmlspecialchars($maBienBan) ?>">
@@ -179,7 +157,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
       <div class="col-md-4">
         <label class="form-label fw-semibold">Nhân viên kiểm tra</label>
 
-        <!-- Hiển thị họ tên -->
         <input type="text"
           class="form-control fw-semibold"
           value="<?= htmlspecialchars($sessionUser['HoTen']) ?>"
@@ -222,7 +199,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
   </div>
 
 
-  <!-- Phần kết luận -->
   <div class="card shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mb-4 shadow-sm border-0 p-4 mt-4">
     <h5 class="fw-bold section-title mb-3">Kết luận</h5>
     <div class="d-flex flex-wrap gap-3 mb-3">
@@ -254,9 +230,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
 <script>
   document.addEventListener("DOMContentLoaded", () => {
 
-    /* ======================
-       DATA + DOM
-    ====================== */
     const criteriaData = <?= json_encode($criteriaList, JSON_UNESCAPED_UNICODE) ?>;
     const loaiSelect = document.getElementById('LoaiTieuChi');
     const tableBody = document.querySelector('#criteria-table tbody');
@@ -267,9 +240,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
     const previewList = document.getElementById('preview-list');
     let fileStore = [];
 
-    /* ======================
-       MESSAGE
-    ====================== */
     function showMessage(msg, type = 'danger') {
       messageBox.textContent = msg;
       messageBox.className = 'alert alert-' + type + ' alert-message';
@@ -281,9 +251,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
       setTimeout(() => messageBox.style.display = 'none', 5000);
     }
 
-    /* ======================
-       LOAD TIÊU CHÍ
-    ====================== */
     loaiSelect.addEventListener('change', () => {
       tableBody.innerHTML = '';
       const selected = loaiSelect.value.trim();
@@ -304,29 +271,22 @@ $type = $type ?? ($_GET['type'] ?? 'production');
       });
     });
 
-    /* ======================
-       EVENT MỖI DÒNG
-    ====================== */
     function attachEvents(row) {
       const diem = row.querySelector('.diem-dat');
       const ketQua = row.querySelector('.ket-qua');
       const ghiChu = row.querySelector('.ghi-chu');
 
-      /* ===== CHẶN TỪ PHÍM ===== */
       diem.addEventListener('keydown', e => {
         const allowKeys = [
           'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'
         ];
 
-        // chỉ cho 0–9
         if (!/[0-9]/.test(e.key) && !allowKeys.includes(e.key)) {
           e.preventDefault();
         }
       });
 
-      /* ===== CHẶN PASTE + ÉP GIÁ TRỊ ===== */
       diem.addEventListener('input', () => {
-        // CHỈ GIỮ LẠI SỐ NGUYÊN
         diem.value = diem.value.replace(/[^0-9]/g, '');
 
         let val = Number(diem.value);
@@ -354,16 +314,12 @@ $type = $type ?? ($_GET['type'] ?? 'production');
         updateSummary();
       });
 
-      /* ===== GHI CHÚ – CHẶN KÝ TỰ ĐẶC BIỆT ===== */
       ghiChu.addEventListener('input', () => {
         ghiChu.value = ghiChu.value.replace(/[@\?\[\],\{\}\|\\\"~]/g, '');
       });
     }
 
 
-    /* ======================
-       SUMMARY
-    ====================== */
     function updateSummary() {
       let pass = 0,
         fail = 0,
@@ -391,9 +347,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
       }
     }
 
-    /* ======================
-       FILE STORE (MINH CHỨNG)
-    ====================== */
     fileInput.addEventListener('change', () => {
       Array.from(fileInput.files).forEach(f => fileStore.push(f));
       fileInput.value = '';
@@ -431,9 +384,6 @@ $type = $type ?? ($_GET['type'] ?? 'production');
       });
     }
 
-    /* ======================
-       SUBMIT – FETCH
-    ====================== */
     form.addEventListener('submit', e => {
       e.preventDefault();
 

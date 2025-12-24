@@ -381,14 +381,13 @@ if (session_status() === PHP_SESSION_NONE) {
     document.querySelectorAll('#lotTable tr[data-idlo]').forEach(row => {
       const idLo = row.dataset.idlo;
       if (hidden.includes(idLo)) {
-        row.remove(); // ✅ quan trọng: không dùng display:none
+        row.remove(); 
       }
     });
   })();
 </script>
 
 <script>
-  // Filter
   function setActive(btn) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
@@ -426,7 +425,6 @@ if (session_status() === PHP_SESSION_NONE) {
     applyFilter('all', allBtn);
   }
 
-  // Search
   document.getElementById('searchInput').addEventListener('input', function() {
     const kw = this.value.toLowerCase();
     document.querySelectorAll('#lotTable tr[data-status]').forEach(row => {
@@ -438,7 +436,6 @@ if (session_status() === PHP_SESSION_NONE) {
   recalcDashboard();
 
 
-  // Modal xác nhận XÓA
   document.querySelectorAll('.btn-delete-trigger').forEach(btn => {
     btn.addEventListener('click', e => {
       e.preventDefault();
@@ -495,7 +492,7 @@ if (session_status() === PHP_SESSION_NONE) {
       unchecked = 0;
 
     rows.forEach(row => {
-      if (row.offsetParent === null) return; // bị ẩn → không tính
+      if (row.offsetParent === null) return; 
 
       total++;
 
@@ -507,7 +504,6 @@ if (session_status() === PHP_SESSION_NONE) {
       else if (status === 'unchecked') unchecked++;
     });
 
-    // Update card
     document.querySelector('.card-total h3').textContent = total;
     document.querySelector('.card-passed h3').textContent = passed;
     document.querySelector('.card-failed h3').textContent = failed;

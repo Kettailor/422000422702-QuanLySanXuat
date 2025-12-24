@@ -144,7 +144,7 @@ class Factory_planController extends Controller
             $this->setFlash('success', 'Đã xác nhận giao nguyên liệu.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi xác nhận giao nguyên liệu ' . $requestId . ': ' . $exception->getMessage());
-            $this->setFlash('danger', 'Không thể xác nhận giao nguyên liệu. Vui lòng kiểm tra log.');
+            $this->setFlash('danger', 'Không thể xác nhận giao nguyên liệu ' . $exception->getMessage());
         }
 
         $this->redirect('?controller=factory_plan&action=index');

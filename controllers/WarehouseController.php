@@ -127,8 +127,7 @@ class WarehouseController extends Controller
             }
         } catch (Throwable $e) {
             Logger::error('Lỗi khi thêm kho: ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể thêm kho: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể thêm kho: Đã xảy ra lỗi, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể thêm kho: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=warehouse&action=index');
@@ -192,8 +191,7 @@ class WarehouseController extends Controller
             }
         } catch (Throwable $e) {
             Logger::error('Lỗi khi cập nhật kho ' . $id . ': ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể cập nhật kho: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật kho, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể cập nhật kho: ' . $e->getMessage());
         }
 
         $this->redirect('?controller=warehouse&action=index');
@@ -223,8 +221,7 @@ class WarehouseController extends Controller
             $this->redirect('?controller=warehouse&action=index');
         } catch (Throwable $e) {
             Logger::error('Lỗi khi xóa kho ' . $id . ': ' . $e->getMessage());
-            /* $this->setFlash('danger', 'Không thể xóa kho: ' . $e->getMessage()); */
-            $this->setFlash('danger', 'Không thể xóa kho, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể xóa kho: ' . $e->getMessage());
         }
 
     }

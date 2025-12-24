@@ -167,7 +167,6 @@ class SuddenlyReport extends BaseModel
         ?string $ghiChu = null,
         ?string $fileName = null,
     ): bool {
-        // Sinh ID chi tiết biên bản: CTBBDX20251102A, B, C...
         $stmt = $this->db->prepare("
             SELECT COUNT(*) 
             FROM ttct_bien_ban_danh_gia_dot_xuat
