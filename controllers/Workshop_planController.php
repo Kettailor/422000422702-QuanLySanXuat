@@ -163,8 +163,11 @@ class Workshop_planController extends Controller
             }
 
             $required = $requiredInput;
-            if ($perUnitValue !== null && $perUnitValue > 0) {
+            if ($perUnitValue !== null) {
                 $perUnitValue = (float) ceil($perUnitValue);
+                if ($perUnitValue <= 0) {
+                    $perUnitValue = 1;
+                }
             }
 
             if ($perUnitValue !== null && $perUnitValue > 0 && $planQuantity > 0) {
@@ -176,6 +179,9 @@ class Workshop_planController extends Controller
             }
             if ($perUnitValue === null && $planQuantity > 0 && $required > 0) {
                 $perUnitValue = (float) ceil($required / $planQuantity);
+                if ($perUnitValue <= 0) {
+                    $perUnitValue = 1;
+                }
             }
             $requirements[] = [
                 'id' => $materialId,
@@ -627,6 +633,9 @@ class Workshop_planController extends Controller
                 $perUnit = (float) ($perUnit ?? 0);
                 if ($perUnit > 0) {
                     $perUnit = (float) ceil($perUnit);
+                }
+                if ($perUnit <= 0) {
+                    $perUnit = 1;
                 }
                 if ($perUnit <= 0) {
                     continue;
