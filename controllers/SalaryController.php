@@ -164,7 +164,7 @@ class SalaryController extends Controller
                 $attendance,
                 static function (array $row): bool {
                     return ($row['working_days'] ?? 0) > 0;
-                }
+                },
             ));
 
             if (!$eligibleAttendance) {
@@ -200,7 +200,7 @@ class SalaryController extends Controller
             $attendance,
             static function (array $row): bool {
                 return ($row['working_days'] ?? 0) > 0;
-            }
+            },
         ));
 
         if ($attendance !== ($wizard['attendance'] ?? [])) {
@@ -209,7 +209,7 @@ class SalaryController extends Controller
                 $allowedIds = array_column($attendance, 'employee_id');
                 $wizard['compensation'] = array_intersect_key(
                     $wizard['compensation'],
-                    array_fill_keys($allowedIds, true)
+                    array_fill_keys($allowedIds, true),
                 );
             }
             $this->saveWizardState($wizard);

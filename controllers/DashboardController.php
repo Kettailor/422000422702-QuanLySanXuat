@@ -98,7 +98,7 @@ class DashboardController extends Controller
             $stats = [
                 'totalWorkingDays' => 22,
                 'participationRate' => count($employees),
-                'completedPlans' => array_reduce($plans, fn ($carry, $plan) => $carry + ($plan['TrangThai'] === 'Hoàn thành' ? 1 : 0), 0),
+                'completedPlans' => array_reduce($plans, fn($carry, $plan) => $carry + ($plan['TrangThai'] === 'Hoàn thành' ? 1 : 0), 0),
                 'newNotifications' => count($activities),
             ];
         } elseif (in_array($role, ['VT_KHO_TRUONG', 'VT_NHANVIEN_KHO'], true)) {
@@ -139,7 +139,7 @@ class DashboardController extends Controller
             $qualitySummary = $qualityModel->getQualitySummary();
             $qualityLots = array_values(array_filter(
                 $qualityModel->getDanhSachLo(),
-                static fn (array $row): bool => empty($row['IdBienBanDanhGiaSP'])
+                static fn(array $row): bool => empty($row['IdBienBanDanhGiaSP']),
             ));
             $qualityLots = array_slice($qualityLots, 0, 8);
             $qualityReports = $qualityModel->getLatestReports(6);
@@ -250,7 +250,7 @@ class DashboardController extends Controller
         if ($role === 'VT_KIEM_SOAT_CL') {
             $qualityLots = array_values(array_filter(
                 $qualityModel->getDanhSachLo(),
-                static fn (array $row): bool => empty($row['IdBienBanDanhGiaSP'])
+                static fn(array $row): bool => empty($row['IdBienBanDanhGiaSP']),
             ));
             $qualityLots = array_slice($qualityLots, 0, 6);
         }

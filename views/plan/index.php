@@ -136,10 +136,10 @@ $badgeForStatus = static function (string $status): string {
                                         <?php endif; ?>
                                         <?php
                                         $orderEmail = $order['EmailLienHe'] ?? null;
-                                        if (!$orderEmail && !empty($order['details'][0]['Email'])) {
-                                            $orderEmail = $order['details'][0]['Email'];
-                                        }
-                                        ?>
+                            if (!$orderEmail && !empty($order['details'][0]['Email'])) {
+                                $orderEmail = $order['details'][0]['Email'];
+                            }
+                            ?>
                                         <?php if (!empty($orderEmail)): ?>
                                             <div class="text-muted small">Email: <?= htmlspecialchars($orderEmail) ?></div>
                                         <?php endif; ?>

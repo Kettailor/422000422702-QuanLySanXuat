@@ -25,3 +25,4 @@ Thumbs.db
 *.cache
 *.swp
 *.swo
+.php-cs-fixer.*

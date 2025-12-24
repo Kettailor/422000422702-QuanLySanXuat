@@ -167,6 +167,9 @@ if ($isAdminMain) {
                     <a href="?controller=suddenly&action=index"
                     class="nav-link <?= ($currentController === 'suddenly' && $currentAction === 'index') ? 'active' : '' ?>">
                     <i class="bi bi-lightning-charge me-1"></i>Kiểm tra đột xuất</a>
+                    <a href="?controller=quality&action=criterias"
+                    class="nav-link <?= ($currentController === 'quality' && $currentAction === 'criterias') ? 'active' : '' ?>">
+                    <i class="bi bi-list-ul me-1"></i>Tiêu chí đánh giá</a>
                 </li>
                 </ul>
                 </div>
@@ -308,10 +311,10 @@ if ($isAdminMain) {
                                 } ?>
                                 <?php
                                     $title = $notification['title'] ?? 'Thông báo hệ thống';
-                                    $message = $notification['message'] ?? null;
-                                    $time = $notification['created_at'] ?? ($notification['time'] ?? null);
-                                    $link = $notification['link'] ?? null;
-                                    $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
+                                $message = $notification['message'] ?? null;
+                                $time = $notification['created_at'] ?? ($notification['time'] ?? null);
+                                $link = $notification['link'] ?? null;
+                                $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
                                 ?>
                                 <div class="notification-item px-3 py-2 <?= $isRead ? '' : 'notification-unread' ?>">
                                     <div class="d-flex justify-content-between align-items-start gap-2">

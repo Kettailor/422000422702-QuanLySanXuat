@@ -45,7 +45,7 @@ foreach ($pendingOrders as $order) {
                 $detail['TenSanPham'] ?? 'Sản phẩm',
                 $detail['TenCauHinh'] ?? 'Cấu hình tiêu chuẩn',
                 $detail['SoLuong'] ?? 0,
-                $detail['DonVi'] ?? 'sp'
+                $detail['DonVi'] ?? 'sp',
             ),
         ];
     }
@@ -297,8 +297,8 @@ $nowInput = date('Y-m-d\TH:i');
                                         <select class="form-select" name="component_assignments[<?= $index ?>][status]">
                                             <?php
                                             $statuses = ['Đang chuẩn bị', 'Đang sản xuất', 'Chờ nghiệm thu', 'Hoàn thành', 'Đang chờ xác nhận'];
-                                            $statusValue = $assignment['default_status'] ?? 'Đang chuẩn bị';
-                                            ?>
+                                $statusValue = $assignment['default_status'] ?? 'Đang chuẩn bị';
+                                ?>
                                             <?php foreach ($statuses as $status): ?>
                                                 <option value="<?= htmlspecialchars($status) ?>" <?= $statusValue === $status ? 'selected' : '' ?>>
                                                     <?= htmlspecialchars($status) ?>

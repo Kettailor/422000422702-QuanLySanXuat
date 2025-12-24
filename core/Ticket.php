@@ -60,7 +60,7 @@ class Ticket
 
         $tickets = array_reverse($tickets);
         $total = count($tickets);
-        $total_pages = $limit > 0 ? (int)ceil($total / $limit) : 1;
+        $total_pages = $limit > 0 ? (int) ceil($total / $limit) : 1;
         $offset = ($page - 1) * $limit;
         $paged_tickets = array_slice($tickets, $offset, $limit);
 

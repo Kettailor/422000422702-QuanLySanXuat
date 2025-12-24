@@ -4,7 +4,7 @@ use Dompdf\Dompdf;
 
 class ReportController extends Controller
 {
-    function index()
+    public function index()
     {
         $billModel = new Bill();
         $orderDetailModel = new OrderDetail();
@@ -27,7 +27,7 @@ class ReportController extends Controller
         $this->render('report/index', $data);
     }
 
-    function export_pdf()
+    public function export_pdf()
     {
         if (!class_exists('Dompdf\Dompdf')) {
             var_dump('sdd');
@@ -69,6 +69,3 @@ class ReportController extends Controller
         $dompdf->stream('report.pdf', ['Attachment' => 0]);
     }
 }
-
-
-?>

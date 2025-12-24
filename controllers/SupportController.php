@@ -27,7 +27,7 @@ class SupportController extends Controller
                 "[%s] %s\n%s",
                 strtoupper($priority),
                 $subject !== '' ? $subject : 'Yêu cầu hỗ trợ',
-                $message
+                $message,
             );
 
             Ticket::createTicket($payload);

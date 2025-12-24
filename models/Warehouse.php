@@ -207,7 +207,7 @@ class Warehouse extends BaseModel
 
         $summary['inactive_warehouses'] = max(
             0,
-            $summary['total_warehouses'] - $summary['active_warehouses']
+            $summary['total_warehouses'] - $summary['active_warehouses'],
         );
 
         $summary['total_inventory_value'] = round($summary['total_inventory_value'], 2);
@@ -483,26 +483,26 @@ class Warehouse extends BaseModel
         }
 
         if (
-            str_contains($normalized, 'nguyên') ||
-            str_contains($normalized, 'nguyen') ||
-            str_contains($normalized, 'liệu') ||
-            str_contains($normalized, 'lieu')
+            str_contains($normalized, 'nguyên')
+            || str_contains($normalized, 'nguyen')
+            || str_contains($normalized, 'liệu')
+            || str_contains($normalized, 'lieu')
         ) {
             return 'material';
         }
 
         if (
-            (str_contains($normalized, 'thành') || str_contains($normalized, 'thanh')) &&
-            (str_contains($normalized, 'phẩm') || str_contains($normalized, 'pham'))
+            (str_contains($normalized, 'thành') || str_contains($normalized, 'thanh'))
+            && (str_contains($normalized, 'phẩm') || str_contains($normalized, 'pham'))
         ) {
             return 'finished';
         }
 
         if (
-            str_contains($normalized, 'lỗi') ||
-            str_contains($normalized, 'loi') ||
-            str_contains($normalized, 'xử lý') ||
-            str_contains($normalized, 'xu ly')
+            str_contains($normalized, 'lỗi')
+            || str_contains($normalized, 'loi')
+            || str_contains($normalized, 'xử lý')
+            || str_contains($normalized, 'xu ly')
         ) {
             return 'quality';
         }

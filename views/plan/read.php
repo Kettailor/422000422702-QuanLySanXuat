@@ -98,12 +98,12 @@ $statusBadge = static function (string $status): string {
 
     <?php
     $currentUser = $currentUser ?? [];
-    $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
-    $canManage = in_array($roleId, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
-    $status = $plan['TrangThai'] ?? '';
-    $canEditDeadline = $canManage && !in_array($status, ['Hoàn thành', 'Hủy'], true);
-    $canCancel = $canManage && in_array($status, ['Đang chuẩn bị', 'Đang sản xuất'], true);
-    ?>
+$roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
+$canManage = in_array($roleId, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
+$status = $plan['TrangThai'] ?? '';
+$canEditDeadline = $canManage && !in_array($status, ['Hoàn thành', 'Hủy'], true);
+$canCancel = $canManage && in_array($status, ['Đang chuẩn bị', 'Đang sản xuất'], true);
+?>
     <?php if ($canManage): ?>
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">

@@ -36,14 +36,14 @@ abstract class Controller
         $adminMainRestricted = $isAdmin && !$isImpersonating && $adminFlow === 'main';
 
         if ($adminMainRestricted) {
-                $allowedControllers = [
-                    'dashboard',
-                    'auth',
-                    'setting',
-                    'notifications',
-                    'admin',
-                    'adminImpersonation',
-                    'account',
+            $allowedControllers = [
+                'dashboard',
+                'auth',
+                'setting',
+                'notifications',
+                'admin',
+                'adminImpersonation',
+                'account',
             ];
             $currentController = $_GET['controller'] ?? 'dashboard';
             if (!in_array($currentController, $allowedControllers, true)) {
@@ -59,7 +59,7 @@ abstract class Controller
                     '[Impersonation] Admin %s is impersonating role %s while accessing %s',
                     $username,
                     $role,
-                    $_SERVER['REQUEST_URI'] ?? 'cli'
+                    $_SERVER['REQUEST_URI'] ?? 'cli',
                 ));
 
                 if (in_array('VT_ADMIN', $allowedRoles, true)) {
@@ -138,7 +138,7 @@ abstract class Controller
                 $notifications = $notificationStore->filterForUser(
                     $notificationStore->readAll(),
                     $employeeId,
-                    $roleId
+                    $roleId,
                 );
             } catch (Throwable $exception) {
                 $notifications = [];
@@ -150,7 +150,8 @@ abstract class Controller
         include __DIR__ . '/../views/footer.php';
     }
 
-    protected function render_pdf(string $view , array $data = []) : void {
+    protected function render_pdf(string $view, array $data = []): void
+    {
         $viewFile = __DIR__ . '/../views/' . $view . '.php';
 
         if (!file_exists($viewFile)) {
@@ -173,7 +174,7 @@ abstract class Controller
                 $notifications = $notificationStore->filterForUser(
                     $notificationStore->readAll(),
                     $employeeId,
-                    $roleId
+                    $roleId,
                 );
             } catch (Throwable $exception) {
                 $notifications = [];

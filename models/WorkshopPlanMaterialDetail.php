@@ -5,7 +5,8 @@ class WorkshopPlanMaterialDetail extends BaseModel
     protected string $table = 'chi_tiet_ke_hoach_san_xuat_xuong';
     protected string $primaryKey = 'IdCTKHSXX';
 
-    public function createWorkshopPlanDetail (string $workshopPlanId, string $configId, int $productionQuantity) {
+    public function createWorkshopPlanDetail(string $workshopPlanId, string $configId, int $productionQuantity)
+    {
         try {
             // 1. Bắt đầu transaction để đảm bảo toàn vẹn dữ liệu
             $this->db->beginTransaction();
@@ -14,7 +15,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
             $sqlGetBOM = "SELECT IdNguyenLieu, TyLeSoLuong 
                           FROM cau_hinh_nguyen_lieu 
                           WHERE IdCauHinh = :configId";
-            
+
             $stmtGet = $this->db->prepare($sqlGetBOM);
             $stmtGet->bindValue(':configId', $configId);
             $stmtGet->execute();
@@ -30,7 +31,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
             $sqlInsert = "INSERT INTO " . $this->table . " 
                           (IdCTKHSXX, SoLuong, IdKeHoachSanXuatXuong, IdNguyenLieu) 
                           VALUES (:idDetail, :quantity, :planId, :materialId)";
-            
+
             $stmtInsert = $this->db->prepare($sqlInsert);
 
             // 4. Duyệt qua từng nguyên liệu để tính toán và lưu vào DB
@@ -40,13 +41,13 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
                 // Tạo ID chi tiết (Ví dụ: CT + Timestamp + Random để tránh trùng)
                 // Bạn có thể tùy chỉnh lại logic sinh ID này theo quy tắc của dự án
-                $idDetail = 'CT' . date('ymdHis') . rand(100, 999); 
+                $idDetail = 'CT' . date('ymdHis') . rand(100, 999);
 
                 $stmtInsert->bindValue(':idDetail', $idDetail);
                 $stmtInsert->bindValue(':quantity', $neededQty);
                 $stmtInsert->bindValue(':planId', $workshopPlanId);
                 $stmtInsert->bindValue(':materialId', $material['IdNguyenLieu']);
-                
+
                 $stmtInsert->execute();
             }
 
@@ -110,7 +111,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
         try {
             $delete = $this->db->prepare(
-                'DELETE FROM chi_tiet_ke_hoach_san_xuat_xuong WHERE IdKeHoachSanXuatXuong = :planId'
+                'DELETE FROM chi_tiet_ke_hoach_san_xuat_xuong WHERE IdKeHoachSanXuatXuong = :planId',
             );
             $delete->bindValue(':planId', $planId);
             $delete->execute();
@@ -118,7 +119,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
             if (!empty($normalized)) {
                 $insert = $this->db->prepare(
                     'INSERT INTO chi_tiet_ke_hoach_san_xuat_xuong (IdCTKHSXX, SoLuong, IdKeHoachSanXuatXuong, IdNguyenLieu)
-                     VALUES (:id, :quantity, :planId, :materialId)'
+                     VALUES (:id, :quantity, :planId, :materialId)',
                 );
 
                 foreach ($normalized as $materialId => $quantity) {

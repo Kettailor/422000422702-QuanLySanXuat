@@ -25,10 +25,10 @@ class NotificationSetting extends BaseModel
 
         $decoded = json_decode($raw, true);
         if (is_array($decoded)) {
-            return array_values(array_filter(array_map('strval', $decoded), fn ($item) => $item !== ''));
+            return array_values(array_filter(array_map('strval', $decoded), fn($item) => $item !== ''));
         }
 
         $parts = array_map('trim', explode(',', $raw));
-        return array_values(array_filter($parts, fn ($item) => $item !== ''));
+        return array_values(array_filter($parts, fn($item) => $item !== ''));
     }
 }

@@ -21,7 +21,7 @@ class NotificationStore
             return;
         }
 
-        $normalized = array_map(fn ($entry) => $this->normalizeEntry($entry), $entries);
+        $normalized = array_map(fn($entry) => $this->normalizeEntry($entry), $entries);
         $current = $this->readAll();
         $payload = array_merge($current, $normalized);
 

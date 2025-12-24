@@ -51,7 +51,7 @@ class Factory_planController extends Controller
         $isStorageManager = $this->isStorageManager();
         if ($isStorageManager) {
             $warehouseRequests = $this->warehouseRequestModel->getPendingByPlanIds(
-                array_column($plans, 'IdKeHoachSanXuatXuong')
+                array_column($plans, 'IdKeHoachSanXuatXuong'),
             );
             $plans = array_values(array_filter($plans, static function (array $plan) use ($warehouseRequests): bool {
                 $planId = $plan['IdKeHoachSanXuatXuong'] ?? null;
@@ -355,9 +355,9 @@ class Factory_planController extends Controller
                 'ten' => $data['TenNL'],
                 'so_luong_can' => $data['SoLuongCan'],
                 'so_luong_ton' => $data['SoLuongTon'],
-                'ten_lo' => $data['TenLo']
+                'ten_lo' => $data['TenLo'],
             ],
-            'message' => 'Yêu cầu cung cấp nguyên liệu.'
+            'message' => 'Yêu cầu cung cấp nguyên liệu.',
         ];
 
         if (file_put_contents($filepath, json_encode($notificationContent, JSON_PRETTY_PRINT))) {
@@ -534,7 +534,7 @@ class Factory_planController extends Controller
         $actorId = $user['IdNhanVien'] ?? null;
         $message = sprintf(
             'Đã hoàn thành giao nguyên liệu cho kế hoạch %s.',
-            $planId
+            $planId,
         );
 
         $entries = [];

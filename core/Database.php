@@ -15,7 +15,7 @@ class Database
             $dbConfig['host'],
             $dbConfig['port'],
             $dbConfig['database'],
-            $dbConfig['charset']
+            $dbConfig['charset'],
         );
 
         $options = [

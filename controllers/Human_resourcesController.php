@@ -219,7 +219,7 @@ class Human_resourcesController extends Controller
                 null,
                 null,
                 null,
-                $employee['IdNhanVien']
+                $employee['IdNhanVien'],
             );
 
             $planIds = $this->planAssignmentModel->getPlanIdsByEmployee($employee['IdNhanVien']);
@@ -311,7 +311,7 @@ class Human_resourcesController extends Controller
                     $employeeName,
                     $employeeId,
                     $oldRoleLabel,
-                    $newRoleLabel
+                    $newRoleLabel,
                 );
 
             $store->push([

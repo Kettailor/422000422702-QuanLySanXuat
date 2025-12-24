@@ -9,8 +9,8 @@ class AdminController extends Controller
 
     public function ticket(): void
     {
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
 
         $tickets = Ticket::getTickets($page, $limit);
 

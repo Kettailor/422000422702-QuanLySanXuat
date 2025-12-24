@@ -22,8 +22,8 @@ class SettingController extends Controller
             $currentPassword = $_POST['current-password'] ?? '';
             $newPassword = $_POST['new-password'] ?? '';
 
-            if ($currentPassword !== $_SESSION['user']['MatKhau'] &&
-                !password_verify($currentPassword, $_SESSION['user']['MatKhau'])
+            if ($currentPassword !== $_SESSION['user']['MatKhau']
+                && !password_verify($currentPassword, $_SESSION['user']['MatKhau'])
             ) {
                 $this->setFlash('danger', 'Mật khẩu hiện tại không đúng.');
                 $this->redirect('?controller=setting&action=changePassword');

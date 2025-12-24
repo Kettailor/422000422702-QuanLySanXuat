@@ -18,7 +18,7 @@ class WarehouseController extends Controller
     {
         $this->authorize(array_merge(
             ['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_BAN_GIAM_DOC', 'VT_ADMIN'],
-            $this->getWorkshopManagerRoles()
+            $this->getWorkshopManagerRoles(),
         ));
         $this->warehouseModel = new Warehouse();
         $this->lotModel = new InventoryLot();

@@ -229,25 +229,9 @@
             </div>
         </div>
 
-        <?php
-        // Nạp danh sách tiêu chí mặc định
-        $criteriaData = include __DIR__ . '/../../core/QualityCriteria.php';
-
-        // Lấy tên xưởng từ thông tin lô
-        $factoryName = $loInfo['TenXuong'] ?? '';
-        $criteria = [];
-
-        // Kiểm tra xem xưởng thuộc nhóm nào trong file QualityCriteria
-        foreach ($criteriaData['factory'] as $xuong => $list) {
-            if ($factoryName === $xuong) {
-                $criteria = $list;
-                break;
-            }
-        }
-        ?>
-
         <div class="card">
             <h5 class="fw-bold section-title mb-3">Tiêu chí kiểm tra</h5>
+          
 
             <?php if (!empty($criteria)): ?>
                 <div class="table-responsive">
@@ -264,8 +248,8 @@
                         <tbody id="criteria-body">
                             <?php foreach ($criteria as $item): ?>
                                 <tr>
-                                    <td><input type="text" name="MaTieuChi[]" class="form-control" value="<?= htmlspecialchars($item[0]) ?>" readonly></td>
-                                    <td><input type="text" name="TieuChi[]" class="form-control" value="<?= htmlspecialchars($item[1]) ?>" readonly></td>
+                                    <td><input type="text" name="MaTieuChi[]" class="form-control" value="<?= htmlspecialchars($item['id']) ?>" readonly></td>
+                                    <td><input type="text" name="TieuChi[]" class="form-control" value="<?= htmlspecialchars($item['criterion']) ?>" readonly></td>
                                     <td><input type="text" name="DiemDat[]" class="form-control diem-dat text-center"
                                             inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off"
                                             autocapitalize="off" spellcheck="false"></td>

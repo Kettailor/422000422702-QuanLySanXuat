@@ -66,7 +66,7 @@ class WorkshopAssignment
     public function syncAssignments(
         string $workshopId,
         array $warehouseIds,
-        array $productionIds
+        array $productionIds,
     ): void {
         $this->db->beginTransaction();
 
@@ -74,7 +74,7 @@ class WorkshopAssignment
         $delete->execute([':workshopId' => $workshopId]);
 
         $insert = $this->db->prepare(
-            'INSERT INTO xuong_nhan_vien (IdXuong, IdNhanVien, VaiTro) VALUES (:workshopId, :employeeId, :role)'
+            'INSERT INTO xuong_nhan_vien (IdXuong, IdNhanVien, VaiTro) VALUES (:workshopId, :employeeId, :role)',
         );
 
         foreach ($this->uniqueIds($warehouseIds) as $employeeId) {

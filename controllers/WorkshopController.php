@@ -116,7 +116,7 @@ class WorkshopController extends Controller
             $this->assignmentModel->syncAssignments(
                 $data['IdXuong'],
                 $assignments['warehouse'],
-                $assignments['production']
+                $assignments['production'],
             );
             $this->setFlash('success', 'Đã thêm xưởng sản xuất mới.');
         } catch (Throwable $exception) {
@@ -161,7 +161,7 @@ class WorkshopController extends Controller
             ? $this->groupEmployeesForWorkshop(
                 $employees,
                 $workshopType,
-                array_merge($selectedWarehouse, $selectedProduction)
+                array_merge($selectedWarehouse, $selectedProduction),
             )
             : ['warehouse' => [], 'production' => []];
         $workshopTypeRules = $this->getWorkshopTypeRules();
@@ -249,7 +249,7 @@ class WorkshopController extends Controller
                 $this->assignmentModel->syncAssignments(
                     $id,
                     $assignments['warehouse'],
-                    $assignments['production']
+                    $assignments['production'],
                 );
             }
             $this->setFlash('success', 'Cập nhật thông tin xưởng thành công.');
@@ -327,8 +327,8 @@ class WorkshopController extends Controller
         $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops);
 
         $configurationIds = array_values(array_filter(array_map(
-            fn ($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
-            $plans
+            fn($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
+            $plans,
         )));
         $materialsByComponent = $this->componentMaterialModel->getMaterialsForComponents($configurationIds);
 
@@ -914,7 +914,7 @@ class WorkshopController extends Controller
             ];
         }
 
-        usort($list, fn ($a, $b) => strcmp($a['name'], $b['name']));
+        usort($list, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         return $list;
     }
@@ -1043,7 +1043,7 @@ class WorkshopController extends Controller
         $conflicts = [];
         foreach ($warehouseIds as $employeeId) {
             $assignedWorkshops = $this->assignmentModel->getWorkshopsByEmployee($employeeId);
-            $assignedWorkshops = array_values(array_filter($assignedWorkshops, static fn ($id) => $id !== $workshopId));
+            $assignedWorkshops = array_values(array_filter($assignedWorkshops, static fn($id) => $id !== $workshopId));
             if (empty($assignedWorkshops)) {
                 continue;
             }

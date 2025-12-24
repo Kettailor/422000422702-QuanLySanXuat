@@ -1,6 +1,6 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+    session_start();
 }
 ?>
 <style>
@@ -290,17 +290,17 @@ if (session_status() === PHP_SESSION_NONE) {
             <?php foreach ($listLo as $lo): ?>
               <?php
               $ketqua = trim($lo['KetQua'] ?? '');
-              if ($ketqua === 'Đạt') {
-                $status = 'passed';
-                $checked = '1';
-              } elseif ($ketqua === 'Không đạt') {
-                $status = 'failed';
-                $checked = '1';
-              } else {
-                $status = 'unchecked';
-                $checked = '0';
-              }
-              ?>
+                if ($ketqua === 'Đạt') {
+                    $status = 'passed';
+                    $checked = '1';
+                } elseif ($ketqua === 'Không đạt') {
+                    $status = 'failed';
+                    $checked = '1';
+                } else {
+                    $status = 'unchecked';
+                    $checked = '0';
+                }
+                ?>
               <tr data-idlo="<?= htmlspecialchars($lo['IdLo']) ?>"
                 data-status="<?= $status ?>"
                 data-checked="<?= $checked ?>">

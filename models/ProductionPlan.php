@@ -60,7 +60,7 @@ class ProductionPlan extends BaseModel
                 ORDER BY ke_hoach_san_xuat.ThoiGianBD DESC';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':orderId', $orderId);
-                $stmt->execute();
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 

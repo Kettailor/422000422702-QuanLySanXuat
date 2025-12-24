@@ -9,7 +9,7 @@ class WarehouseRequest extends BaseModel
         string $workshopPlanId,
         array $items,
         ?string $requesterId,
-        ?string $note = null
+        ?string $note = null,
     ): ?string {
         if (empty($items)) {
             return null;
