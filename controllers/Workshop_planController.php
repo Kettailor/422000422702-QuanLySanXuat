@@ -138,6 +138,7 @@ class Workshop_planController extends Controller
 
         $requirements = [];
         $invalidMaterials = [];
+        $planQuantity = (int) ($plan['SoLuong'] ?? 0);
         foreach ($materialsInput as $input) {
             $materialId = $input['IdNguyenLieu'] ?? $input['id'] ?? null;
             if (!$materialId) {
@@ -147,13 +148,35 @@ class Workshop_planController extends Controller
                 $invalidMaterials[] = $materialId;
                 continue;
             }
-            $required = (int) ($input['required'] ?? $input['SoLuongThucTe'] ?? $input['SoLuong'] ?? 0);
+            $perUnit = $input['per_unit'] ?? $input['SoLuongTrenDonVi'] ?? null;
+            $perUnitValue = null;
+            if ($perUnit !== null && $perUnit !== '') {
+                $perUnitValue = (float) $perUnit;
+                if ($perUnitValue < 0) {
+                    $perUnitValue = 0;
+                }
+            }
+
+            $requiredInput = (int) ($input['required'] ?? $input['SoLuongThucTe'] ?? $input['SoLuong'] ?? 0);
+            if ($requiredInput < 0) {
+                $requiredInput = 0;
+            }
+
+            $required = $requiredInput;
+            if ($perUnitValue !== null && $perUnitValue > 0 && $planQuantity > 0) {
+                $required = (int) ceil($planQuantity * $perUnitValue);
+            }
+
             if ($required < 0) {
                 $required = 0;
+            }
+            if ($perUnitValue === null && $planQuantity > 0 && $required > 0) {
+                $perUnitValue = $required / $planQuantity;
             }
             $requirements[] = [
                 'id' => $materialId,
                 'required' => $required,
+                'per_unit' => $perUnitValue,
             ];
         }
 
@@ -585,9 +608,50 @@ class Workshop_planController extends Controller
         }
 
         try {
+            $materials = $this->materialDetailModel->getByWorkshopPlan($planId);
+            $planQuantity = (int) ($plan['SoLuong'] ?? 0);
+            $consumptions = [];
+            foreach ($materials as $material) {
+                $materialId = $material['IdNguyenLieu'] ?? null;
+                if (!$materialId) {
+                    continue;
+                }
+                $perUnit = $material['SoLuongTrenDonVi'] ?? null;
+                if (($perUnit === null || $perUnit === '') && $planQuantity > 0) {
+                    $perUnit = ((float) ($material['SoLuongKeHoach'] ?? 0)) / $planQuantity;
+                }
+                $perUnit = (float) ($perUnit ?? 0);
+                if ($perUnit <= 0) {
+                    continue;
+                }
+                $consumed = (int) ceil($quantity * $perUnit);
+                if ($consumed <= 0) {
+                    continue;
+                }
+                $consumptions[$materialId] = ($consumptions[$materialId] ?? 0) + $consumed;
+            }
+
+            if (!empty($consumptions)) {
+                $inventory = $this->materialModel->findMany(array_keys($consumptions));
+                foreach ($consumptions as $materialId => $consumed) {
+                    $stock = (int) ($inventory[$materialId]['SoLuong'] ?? 0);
+                    if ($consumed > $stock) {
+                        $this->setFlash('danger', 'Tồn kho nguyên liệu không đủ để cập nhật tiến độ.');
+                        $this->redirect('?controller=workshop_plan&action=progress&id=' . urlencode($planId));
+                        return;
+                    }
+                }
+            }
+
+            $db = Database::getInstance()->getConnection();
+            $db->beginTransaction();
             $this->inventoryLotModel->createLot($lotPayload);
             $status = ($quantity >= (int) ($plan['SoLuong'] ?? 0)) ? 'Hoàn thành' : 'Đang sản xuất';
             $this->workshopPlanModel->update($planId, ['TrangThai' => $status]);
+            foreach ($consumptions as $materialId => $consumed) {
+                $this->materialModel->adjustStock($materialId, -$consumed);
+                $this->materialDetailModel->adjustPlannedQuantity($planId, $materialId, -$consumed);
+            }
             $this->historyModel->log(
                 $planId,
                 $status,
@@ -601,8 +665,12 @@ class Workshop_planController extends Controller
                 ],
                 null
             );
+            $db->commit();
             $this->setFlash('success', 'Đã cập nhật tiến độ và tạo lô thành phẩm.');
         } catch (Throwable $exception) {
+            if (isset($db) && $db->inTransaction()) {
+                $db->rollBack();
+            }
             Logger::error('Không thể cập nhật tiến độ kế hoạch ' . $planId . ': ' . $exception->getMessage());
             $this->setFlash('danger', 'Không thể cập nhật tiến độ, vui lòng kiểm tra log.');
         }

@@ -3,12 +3,15 @@ $materialSource = $materialSource ?? 'plan';
 $materialOptions = $materialOptions ?? [];
 $materials = $materials ?? [];
 $prefillPersist = $materialSource !== 'plan';
-$materialsForRender = !empty($materials) ? $materials : [['IdNguyenLieu' => '', 'SoLuongKeHoach' => 0, 'DonVi' => '', 'SoLuongTonKho' => null]];
+$materialsForRender = !empty($materials)
+    ? $materials
+    : [['IdNguyenLieu' => '', 'SoLuongKeHoach' => 0, 'SoLuongTrenDonVi' => 0, 'DonVi' => '', 'SoLuongTonKho' => null]];
 $canUpdateProgress = $canUpdateProgress ?? false;
 $planAssignments = $planAssignments ?? [];
 $materialEnabled = $materialEnabled ?? true;
 $progressEnabled = $progressEnabled ?? true;
 $isCancelled = $isCancelled ?? false;
+$planQuantity = isset($plan['SoLuong']) ? (int) $plan['SoLuong'] : 0;
 
 $materialOptionHtml = '<option value="">Chọn nguyên liệu</option>';
 foreach ($materialOptions as $option) {
@@ -140,6 +143,7 @@ foreach ($materialOptions as $option) {
                                 <th>Nguyên liệu</th>
                                 <th class="text-end">Định mức kế hoạch</th>
                                 <th class="text-end">Tồn kho</th>
+                                <th style="width: 200px">Sử dụng/đơn vị</th>
                                 <th style="width: 220px">Nhu cầu thực tế</th>
                             </tr>
                         </thead>
@@ -164,8 +168,23 @@ foreach ($materialOptions as $option) {
                                     <?= isset($material['SoLuongTonKho']) ? number_format((int) ($material['SoLuongTonKho'] ?? 0)) : 'Đang tra cứu' ?><?= !empty($material['DonVi']) ? ' ' . htmlspecialchars($material['DonVi']) : '' ?>
                                 </td>
                                 <td>
+                                    <?php
+                                    $perUnit = $material['SoLuongTrenDonVi'] ?? null;
+                                    if (($perUnit === null || $perUnit === '') && $planQuantity > 0) {
+                                        $perUnit = ((float) ($material['SoLuongKeHoach'] ?? 0)) / $planQuantity;
+                                    }
+                                    if ($perUnit === null || $perUnit === '') {
+                                        $perUnit = 0;
+                                    }
+                                    $perUnitValue = rtrim(rtrim(number_format((float) $perUnit, 4, '.', ''), '0'), '.');
+                                    ?>
                                     <div class="input-group input-group-sm">
-                                        <input type="number" min="0" class="form-control" name="materials[<?= $index ?>][required]" value="<?= htmlspecialchars($material['SoLuongKeHoach'] ?? 0) ?>" required <?= $isCancelled ? 'disabled' : '' ?>>
+                                        <input type="number" min="0" step="0.0001" class="form-control material-per-unit" name="materials[<?= $index ?>][per_unit]" value="<?= htmlspecialchars($perUnitValue) ?>" <?= $isCancelled ? 'disabled' : '' ?>>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" min="0" class="form-control material-required" name="materials[<?= $index ?>][required]" value="<?= htmlspecialchars($material['SoLuongKeHoach'] ?? 0) ?>" required <?= $isCancelled ? 'disabled' : '' ?>>
                                         <?php if (!empty($material['DonVi'])): ?>
                                             <span class="input-group-text"><?= htmlspecialchars($material['DonVi']) ?></span>
                                         <?php endif; ?>
@@ -270,6 +289,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const addRowBtn = document.getElementById('add-material-row');
     const rowsContainer = document.getElementById('material-rows');
     const optionTemplate = <?= json_encode($materialOptionHtml, JSON_UNESCAPED_UNICODE) ?>;
+    const planQuantity = <?= (int) $planQuantity ?>;
+
+    const syncRequiredFromUnit = (row) => {
+        if (!planQuantity) {
+            return;
+        }
+        const perUnitInput = row.querySelector('.material-per-unit');
+        const requiredInput = row.querySelector('.material-required');
+        if (!perUnitInput || !requiredInput) {
+            return;
+        }
+        const perUnitValue = parseFloat(perUnitInput.value || '0');
+        if (!Number.isFinite(perUnitValue)) {
+            return;
+        }
+        const computed = Math.ceil(planQuantity * perUnitValue);
+        if (!Number.isNaN(computed)) {
+            requiredInput.value = computed;
+        }
+    };
 
     if (addRowBtn && rowsContainer) {
         addRowBtn.addEventListener('click', function() {
@@ -285,11 +324,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="text-end">Đang tra cứu</td>
                 <td>
                     <div class="input-group input-group-sm">
-                        <input type="number" min="0" class="form-control" name="materials[${index}][required]" value="0" required>
+                        <input type="number" min="0" step="0.0001" class="form-control material-per-unit" name="materials[${index}][per_unit]" value="0">
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <input type="number" min="0" class="form-control material-required" name="materials[${index}][required]" value="0" required>
                     </div>
                 </td>
             `;
             rowsContainer.appendChild(row);
+            const perUnitInput = row.querySelector('.material-per-unit');
+            if (perUnitInput) {
+                perUnitInput.addEventListener('input', () => syncRequiredFromUnit(row));
+            }
+        });
+    }
+
+    if (rowsContainer) {
+        rowsContainer.querySelectorAll('tr').forEach((row) => {
+            const perUnitInput = row.querySelector('.material-per-unit');
+            if (perUnitInput) {
+                perUnitInput.addEventListener('input', () => syncRequiredFromUnit(row));
+            }
         });
     }
 });
