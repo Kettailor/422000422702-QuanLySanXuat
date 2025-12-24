@@ -52,7 +52,10 @@ class Workshop_planController extends Controller
         $isCancelled = $this->isPlanCancelled($plan);
 
         $materialSource = 'plan';
-        $materialOptions = $materialEnabled ? $this->materialModel->all(500) : [];
+        $materialOptions = [];
+        if ($plan && $materialEnabled) {
+            $materialOptions = $this->materialModel->getByWorkshopMaterialWarehouse($plan['IdXuong'] ?? '');
+        }
 
         if ($plan && empty($materials) && $materialEnabled) {
             $materialSource = 'custom';
@@ -117,11 +120,29 @@ class Workshop_planController extends Controller
 
         $materialsInput = $_POST['materials'] ?? [];
         $note = trim($_POST['note'] ?? '');
+        if ($note === '') {
+            $this->setFlash('danger', 'Vui lòng nhập ghi chú điều chỉnh.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+            return;
+        }
+
+        $allowedMaterials = $this->materialModel->getByWorkshopMaterialWarehouse($plan['IdXuong'] ?? '');
+        $allowedIds = array_fill_keys(array_column($allowedMaterials, 'IdNguyenLieu'), true);
+        if (empty($allowedIds)) {
+            $this->setFlash('danger', 'Chưa có kho nguyên liệu cho xưởng hoặc kho chưa có nguyên liệu.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+            return;
+        }
 
         $requirements = [];
+        $invalidMaterials = [];
         foreach ($materialsInput as $input) {
             $materialId = $input['IdNguyenLieu'] ?? $input['id'] ?? null;
             if (!$materialId) {
+                continue;
+            }
+            if (!isset($allowedIds[$materialId])) {
+                $invalidMaterials[] = $materialId;
                 continue;
             }
             $required = (int) ($input['required'] ?? $input['SoLuongThucTe'] ?? $input['SoLuong'] ?? 0);
@@ -132,6 +153,12 @@ class Workshop_planController extends Controller
                 'id' => $materialId,
                 'required' => $required,
             ];
+        }
+
+        if (!empty($invalidMaterials)) {
+            $this->setFlash('danger', 'Nguyên liệu không thuộc kho nguyên liệu của xưởng.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+            return;
         }
 
         if (empty($requirements)) {
@@ -151,7 +178,9 @@ class Workshop_planController extends Controller
 
         try {
             $this->materialDetailModel->replaceForPlan($planId, $requirements);
-            $this->notifyWarehouseAssignments($plan, $requirements);
+            if (!$checkResult['is_sufficient']) {
+                $this->notifyWarehouseAssignments($plan, $requirements);
+            }
         } catch (Throwable $exception) {
             Logger::error('Không thể lưu danh sách nguyên liệu cho kế hoạch ' . $planId . ': ' . $exception->getMessage());
         }
@@ -528,9 +557,13 @@ class Workshop_planController extends Controller
         }
 
         $lotId = $this->inventoryLotModel->generateLotId('LOTP');
+        $lotDefaultName = 'Lô thành phẩm ' . $planId;
+        if (!empty($plan['TenCauHinh'])) {
+            $lotDefaultName .= ' - ' . $plan['TenCauHinh'];
+        }
         $lotPayload = [
             'IdLo' => $lotId,
-            'TenLo' => $lotName !== '' ? $lotName : ('Lô thành phẩm ' . $planId),
+            'TenLo' => $lotName !== '' ? $lotName : $lotDefaultName,
             'SoLuong' => $quantity,
             'LoaiLo' => 'Thành phẩm',
             'IdSanPham' => $plan['IdSanPham'] ?? null,
@@ -614,9 +647,23 @@ class Workshop_planController extends Controller
             return;
         }
 
-        $assignments = $this->assignmentModel->getAssignmentsByWorkshop($workshopId);
-        $warehouseEmployees = $assignments['nhan_vien_kho'] ?? [];
-        if (empty($warehouseEmployees)) {
+        $warehouse = $this->warehouseModel->findMaterialWarehouseByWorkshop($workshopId);
+        $managerId = $warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? null;
+        $recipients = [];
+        if ($managerId) {
+            $recipients[] = $managerId;
+        }
+        if (empty($recipients)) {
+            $assignments = $this->assignmentModel->getAssignmentsByWorkshop($workshopId);
+            foreach ($assignments['nhan_vien_kho'] ?? [] as $employee) {
+                $employeeId = $employee['IdNhanVien'] ?? null;
+                if ($employeeId) {
+                    $recipients[] = $employeeId;
+                }
+            }
+        }
+        $recipients = array_values(array_unique(array_filter($recipients)));
+        if (empty($recipients)) {
             return;
         }
 
@@ -628,12 +675,7 @@ class Workshop_planController extends Controller
         );
 
         $entries = [];
-        foreach ($warehouseEmployees as $employee) {
-            $employeeId = $employee['IdNhanVien'] ?? null;
-            if (!$employeeId) {
-                continue;
-            }
-
+        foreach ($recipients as $employeeId) {
             $entries[] = [
                 'channel' => 'warehouse_assignment',
                 'recipient' => $employeeId,

@@ -31,6 +31,32 @@ class Material extends BaseModel
         return $mapped;
     }
 
+    public function getByWorkshopMaterialWarehouse(string $workshopId): array
+    {
+        if ($workshopId === '') {
+            return [];
+        }
+
+        $sql = 'SELECT nl.*
+                FROM nguyen_lieu nl
+                JOIN lo ON lo.IdLo = nl.IdLo
+                JOIN kho ON kho.IdKho = lo.IdKho
+                WHERE kho.IdXuong = :workshopId
+                  AND (
+                    LOWER(kho.TenLoaiKho) LIKE :materialKeyword
+                    OR LOWER(kho.TenLoaiKho) LIKE :materialKeywordAscii
+                  )
+                ORDER BY nl.TenNL';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':workshopId', $workshopId);
+        $stmt->bindValue(':materialKeyword', '%nguyên%');
+        $stmt->bindValue(':materialKeywordAscii', '%nguyen%');
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
     public static function checkAvailability(array $requirements): array
     {
         $requirements = array_values(array_filter($requirements, function ($item) {
@@ -85,4 +111,3 @@ class Material extends BaseModel
         ];
     }
 }
-

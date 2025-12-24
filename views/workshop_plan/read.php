@@ -179,7 +179,7 @@ foreach ($materialOptions as $option) {
                 <div class="row mb-3">
                     <div class="col-md-8">
                         <label for="note" class="form-label">Ghi chú điều chỉnh / lý do</label>
-                        <textarea name="note" id="note" rows="3" class="form-control" placeholder="Ghi chú cho Ban giám đốc theo dõi..." <?= $isCancelled ? 'disabled' : '' ?>></textarea>
+                        <textarea name="note" id="note" rows="3" class="form-control" placeholder="Ghi chú cho Ban giám đốc theo dõi..." required <?= $isCancelled ? 'disabled' : '' ?>></textarea>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end">
