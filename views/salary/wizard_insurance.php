@@ -29,9 +29,10 @@ $period = $period ?? date('Y-m');
                 </tr>
                 </thead>
                 <tbody>
-                <?php $index = 1; foreach ($compensation as $id => $row):
-                    $ins = $insurance[$id] ?? ['bhyt' => 0, 'bhxh' => 0, 'bhtn' => 0, 'tax' => 0, 'total' => 0];
-                    ?>
+                <?php $index = 1;
+foreach ($compensation as $id => $row):
+    $ins = $insurance[$id] ?? ['bhyt' => 0, 'bhxh' => 0, 'bhtn' => 0, 'tax' => 0, 'total' => 0];
+    ?>
                     <tr>
                         <td><?= $index++ ?></td>
                         <td><?= htmlspecialchars($id) ?></td>

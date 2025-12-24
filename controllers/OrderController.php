@@ -77,7 +77,7 @@ class OrderController extends Controller
             $db->beginTransaction();
 
             $preparedDetails = $this->prepareOrderDetails($orderId, $detailsInput);
-            $totalAmount = array_reduce($preparedDetails, static fn ($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
+            $totalAmount = array_reduce($preparedDetails, static fn($carry, $detail) => $carry + ($detail['ThanhTien'] ?? 0), 0.0);
 
             $currentUser = $this->currentUser();
             $creatorEmployeeId = $currentUser['IdNhanVien'] ?? null;
@@ -407,7 +407,7 @@ class OrderController extends Controller
             ];
         }
 
-        $activePlans = array_filter($plans, static fn (array $plan): bool => ($plan['TrangThai'] ?? '') !== 'Hủy');
+        $activePlans = array_filter($plans, static fn(array $plan): bool => ($plan['TrangThai'] ?? '') !== 'Hủy');
         if ($activePlans) {
             return [
                 'eligible' => false,
@@ -441,7 +441,7 @@ class OrderController extends Controller
                 }
                 $productUnit = trim($detail['new_product_unit'] ?? '');
                 $productDescription = trim($detail['new_product_description'] ?? '');
-                $productPrice = (float)($detail['unit_price'] ?? 0);
+                $productPrice = (float) ($detail['unit_price'] ?? 0);
 
                 if ($productId && $existingProduct = $this->productModel->find($productId)) {
                     $this->productModel->update($productId, [
@@ -489,7 +489,7 @@ class OrderController extends Controller
                 }
 
                 $configurationDescription = trim($detail['new_configuration_description'] ?? '');
-                $configurationPrice = (float)($detail['new_configuration_price'] ?? 0);
+                $configurationPrice = (float) ($detail['new_configuration_price'] ?? 0);
 
                 if ($configurationId && $existingConfiguration = $this->configurationModel->find($configurationId)) {
                     $this->configurationModel->update($configurationId, [
@@ -554,24 +554,24 @@ class OrderController extends Controller
             }
 
             if ($configuration) {
-                $configKeycap = $configKeycap ?: trim((string)($configuration['Keycap'] ?? ''));
-                $configMainboard = $configMainboard ?: trim((string)($configuration['Mainboard'] ?? ''));
-                $configSwitch = $configSwitch ?: trim((string)($configuration['SwitchType'] ?? ''));
-                $configCase = $configCase ?: trim((string)($configuration['CaseType'] ?? ''));
-                $configLayout = $configLayout ?: trim((string)($configuration['Layout'] ?? ''));
-                $configFoam = $configFoam ?: trim((string)($configuration['Foam'] ?? ''));
+                $configKeycap = $configKeycap ?: trim((string) ($configuration['Keycap'] ?? ''));
+                $configMainboard = $configMainboard ?: trim((string) ($configuration['Mainboard'] ?? ''));
+                $configSwitch = $configSwitch ?: trim((string) ($configuration['SwitchType'] ?? ''));
+                $configCase = $configCase ?: trim((string) ($configuration['CaseType'] ?? ''));
+                $configLayout = $configLayout ?: trim((string) ($configuration['Layout'] ?? ''));
+                $configFoam = $configFoam ?: trim((string) ($configuration['Foam'] ?? ''));
                 if ($configDescription === '' && !empty($configuration['MoTa'])) {
-                    $configDescription = trim((string)$configuration['MoTa']);
+                    $configDescription = trim((string) $configuration['MoTa']);
                 }
             }
 
-            $quantity = (int)($detail['quantity'] ?? 0);
+            $quantity = (int) ($detail['quantity'] ?? 0);
             if ($quantity <= 0) {
                 continue;
             }
 
-            $unitPrice = (float)($detail['unit_price'] ?? 0);
-            $vatInput = (float)($detail['vat'] ?? 0);
+            $unitPrice = (float) ($detail['unit_price'] ?? 0);
+            $vatInput = (float) ($detail['vat'] ?? 0);
             $vat = $vatInput > 1 ? $vatInput / 100 : $vatInput;
             $total = $quantity * $unitPrice * (1 + $vat);
 
@@ -642,10 +642,10 @@ class OrderController extends Controller
 
         $rawMeta = $detail['GhiChu'] ?? null;
         if ($rawMeta) {
-            $decoded = json_decode((string)$rawMeta, true);
+            $decoded = json_decode((string) $rawMeta, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 if (isset($decoded['note'])) {
-                    $note = trim((string)$decoded['note']);
+                    $note = trim((string) $decoded['note']);
                     $meta['note'] = $note !== '' ? $note : null;
                 }
                 if (isset($decoded['configuration']) && is_array($decoded['configuration'])) {
@@ -668,7 +668,7 @@ class OrderController extends Controller
                     $meta['source'] = array_merge($meta['source'], array_intersect_key($decoded['source'], $meta['source']));
                 }
             } else {
-                $note = trim((string)$rawMeta);
+                $note = trim((string) $rawMeta);
                 $meta['note'] = $note !== '' ? $note : null;
             }
         }
@@ -689,7 +689,7 @@ class OrderController extends Controller
                 $delivery = $timestamp ? date('Y-m-d\TH:i', $timestamp) : null;
             }
 
-            $vatPercent = isset($detail['VAT']) ? ((float)$detail['VAT']) * 100 : 0;
+            $vatPercent = isset($detail['VAT']) ? ((float) $detail['VAT']) * 100 : 0;
 
             return [
                 'product_mode' => $meta['source']['product'] ?? 'existing',
@@ -702,8 +702,8 @@ class OrderController extends Controller
                 'new_configuration_name' => $detail['TenCauHinh'] ?? '',
                 'new_configuration_price' => $detail['GiaCauHinh'] ?? '',
                 'new_configuration_description' => $detail['MoTaCauHinh'] ?? '',
-                'quantity' => (int)($detail['SoLuong'] ?? 1),
-                'unit_price' => (float)($detail['DonGia'] ?? 0),
+                'quantity' => (int) ($detail['SoLuong'] ?? 1),
+                'unit_price' => (float) ($detail['DonGia'] ?? 0),
                 'vat' => $vatPercent,
                 'delivery_date' => $delivery,
                 'min_delivery_date' => $delivery,
@@ -717,7 +717,7 @@ class OrderController extends Controller
                 'config_case_type' => $meta['configuration']['case_type'] ?? ($detail['CaseType'] ?? ''),
                 'config_foam' => $meta['configuration']['foam'] ?? ($detail['Foam'] ?? ''),
                 'detail_id' => $detail['IdTTCTDonHang'] ?? '',
-                'min_quantity' => (int)($detail['SoLuong'] ?? 1),
+                'min_quantity' => (int) ($detail['SoLuong'] ?? 1),
             ];
         }, $details);
     }

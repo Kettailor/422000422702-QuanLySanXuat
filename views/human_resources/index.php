@@ -133,8 +133,8 @@ $activeRate = $employeeCount > 0 ? round(($activeCount / $employeeCount) * 100, 
                         <div class="text-muted small">
                             <?php
                             $roleId = $employee['IdVaiTro'] ?? '';
-                            $roleName = $roleMap[$roleId]['TenVaiTro'] ?? $roleId;
-                            ?>
+                $roleName = $roleMap[$roleId]['TenVaiTro'] ?? $roleId;
+                ?>
                             <?= $roleName ? htmlspecialchars($roleName) : 'Chưa phân quyền' ?>
                         </div>
                     </td>

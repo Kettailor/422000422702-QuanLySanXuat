@@ -7,7 +7,7 @@ class PlanController extends Controller
     private WorkshopPlan $workshopPlanModel;
     private ProductComponent $componentModel;
     private Workshop $workshopModel;
-    private  WorkshopPlanMaterialDetail $workShopPlanDetail;
+    private WorkshopPlanMaterialDetail $workShopPlanDetail;
     private Order $orderModel;
     private Employee $employeeModel;
     private User $userModel;
@@ -176,11 +176,11 @@ class PlanController extends Controller
                         $this->workShopPlanDetail->createWorkshopPlanDetail(
                             $assignment['IdKeHoachSanXuatXuong'],
                             $orderDetail['IdCauHinh'],
-                            $assignment['SoLuong']
+                            $assignment['SoLuong'],
                         );
                     } catch (Throwable $exception) {
                         Logger::warn(
-                            'Không tìm thấy cấu hình nguyên liệu cho mã: ' . $orderDetail['IdCauHinh']
+                            'Không tìm thấy cấu hình nguyên liệu cho mã: ' . $orderDetail['IdCauHinh'],
                         );
                     }
                 }
@@ -417,7 +417,7 @@ class PlanController extends Controller
                 'allowed_workshop_types' => $this->resolveAllowedWorkshopTypes(
                     $component['TenCongDoan'] ?? $component['TenPhanCong'] ?? '',
                     $component['LoaiCongDoan'] ?? null,
-                    null
+                    null,
                 ),
             ];
         }

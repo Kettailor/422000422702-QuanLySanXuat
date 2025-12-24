@@ -231,14 +231,14 @@
           <div class="info-box span-3 text-center">
             <div class="info-label">Tiêu chí đạt</div>
             <div class="info-value text-success fs-4">
-              <?= (int)$report['TongTCD'] ?>
+              <?= (int) $report['TongTCD'] ?>
             </div>
           </div>
 
           <div class="info-box span-3 text-center">
             <div class="info-label">Không đạt</div>
             <div class="info-value text-danger fs-4">
-              <?= (int)$report['TongTCKD'] ?>
+              <?= (int) $report['TongTCKD'] ?>
             </div>
           </div>
         </div>

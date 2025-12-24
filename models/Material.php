@@ -72,7 +72,7 @@ class Material extends BaseModel
             ];
         }
 
-        $materialIds = array_map(fn ($item) => $item['id'] ?? $item['IdNguyenLieu'], $requirements);
+        $materialIds = array_map(fn($item) => $item['id'] ?? $item['IdNguyenLieu'], $requirements);
         $materialModel = new self();
         $inventory = $materialModel->findMany($materialIds);
 

@@ -203,14 +203,14 @@
                                 <?php $status = $workshop['TrangThai'] ?? 'Không xác định'; ?>
                                 <?php
                                 $badgeClass = 'badge-soft-warning';
-                                if ($status === 'Đang hoạt động') {
-                                    $badgeClass = 'badge-soft-success';
-                                } elseif ($status === 'Bảo trì') {
-                                    $badgeClass = 'badge-soft-warning';
-                                } elseif ($status === 'Tạm dừng') {
-                                    $badgeClass = 'badge-soft-danger';
-                                }
-                                ?>
+                        if ($status === 'Đang hoạt động') {
+                            $badgeClass = 'badge-soft-success';
+                        } elseif ($status === 'Bảo trì') {
+                            $badgeClass = 'badge-soft-warning';
+                        } elseif ($status === 'Tạm dừng') {
+                            $badgeClass = 'badge-soft-danger';
+                        }
+                        ?>
                                 <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($status) ?></span>
                             </td>
                             <td class="text-end">

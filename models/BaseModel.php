@@ -2,7 +2,7 @@
 
 abstract class BaseModel
 {
-        protected PDO $db;
+    protected PDO $db;
     protected string $table;
     protected string $primaryKey = 'id';
 
@@ -49,7 +49,7 @@ abstract class BaseModel
             'INSERT INTO %s (%s) VALUES (%s)',
             $this->quoteIdentifier($this->table),
             implode(', ', $quotedColumns),
-            implode(', ', $placeholders)
+            implode(', ', $placeholders),
         );
 
         $stmt = $this->db->prepare($sql);
@@ -78,7 +78,7 @@ abstract class BaseModel
             'UPDATE %s SET %s WHERE %s = :primary_id',
             $this->quoteIdentifier($this->table),
             implode(', ', $assignments),
-            $this->quoteIdentifier($this->primaryKey)
+            $this->quoteIdentifier($this->primaryKey),
         );
 
         $stmt = $this->db->prepare($sql);

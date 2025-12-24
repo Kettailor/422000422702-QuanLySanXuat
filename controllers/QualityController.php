@@ -3,11 +3,13 @@
 class QualityController extends Controller
 {
     private QualityReport $qualityModel;
+    private Workshop $workshopModel;
 
     public function __construct()
     {
         $this->authorize(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
         $this->qualityModel = new QualityReport();
+        $this->workshopModel = new Workshop();
         date_default_timezone_set('Asia/Ho_Chi_Minh');
     }
 
@@ -19,12 +21,11 @@ class QualityController extends Controller
         $dashboard = $this->qualityModel->getDashboardSummary();
         $listLo    = $this->qualityModel->getDanhSachLo();
 
-        // ✅ Lấy flash qua query string
         $flash = null;
         if (!empty($_GET['msg'])) {
             $flash = [
                 'type' => $_GET['type'] ?? 'success',
-                'message' => $_GET['msg']
+                'message' => $_GET['msg'],
             ];
         }
 
@@ -34,7 +35,7 @@ class QualityController extends Controller
             'summary'   => $summary,
             'dashboard' => $dashboard,
             'listLo'    => $listLo,
-            'flash'     => $flash
+            'flash'     => $flash,
         ]);
     }
 
@@ -55,7 +56,6 @@ class QualityController extends Controller
 
         $db = $this->qualityModel->getConnection();
 
-        // ===== LẤY BIÊN BẢN =====
         $stmt = $db->prepare("
         SELECT bb.*
         FROM bien_ban_danh_gia_thanh_pham bb
@@ -68,7 +68,6 @@ class QualityController extends Controller
 
         if ($report) {
 
-            // ===== LẤY ẢNH MINH CHỨNG =====
             $stmtImg = $db->prepare("
             SELECT HinhAnh
             FROM ttct_bien_ban_danh_gia_thanh_pham
@@ -77,11 +76,10 @@ class QualityController extends Controller
               AND HinhAnh <> ''
         ");
             $stmtImg->execute([
-                ':id' => $report['IdBienBanDanhGiaSP']
+                ':id' => $report['IdBienBanDanhGiaSP'],
             ]);
             $images = $stmtImg->fetchAll(PDO::FETCH_COLUMN);
 
-            // ===== LẤY NGƯỜI LẬP (HỌ TÊN) =====
             $nguoiLap = $_SESSION['user']['TenDangNhap'] ?? 'Không xác định';
 
             $idNV = $_SESSION['user']['IdNhanVien'] ?? null;
@@ -99,13 +97,12 @@ class QualityController extends Controller
                 }
             }
 
-            // ===== RENDER VIEW =====
             $this->render('quality/read', [
                 'title'     => 'Chi tiết biên bản đánh giá',
                 'report'    => $report,
                 'images'    => $images,
                 'isReport'  => true,
-                'nguoiLap'  => $nguoiLap   // 👈 TRUYỀN SANG VIEW
+                'nguoiLap'  => $nguoiLap,
             ]);
         }
     }
@@ -121,24 +118,29 @@ class QualityController extends Controller
             $db = $this->qualityModel->getConnection();
             $stmt = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_thanh_pham WHERE IdLo = :idLo");
             $stmt->execute([':idLo' => $idLo]);
-            $exists = (int)$stmt->fetchColumn() > 0;
+            $exists = (int) $stmt->fetchColumn() > 0;
 
             if ($exists) {
                 $this->redirect('?controller=quality&action=index&msg=' . urlencode("Lô $idLo đã có biên bản, không thể tạo mới.") . '&type=warning');
             }
 
             $loInfo = $this->qualityModel->getLoInfo($idLo);
-            $criteriaList = require __DIR__ . '/../core/QualityCriteria.php';
-            $xuong = $loInfo['TenXuong'] ?? null;
-            if ($xuong && isset($criteriaList[$xuong])) {
-                $criteria = $criteriaList[$xuong];
+            $criteriaDir = __DIR__ . '/../storage/quality_criteria.json';
+            if (file_exists($criteriaDir)) {
+                $jsonContent = file_get_contents($criteriaDir);
+                $allCriteria = json_decode($jsonContent, true) ?? [];
+                $idXuong = $loInfo['idXuong'] ?? null;
+                if ($idXuong && isset($allCriteria[$idXuong])) {
+                    $criteria = $allCriteria[$idXuong];
+                }
             }
         }
+
 
         $this->render('quality/create', [
             'title'    => 'Lập biên bản đánh giá thành phẩm',
             'loInfo'   => $loInfo,
-            'criteria' => $criteria
+            'criteria' => $criteria,
         ]);
     }
 
@@ -155,7 +157,7 @@ class QualityController extends Controller
             $db = $this->qualityModel->getConnection();
             $stmt = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_thanh_pham WHERE IdLo = :idLo");
             $stmt->execute([':idLo' => $idLo]);
-            if ((int)$stmt->fetchColumn() > 0) {
+            if ((int) $stmt->fetchColumn() > 0) {
                 $this->redirect('?controller=quality&action=index&msg=' . urlencode("Lô $idLo đã có biên bản, không thể tạo mới.") . '&type=warning');
             }
         }
@@ -188,9 +190,11 @@ class QualityController extends Controller
             $tongTCKD = 0;
 
             foreach ($arrTieuChi as $i => $tieuChi) {
-                if (trim($tieuChi) === '') continue;
+                if (trim($tieuChi) === '') {
+                    continue;
+                }
 
-                $diem = max(0, min(10, (float)($arrDiemDat[$i] ?? 0)));
+                $diem = max(0, min(10, (float) ($arrDiemDat[$i] ?? 0)));
                 $ghiChu = trim($arrGhiChu[$i] ?? '');
                 $fileName = null;
 
@@ -198,7 +202,9 @@ class QualityController extends Controller
 
                     $uploadDir = realpath(__DIR__ . '/../storage/img/bbdgtp');
                     if ($uploadDir === false) {
-                        throw new Exception('Không tìm thấy thư mục storage/img/bbdgtp');
+                        if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+                            throw new Exception('Không thể tạo thư mục lưu trữ file upload');
+                        }
                     }
                     $uploadDir .= DIRECTORY_SEPARATOR;
 
@@ -219,10 +225,13 @@ class QualityController extends Controller
                 }
 
 
-                $this->qualityModel->insertChiTietTieuChi($idBienBan, $tieuChi, (int)$diem, $ghiChu, $fileName);
+                $this->qualityModel->insertChiTietTieuChi($idBienBan, $tieuChi, (int) $diem, $ghiChu, $fileName);
 
-                if ($diem >= 9) $tongTCD++;
-                else $tongTCKD++;
+                if ($diem >= 9) {
+                    $tongTCD++;
+                } else {
+                    $tongTCKD++;
+                }
             }
 
             $ketQuaTong = ($tongTCKD > 0) ? 'Không đạt' : 'Đạt';
@@ -241,13 +250,12 @@ class QualityController extends Controller
     public function delete(): void
     {
         $idBienBan = $_GET['id'] ?? null;
-        $idLo = $_GET['IdLo'] ?? null; // nếu bạn cần IdLo cho mục đích khác vẫn giữ
+        $idLo = $_GET['IdLo'] ?? null;
 
         if (!$idBienBan) {
             $this->redirect('?controller=quality&action=index&msg=' . urlencode('Thiếu mã biên bản để xóa.') . '&type=warning');
         }
 
-        // Gọi model đúng cú pháp
         $deleted = $this->qualityModel->deleteBienBanCascade($idBienBan);
 
         if ($deleted) {
@@ -255,5 +263,111 @@ class QualityController extends Controller
         } else {
             $this->redirect('?controller=quality&action=index&msg=' . urlencode('Không thể xóa biên bản. Vui lòng kiểm tra lại dữ liệu.') . '&type=danger');
         }
+    }
+
+    /** Quan ly tieu chi danh gia */
+    public function criterias(): void
+    {
+        if (!$_GET['id']) {
+            $this->render('quality/criterias', [
+                'title'    => 'Quản lý tiêu chí đánh giá',
+                'workshops' => $this->workshopModel->all(),
+            ]);
+        } else {
+            $criteriaPath = __DIR__ . '/../storage/quality_criteria.json';
+            $idXuong = $_GET['id'];
+            $criteriaData = [];
+            if (file_exists($criteriaPath)) {
+                $jsonContent = file_get_contents($criteriaPath);
+                $criteriaData = json_decode($jsonContent, true) ?? [];
+            }
+
+            $criteriaList = [];
+            if (isset($criteriaData[$idXuong])) {
+                $criteriaList = $criteriaData[$idXuong];
+            }
+
+            $this->render('quality/criterias', [
+                'title'    => 'Quản lý tiêu chí đánh giá',
+                'criterias' => $criteriaList,
+            ]);
+        }
+    }
+
+    public function createCriteria(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $idXuong = $_GET['id'] ?? null;
+
+            if (!$idXuong) {
+                $this->setFlash('danger', 'Thiếu mã xưởng để thêm tiêu chí.');
+                $this->redirect('?controller=quality&action=criterias');
+            }
+
+            $this->render('quality/create_criteria', [
+                'title'   => 'Thêm tiêu chí đánh giá',
+                'idXuong' => $idXuong,
+            ]);
+        }
+
+        $criteriaPath = __DIR__ . '/../storage/quality_criteria.json';
+        $idXuong = $_POST['idXuong'] ?? null;
+        $criterion = trim($_POST['criterion'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        if (!$idXuong || !$criterion) {
+            $this->setFlash('danger', 'Thiếu thông tin tiêu chí.');
+            $this->redirect('?controller=quality&action=createCriteria&id=' . urlencode($idXuong));
+        }
+        $criteriaData = [];
+        if (file_exists($criteriaPath)) {
+            $jsonContent = file_get_contents($criteriaPath);
+            $criteriaData = json_decode($jsonContent, true) ?? [];
+        }
+        if (!isset($criteriaData[$idXuong])) {
+            $criteriaData[$idXuong] = [];
+        }
+        $newCriteria = [
+            'id'          => uniqid('TC_'),
+            'criterion'   => $criterion,
+            'description' => $description,
+        ];
+        $criteriaData[$idXuong][] = $newCriteria;
+        file_put_contents($criteriaPath, json_encode($criteriaData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $this->setFlash('success', 'Thêm tiêu chí thành công.');
+        $this->redirect('?controller=quality&action=criterias&id=' . urlencode($idXuong));
+    }
+
+    public function deleteCriteria(): void
+    {
+        $criteriaPath = __DIR__ . '/../storage/quality_criteria.json';
+        $idXuong = $_GET['idXuong'] ?? null;
+        $criteriaId = $_GET['criteriaId'] ?? null;
+
+        if (!$idXuong || !$criteriaId) {
+            $this->setFlash('danger', 'Thiếu thông tin để xóa tiêu chí.');
+            $this->redirect('?controller=quality&action=criterias');
+        }
+
+        $criteriaData = [];
+        if (file_exists($criteriaPath)) {
+            $jsonContent = file_get_contents($criteriaPath);
+            $criteriaData = json_decode($jsonContent, true) ?? [];
+        }
+
+        if (isset($criteriaData[$idXuong])) {
+            $criteriaList = &$criteriaData[$idXuong];
+            foreach ($criteriaList as $index => $criteria) {
+                if (($criteria['id'] ?? '') === $criteriaId) {
+                    array_splice($criteriaList, $index, 1);
+                    break;
+                }
+            }
+            file_put_contents($criteriaPath, json_encode($criteriaData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            $this->setFlash('success', 'Xóa tiêu chí thành công.');
+        } else {
+            $this->setFlash('warning', 'Không tìm thấy tiêu chí để xóa.');
+        }
+
+        $this->redirect('?controller=quality&action=criterias&id=' . urlencode($idXuong));
     }
 }

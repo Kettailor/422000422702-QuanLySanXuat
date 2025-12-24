@@ -186,11 +186,11 @@
 
     <?php
     $currentUser = $currentUser ?? [];
-    $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
-    $canCancel = $roleId === 'VT_BAN_GIAM_DOC';
-    $orderStatus = $order['TrangThai'] ?? '';
-    $canCancelStatus = in_array($orderStatus, ['Chưa có kế hoạch', 'Đang xử lý'], true) && $canCancelByPlan;
-    ?>
+$roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
+$canCancel = $roleId === 'VT_BAN_GIAM_DOC';
+$orderStatus = $order['TrangThai'] ?? '';
+$canCancelStatus = in_array($orderStatus, ['Chưa có kế hoạch', 'Đang xử lý'], true) && $canCancelByPlan;
+?>
     <?php if ($canCancel): ?>
         <div class="card p-4 mt-4">
             <h5 class="fw-semibold mb-3">Hủy đơn hàng</h5>

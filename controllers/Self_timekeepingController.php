@@ -161,7 +161,7 @@ class Self_timekeepingController extends Controller
                     $adjustedCheckOut,
                     $location['lat'],
                     $location['lng'],
-                    $location['accuracy']
+                    $location['accuracy'],
                 );
                 $this->setFlash('success', 'Đã ghi nhận giờ ra ca.');
             } else {
@@ -183,7 +183,7 @@ class Self_timekeepingController extends Controller
                     $employeeId,
                     $location['lat'],
                     $location['lng'],
-                    $location['accuracy']
+                    $location['accuracy'],
                 );
                 $this->setFlash('success', 'Đã ghi nhận giờ vào ca.');
             }

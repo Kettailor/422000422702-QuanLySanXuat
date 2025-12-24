@@ -40,7 +40,7 @@ class AccountControllerTest extends TestCase
             ->method('render')
             ->with(
                 $this->equalTo('account/index'),
-                $this->arrayHasKey('users')
+                $this->arrayHasKey('users'),
             );
 
         $this->controller->index();
@@ -89,7 +89,7 @@ class AccountControllerTest extends TestCase
             $this->callback(function ($msg) {
                 return strpos($msg, 'đã tồn tại') !== false
                     || strpos($msg, 'Không thể cập nhật tài khoản') !== false;
-            })
+            }),
         );
         $this->controller->expects($this->atLeastOnce())->method('redirect')->with($this->stringContains('edit'));
 

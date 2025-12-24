@@ -40,7 +40,7 @@ class Logger
 
         $logs = array_reverse($logs);
         $total = count($logs);
-        $total_pages = $limit > 0 ? (int)ceil($total / $limit) : 1;
+        $total_pages = $limit > 0 ? (int) ceil($total / $limit) : 1;
         $offset = ($page - 1) * $limit;
         $paged_logs = array_slice($logs, $offset, $limit);
 

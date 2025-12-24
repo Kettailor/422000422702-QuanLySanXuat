@@ -221,7 +221,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                     <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
                                     <?php
                                         $roleLabel = $roleLabelMap[$employee['VaiTro'] ?? ''] ?? 'Nhân sự';
-                                        $address = $employee['DiaChi'] ?? '';
+                                    $address = $employee['DiaChi'] ?? '';
                                     ?>
                                     <div class="col-md-6 col-lg-4 employee-item" data-name="<?= htmlspecialchars(mb_strtolower($employee['HoTen'] ?? $employeeId, 'UTF-8')) ?>">
                                         <label class="form-check d-flex align-items-start gap-2 border rounded-3 p-2 bg-white h-100">
@@ -255,13 +255,13 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
             <?php foreach ($shiftsByDate as $dateKey => $shifts): ?>
                 <?php
                     $isToday = $dateKey === $today;
-                    $dateCompare = strcmp($dateKey, $today);
-                    $groupStatus = $dateCompare < 0 ? 'past' : ($dateCompare > 0 ? 'future' : 'today');
-                    $groupStatusLabel = $groupStatus === 'past' ? 'Đã khóa' : ($groupStatus === 'future' ? 'Sắp tới' : 'Hôm nay');
-                    $groupStatusClass = $groupStatus === 'past' ? 'bg-secondary-subtle text-secondary' : ($groupStatus === 'future' ? 'bg-info-subtle text-info' : 'bg-primary-subtle text-primary');
-                    $groupHint = $groupStatus === 'past'
-                        ? 'Ngày đã qua: không chỉnh sửa phân công.'
-                        : ($groupStatus === 'future' ? 'Ngày sắp tới: có thể chỉnh sửa phân công.' : 'Hôm nay: chỉ chỉnh sửa trước giờ vào ca.');
+                $dateCompare = strcmp($dateKey, $today);
+                $groupStatus = $dateCompare < 0 ? 'past' : ($dateCompare > 0 ? 'future' : 'today');
+                $groupStatusLabel = $groupStatus === 'past' ? 'Đã khóa' : ($groupStatus === 'future' ? 'Sắp tới' : 'Hôm nay');
+                $groupStatusClass = $groupStatus === 'past' ? 'bg-secondary-subtle text-secondary' : ($groupStatus === 'future' ? 'bg-info-subtle text-info' : 'bg-primary-subtle text-primary');
+                $groupHint = $groupStatus === 'past'
+                    ? 'Ngày đã qua: không chỉnh sửa phân công.'
+                    : ($groupStatus === 'future' ? 'Ngày sắp tới: có thể chỉnh sửa phân công.' : 'Hôm nay: chỉ chỉnh sửa trước giờ vào ca.');
                 ?>
                 <div class="card border-0 shadow-sm mb-4 shift-group" data-date="<?= htmlspecialchars($dateKey) ?>">
                     <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
@@ -282,37 +282,37 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                 <?php $shiftId = $shift['IdCaLamViec'] ?? ''; ?>
                                 <?php
                                     $typeLabel = $shiftTypeMap((string) ($shift['TenCa'] ?? ''));
-                                    $startTime = $shift['ThoiGianBatDau'] ?? null;
-                                    $endTime = $shift['ThoiGianKetThuc'] ?? null;
-                                    $startTs = $startTime ? strtotime($startTime) : null;
-                                    $endTs = $endTime ? strtotime($endTime) : null;
-                                    $shiftDate = $shift['NgayLamViec'] ?? '';
-                                    $isTodayShift = $shiftDate === $today;
-                                    $shiftDateCompare = $shiftDate ? strcmp($shiftDate, $today) : 0;
-                                    $isPastDate = $shiftDateCompare < 0;
-                                    $isFutureDate = $shiftDateCompare > 0;
-                                    $isInProgress = $isTodayShift && $startTs && $endTs && $nowTimestamp >= $startTs && $nowTimestamp <= $endTs;
-                                    $isAfterEnd = $isTodayShift && $endTs && $nowTimestamp > $endTs;
-                                    $isAddOnly = $isTodayShift && !$isAfterEnd;
-                                    $isEditable = $isFutureDate;
-                                    if ($isPastDate || $isAfterEnd) {
-                                        $isEditable = false;
-                                        $isAddOnly = false;
-                                    }
+                                $startTime = $shift['ThoiGianBatDau'] ?? null;
+                                $endTime = $shift['ThoiGianKetThuc'] ?? null;
+                                $startTs = $startTime ? strtotime($startTime) : null;
+                                $endTs = $endTime ? strtotime($endTime) : null;
+                                $shiftDate = $shift['NgayLamViec'] ?? '';
+                                $isTodayShift = $shiftDate === $today;
+                                $shiftDateCompare = $shiftDate ? strcmp($shiftDate, $today) : 0;
+                                $isPastDate = $shiftDateCompare < 0;
+                                $isFutureDate = $shiftDateCompare > 0;
+                                $isInProgress = $isTodayShift && $startTs && $endTs && $nowTimestamp >= $startTs && $nowTimestamp <= $endTs;
+                                $isAfterEnd = $isTodayShift && $endTs && $nowTimestamp > $endTs;
+                                $isAddOnly = $isTodayShift && !$isAfterEnd;
+                                $isEditable = $isFutureDate;
+                                if ($isPastDate || $isAfterEnd) {
+                                    $isEditable = false;
+                                    $isAddOnly = false;
+                                }
 
-                                    if ($isPastDate || $isAfterEnd) {
-                                        $statusLabel = 'Đã khóa';
-                                        $statusClass = 'bg-secondary-subtle text-secondary';
-                                    } elseif ($isAddOnly) {
-                                        $statusLabel = 'Chỉ thêm nhân sự';
-                                        $statusClass = 'bg-info-subtle text-info';
-                                    } elseif ($isInProgress) {
-                                        $statusLabel = 'Đang diễn ra';
-                                        $statusClass = 'bg-warning-subtle text-warning';
-                                    } else {
-                                        $statusLabel = 'Chưa bắt đầu';
-                                        $statusClass = 'bg-success-subtle text-success';
-                                    }
+                                if ($isPastDate || $isAfterEnd) {
+                                    $statusLabel = 'Đã khóa';
+                                    $statusClass = 'bg-secondary-subtle text-secondary';
+                                } elseif ($isAddOnly) {
+                                    $statusLabel = 'Chỉ thêm nhân sự';
+                                    $statusClass = 'bg-info-subtle text-info';
+                                } elseif ($isInProgress) {
+                                    $statusLabel = 'Đang diễn ra';
+                                    $statusClass = 'bg-warning-subtle text-warning';
+                                } else {
+                                    $statusLabel = 'Chưa bắt đầu';
+                                    $statusClass = 'bg-success-subtle text-success';
+                                }
                                 ?>
                                 <div class="col-lg-4">
                                     <div class="border rounded-3 p-3 h-100 shift-card" data-date="<?= htmlspecialchars($dateKey) ?>" data-shift-type="<?= htmlspecialchars($typeLabel) ?>" data-shift-id="<?= htmlspecialchars($shiftId) ?>" data-editable="<?= ($isEditable || $isAddOnly) ? '1' : '0' ?>">
@@ -335,7 +335,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                                                 <?php $employeeId = $employee['IdNhanVien'] ?? ''; ?>
                                                 <?php
                                                     $isAssigned = in_array($employeeId, $assignedMap[$shiftId] ?? [], true);
-                                                    $optionDisabled = $isAddOnly && $isAssigned ? 'disabled' : '';
+                                                $optionDisabled = $isAddOnly && $isAssigned ? 'disabled' : '';
                                                 ?>
                                                 <option value="<?= htmlspecialchars($employeeId) ?>" <?= $isAssigned ? 'selected' : '' ?> <?= $optionDisabled ?> data-existing="<?= $isAssigned ? '1' : '0' ?>">
                                                     <?= htmlspecialchars($employee['HoTen'] ?? $employeeId) ?>

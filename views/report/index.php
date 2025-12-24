@@ -1,9 +1,7 @@
 <?php
-// views/report/index.php - Redesigned version
 
 include_once 'views/header.php';
 
-// Calculate KPIs
 $totalOrders = count($orders ?? []);
 $totalRevenue = array_sum(array_column($orders ?? [], 'TongTien'));
 $totalProducts = count($products ?? []);
@@ -600,17 +598,13 @@ $totalBills = count($bills ?? []);
 </div>
 
 <script>
-    // Tab switching functionality
     document.querySelectorAll('.custom-tab').forEach(tab => {
         tab.addEventListener('click', function() {
-            // Remove active class from all tabs and contents
             document.querySelectorAll('.custom-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content-item').forEach(c => c.classList.remove('active'));
             
-            // Add active class to clicked tab
             this.classList.add('active');
             
-            // Show corresponding content
             const tabId = this.getAttribute('data-tab');
             document.getElementById('tab-' + tabId).classList.add('active');
         });

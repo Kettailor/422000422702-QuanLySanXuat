@@ -204,7 +204,7 @@ class TimekeepingController extends Controller
                     $normalizedCheckOut,
                     $shiftId,
                     $note,
-                    $supervisorId
+                    $supervisorId,
                 );
                 if (!$created) {
                     throw new RuntimeException('Không thể lưu chấm công cho nhân viên ' . $employeeId);

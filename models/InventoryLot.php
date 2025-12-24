@@ -18,7 +18,7 @@ class InventoryLot extends BaseModel
              FROM LO
              LEFT JOIN SAN_PHAM ON SAN_PHAM.IdSanPham = LO.IdSanPham
              WHERE LO.IdLo = :id
-             LIMIT 1'
+             LIMIT 1',
         );
         $stmt->bindValue(':id', $lotId);
         $stmt->execute();

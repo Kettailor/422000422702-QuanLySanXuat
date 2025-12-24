@@ -17,7 +17,7 @@ class ProductionAutomation
         ?ProductComponent $componentModel = null,
         ?ProductComponentMaterial $componentMaterialModel = null,
         ?NotificationSetting $notificationSettingModel = null,
-        ?InventoryAlertJob $inventoryAlertJob = null
+        ?InventoryAlertJob $inventoryAlertJob = null,
     ) {
         $this->workshopPlanModel = $workshopPlanModel ?? new WorkshopPlan();
         $this->notificationStore = $notificationStore ?? new NotificationStore();
@@ -41,7 +41,7 @@ class ProductionAutomation
 
         $components = $this->loadComponentsForProduct(
             $orderDetail['IdSanPham'] ?? null,
-            $orderDetail['IdCauHinh'] ?? null
+            $orderDetail['IdCauHinh'] ?? null,
         );
         if (empty($components)) {
             return;
@@ -115,7 +115,7 @@ class ProductionAutomation
                         $planId,
                         $componentName,
                         $componentQuantity,
-                        $unit
+                        $unit,
                     ),
                     'metadata' => [
                         'plan_id' => $planId,
@@ -187,8 +187,8 @@ class ProductionAutomation
                 $orderDetail,
                 $logistics,
                 $warehouseChannel,
-                $warehouseRecipients
-            )
+                $warehouseRecipients,
+            ),
         );
 
         if (!empty($shortages)) {
@@ -198,7 +198,7 @@ class ProductionAutomation
                     'order_id' => $orderDetail['IdDonHang'] ?? null,
                     'order_request' => $orderDetail['YeuCau'] ?? $orderDetail['YeuCauDonHang'] ?? null,
                 ],
-                $shortages
+                $shortages,
             );
         }
 
@@ -219,7 +219,7 @@ class ProductionAutomation
             return [];
         }
 
-        $configurationIds = array_values(array_filter(array_map(fn ($component) => $component['IdCauHinh'] ?? null, $components)));
+        $configurationIds = array_values(array_filter(array_map(fn($component) => $component['IdCauHinh'] ?? null, $components)));
         $materialsByConfiguration = $this->componentMaterialModel->getMaterialsForComponents($configurationIds);
 
         foreach ($components as &$component) {
@@ -394,9 +394,8 @@ class ProductionAutomation
         array $orderDetail,
         array $logistics,
         ?string $channel,
-        array $recipients
-    ): array
-    {
+        array $recipients,
+    ): array {
         if (empty($logistics) || !$channel || empty($recipients)) {
             return [];
         }
@@ -417,7 +416,7 @@ class ProductionAutomation
                         $material['label'],
                         $material['unit'],
                         $material['required'],
-                        $material['stock'] ?? 0
+                        $material['stock'] ?? 0,
                     );
                 }
                 $line .= ' [' . implode('; ', $materials) . ']';
@@ -432,7 +431,7 @@ class ProductionAutomation
         $message = sprintf(
             'Chuẩn bị nguyên liệu cho kế hoạch %s: %s.',
             $planId,
-            implode(', ', $summaryParts)
+            implode(', ', $summaryParts),
         );
 
         $metadata = [

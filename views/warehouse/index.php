@@ -352,7 +352,7 @@ $lotPrefixMap = [
         <?php $firstWarehouseId = $group['warehouses'][0]['IdKho'] ?? ''; ?>
         <?php
             $inboundTitle = $form['modal_title'] ?? ('Lập phiếu cho ' . $group['label']);
-            $outboundTitle = 'Xuất ' . ($group['label'] ?? 'kho');
+        $outboundTitle = 'Xuất ' . ($group['label'] ?? 'kho');
         ?>
         <div class="modal fade" id="warehouse-entry-modal-<?= htmlspecialchars($typeKey) ?>" tabindex="-1" aria-hidden="true" data-warehouse-entry-modal data-entry-prefix="<?= htmlspecialchars($form['prefix'] ?? 'PN') ?>" data-inbound-title="<?= htmlspecialchars($inboundTitle) ?>" data-outbound-title="<?= htmlspecialchars($outboundTitle) ?>">
             <div class="modal-dialog modal-lg modal-dialog-centered">

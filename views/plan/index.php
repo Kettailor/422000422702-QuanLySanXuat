@@ -56,7 +56,7 @@ $badgeForStatus = static function (string $status): string {
     </div>
     <div class="d-flex flex-wrap gap-2">
         <?php if ($canManagePlan): ?>
-            <a href="?controller=plan&action=create" class="btn btn-primary btn-lg">
+            <a href="?controller=plan&action=create" class="btn btn-primary">
                 <i class="bi bi-magic me-2"></i>Lập kế hoạch mới
             </a>
         <?php endif; ?>
@@ -136,10 +136,10 @@ $badgeForStatus = static function (string $status): string {
                                         <?php endif; ?>
                                         <?php
                                         $orderEmail = $order['EmailLienHe'] ?? null;
-                                        if (!$orderEmail && !empty($order['details'][0]['Email'])) {
-                                            $orderEmail = $order['details'][0]['Email'];
-                                        }
-                                        ?>
+                            if (!$orderEmail && !empty($order['details'][0]['Email'])) {
+                                $orderEmail = $order['details'][0]['Email'];
+                            }
+                            ?>
                                         <?php if (!empty($orderEmail)): ?>
                                             <div class="text-muted small">Email: <?= htmlspecialchars($orderEmail) ?></div>
                                         <?php endif; ?>

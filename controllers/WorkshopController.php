@@ -116,13 +116,12 @@ class WorkshopController extends Controller
             $this->assignmentModel->syncAssignments(
                 $data['IdXuong'],
                 $assignments['warehouse'],
-                $assignments['production']
+                $assignments['production'],
             );
             $this->setFlash('success', 'Đã thêm xưởng sản xuất mới.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi thêm xưởng: ' . $exception->getMessage());
-            /* $this->setFlash('danger', 'Không thể thêm xưởng: ' . $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể thêm xưởng, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể thêm xưởng: ' . $exception->getMessage());
         }
 
         $this->redirect('?controller=workshop&action=index');
@@ -161,7 +160,7 @@ class WorkshopController extends Controller
             ? $this->groupEmployeesForWorkshop(
                 $employees,
                 $workshopType,
-                array_merge($selectedWarehouse, $selectedProduction)
+                array_merge($selectedWarehouse, $selectedProduction),
             )
             : ['warehouse' => [], 'production' => []];
         $workshopTypeRules = $this->getWorkshopTypeRules();
@@ -249,7 +248,7 @@ class WorkshopController extends Controller
                 $this->assignmentModel->syncAssignments(
                     $id,
                     $assignments['warehouse'],
-                    $assignments['production']
+                    $assignments['production'],
                 );
             }
             $this->setFlash('success', 'Cập nhật thông tin xưởng thành công.');
@@ -276,8 +275,7 @@ class WorkshopController extends Controller
                 $this->setFlash('success', 'Đã xóa xưởng sản xuất.');
             } catch (Throwable $exception) {
                 Logger::error('Lỗi khi xóa xưởng ' . $id . ': ' . $exception->getMessage());
-                /* $this->setFlash('danger', 'Không thể xóa xưởng: ' . $exception->getMessage()); */
-                $this->setFlash('danger', 'Không thể xóa xưởng, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể xóa xưởng: ' . $exception->getMessage());
             }
         }
 
@@ -327,8 +325,8 @@ class WorkshopController extends Controller
         $plans = $this->filterPlansByVisibleWorkshops($plans, $workshops);
 
         $configurationIds = array_values(array_filter(array_map(
-            fn ($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
-            $plans
+            fn($plan) => $plan['AssignmentConfigurationId'] ?? $plan['IdCauHinh'] ?? null,
+            $plans,
         )));
         $materialsByComponent = $this->componentMaterialModel->getMaterialsForComponents($configurationIds);
 
@@ -471,8 +469,7 @@ class WorkshopController extends Controller
             $this->setFlash('success', 'Đã cập nhật kế hoạch xưởng.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi cập nhật kế hoạch xưởng ' . $planId . ': ' . $exception->getMessage());
-            /* $this->setFlash('danger', 'Không thể cập nhật kế hoạch: ' . $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể cập nhật kế hoạch, vui lòng kiểm tra log để biết thêm chi tiết.');
+            $this->setFlash('danger', 'Không thể cập nhật kế hoạch: ' . $exception->getMessage());
         }
 
         $this->redirect($this->buildDashboardRedirect($redirectWorkshop));
@@ -914,7 +911,7 @@ class WorkshopController extends Controller
             ];
         }
 
-        usort($list, fn ($a, $b) => strcmp($a['name'], $b['name']));
+        usort($list, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         return $list;
     }
@@ -1043,7 +1040,7 @@ class WorkshopController extends Controller
         $conflicts = [];
         foreach ($warehouseIds as $employeeId) {
             $assignedWorkshops = $this->assignmentModel->getWorkshopsByEmployee($employeeId);
-            $assignedWorkshops = array_values(array_filter($assignedWorkshops, static fn ($id) => $id !== $workshopId));
+            $assignedWorkshops = array_values(array_filter($assignedWorkshops, static fn($id) => $id !== $workshopId));
             if (empty($assignedWorkshops)) {
                 continue;
             }

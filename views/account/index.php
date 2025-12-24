@@ -12,7 +12,7 @@
   <h2 class="sr-only">Quản lý tài khoản người dùng section</h2>
 
   <div class="overflow-x-auto">
-    <table class="table table-hover table-bordered">
+    <table class="table table-responsive">
       <thead>
         <tr>
           <?php foreach ($header as $col): ?>

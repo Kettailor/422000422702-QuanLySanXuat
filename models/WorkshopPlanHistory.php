@@ -12,7 +12,7 @@ class WorkshopPlanHistory extends BaseModel
         ?string $note,
         ?string $actorId,
         array $details = [],
-        ?string $warehouseRequestId = null
+        ?string $warehouseRequestId = null,
     ): string {
         $recordId = uniqid('LSKHSXX');
 

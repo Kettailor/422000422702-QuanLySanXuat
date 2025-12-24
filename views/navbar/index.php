@@ -11,11 +11,11 @@ $canAccess = function (array $roles) use ($role, $actualRole, $adminFullAccess):
         return false;
     }
 
-    if ($adminFullAccess || ($actualRole === 'VT_BAN_GIAM_DOC')) {
+    if ($adminFullAccess) {
         return true;
     }
 
-    if (array_intersect(['VT_ADMIN', 'VT_BAN_GIAM_DOC'], $roles) && ($actualRole === 'VT_ADMIN' || $actualRole === 'VT_BAN_GIAM_DOC')) {
+    if (array_intersect(['VT_ADMIN'], $roles) && ($actualRole === 'VT_ADMIN')) {
         return true;
     }
 
@@ -36,7 +36,7 @@ $showWorkshopPlanPersonal = in_array($role, ['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN
 $showWorkshop = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
 $showTimekeeping = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
 $showSelfTimekeeping = !empty($role);
-$showQuality = $canAccess(array_merge(['VT_KIEM_SOAT_CL', 'VT_BAN_GIAM_DOC'], $workshopManagerRoles));
+$showQuality = $canAccess(array_merge(['VT_KIEM_SOAT_CL'], $workshopManagerRoles));
 $showWarehouse = $canAccess(array_merge(['VT_NHANVIEN_KHO'], $workshopManagerRoles));
 $showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO']);
 $showHumanResources = $canAccess(['VT_BAN_GIAM_DOC']);
@@ -167,6 +167,9 @@ if ($isAdminMain) {
                     <a href="?controller=suddenly&action=index"
                     class="nav-link <?= ($currentController === 'suddenly' && $currentAction === 'index') ? 'active' : '' ?>">
                     <i class="bi bi-lightning-charge me-1"></i>Kiểm tra đột xuất</a>
+                    <a href="?controller=quality&action=criterias"
+                    class="nav-link <?= ($currentController === 'quality' && $currentAction === 'criterias') ? 'active' : '' ?>">
+                    <i class="bi bi-list-ul me-1"></i>Tiêu chí đánh giá</a>
                 </li>
                 </ul>
                 </div>
@@ -308,10 +311,10 @@ if ($isAdminMain) {
                                 } ?>
                                 <?php
                                     $title = $notification['title'] ?? 'Thông báo hệ thống';
-                                    $message = $notification['message'] ?? null;
-                                    $time = $notification['created_at'] ?? ($notification['time'] ?? null);
-                                    $link = $notification['link'] ?? null;
-                                    $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
+                                $message = $notification['message'] ?? null;
+                                $time = $notification['created_at'] ?? ($notification['time'] ?? null);
+                                $link = $notification['link'] ?? null;
+                                $isRead = !empty($notification['is_read']) || !empty($notification['read_at']);
                                 ?>
                                 <div class="notification-item px-3 py-2 <?= $isRead ? '' : 'notification-unread' ?>">
                                     <div class="d-flex justify-content-between align-items-start gap-2">

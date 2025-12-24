@@ -17,8 +17,8 @@ class AccountController extends Controller
 
     public function index(): void
     {
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
 
         $users = $this->userModel->findAllWithEmployeeAndRole($page, $limit);
         $numberOfActiveUsers = $this->userModel->countActiveUsers();
@@ -192,8 +192,8 @@ class AccountController extends Controller
 
     public function auditLog(): void
     {
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
         $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-6 days'));
         $endDate = $_GET['end_date'] ?? date('Y-m-d');
 

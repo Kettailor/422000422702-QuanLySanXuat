@@ -12,7 +12,9 @@ $statusCounts = array_reduce($orders, static function (array $carry, array $orde
         <h3 class="fw-bold mb-1">Quản lý đơn hàng</h3>
         <p class="text-muted mb-0">Theo dõi tiến độ sản xuất, trạng thái kế hoạch và giao hàng theo từng khách hàng.</p>
     </div>
-    <a href="?controller=order&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Tạo đơn hàng</a>
+    <?php if ($canAccess(['VT_KINH_DOANH'])): ?>
+      <a href="?controller=order&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Tạo đơn hàng</a>
+    <?php endif; ?>
 </div>
 
 <div class="row g-3 mb-4">
@@ -95,7 +97,7 @@ $statusCounts = array_reduce($orders, static function (array $carry, array $orde
                     <td class="text-end">
                         <div class="btn-group btn-group-sm" role="group">
                             <a class="btn btn-outline-secondary" href="?controller=order&action=read&id=<?= urlencode($order['IdDonHang']) ?>">Chi tiết</a>
-                            <?php if (($order['TrangThai'] ?? '') !== 'Hủy'): ?>
+                            <?php if (($order['TrangThai'] ?? '') !== 'Hủy' && $canAccess(['VT_KINH_DOANH'])): ?>
                                 <a class="btn btn-outline-primary" href="?controller=order&action=edit&id=<?= urlencode($order['IdDonHang']) ?>">Sửa</a>
                             <?php endif; ?>
                         </div>

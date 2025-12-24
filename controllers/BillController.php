@@ -107,8 +107,7 @@ class BillController extends Controller
                 $this->setFlash('success', 'Đã xóa hóa đơn.');
             } catch (Throwable $e) {
                 Logger::error('Lỗi khi xóa hóa đơn ' . $id . ': ' . $e->getMessage());
-                /* $this->setFlash('danger', 'Không thể xóa hóa đơn: ' . $e->getMessage()); */
-                $this->setFlash('danger', 'Không thể xóa hóa đơn, vui lòng kiểm tra log để biết thêm chi tiết.');
+                $this->setFlash('danger', 'Không thể xóa hóa đơn: ' . $e->getMessage());
             }
         }
 

@@ -5,16 +5,17 @@ class WorkshopPlanMaterialDetail extends BaseModel
     protected string $table = 'chi_tiet_ke_hoach_san_xuat_xuong';
     protected string $primaryKey = 'IdCTKHSXX';
 
-    public function createWorkshopPlanDetail (string $workshopPlanId, string $configId, int $productionQuantity) {
+    public function createWorkshopPlanDetail(string $workshopPlanId, string $configId, int $productionQuantity)
+    {
         try {
             // 1. Bắt đầu transaction để đảm bảo toàn vẹn dữ liệu
             $this->db->beginTransaction();
 
-            // kiểm tra nguyên liệu có kh
+            // kiểm tra nguyên liệu có không
             $sqlGetBOM = "SELECT IdNguyenLieu, TyLeSoLuong 
                           FROM cau_hinh_nguyen_lieu 
                           WHERE IdCauHinh = :configId";
-            
+
             $stmtGet = $this->db->prepare($sqlGetBOM);
             $stmtGet->bindValue(':configId', $configId);
             $stmtGet->execute();
@@ -50,14 +51,14 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
                 // Tạo ID chi tiết (Ví dụ: CT + Timestamp + Random để tránh trùng)
                 // Bạn có thể tùy chỉnh lại logic sinh ID này theo quy tắc của dự án
-                $idDetail = 'CT' . date('ymdHis') . rand(100, 999); 
+                $idDetail = 'CT' . date('ymdHis') . rand(100, 999);
 
                 $stmtInsert->bindValue(':idDetail', $idDetail);
                 $stmtInsert->bindValue(':quantity', $neededQty);
                 $stmtInsert->bindValue(':ratio', $ratio);
                 $stmtInsert->bindValue(':planId', $workshopPlanId);
                 $stmtInsert->bindValue(':materialId', $material['IdNguyenLieu']);
-                
+
                 $stmtInsert->execute();
             }
 
@@ -137,7 +138,7 @@ class WorkshopPlanMaterialDetail extends BaseModel
 
         try {
             $delete = $this->db->prepare(
-                'DELETE FROM chi_tiet_ke_hoach_san_xuat_xuong WHERE IdKeHoachSanXuatXuong = :planId'
+                'DELETE FROM chi_tiet_ke_hoach_san_xuat_xuong WHERE IdKeHoachSanXuatXuong = :planId',
             );
             $delete->bindValue(':planId', $planId);
             $delete->execute();

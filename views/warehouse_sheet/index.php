@@ -141,7 +141,7 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                     $typeClass = $classification['badge_class'] ?? 'bg-secondary bg-opacity-10 text-secondary';
                     $directionLabel = $classification['direction_label'] ?? $type;
                     $categoryLabel = $classification['category'] ?? '';
-                ?>
+                    ?>
                     <tr>
                         <td class="fw-semibold"><?= htmlspecialchars($document['IdPhieu']) ?></td>
                         <td><?= htmlspecialchars($document['TenKho']) ?></td>

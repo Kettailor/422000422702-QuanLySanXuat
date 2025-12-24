@@ -128,15 +128,15 @@
                             <td class="text-center">
                                 <?php
                                 $statusLabel = $item['material_status'] ?? 'Chưa xác định';
-                                $badgeClass = 'bg-secondary';
-                                if ($statusLabel === 'Đủ vật tư') {
-                                    $badgeClass = 'bg-success';
-                                } elseif ($statusLabel === 'Thiếu vật tư') {
-                                    $badgeClass = 'bg-danger';
-                                } elseif ($statusLabel === 'Chờ cấp phát') {
-                                    $badgeClass = 'bg-warning text-dark';
-                                }
-                                ?>
+                        $badgeClass = 'bg-secondary';
+                        if ($statusLabel === 'Đủ vật tư') {
+                            $badgeClass = 'bg-success';
+                        } elseif ($statusLabel === 'Thiếu vật tư') {
+                            $badgeClass = 'bg-danger';
+                        } elseif ($statusLabel === 'Chờ cấp phát') {
+                            $badgeClass = 'bg-warning text-dark';
+                        }
+                        ?>
                                 <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($statusLabel) ?></span>
                                 <?php if (!empty($plan['TrangThai'])): ?>
                                     <div class="text-muted small mt-2">Tiến độ: <?= htmlspecialchars($plan['TrangThai']) ?></div>
@@ -152,9 +152,9 @@
                                     </div>
                                     <select name="TinhTrangVatTu" class="form-select form-select-sm">
                                         <?php
-                                        $materialStatuses = ['Đủ vật tư', 'Thiếu vật tư', 'Chờ cấp phát', 'Không yêu cầu vật tư'];
-                                        $currentStatus = $item['material_status'] ?? '';
-                                        ?>
+                                $materialStatuses = ['Đủ vật tư', 'Thiếu vật tư', 'Chờ cấp phát', 'Không yêu cầu vật tư'];
+                        $currentStatus = $item['material_status'] ?? '';
+                        ?>
                                         <option value="">Giữ nguyên</option>
                                         <?php foreach ($materialStatuses as $status): ?>
                                             <option value="<?= htmlspecialchars($status) ?>" <?= $currentStatus === $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
@@ -162,9 +162,9 @@
                                     </select>
                                     <select name="TrangThai" class="form-select form-select-sm">
                                         <?php
-                                        $progressStatuses = ['Đang chờ xưởng xác nhận', 'Đã xác nhận', 'Đang sản xuất', 'Tạm hoãn'];
-                                        $currentProgress = $plan['TrangThai'] ?? '';
-                                        ?>
+                        $progressStatuses = ['Đang chờ xưởng xác nhận', 'Đã xác nhận', 'Đang sản xuất', 'Tạm hoãn'];
+                        $currentProgress = $plan['TrangThai'] ?? '';
+                        ?>
                                         <option value="">Giữ nguyên tiến độ</option>
                                         <?php foreach ($progressStatuses as $status): ?>
                                             <option value="<?= htmlspecialchars($status) ?>" <?= $currentProgress === $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>

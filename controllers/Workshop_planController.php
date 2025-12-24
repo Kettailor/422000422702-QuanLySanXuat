@@ -269,7 +269,7 @@ class Workshop_planController extends Controller
         $this->workShiftModel->ensureDefaultShiftsForPlan(
             $planId,
             $plan['ThoiGianBatDau'] ?? null,
-            $plan['ThoiGianKetThuc'] ?? null
+            $plan['ThoiGianKetThuc'] ?? null,
         );
 
         $assignments = $this->assignmentModel->getAssignmentsByWorkshop($plan['IdXuong'] ?? '');
@@ -386,12 +386,13 @@ class Workshop_planController extends Controller
                 $workDate = $conflict['work_date'] ?? '';
                 $formattedDate = $workDate ? date('d/m/Y', strtotime($workDate)) : '';
                 $planCode = $conflict['plan_id'] ? (' • KH ' . $conflict['plan_id']) : '';
-                $messages[] = trim(sprintf('%s (%s) • %s • %s%s',
+                $messages[] = trim(sprintf(
+                    '%s (%s) • %s • %s%s',
                     $employeeLabel,
                     $conflict['employee_id'],
                     $formattedDate,
                     $conflict['shift_label'] ?? '',
-                    $planCode
+                    $planCode,
                 ));
             }
 
@@ -410,7 +411,7 @@ class Workshop_planController extends Controller
                     $assignmentsInput,
                     $editableShiftIds,
                     $addOnlyShiftIds,
-                    $assignmentRole
+                    $assignmentRole,
                 );
                 $this->notifyShiftAssignments($assignmentsInput, $shiftMap, $planId);
                 $this->setFlash('success', 'Đã cập nhật phân công nhân sự theo ca.');
@@ -459,7 +460,7 @@ class Workshop_planController extends Controller
         $this->workShiftModel->ensureDefaultShiftsForPlan(
             $planId,
             $plan['ThoiGianBatDau'] ?? null,
-            $plan['ThoiGianKetThuc'] ?? null
+            $plan['ThoiGianKetThuc'] ?? null,
         );
 
         $planAssignments = $this->planAssignmentModel->getByPlan($planId);
@@ -686,7 +687,7 @@ class Workshop_planController extends Controller
                     'lot_id' => $lotId,
                     'quantity' => $quantity,
                 ],
-                null
+                null,
             );
             $db->commit();
             $this->setFlash('success', 'Đã cập nhật tiến độ và tạo lô thành phẩm.');
@@ -796,7 +797,7 @@ class Workshop_planController extends Controller
         $message = sprintf(
             'Kế hoạch xưởng %s cập nhật nguyên liệu (%d mục). Vui lòng kiểm tra tồn kho.',
             $plan['IdKeHoachSanXuatXuong'] ?? '',
-            count($requirements)
+            count($requirements),
         );
 
         $entries = [];

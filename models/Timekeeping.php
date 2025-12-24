@@ -14,7 +14,7 @@ class Timekeeping extends BaseModel
         ?string $supervisorId = null,
         ?float $checkInLat = null,
         ?float $checkInLng = null,
-        ?float $checkInAccuracy = null
+        ?float $checkInAccuracy = null,
     ): bool {
         $recordId = uniqid('CC');
         $payload = [
@@ -69,9 +69,8 @@ class Timekeeping extends BaseModel
         ?string $workDate = null,
         ?string $workshopId = null,
         ?string $planId = null,
-        ?string $employeeId = null
-    ): array
-    {
+        ?string $employeeId = null,
+    ): array {
         $conditions = [];
         $bindings = [];
 
@@ -164,9 +163,8 @@ class Timekeeping extends BaseModel
         string $checkOut,
         ?float $checkOutLat = null,
         ?float $checkOutLng = null,
-        ?float $checkOutAccuracy = null
-    ): bool
-    {
+        ?float $checkOutAccuracy = null,
+    ): bool {
         $sql = "UPDATE cham_cong
                 SET `ThoiGIanRa` = :checkOut,
                     `ViTriRaLat` = :checkOutLat,
