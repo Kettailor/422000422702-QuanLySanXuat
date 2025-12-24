@@ -33,6 +33,10 @@ $badgeForStatus = static function (string $status): string {
         return 'badge bg-success-subtle text-success';
     }
 
+    if (str_contains($normalized, 'hủy')) {
+        return 'badge bg-danger-subtle text-danger';
+    }
+
     if (str_contains($normalized, 'đang')) {
         return 'badge bg-primary-subtle text-primary';
     }
@@ -218,6 +222,11 @@ $badgeForStatus = static function (string $status): string {
                         </thead>
                         <tbody>
                         <?php foreach ($plans as $plan): ?>
+                            <?php
+                            $statusValue = (string) ($plan['TrangThai'] ?? '');
+                            $canCancel = $canManagePlan && in_array($statusValue, ['Đang chuẩn bị', 'Đang sản xuất'], true);
+                            $cancelModalId = 'cancel-plan-' . preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) ($plan['IdKeHoachSanXuat'] ?? ''));
+                            ?>
                             <tr>
                                 <td class="fw-semibold"><?= htmlspecialchars($plan['IdKeHoachSanXuat'] ?? '-') ?></td>
                                 <td>
@@ -248,6 +257,32 @@ $badgeForStatus = static function (string $status): string {
                                     <a class="btn btn-sm btn-outline-primary" href="?controller=plan&action=read&id=<?= urlencode($plan['IdKeHoachSanXuat'] ?? '') ?>">
                                         Chi tiết
                                     </a>
+                                    <?php if ($canCancel): ?>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#<?= htmlspecialchars($cancelModalId) ?>">
+                                            Hủy
+                                        </button>
+                                        <div class="modal fade" id="<?= htmlspecialchars($cancelModalId) ?>" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="post" action="?controller=plan&action=cancel">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Hủy kế hoạch <?= htmlspecialchars($plan['IdKeHoachSanXuat'] ?? '') ?></h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                                                        </div>
+                                                        <div class="modal-body text-start">
+                                                            <input type="hidden" name="IdKeHoachSanXuat" value="<?= htmlspecialchars($plan['IdKeHoachSanXuat'] ?? '') ?>">
+                                                            <label class="form-label">Ghi chú hủy kế hoạch</label>
+                                                            <textarea name="cancel_note" class="form-control" rows="3" placeholder="Lý do hủy kế hoạch..." required></textarea>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                            <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

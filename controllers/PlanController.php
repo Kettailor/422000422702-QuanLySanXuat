@@ -11,6 +11,8 @@ class PlanController extends Controller
     private Order $orderModel;
     private Employee $employeeModel;
     private User $userModel;
+    private ProductComponentMaterial $componentMaterialModel;
+    private Material $materialModel;
 
     public function __construct()
     {
@@ -24,6 +26,8 @@ class PlanController extends Controller
         $this->orderModel = new Order();
         $this->employeeModel = new Employee();
         $this->userModel = new User();
+        $this->componentMaterialModel = new ProductComponentMaterial();
+        $this->materialModel = new Material();
     }
 
     public function index(): void
@@ -80,6 +84,7 @@ class PlanController extends Controller
             'selectedOrderDetail' => $selectedOrderDetail,
             'componentAssignments' => $componentAssignments,
             'configurationDetails' => $selectedOrderDetail ? $this->buildConfigurationDetails($selectedOrderDetail) : [],
+            'materialOverview' => $selectedOrderDetail ? $this->buildMaterialOverview($selectedOrderDetail) : [],
             'workshops' => $this->workshopModel->getAllWithManagers(),
             'currentUser' => $currentUser,
         ]);
@@ -125,7 +130,7 @@ class PlanController extends Controller
 
         $startTime = $this->normalizeDateTimeInput($_POST['ThoiGianBD'] ?? null);
         $endTime = $this->normalizeDateTimeInput($_POST['ThoiGianKetThuc'] ?? null);
-        $status = 'Đang triển khai';
+        $status = 'Đang chuẩn bị';
 
         if (!$this->validatePlanDates($startTime, $endTime)) {
             $this->setFlash('danger', 'Ngày bắt đầu không được bé hơn ngày hiện tại và hạn chót phải lớn hơn hoặc bằng ngày bắt đầu.');
@@ -262,7 +267,7 @@ class PlanController extends Controller
 
         try {
             $this->planModel->update($id, ['ThoiGianKetThuc' => $endTime]);
-            $this->workshopPlanModel->updateEndTimeByPlan($id, $endTime);
+            $this->notifyWorkshopManagersDeadlineChanged($plan, $endTime);
             $this->setFlash('success', 'Đã cập nhật hạn chót kế hoạch.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi cập nhật hạn chót kế hoạch ' . $id . ': ' . $exception->getMessage());
@@ -440,6 +445,54 @@ class PlanController extends Controller
         return $this->ensureInspectionAssignment($assignments, max(1, $quantity), $orderDetail);
     }
 
+    private function buildMaterialOverview(array $orderDetail): array
+    {
+        $configurationId = $orderDetail['IdCauHinh'] ?? null;
+        if (!$configurationId) {
+            return [];
+        }
+
+        $materials = $this->componentMaterialModel->getMaterialsForComponent($configurationId);
+        if (empty($materials)) {
+            return [];
+        }
+
+        $quantity = (int) ($orderDetail['SoLuong'] ?? 0);
+        $quantity = max(1, $quantity);
+
+        $materialIds = array_values(array_filter(array_unique(array_column($materials, 'id'))));
+        $inventory = $this->materialModel->findMany($materialIds);
+
+        $overview = [];
+        foreach ($materials as $material) {
+            $materialId = $material['id'] ?? null;
+            if (!$materialId) {
+                continue;
+            }
+
+            $ratioRaw = $material['quantity_per_unit'] ?? $material['standard_quantity'] ?? 1;
+            $ratio = is_numeric($ratioRaw) ? (float) $ratioRaw : 1.0;
+            if ($ratio <= 0) {
+                $ratio = 1.0;
+            }
+
+            $required = (int) ceil($quantity * $ratio);
+            $stockRow = $inventory[$materialId] ?? [];
+            $available = (int) ($stockRow['SoLuong'] ?? 0);
+            $overview[] = [
+                'id' => $materialId,
+                'name' => $stockRow['TenNL'] ?? null,
+                'label' => $material['label'] ?? null,
+                'unit' => $material['unit'] ?? ($stockRow['DonVi'] ?? null),
+                'required' => $required,
+                'available' => $available,
+                'shortage' => max(0, $required - $available),
+            ];
+        }
+
+        return $overview;
+    }
+
     private function buildConfigurationDetails(array $orderDetail): array
     {
         $mapping = [
@@ -595,6 +648,56 @@ class PlanController extends Controller
                 'metadata' => [
                     'workshop_id' => $workshopId,
                     'workshop_plan_id' => $planId,
+                ],
+            ];
+        }
+
+        if (!empty($entries)) {
+            $store = new NotificationStore();
+            $store->pushMany($entries);
+        }
+    }
+
+    private function notifyWorkshopManagersDeadlineChanged(array $plan, string $endTime): void
+    {
+        $planId = $plan['IdKeHoachSanXuat'] ?? null;
+        if (!$planId) {
+            return;
+        }
+
+        $workshopPlans = $this->workshopPlanModel->getByPlan($planId);
+        if (empty($workshopPlans)) {
+            return;
+        }
+
+        $workshopIds = [];
+        foreach ($workshopPlans as $workshopPlan) {
+            $workshopId = $workshopPlan['IdXuong'] ?? null;
+            if ($workshopId) {
+                $workshopIds[$workshopId] = true;
+            }
+        }
+
+        if (empty($workshopIds)) {
+            return;
+        }
+
+        $managerMap = $this->workshopModel->getManagersByWorkshopIds(array_keys($workshopIds));
+        $entries = [];
+        foreach ($managerMap as $workshopId => $managerId) {
+            if (!$managerId) {
+                continue;
+            }
+
+            $entries[] = [
+                'channel' => 'workshop_plan',
+                'recipient' => $managerId,
+                'title' => 'Cập nhật hạn chót kế hoạch',
+                'message' => sprintf('Kế hoạch %s đã cập nhật hạn chót: %s.', $planId, $endTime),
+                'link' => '?controller=plan&action=read&id=' . urlencode($planId),
+                'metadata' => [
+                    'plan_id' => $planId,
+                    'workshop_id' => $workshopId,
                 ],
             ];
         }

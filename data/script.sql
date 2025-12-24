@@ -383,7 +383,8 @@ CREATE TABLE `kho` (
 
 INSERT INTO `kho` (`IdKho`, `TenKho`, `TenLoaiKho`, `DiaChi`, `TongSLLo`, `ThanhTien`, `TrangThai`, `TongSL`, `IdXuong`, `NHAN_VIEN_KHO_IdNhanVien`) VALUES
 ('KHO001', 'Kho Bắc Ninh', 'Nguyên liệu', 'Bắc Ninh', 0, 0, 'Đang sử dụng', 0, 'XUONG001', 'NV012'),
-('KHO002', 'Kho Hà Nội', 'Nguyên liệu', 'Hà Nội', 0, 0, 'Đang sử dụng', 0, 'XUONG002', 'NV013');
+('KHO002', 'Kho Hà Nội', 'Nguyên liệu', 'Hà Nội', 0, 0, 'Đang sử dụng', 0, 'XUONG002', 'NV013'),
+('KHO003', 'Kho thành phẩm Bắc Ninh', 'Thành phẩm', 'Bắc Ninh', 0, 0, 'Đang sử dụng', 0, 'XUONG001', 'NV012');
 
 -- --------------------------------------------------------
 
@@ -427,7 +428,9 @@ CREATE TABLE `lo` (
 INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `TrangThai`, `IdSanPham`, `IdKho`) VALUES
 ('LO001', 'Lô nguyên liệu BN-01', 1200, '2023-05-01 08:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP001', 'KHO001'),
 ('LO002', 'Lô nguyên liệu BN-02', 800, '2023-05-02 08:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP001', 'KHO001'),
-('LO003', 'Lô nguyên liệu HN-01', 5000, '2023-05-01 09:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP002', 'KHO002');
+('LO003', 'Lô nguyên liệu HN-01', 5000, '2023-05-01 09:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP002', 'KHO002'),
+('LO004', 'Lô thành phẩm BN-TP-01', 350, '2023-05-05 14:00:00', 'Thành phẩm', 'Đã hoàn thiện', 'SP001', 'KHO003'),
+('LO005', 'Lô thành phẩm BN-TP-02', 220, '2023-05-07 15:30:00', 'Thành phẩm', 'Đã hoàn thiện', 'SP002', 'KHO003');
 
 -- --------------------------------------------------------
 
@@ -495,7 +498,9 @@ CREATE TABLE `nguyen_lieu` (
 INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonVi`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
 ('NL001', 'Cuộn thép 1mm', 1200, 'kg', 18000, 'Còn hàng', '2023-04-15 00:00:00', '2024-04-15 00:00:00', 'LO001'),
 ('NL002', 'Nhựa ABS', 800, 'kg', 22000, 'Còn hàng', '2023-04-18 00:00:00', '2024-04-18 00:00:00', 'LO002'),
-('NL003', 'Bao bì carton', 5000, 'tấm', 3500, 'Còn hàng', '2023-04-20 00:00:00', '2025-04-20 00:00:00', 'LO003');
+('NL003', 'Bao bì carton', 5000, 'tấm', 3500, 'Còn hàng', '2023-04-20 00:00:00', '2025-04-20 00:00:00', 'LO003'),
+('NL004', 'Bộ keycap PBT', 950, 'bộ', 65000, 'Còn hàng', '2023-04-22 00:00:00', '2025-04-22 00:00:00', 'LO002'),
+('NL005', 'Switch tuyến tính', 5000, 'cái', 4500, 'Còn hàng', '2023-04-25 00:00:00', '2025-04-25 00:00:00', 'LO003');
 
 -- --------------------------------------------------------
 
@@ -615,6 +620,14 @@ CREATE TABLE `thanh_pham` (
   `LoaiTP` varchar(255) DEFAULT NULL,
   `IdLo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `thanh_pham`
+--
+
+INSERT INTO `thanh_pham` (`IdThanhPham`, `TenThanhPham`, `YeuCau`, `DonGia`, `LoaiTP`, `IdLo`) VALUES
+('TP001', 'Bàn phím tiêu chuẩn A - bản thương mại', 'QC hoàn tất, đóng gói đầy đủ phụ kiện', 1500000, 'Bàn phím', 'LO004'),
+('TP002', 'Bàn phím tiêu chuẩn B - bản thương mại', 'Kiểm định hoàn thành, sẵn sàng xuất kho', 1250000, 'Bàn phím', 'LO005');
 
 -- --------------------------------------------------------
 
