@@ -12,6 +12,8 @@
     <?php
     $creator = $creator ?? null;
     $activities = $activities ?? [];
+    $canCancelByPlan = $canCancelByPlan ?? false;
+    $cancelPlanMessage = $cancelPlanMessage ?? '';
     ?>
     <div class="row g-4">
         <div class="col-lg-6">
@@ -42,6 +44,14 @@
                     <div class="mt-3">
                         <h6 class="fw-semibold">Yêu cầu chung</h6>
                         <p class="text-muted mb-0"><?= nl2br(htmlspecialchars($order['YeuCau'])) ?></p>
+                    </div>
+                <?php endif; ?>
+                <?php if (($order['TrangThai'] ?? '') === 'Hủy'): ?>
+                    <div class="alert alert-warning mt-3 mb-0">
+                        Đơn hàng đã bị hủy. Không thể chỉnh sửa hay thao tác thêm.
+                        <?php if (!empty($order['GhiChu'])): ?>
+                            <div class="small text-muted mt-1">Ghi chú: <?= nl2br(htmlspecialchars($order['GhiChu'])) ?></div>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -173,4 +183,39 @@
             <p class="text-muted mb-0">Chưa có nhật ký chỉnh sửa.</p>
         <?php endif; ?>
     </div>
+
+    <?php
+    $currentUser = $currentUser ?? [];
+    $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
+    $canCancel = $roleId === 'VT_BAN_GIAM_DOC';
+    $orderStatus = $order['TrangThai'] ?? '';
+    $canCancelStatus = in_array($orderStatus, ['Chưa có kế hoạch', 'Đang xử lý'], true) && $canCancelByPlan;
+    ?>
+    <?php if ($canCancel): ?>
+        <div class="card p-4 mt-4">
+            <h5 class="fw-semibold mb-3">Hủy đơn hàng</h5>
+            <?php if (!$canCancelStatus): ?>
+                <div class="alert alert-light border mb-0">
+                    <?php if ($orderStatus === 'Hủy'): ?>
+                        Đơn hàng đã bị hủy.
+                    <?php elseif (!$canCancelByPlan): ?>
+                        <?= htmlspecialchars($cancelPlanMessage !== '' ? $cancelPlanMessage : 'Cần hủy kế hoạch sản xuất trước khi hủy đơn.') ?>
+                    <?php else: ?>
+                        Đơn hàng chỉ được hủy khi đang chờ hoặc đang sản xuất.
+                    <?php endif; ?>
+                </div>
+            <?php else: ?>
+                <form method="post" action="?controller=order&action=cancel" onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                    <input type="hidden" name="IdDonHang" value="<?= htmlspecialchars($order['IdDonHang']) ?>">
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú hủy đơn</label>
+                        <textarea name="cancel_note" rows="3" class="form-control" placeholder="Lý do khách hàng không nhận hàng..." required></textarea>
+                    </div>
+                    <button class="btn btn-outline-danger" type="submit">
+                        <i class="bi bi-x-circle me-2"></i>Hủy đơn hàng
+                    </button>
+                </form>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 <?php endif; ?>

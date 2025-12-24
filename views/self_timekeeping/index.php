@@ -74,13 +74,13 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
                     <input type="hidden" name="accuracy" id="geo-accuracy" value="">
 
                     <div class="d-flex flex-wrap gap-3 align-items-center">
-                        <button type="submit" class="btn btn-primary px-4" <?= $shift ? '' : 'disabled' ?> id="submit-button">
+                        <button type="submit" class="btn btn-primary px-4" <?= ($shift || $openRecord) ? '' : 'disabled' ?> id="submit-button">
                             <i class="bi bi-fingerprint me-2"></i><?= $openRecord ? 'Ghi nhận giờ ra' : 'Ghi nhận giờ vào' ?>
                         </button>
                         <div class="text-muted small">
                             <?= $openRecord
                                 ? 'Lần vào gần nhất: ' . htmlspecialchars($formatDate($openRecord['ThoiGianVao'] ?? null))
-                                : 'Chưa có bản ghi vào ca hôm nay.' ?>
+                                : 'Chưa có bản ghi vào ca đang mở.' ?>
                         </div>
                     </div>
                 </form>

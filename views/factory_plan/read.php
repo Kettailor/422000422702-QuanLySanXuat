@@ -17,10 +17,10 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         return '-';
     }
     $timestamp = strtotime($value);
-if ($timestamp === false) {
-    return '-';
-}
-return date($format, $timestamp);
+    if ($timestamp === false) {
+        return '-';
+    }
+    return date($format, $timestamp);
 };
 
 $statusBadge = static function (string $status): string {
@@ -301,4 +301,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<?php endif; ?>
+
 <?php endif; ?>

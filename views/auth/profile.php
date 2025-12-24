@@ -58,11 +58,6 @@ $roleId = $user['IdVaiTro'] ?? null;
                         <i class="bi bi-calendar2-check me-2"></i>Lịch sử chấm công
                     </a>
                 </div>
-                <div class="col-md-6">
-                    <a href="?controller=self_salary&action=index" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-cash-coin me-2"></i>Bảng lương cá nhân
-                    </a>
-                </div>
                 <?php if (in_array($roleId, ['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN_KHO'], true)): ?>
                     <div class="col-md-6">
                         <a href="?controller=workshop_plan_personal&action=index" class="btn btn-outline-secondary w-100">

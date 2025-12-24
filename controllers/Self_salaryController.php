@@ -11,8 +11,8 @@ class Self_salaryController extends Controller
             $this->setFlash('danger', 'Vui lòng đăng nhập để tiếp tục.');
             $this->redirect('?controller=auth&action=login');
         }
-        $this->salaryModel = new Salary();
-        $this->employeeModel = new Employee();
+        $this->setFlash('warning', 'Chức năng bảng lương cá nhân đã được tắt.');
+        $this->redirect('?controller=dashboard&action=index');
     }
 
     public function index(): void
