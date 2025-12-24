@@ -73,6 +73,8 @@ class Employee extends BaseModel
                     SELECT idXuong AS IdXuong FROM nhan_vien WHERE IdNhanVien = :employee
                     UNION ALL
                     SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employee
+                    UNION ALL
+                    SELECT IdXuong FROM xuong WHERE XUONGTRUONG_IdNhanVien = :employee
                 ) AS workshop_ids
                 WHERE IdXuong IS NOT NULL AND IdXuong <> ""';
 

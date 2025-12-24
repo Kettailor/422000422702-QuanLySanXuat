@@ -63,6 +63,81 @@ class WorkShift extends BaseModel
         return $result ?: null;
     }
 
+    public function findFixedShiftForTimestamp(string $timestamp): ?array
+    {
+        $date = date('Y-m-d', strtotime($timestamp));
+        if ($date) {
+            $this->ensureFixedShiftsForDate($date);
+            $previousDate = date('Y-m-d', strtotime($date . ' -1 day'));
+            if ($previousDate) {
+                $this->ensureFixedShiftsForDate($previousDate);
+            }
+        }
+
+        $sql = "SELECT ca.*
+                FROM ca_lam ca
+                WHERE ca.IdKeHoachSanXuatXuong IS NULL
+                  AND :now BETWEEN ca.ThoiGianBatDau AND ca.ThoiGianKetThuc
+                ORDER BY ca.ThoiGianBatDau DESC
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':now', $timestamp);
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
+    public function ensureFixedShiftsForDate(string $workDate): void
+    {
+        $workDate = $this->normalizeDate($workDate) ?? $workDate;
+        if (!$workDate) {
+            return;
+        }
+
+        $sql = "SELECT TenCa
+                FROM ca_lam
+                WHERE NgayLamViec = :workDate
+                  AND IdKeHoachSanXuatXuong IS NULL";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':workDate', $workDate);
+        $stmt->execute();
+        $existing = array_fill_keys($stmt->fetchAll(PDO::FETCH_COLUMN), true);
+
+        $ranges = [
+            'Ca sáng' => ['06:30:00', '14:00:00'],
+            'Ca trưa' => ['14:00:00', '22:00:00'],
+            'Ca tối' => ['22:00:00', '06:00:00'],
+        ];
+
+        foreach ($ranges as $label => [$start, $endHour]) {
+            if (isset($existing[$label])) {
+                continue;
+            }
+
+            $startAt = $workDate . ' ' . $start;
+            $endAt = $workDate . ' ' . $endHour;
+            if ($label === 'Ca tối') {
+                $nextDay = date('Y-m-d', strtotime($workDate . ' +1 day'));
+                $endAt = $nextDay . ' ' . $endHour;
+            }
+
+            $this->create([
+                'IdCaLamViec' => uniqid('CA'),
+                'TenCa' => $label,
+                'LoaiCa' => 'Cố định',
+                'NgayLamViec' => $workDate,
+                'ThoiGianBatDau' => $startAt,
+                'ThoiGianKetThuc' => $endAt,
+                'TongSL' => 0,
+                'IdKeHoachSanXuatXuong' => null,
+                'LOIdLo' => null,
+            ]);
+        }
+    }
+
     public function ensureDefaultShiftsForPlan(string $planId, ?string $startTime, ?string $endTime): void
     {
         $startDate = $this->normalizeDate($startTime) ?? date('Y-m-d');

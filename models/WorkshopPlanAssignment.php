@@ -12,9 +12,14 @@ class WorkshopPlanAssignment extends BaseModel
                        pc.IdNhanVien,
                        pc.IdCaLamViec,
                        pc.VaiTro,
-                       nv.HoTen
+                       nv.HoTen,
+                       ca.TenCa,
+                       ca.NgayLamViec,
+                       ca.ThoiGianBatDau,
+                       ca.ThoiGianKetThuc
                 FROM phan_cong_ke_hoach_xuong pc
                 LEFT JOIN nhan_vien nv ON nv.IdNhanVien = pc.IdNhanVien
+                LEFT JOIN ca_lam ca ON ca.IdCaLamViec = pc.IdCaLamViec
                 WHERE pc.IdKeHoachSanXuatXuong = :planId
                 ORDER BY pc.IdCaLamViec, nv.HoTen, pc.IdPhanCong';
 

@@ -23,7 +23,12 @@ class DashboardController extends Controller
 
         $now = date('Y-m-d H:i:s');
         $workDate = date('Y-m-d');
-        $shift = $workShiftModel->findShiftForTimestamp($now);
+        $shift = $this->isFixedShiftRole($role)
+            ? $workShiftModel->findFixedShiftForTimestamp($now)
+            : $workShiftModel->findShiftForTimestamp($now);
+        if ($this->isFixedShiftRole($role)) {
+            $workShiftModel->ensureFixedShiftsForDate($workDate);
+        }
         $shiftList = $workShiftModel->getShifts($workDate, 6);
         $workSummary = $employeeId ? $timekeepingModel->getMonthlySummary($employeeId) : [
             'month' => date('Y-m'),
@@ -208,9 +213,10 @@ class DashboardController extends Controller
         $qualityModel = new QualityReport();
 
         $now = date('Y-m-d H:i:s');
-        $shift = $workShiftModel->findShiftForTimestamp($now);
-        $workDate = date('Y-m-d');
-        $openRecord = $employeeId ? $timekeepingModel->getOpenRecordForEmployee($employeeId, $workDate) : null;
+        $shift = $this->isFixedShiftRole($role)
+            ? $workShiftModel->findFixedShiftForTimestamp($now)
+            : $workShiftModel->findShiftForTimestamp($now);
+        $openRecord = $employeeId ? $timekeepingModel->getOpenRecordForEmployee($employeeId) : null;
         $geofence = $this->getGeofenceConfig();
 
         $productionPlans = [];

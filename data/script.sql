@@ -141,9 +141,21 @@ CREATE TABLE `ca_lam` (
   `ThoiGianBatDau` datetime DEFAULT NULL,
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TongSL` int(10) DEFAULT NULL,
-  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
+  `IdKeHoachSanXuatXuong` varchar(50) DEFAULT NULL,
   `LOIdLo` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `ca_lam`
+--
+
+INSERT INTO `ca_lam` (`IdCaLamViec`, `TenCa`, `LoaiCa`, `NgayLamViec`, `ThoiGianBatDau`, `ThoiGianKetThuc`, `TongSL`, `IdKeHoachSanXuatXuong`, `LOIdLo`) VALUES
+('CA_FIX_0501_S', 'Ca sáng', 'Cố định', '2023-05-01', '2023-05-01 06:30:00', '2023-05-01 14:00:00', 0, NULL, NULL),
+('CA_FIX_0501_T', 'Ca trưa', 'Cố định', '2023-05-01', '2023-05-01 14:00:00', '2023-05-01 22:00:00', 0, NULL, NULL),
+('CA_FIX_0501_D', 'Ca tối', 'Cố định', '2023-05-01', '2023-05-01 22:00:00', '2023-05-02 06:00:00', 0, NULL, NULL),
+('CA_FIX_0502_S', 'Ca sáng', 'Cố định', '2023-05-02', '2023-05-02 06:30:00', '2023-05-02 14:00:00', 0, NULL, NULL),
+('CA_FIX_0502_T', 'Ca trưa', 'Cố định', '2023-05-02', '2023-05-02 14:00:00', '2023-05-02 22:00:00', 0, NULL, NULL),
+('CA_FIX_0502_D', 'Ca tối', 'Cố định', '2023-05-02', '2023-05-02 22:00:00', '2023-05-03 06:00:00', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -166,6 +178,20 @@ CREATE TABLE `cham_cong` (
   `IdCaLamViec` varchar(50) NOT NULL,
   `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `cham_cong`
+--
+
+INSERT INTO `cham_cong` (`IdChamCong`, `NHANVIEN IdNhanVien`, `ThoiGIanRa`, `ThoiGianVao`, `ViTriVaoLat`, `ViTriVaoLng`, `ViTriVaoAccuracy`, `ViTriRaLat`, `ViTriRaLng`, `ViTriRaAccuracy`, `XUONGTRUONG IdNhanVien`, `IdCaLamViec`, `GhiChu`) VALUES
+('CC0001', 'NV009', '2023-05-01 14:00:00', '2023-05-01 06:30:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0501_S', 'Chấm công mẫu'),
+('CC0002', 'NV010', '2023-05-01 14:00:00', '2023-05-01 06:45:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0501_S', 'Chấm công mẫu'),
+('CC0003', 'NV011', '2023-05-01 22:00:00', '2023-05-01 14:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0501_T', 'Chấm công mẫu'),
+('CC0004', 'NV012', '2023-05-01 22:00:00', '2023-05-01 14:10:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV008', 'CA_FIX_0501_T', 'Chấm công mẫu'),
+('CC0005', 'NV018', '2023-05-02 06:00:00', '2023-05-01 22:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0501_D', 'Chấm công mẫu'),
+('CC0006', 'NV009', '2023-05-02 14:00:00', '2023-05-02 06:30:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV005', 'CA_FIX_0502_S', 'Chấm công mẫu'),
+('CC0007', 'NV013', '2023-05-02 22:00:00', '2023-05-02 14:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV008', 'CA_FIX_0502_T', 'Chấm công mẫu'),
+('CC0008', 'NV019', '2023-05-03 06:00:00', '2023-05-02 22:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'NV008', 'CA_FIX_0502_D', 'Chấm công mẫu');
 
 -- --------------------------------------------------------
 
@@ -243,6 +269,7 @@ CREATE TABLE `don_hang` (
   `TongTien` float DEFAULT NULL,
   `NgayLap` date DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
+  `GhiChu` text DEFAULT NULL,
   `EmailLienHe` varchar(255) DEFAULT NULL,
   `IdKhachHang` varchar(50) NOT NULL,
   `IdNguoiTao` varchar(50) DEFAULT NULL
@@ -288,7 +315,8 @@ CREATE TABLE `ke_hoach_san_xuat` (
   `TrangThai` varchar(255) DEFAULT NULL,
   `ThoiGianBD` datetime DEFAULT NULL,
   `IdNguoiLap` varchar(50) NOT NULL,
-  `IdTTCTDonHang` varchar(50) NOT NULL
+  `IdTTCTDonHang` varchar(50) NOT NULL,
+  `GhiChu` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -304,6 +332,7 @@ CREATE TABLE `ke_hoach_san_xuat_xuong` (
   `ThoiGianBatDau` datetime DEFAULT NULL,
   `ThoiGianKetThuc` datetime DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
+  `GhiChu` text DEFAULT NULL,
   `TinhTrangVatTu` varchar(255) DEFAULT 'Chưa kiểm tra',
   `IdCongDoan` varchar(50) DEFAULT NULL,
   `IdKeHoachSanXuat` varchar(50) NOT NULL,
@@ -348,6 +377,14 @@ CREATE TABLE `kho` (
   `NHAN_VIEN_KHO_IdNhanVien` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Đang đổ dữ liệu cho bảng `kho`
+--
+
+INSERT INTO `kho` (`IdKho`, `TenKho`, `TenLoaiKho`, `DiaChi`, `TongSLLo`, `ThanhTien`, `TrangThai`, `TongSL`, `IdXuong`, `NHAN_VIEN_KHO_IdNhanVien`) VALUES
+('KHO001', 'Kho Bắc Ninh', 'Nguyên liệu', 'Bắc Ninh', 0, 0, 'Đang sử dụng', 0, 'XUONG001', 'NV012'),
+('KHO002', 'Kho Hà Nội', 'Nguyên liệu', 'Hà Nội', 0, 0, 'Đang sử dụng', 0, 'XUONG002', 'NV013');
+
 -- --------------------------------------------------------
 
 --
@@ -378,9 +415,19 @@ CREATE TABLE `lo` (
   `SoLuong` int(10) DEFAULT NULL,
   `NgayTao` datetime DEFAULT NULL,
   `LoaiLo` varchar(255) DEFAULT NULL,
+  `TrangThai` varchar(255) DEFAULT NULL,
   `IdSanPham` varchar(50) NOT NULL,
   `IdKho` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `lo`
+--
+
+INSERT INTO `lo` (`IdLo`, `TenLo`, `SoLuong`, `NgayTao`, `LoaiLo`, `TrangThai`, `IdSanPham`, `IdKho`) VALUES
+('LO001', 'Lô nguyên liệu BN-01', 1200, '2023-05-01 08:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP001', 'KHO001'),
+('LO002', 'Lô nguyên liệu BN-02', 800, '2023-05-02 08:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP001', 'KHO001'),
+('LO003', 'Lô nguyên liệu HN-01', 5000, '2023-05-01 09:00:00', 'Nguyên liệu', 'Đang lưu kho', 'SP002', 'KHO002');
 
 -- --------------------------------------------------------
 
@@ -402,13 +449,26 @@ CREATE TABLE `nguoi_dung` (
 --
 
 INSERT INTO `nguoi_dung` (`IdNguoiDung`, `TenDangNhap`, `MatKhau`, `TrangThai`, `IdNhanVien`, `IdVaiTro`) VALUES
-('ND694adfe50a0fb', 'kiet', '123', 'Hoạt động', 'NV694adf3580d15', 'VT_ADMIN'),
-('ND694adffc9b548', 'dang', '123', 'Hoạt động', 'NV694adf69dd1ee', 'VT_TRUONG_XUONG_LUU_TRU'),
-('ND694ae9c1b34cb', 'truc', '$2y$10$b7DVct70.fIyJ2/PzsQYceLL3y3GoMtk9o90BAYW4JBoGxmzOzUNS', 'Hoạt động', 'NV694ae1338e677', 'VT_KETOAN'),
-('ND694ae9d3950a2', 'my', '$2y$10$jBV7FxxXXzSB4/Ry.JZ83uJqNeiKot6IS9Dk/wnvUY4qiJdHgIHB6', 'Hoạt động', 'NV694ae17557ca4', 'VT_KIEM_SOAT_CL'),
-('ND694ae9e46df2d', 'huy', '$2y$10$o5EhRzCs00XTOrIuuhYHXui7nKzB2G.Sm/wHXdpaoCCv9WTrJS6pS', 'Hoạt động', 'NV694ae195dbb17', 'VT_BAN_GIAM_DOC'),
-('ND694ae9f224677', 'tien', '$2y$10$QKUpoh51v9Q4dpD859e0XeJ09Jy6TteiwB/HCp6mFbGrF55CkAwIy', 'Hoạt động', 'NV694ae1b771dfd', 'VT_KINH_DOANH'),
-('ND694aea005c660', 'quan', '$2y$10$kHKYbYlBinvihCkcGXjPd.7Ppq4rXKR2zqYqv3Og/rO09mUsi6zCW', 'Hoạt động', 'NV694ae1d645762', 'VT_NHANVIEN_SANXUAT');
+('ND001', 'user01', '123456', 'Hoạt động', 'NV001', 'VT_ADMIN'),
+('ND002', 'user02', '123456', 'Hoạt động', 'NV002', 'VT_BAN_GIAM_DOC'),
+('ND003', 'user03', '123456', 'Hoạt động', 'NV003', 'VT_KETOAN'),
+('ND004', 'user04', '123456', 'Hoạt động', 'NV004', 'VT_KINH_DOANH'),
+('ND005', 'user05', '123456', 'Hoạt động', 'NV005', 'VT_TRUONG_XUONG_SAN_XUAT'),
+('ND006', 'user06', '123456', 'Hoạt động', 'NV006', 'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI'),
+('ND007', 'user07', '123456', 'Hoạt động', 'NV007', 'VT_TRUONG_XUONG_KIEM_DINH'),
+('ND008', 'user08', '123456', 'Hoạt động', 'NV008', 'VT_TRUONG_XUONG_LUU_TRU'),
+('ND009', 'user09', '123456', 'Hoạt động', 'NV009', 'VT_NHANVIEN_SANXUAT'),
+('ND010', 'user10', '123456', 'Hoạt động', 'NV010', 'VT_NHANVIEN_SANXUAT'),
+('ND011', 'user11', '123456', 'Hoạt động', 'NV011', 'VT_NHANVIEN_SANXUAT'),
+('ND012', 'user12', '123456', 'Hoạt động', 'NV012', 'VT_NHANVIEN_KHO'),
+('ND013', 'user13', '123456', 'Hoạt động', 'NV013', 'VT_NHANVIEN_KHO'),
+('ND014', 'user14', '123456', 'Hoạt động', 'NV014', 'VT_KIEM_SOAT_CL'),
+('ND015', 'user15', '123456', 'Hoạt động', 'NV015', 'VT_KIEM_SOAT_CL'),
+('ND016', 'user16', '123456', 'Hoạt động', 'NV016', 'VT_KINH_DOANH'),
+('ND017', 'user17', '123456', 'Hoạt động', 'NV017', 'VT_KINH_DOANH'),
+('ND018', 'user18', '123456', 'Hoạt động', 'NV018', 'VT_NHANVIEN_SANXUAT'),
+('ND019', 'user19', '123456', 'Hoạt động', 'NV019', 'VT_NHANVIEN_KHO'),
+('ND020', 'user20', '123456', 'Hoạt động', 'NV020', 'VT_NHANVIEN_SANXUAT');
 
 -- --------------------------------------------------------
 
@@ -427,6 +487,15 @@ CREATE TABLE `nguyen_lieu` (
   `NgayHetHan` datetime DEFAULT NULL,
   `IdLo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `nguyen_lieu`
+--
+
+INSERT INTO `nguyen_lieu` (`IdNguyenLieu`, `TenNL`, `SoLuong`, `DonVi`, `DonGian`, `TrangThai`, `NgaySanXuat`, `NgayHetHan`, `IdLo`) VALUES
+('NL001', 'Cuộn thép 1mm', 1200, 'kg', 18000, 'Còn hàng', '2023-04-15 00:00:00', '2024-04-15 00:00:00', 'LO001'),
+('NL002', 'Nhựa ABS', 800, 'kg', 22000, 'Còn hàng', '2023-04-18 00:00:00', '2024-04-18 00:00:00', 'LO002'),
+('NL003', 'Bao bì carton', 5000, 'tấm', 3500, 'Còn hàng', '2023-04-20 00:00:00', '2025-04-20 00:00:00', 'LO003');
 
 -- --------------------------------------------------------
 
@@ -454,28 +523,26 @@ CREATE TABLE `nhan_vien` (
 --
 
 INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`, `HeSoLuong`, `TrangThai`, `DiaChi`, `ThoiGianLamViec`, `ChuKy`, `idXuong`, `IdVaiTro`) VALUES
-('NV694adf3580d15', 'Trần Lê Kiệt', '2004-09-24', 1, 'Quản trị hệ thống', 7, 'Đang làm việc', '', '2025-12-24 01:27:00', NULL, NULL, 'VT_ADMIN'),
-('NV694adf69dd1ee', 'Vũ Hải Đăng', '2004-07-16', 1, 'Nhân viên kho (Xưởng trưởng)', 4, 'Đang làm việc', '', '2025-12-24 01:28:00', NULL, NULL, 'VT_TRUONG_XUONG_LUU_TRU'),
-('NV694ae1338e677', 'Nguyễn Trần Thanh Trúc', '2004-02-24', 0, 'Kế toán', 5, 'Đang làm việc', '', '2025-12-24 01:35:00', NULL, NULL, 'VT_KETOAN'),
-('NV694ae17557ca4', 'Lê Hoàng My', '2025-12-24', 0, 'Kiểm soát chất lương', 3, 'Đang làm việc', '', '2025-12-24 01:37:00', NULL, NULL, 'VT_KIEM_SOAT_CL'),
-('NV694ae195dbb17', 'Nguyễn Đức Huy', '2025-12-24', 1, 'Ban giám đốc', 1, 'Đang làm việc', '', '2025-12-24 01:37:00', NULL, NULL, 'VT_BAN_GIAM_DOC'),
-('NV694ae1b771dfd', 'Trần Tiến', '2025-12-24', 1, 'Nhân viên kinh doanh', 3, 'Đang làm việc', '', '2025-12-24 01:38:00', NULL, NULL, 'VT_KINH_DOANH'),
-('NV694ae1d645762', 'Nguyễn Đức Quân', '2025-12-22', 1, 'Sản xuất', 2, 'Đang làm việc', '', '2025-12-24 01:38:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT');
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `phan_cong_ke_hoach_xuong`
---
-
-CREATE TABLE `phan_cong_ke_hoach_xuong` (
-  `IdPhanCong` varchar(50) NOT NULL,
-  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
-  `IdNhanVien` varchar(50) NOT NULL,
-  `IdCaLamViec` varchar(50) NOT NULL,
-  `VaiTro` varchar(255) DEFAULT NULL,
-  `NgayPhanCong` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+('NV001', 'Nguyễn Văn An', '1986-04-12', 1, 'Quản trị hệ thống', 4, 'Đang làm việc', 'Hà Nội', '2023-01-05 08:00:00', NULL, NULL, 'VT_ADMIN'),
+('NV002', 'Trần Thị Bình', '1980-09-20', 0, 'Giám đốc điều hành', 5, 'Đang làm việc', 'Hà Nội', '2022-11-01 08:00:00', NULL, NULL, 'VT_BAN_GIAM_DOC'),
+('NV003', 'Lê Văn Cường', '1988-06-10', 1, 'Kế toán trưởng', 4, 'Đang làm việc', 'Hà Nội', '2023-02-15 08:00:00', NULL, NULL, 'VT_KETOAN'),
+('NV004', 'Phạm Thị Diệu', '1992-03-08', 0, 'Nhân viên kinh doanh', 3, 'Đang làm việc', 'Hà Nội', '2023-04-20 08:00:00', NULL, NULL, 'VT_KINH_DOANH'),
+('NV005', 'Vũ Văn Dũng', '1985-12-19', 1, 'Xưởng trưởng sản xuất', 4, 'Đang làm việc', 'Bắc Ninh', '2022-12-12 08:00:00', NULL, NULL, 'VT_TRUONG_XUONG_SAN_XUAT'),
+('NV006', 'Đặng Thị Hương', '1987-07-14', 0, 'Xưởng trưởng lắp ráp', 4, 'Đang làm việc', 'Bắc Ninh', '2022-12-20 08:00:00', NULL, NULL, 'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI'),
+('NV007', 'Hoàng Văn Khánh', '1989-02-11', 1, 'Xưởng trưởng kiểm định', 4, 'Đang làm việc', 'Bắc Ninh', '2023-01-18 08:00:00', NULL, NULL, 'VT_TRUONG_XUONG_KIEM_DINH'),
+('NV008', 'Nguyễn Thị Lan', '1990-10-05', 0, 'Xưởng trưởng lưu trữ', 4, 'Đang làm việc', 'Bắc Ninh', '2023-01-25 08:00:00', NULL, NULL, 'VT_TRUONG_XUONG_LUU_TRU'),
+('NV009', 'Lê Văn Minh', '1995-08-22', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-03-01 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
+('NV010', 'Phạm Thị Ngọc', '1996-04-18', 0, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-03-05 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
+('NV011', 'Đinh Văn Phúc', '1994-12-01', 1, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-03-08 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
+('NV012', 'Trần Thị Quỳnh', '1993-11-15', 0, 'Nhân viên kho', 2, 'Đang làm việc', 'Hải Phòng', '2023-03-10 08:00:00', NULL, NULL, 'VT_NHANVIEN_KHO'),
+('NV013', 'Phan Văn Sơn', '1991-05-09', 1, 'Nhân viên kho', 2, 'Đang làm việc', 'Hải Phòng', '2023-03-12 08:00:00', NULL, NULL, 'VT_NHANVIEN_KHO'),
+('NV014', 'Nguyễn Thị Trang', '1992-01-27', 0, 'Nhân viên kiểm soát CL', 3, 'Đang làm việc', 'Hà Nội', '2023-02-02 08:00:00', NULL, NULL, 'VT_KIEM_SOAT_CL'),
+('NV015', 'Đỗ Văn Tuấn', '1990-07-30', 1, 'Nhân viên kiểm soát CL', 3, 'Đang làm việc', 'Hà Nội', '2023-02-06 08:00:00', NULL, NULL, 'VT_KIEM_SOAT_CL'),
+('NV016', 'Lý Thị Vân', '1994-09-09', 0, 'Nhân viên kinh doanh', 3, 'Đang làm việc', 'Hà Nội', '2023-03-15 08:00:00', NULL, NULL, 'VT_KINH_DOANH'),
+('NV017', 'Ngô Văn Xuyên', '1993-02-02', 1, 'Nhân viên kinh doanh', 3, 'Đang làm việc', 'Hà Nội', '2023-03-18 08:00:00', NULL, NULL, 'VT_KINH_DOANH'),
+('NV018', 'Bùi Thị Yến', '1997-06-21', 0, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-04-01 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT'),
+('NV019', 'Trịnh Văn Zũng', '1996-12-12', 1, 'Nhân viên kho', 2, 'Đang làm việc', 'Hải Phòng', '2023-04-05 08:00:00', NULL, NULL, 'VT_NHANVIEN_KHO'),
+('NV020', 'Nguyễn Thị Ánh', '1995-03-03', 0, 'Nhân viên sản xuất', 2, 'Đang làm việc', 'Bắc Ninh', '2023-04-10 08:00:00', NULL, NULL, 'VT_NHANVIEN_SANXUAT');
 
 -- --------------------------------------------------------
 
@@ -525,6 +592,14 @@ CREATE TABLE `san_pham` (
   `GiaBan` float DEFAULT NULL,
   `MoTa` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `san_pham`
+--
+
+INSERT INTO `san_pham` (`IdSanPham`, `TenSanPham`, `DonVi`, `GiaBan`, `MoTa`) VALUES
+('SP001', 'Linh kiện tiêu chuẩn A', 'sp', 120000, 'Sản phẩm tiêu chuẩn dùng cho lô nguyên liệu'),
+('SP002', 'Linh kiện tiêu chuẩn B', 'sp', 98000, 'Sản phẩm tiêu chuẩn dùng cho kho Hà Nội');
 
 -- --------------------------------------------------------
 
@@ -633,7 +708,28 @@ CREATE TABLE `xuong` (
 --
 
 INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietBi`, `SlNhanVien`, `SoLuongCongNhan`, `TenQuyTrinh`, `CongSuatToiDa`, `CongSuatDangSuDung`, `LoaiXuong`, `TrangThai`, `MoTa`, `XUONGTRUONG_IdNhanVien`) VALUES
-('XUONG694adf9d2b37d', 'Xưởng lưu trữ hàng hóa', 'IUH, Nguyễn Văn Bảo, HCM', '2025-12-24', NULL, 40, 0, NULL, 200000, 0, 'Xưởng lưu trữ hàng hóa', 'Đang hoạt động', '', 'NV694adf69dd1ee');
+('XUONG001', 'Xưởng sản xuất Bắc Ninh', 'Bắc Ninh', '2023-01-10', 20, 50, 0, 'Quy trình sản xuất chuẩn', 1000, 0, 'Sản xuất', 'Đang hoạt động', 'Xưởng sản xuất chính', 'NV005'),
+('XUONG002', 'Xưởng lắp ráp Hà Nội', 'Hà Nội', '2023-02-05', 15, 30, 0, 'Quy trình lắp ráp', 600, 0, 'Sản xuất', 'Đang hoạt động', 'Xưởng lắp ráp và đóng gói', 'NV006');
+
+-- --------------------------------------------------------
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `xuong_nhan_vien`
+--
+
+CREATE TABLE `xuong_nhan_vien` (
+  `IdXuong` varchar(50) NOT NULL,
+  `IdNhanVien` varchar(50) NOT NULL,
+  `VaiTro` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `xuong_nhan_vien`
+--
+
+-- (Dữ liệu đã được lược bỏ)
 
 -- --------------------------------------------------------
 
