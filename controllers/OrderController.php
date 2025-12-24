@@ -11,7 +11,7 @@ class OrderController extends Controller
     private SystemActivity $activityModel;
     private Employee $employeeModel;
 
-    private array $orderStatuses = ['Chưa có kế hoạch', 'Đang xử lý', 'Hoàn thành', 'Chờ vận chuyển', 'Đã hoàn thành'];
+    private array $orderStatuses = ['Chưa có kế hoạch', 'Đang xử lý', 'Hoàn thành', 'Chờ vận chuyển', 'Đã hoàn thành', 'Hủy'];
 
     public function __construct()
     {
@@ -86,6 +86,7 @@ class OrderController extends Controller
                 'TongTien' => $totalAmount,
                 'NgayLap' => date('Y-m-d'),
                 'TrangThai' => $this->orderStatuses[0],
+                'GhiChu' => null,
                 'EmailLienHe' => $contactEmail !== '' ? $contactEmail : null,
                 'IdKhachHang' => $customerId,
                 'IdNguoiTao' => $creatorEmployeeId,
@@ -276,19 +277,57 @@ class OrderController extends Controller
 
     public function delete(): void
     {
-        $id = $_GET['id'] ?? null;
-        if ($id) {
-            try {
-                $this->orderModel->delete($id);
-                $this->setFlash('success', 'Đã xóa đơn hàng.');
-            } catch (Throwable $exception) {
-                Logger::error('Lỗi khi xóa đơn hàng ' . $id . ': ' . $exception->getMessage());
-                /* $this->setFlash('danger', 'Không thể xóa đơn hàng: ' . $exception->getMessage()); */
-                $this->setFlash('danger', 'Không thể xóa đơn hàng, vui lòng kiểm tra log để biết thêm chi tiết.');
-            }
+        $this->redirect('?controller=order&action=index');
+    }
+
+    public function cancel(): void
+    {
+        $this->authorize(['VT_BAN_GIAM_DOC']);
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=order&action=index');
         }
 
-        $this->redirect('?controller=order&action=index');
+        $id = $_POST['IdDonHang'] ?? null;
+        if (!$id) {
+            $this->setFlash('danger', 'Không xác định được đơn hàng cần hủy.');
+            $this->redirect('?controller=order&action=index');
+        }
+
+        $order = $this->orderModel->find($id);
+        if (!$order) {
+            $this->setFlash('warning', 'Không tìm thấy đơn hàng.');
+            $this->redirect('?controller=order&action=index');
+        }
+
+        $currentStatus = $order['TrangThai'] ?? '';
+        $allowedStatuses = ['Chưa có kế hoạch', 'Đang xử lý'];
+        if (!in_array($currentStatus, $allowedStatuses, true)) {
+            $this->setFlash('danger', 'Chỉ được hủy đơn hàng khi đang chờ hoặc đang sản xuất.');
+            $this->redirect('?controller=order&action=read&id=' . urlencode($id));
+        }
+
+        $reason = trim($_POST['cancel_note'] ?? '');
+        if ($reason === '') {
+            $this->setFlash('danger', 'Vui lòng nhập ghi chú khi hủy đơn hàng.');
+            $this->redirect('?controller=order&action=read&id=' . urlencode($id));
+        }
+
+        try {
+            $this->orderModel->update($id, [
+                'TrangThai' => 'Hủy',
+                'GhiChu' => $reason,
+            ]);
+            $currentUser = $this->currentUser();
+            $editorId = $currentUser['IdNguoiDung'] ?? null;
+            $this->logOrderActivity($editorId, sprintf('Hủy đơn hàng %s: %s', $id, $reason));
+            $this->setFlash('success', 'Đã hủy đơn hàng.');
+        } catch (Throwable $exception) {
+            Logger::error('Lỗi khi hủy đơn hàng ' . $id . ': ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể hủy đơn hàng, vui lòng kiểm tra log để biết thêm chi tiết.');
+        }
+
+        $this->redirect('?controller=order&action=read&id=' . urlencode($id));
     }
 
     public function read(): void

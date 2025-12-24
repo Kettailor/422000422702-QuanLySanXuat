@@ -96,7 +96,6 @@ $statusCounts = array_reduce($orders, static function (array $carry, array $orde
                         <div class="btn-group btn-group-sm" role="group">
                             <a class="btn btn-outline-secondary" href="?controller=order&action=read&id=<?= urlencode($order['IdDonHang']) ?>">Chi tiết</a>
                             <a class="btn btn-outline-primary" href="?controller=order&action=edit&id=<?= urlencode($order['IdDonHang']) ?>">Sửa</a>
-                            <a class="btn btn-outline-danger" href="?controller=order&action=delete&id=<?= urlencode($order['IdDonHang']) ?>" onclick="return confirm('Xác nhận xóa đơn hàng này?');">Xóa</a>
                         </div>
                     </td>
                 </tr>

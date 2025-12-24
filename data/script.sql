@@ -329,6 +329,7 @@ CREATE TABLE `don_hang` (
   `TongTien` float DEFAULT NULL,
   `NgayLap` date DEFAULT NULL,
   `TrangThai` varchar(255) DEFAULT NULL,
+  `GhiChu` text DEFAULT NULL,
   `EmailLienHe` varchar(255) DEFAULT NULL,
   `IdKhachHang` varchar(50) NOT NULL,
   `IdNguoiTao` varchar(50) DEFAULT NULL

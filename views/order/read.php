@@ -173,4 +173,31 @@
             <p class="text-muted mb-0">Chưa có nhật ký chỉnh sửa.</p>
         <?php endif; ?>
     </div>
+
+    <?php
+    $currentUser = $currentUser ?? [];
+    $roleId = $currentUser['ActualIdVaiTro'] ?? ($currentUser['IdVaiTro'] ?? null);
+    $canCancel = $roleId === 'VT_BAN_GIAM_DOC';
+    $orderStatus = $order['TrangThai'] ?? '';
+    $canCancelStatus = in_array($orderStatus, ['Chưa có kế hoạch', 'Đang xử lý'], true);
+    ?>
+    <?php if ($canCancel): ?>
+        <div class="card p-4 mt-4">
+            <h5 class="fw-semibold mb-3">Hủy đơn hàng</h5>
+            <?php if (!$canCancelStatus): ?>
+                <div class="alert alert-light border mb-0">Đơn hàng chỉ được hủy khi đang chờ hoặc đang sản xuất.</div>
+            <?php else: ?>
+                <form method="post" action="?controller=order&action=cancel" onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                    <input type="hidden" name="IdDonHang" value="<?= htmlspecialchars($order['IdDonHang']) ?>">
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú hủy đơn</label>
+                        <textarea name="cancel_note" rows="3" class="form-control" placeholder="Lý do khách hàng không nhận hàng..." required></textarea>
+                    </div>
+                    <button class="btn btn-outline-danger" type="submit">
+                        <i class="bi bi-x-circle me-2"></i>Hủy đơn hàng
+                    </button>
+                </form>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 <?php endif; ?>
