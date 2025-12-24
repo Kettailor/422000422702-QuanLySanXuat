@@ -318,7 +318,7 @@ class OrderController extends Controller
             $this->redirect('?controller=order&action=read&id=' . urlencode($id));
             return;
         }
-        $planEligibility = $this->getPlanCancelEligibility($id);
+        $planEligibility = $this->getPlanCancelEligibility($id, $currentStatus);
         if (!$planEligibility['eligible']) {
             $this->setFlash('danger', $planEligibility['message']);
             $this->redirect('?controller=order&action=read&id=' . urlencode($id));
@@ -375,7 +375,7 @@ class OrderController extends Controller
             $creator = $this->employeeModel->find($order['IdNguoiTao']);
         }
         $activities = $this->activityModel->findByOrderId($id, 20);
-        $planEligibility = $this->getPlanCancelEligibility($id);
+        $planEligibility = $this->getPlanCancelEligibility($id, $order['TrangThai'] ?? '');
 
         $this->render('order/read', [
             'title' => 'Chi tiết đơn hàng',
@@ -390,10 +390,17 @@ class OrderController extends Controller
         ]);
     }
 
-    private function getPlanCancelEligibility(string $orderId): array
+    private function getPlanCancelEligibility(string $orderId, string $orderStatus = ''): array
     {
         $plans = $this->productionPlanModel->getByOrder($orderId);
         if (!$plans) {
+            if ($orderStatus === 'Chưa có kế hoạch') {
+                return [
+                    'eligible' => true,
+                    'message' => 'Đơn hàng chưa có kế hoạch sản xuất, có thể hủy trực tiếp.',
+                ];
+            }
+
             return [
                 'eligible' => false,
                 'message' => 'Đơn hàng chỉ được hủy khi kế hoạch sản xuất đã bị hủy.',

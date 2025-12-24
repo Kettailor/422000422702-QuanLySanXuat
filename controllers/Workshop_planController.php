@@ -17,7 +17,7 @@ class Workshop_planController extends Controller
 
     public function __construct()
     {
-        $this->authorize(array_merge($this->getWorkshopManagerRoles(), ['VT_BAN_GIAM_DOC']));
+        $this->authorize(array_merge($this->getWorkshopManagerRoles(), ['VT_ADMIN']));
         $this->workshopPlanModel = new WorkshopPlan();
         $this->materialDetailModel = new WorkshopPlanMaterialDetail();
         $this->historyModel = new WorkshopPlanHistory();
@@ -100,6 +100,11 @@ class Workshop_planController extends Controller
             return;
         }
         if (!$this->canAccessPlan($plan)) {
+            return;
+        }
+        if ($this->isPlanCancelled($plan)) {
+            $this->setFlash('warning', 'Kế hoạch xưởng đã hủy, không thể cập nhật nguyên liệu.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
             return;
         }
         if (!$this->supportsMaterials($plan)) {
@@ -190,6 +195,11 @@ class Workshop_planController extends Controller
         if (!$this->canAccessPlan($plan)) {
             return;
         }
+        if ($this->isPlanCancelled($plan)) {
+            $this->setFlash('warning', 'Kế hoạch xưởng đã hủy, không thể phân công.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+            return;
+        }
 
         $this->workShiftModel->ensureDefaultShiftsForPlan(
             $planId,
@@ -241,6 +251,11 @@ class Workshop_planController extends Controller
             return;
         }
         if (!$this->canAccessPlan($plan)) {
+            return;
+        }
+        if ($this->isPlanCancelled($plan)) {
+            $this->setFlash('warning', 'Kế hoạch xưởng đã hủy, không thể cập nhật phân công.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
             return;
         }
 
@@ -365,6 +380,11 @@ class Workshop_planController extends Controller
         if (!$this->canAccessPlan($plan)) {
             return;
         }
+        if ($this->isPlanCancelled($plan)) {
+            $this->setFlash('warning', 'Kế hoạch xưởng đã hủy, không thể cập nhật tiến độ.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
+            return;
+        }
         if (!$this->supportsProgress($plan)) {
             $this->setFlash('danger', 'Loại xưởng này chỉ hỗ trợ phân công, không cập nhật tiến độ.');
             $this->redirect('?controller=workshop_plan&action=assign&id=' . urlencode($planId));
@@ -475,6 +495,11 @@ class Workshop_planController extends Controller
             return;
         }
         if (!$this->canAccessPlan($plan)) {
+            return;
+        }
+        if ($this->isPlanCancelled($plan)) {
+            $this->setFlash('warning', 'Kế hoạch xưởng đã hủy, không thể cập nhật tiến độ.');
+            $this->redirect('?controller=workshop_plan&action=read&id=' . urlencode($planId));
             return;
         }
         if (!$this->supportsProgress($plan)) {
@@ -681,6 +706,11 @@ class Workshop_planController extends Controller
         return $role === 'VT_TRUONG_XUONG_LUU_TRU';
     }
 
+    private function isPlanCancelled(array $plan): bool
+    {
+        return ($plan['TrangThai'] ?? '') === 'Hủy';
+    }
+
     private function canAccessPlan(?array $plan): bool
     {
         if (!$plan) {
@@ -691,20 +721,8 @@ class Workshop_planController extends Controller
 
         $user = $this->currentUser();
         $role = $user ? $this->resolveAccessRole($user) : null;
-        if ($role === 'VT_BAN_GIAM_DOC') {
+        if ($role === 'VT_ADMIN') {
             return true;
-        }
-
-        if ($this->isStorageManager()) {
-            $pending = $this->warehouseRequestModel->getPendingByPlanIds([
-                $plan['IdKeHoachSanXuatXuong'] ?? '',
-            ]);
-            if (!empty($pending)) {
-                return true;
-            }
-            $this->setFlash('danger', 'Bạn chỉ được xem kế hoạch đang yêu cầu giao nguyên liệu.');
-            $this->redirect('?controller=factory_plan&action=index');
-            return false;
         }
 
         if (in_array($role, $this->getWorkshopManagerRoles(), true)) {

@@ -552,6 +552,21 @@ INSERT INTO `nhan_vien` (`IdNhanVien`, `HoTen`, `NgaySinh`, `GioiTinh`, `ChucVu`
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `phan_cong_ke_hoach_xuong`
+--
+
+CREATE TABLE `phan_cong_ke_hoach_xuong` (
+  `IdPhanCong` varchar(50) NOT NULL,
+  `IdKeHoachSanXuatXuong` varchar(50) NOT NULL,
+  `IdNhanVien` varchar(50) NOT NULL,
+  `IdCaLamViec` varchar(50) NOT NULL,
+  `VaiTro` varchar(50) DEFAULT NULL,
+  `NgayPhanCong` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `phieu`
 --
 
@@ -688,9 +703,6 @@ INSERT INTO `vai_tro` (`IdVaiTro`, `TenVaiTro`) VALUES
 ('VT_KINH_DOANH', 'Nhân viên kinh doanh'),
 ('VT_NHANVIEN_KHO', 'Nhân viên kho'),
 ('VT_NHANVIEN_SANXUAT', 'Nhân viên sản xuất'),
-('VT_TRUONG_XUONG_KIEM_DINH', 'Xưởng trưởng kiểm định'),
-('VT_TRUONG_XUONG_LAP_RAP_DONG_GOI', 'Xưởng trưởng lắp ráp và đóng gói'),
-('VT_TRUONG_XUONG_LUU_TRU', 'Xưởng trưởng lưu trữ hàng hóa'),
 ('VT_TRUONG_XUONG_SAN_XUAT', 'Xưởng trưởng sản xuất');
 
 -- --------------------------------------------------------
