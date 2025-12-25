@@ -70,16 +70,18 @@ class Employee extends BaseModel
         }
 
         $sql = 'SELECT DISTINCT IdXuong FROM (
-                    SELECT idXuong AS IdXuong FROM nhan_vien WHERE IdNhanVien = :employee
+                    SELECT idXuong AS IdXuong FROM nhan_vien WHERE IdNhanVien = ?
                     UNION ALL
-                    SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employee
+                    SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = ?
                     UNION ALL
-                    SELECT IdXuong FROM xuong WHERE XUONGTRUONG_IdNhanVien = :employee
+                    SELECT IdXuong FROM xuong WHERE XUONGTRUONG_IdNhanVien = ?
                 ) AS workshop_ids
                 WHERE IdXuong IS NOT NULL AND IdXuong <> ""';
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':employee', $employeeId);
+        $stmt->bindValue(1, $employeeId);
+        $stmt->bindValue(2, $employeeId);
+        $stmt->bindValue(3, $employeeId);
         $stmt->execute();
 
         return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
@@ -93,18 +95,20 @@ class Employee extends BaseModel
 
         $sql = 'SELECT 1
                 FROM (
-                    SELECT idXuong AS IdXuong FROM nhan_vien WHERE IdNhanVien = :employee
+                    SELECT idXuong AS IdXuong FROM nhan_vien WHERE IdNhanVien = ?
                     UNION ALL
-                    SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employee
+                    SELECT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = ?
                     UNION ALL
-                    SELECT IdXuong FROM xuong WHERE XUONGTRUONG_IdNhanVien = :employee
+                    SELECT IdXuong FROM xuong WHERE XUONGTRUONG_IdNhanVien = ?
                 ) AS workshop_ids
-                WHERE IdXuong = :workshop
+                WHERE IdXuong = ?
                 LIMIT 1';
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':employee', $employeeId);
-        $stmt->bindValue(':workshop', $workshopId);
+        $stmt->bindValue(1, $employeeId);
+        $stmt->bindValue(2, $employeeId);
+        $stmt->bindValue(3, $employeeId);
+        $stmt->bindValue(4, $workshopId);
         $stmt->execute();
 
         return (bool) $stmt->fetchColumn();

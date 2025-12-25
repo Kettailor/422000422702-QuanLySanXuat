@@ -35,6 +35,38 @@ $lotPrefixMap = [
 ?>
 
 <style>
+    .warehouse-dashboard {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .warehouse-hero {
+        background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 50%, #fff 100%);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 1.25rem;
+        padding: 2rem;
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    .warehouse-hero .hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.1);
+        color: #1d4ed8;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+
     .metric-trigger {
         border: 0;
         background: transparent;
@@ -48,149 +80,219 @@ $lotPrefixMap = [
         box-shadow: none;
     }
 
-    .metric-trigger .metric-card {
+    .summary-card {
+        border-radius: 1rem;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        padding: 1.25rem;
+        height: 100%;
+        background: #fff;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .metric-trigger:hover .metric-card {
-        transform: translateY(-3px);
-        box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.12);
+    .metric-trigger:hover .summary-card {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 35px rgba(15, 23, 42, 0.12);
     }
 
-    .metric-trigger:focus-visible .metric-card,
-    .metric-trigger.active .metric-card {
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    .metric-trigger:focus-visible .summary-card,
+    .metric-trigger.active .summary-card {
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.2);
         transform: translateY(-2px);
     }
 
-    .warehouse-section {
-        margin-top: 2.5rem;
+    .summary-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
     }
 
-    .warehouse-section .section-header {
-        border: 1px solid rgba(15, 23, 42, 0.05);
-        background: linear-gradient(135deg, #f8fafc, #fdfdff);
-    }
-
-    .warehouse-section .section-header h4 {
-        margin-bottom: 0.25rem;
-    }
-
-    .warehouse-section .section-header p {
-        margin-bottom: 0;
-    }
-
-    .warehouse-stats-card .stat-label {
-        font-size: 0.75rem;
+    .summary-meta {
+        font-size: 0.78rem;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        font-weight: 600;
     }
 
-    .warehouse-stats-card .stat-value {
-        font-size: 1.5rem;
+    .summary-value {
+        font-size: 1.85rem;
         font-weight: 700;
+        color: #0f172a;
     }
 
-    .warehouse-surface {
-        background: #f8fafc;
-        border: 1px solid rgba(15, 23, 42, 0.05);
-        border-radius: 1rem;
+    .warehouse-section {
+        margin-top: 0.5rem;
+    }
+
+    .group-card {
+        background: #fff;
+        border-radius: 1.25rem;
+        border: 1px solid rgba(15, 23, 42, 0.08);
         padding: 1.5rem;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
     }
 
-    .warehouse-surface + .warehouse-surface {
-        margin-top: 1.5rem;
+    .group-card + .group-card {
+        margin-top: 2rem;
+    }
+
+    .group-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .group-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .group-stat {
+        background: #f8fafc;
+        border-radius: 0.85rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .group-stat .label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .group-stat .value {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #0f172a;
     }
 
     .table-modern {
-        border-radius: 0.75rem;
+        border-radius: 1rem;
         overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.35);
     }
 
     .table-modern thead {
-        background: #f3f6fb;
+        background: #f1f5f9;
+    }
+
+    .utilization-bar {
+        height: 6px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+        margin-top: 0.35rem;
+    }
+
+    .utilization-bar span {
+        display: block;
+        height: 100%;
     }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold mb-1">Quản lý kho</h3>
-        <p class="text-muted mb-0">Theo dõi kho nguyên liệu, thành phẩm và kho xử lý lỗi cùng phiếu nhập tương ứng.</p>
+<div class="warehouse-dashboard">
+    <div class="warehouse-hero">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+            <div>
+                <div class="hero-tag mb-3"><i class="bi bi-grid-1x2-fill"></i>Trung tâm điều phối kho</div>
+                <h2 class="fw-bold mb-2">Tổng quan hệ thống kho</h2>
+                <p class="text-muted mb-0">Theo dõi sức chứa, giá trị tồn, phiếu nhập xuất và trạng thái vận hành của từng nhóm kho.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="?controller=warehouse&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kho mới</a>
+                <a href="?controller=warehouse_sheet&action=create" class="btn btn-outline-primary"><i class="bi bi-file-earmark-plus me-2"></i>Tạo phiếu kho</a>
+            </div>
+        </div>
     </div>
-    <a href="?controller=warehouse&action=create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Thêm kho mới</a>
-</div>
 
-<?php if (!empty($summary)): ?>
-    <div class="row g-3 mb-4">
-        <div class="col-xl-3 col-sm-6">
+    <?php if (!empty($summary)): ?>
+        <div class="summary-grid">
             <button type="button" class="metric-trigger" data-document-group-trigger="all" data-bs-toggle="modal" data-bs-target="#warehouseDocumentModal">
-                <div class="card metric-card">
-                    <div class="icon-wrap bg-primary bg-opacity-10 text-primary"><i class="bi bi-archive"></i></div>
-                    <div>
-                        <div class="text-muted text-uppercase small">Tổng số kho</div>
-                        <div class="fs-3 fw-bold"><?= number_format($summary['total_warehouses'] ?? 0) ?></div>
-                        <div class="small text-success">Đang sử dụng: <?= number_format($summary['active_warehouses'] ?? 0) ?></div>
-                        <div class="small text-primary fw-semibold">Phiếu kho: <?= number_format($documentGroups['all']['count'] ?? 0) ?></div>
+                <div class="summary-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="summary-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-archive"></i></span>
+                        <div>
+                            <div class="summary-meta">Tổng số kho</div>
+                            <div class="summary-value"><?= number_format($summary['total_warehouses'] ?? 0) ?></div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-success">Đang sử dụng: <?= number_format($summary['active_warehouses'] ?? 0) ?></span>
+                        <span class="text-primary fw-semibold">Phiếu kho: <?= number_format($documentGroups['all']['count'] ?? 0) ?></span>
                     </div>
                 </div>
             </button>
-        </div>
-        <div class="col-xl-3 col-sm-6">
             <button type="button" class="metric-trigger" data-document-group-trigger="inbound" data-bs-toggle="modal" data-bs-target="#warehouseDocumentModal">
-                <div class="card metric-card">
-                    <div class="icon-wrap bg-info bg-opacity-10 text-info"><i class="bi bi-box-seam"></i></div>
-                    <div>
-                        <div class="text-muted text-uppercase small">Sức chứa hệ thống</div>
-                        <div class="fs-3 fw-bold"><?= number_format($summary['total_capacity'] ?? 0) ?></div>
-                        <div class="small text-muted">Kho tạm ngưng: <?= number_format(($summary['inactive_warehouses'] ?? 0)) ?></div>
-                        <div class="small text-info fw-semibold">Phiếu nhập: <?= number_format($documentGroups['inbound']['count'] ?? 0) ?></div>
+                <div class="summary-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="summary-icon bg-info bg-opacity-10 text-info"><i class="bi bi-box-seam"></i></span>
+                        <div>
+                            <div class="summary-meta">Sức chứa hệ thống</div>
+                            <div class="summary-value"><?= number_format($summary['total_capacity'] ?? 0) ?></div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Kho tạm ngưng: <?= number_format(($summary['inactive_warehouses'] ?? 0)) ?></span>
+                        <span class="text-info fw-semibold">Phiếu nhập: <?= number_format($documentGroups['inbound']['count'] ?? 0) ?></span>
                     </div>
                 </div>
             </button>
-        </div>
-        <div class="col-xl-3 col-sm-6">
             <button type="button" class="metric-trigger" data-document-group-trigger="valuable" data-bs-toggle="modal" data-bs-target="#warehouseDocumentModal">
-                <div class="card metric-card">
-                    <div class="icon-wrap bg-warning bg-opacity-10 text-warning"><i class="bi bi-graph-up"></i></div>
-                    <div>
-                        <div class="text-muted text-uppercase small">Giá trị hàng tồn</div>
-                        <div class="fs-3 fw-bold"><?= number_format($summary['total_inventory_value'] ?? 0, 0, ',', '.') ?> đ</div>
-                        <div class="small text-muted">Tổng lô: <?= number_format($summary['total_lots'] ?? 0) ?></div>
-                        <div class="small text-warning fw-semibold">Phiếu giá trị cao: <?= number_format($documentGroups['valuable']['count'] ?? 0) ?></div>
+                <div class="summary-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="summary-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-graph-up"></i></span>
+                        <div>
+                            <div class="summary-meta">Giá trị hàng tồn</div>
+                            <div class="summary-value"><?= number_format($summary['total_inventory_value'] ?? 0, 0, ',', '.') ?> đ</div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Tổng lô: <?= number_format($summary['total_lots'] ?? 0) ?></span>
+                        <span class="text-warning fw-semibold">Phiếu giá trị cao: <?= number_format($documentGroups['valuable']['count'] ?? 0) ?></span>
                     </div>
                 </div>
             </button>
-        </div>
-        <div class="col-xl-3 col-sm-6">
             <button type="button" class="metric-trigger" data-document-group-trigger="outbound" data-bs-toggle="modal" data-bs-target="#warehouseDocumentModal">
-                <div class="card metric-card">
-                    <div class="icon-wrap bg-success bg-opacity-10 text-success"><i class="bi bi-layers"></i></div>
-                    <div>
-                        <div class="text-muted text-uppercase small">Tổng số lượng tồn</div>
-                        <div class="fs-3 fw-bold"><?= number_format($summary['total_quantity'] ?? 0) ?></div>
-                        <div class="small text-success fw-semibold">Phiếu xuất: <?= number_format($documentGroups['outbound']['count'] ?? 0) ?></div>
+                <div class="summary-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="summary-icon bg-success bg-opacity-10 text-success"><i class="bi bi-layers"></i></span>
+                        <div>
+                            <div class="summary-meta">Tổng số lượng tồn</div>
+                            <div class="summary-value"><?= number_format($summary['total_quantity'] ?? 0) ?></div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-success fw-semibold">Phiếu xuất: <?= number_format($documentGroups['outbound']['count'] ?? 0) ?></span>
+                        <span class="text-muted">Tổng lô: <?= number_format($summary['total_lots'] ?? 0) ?></span>
                     </div>
                 </div>
             </button>
         </div>
-    </div>
-<?php endif; ?>
+    <?php endif; ?>
 
-<?php if (!empty($summary['by_type'])): ?>
-    <div class="row g-4 mb-5">
-        <?php foreach ($summary['by_type'] as $typeKey => $typeSummary): ?>
-            <?php $group = $warehouseGroups[$typeKey] ?? ['label' => $typeSummary['label'] ?? '', 'description' => '', 'warehouses' => [], 'statistics' => $typeSummary]; ?>
-            <?php $form = $warehouseEntryForms[$typeKey] ?? null; ?>
-            <?php $hasWarehouses = !empty($group['warehouses']); ?>
-            <?php $canCreateDocument = $form && $hasWarehouses; ?>
-            <div class="col-xl-4 col-md-6">
-                <div class="card h-100 border-0 shadow-sm warehouse-stats-card">
-                    <div class="card-body d-flex flex-column">
+    <?php if (!empty($summary['by_type'])): ?>
+        <div class="row g-4">
+            <?php foreach ($summary['by_type'] as $typeKey => $typeSummary): ?>
+                <?php $group = $warehouseGroups[$typeKey] ?? ['label' => $typeSummary['label'] ?? '', 'description' => '', 'warehouses' => [], 'statistics' => $typeSummary]; ?>
+                <?php $form = $warehouseEntryForms[$typeKey] ?? null; ?>
+                <?php $hasWarehouses = !empty($group['warehouses']); ?>
+                <?php $canCreateDocument = $form && $hasWarehouses; ?>
+                <div class="col-xl-4 col-md-6">
+                    <div class="summary-card h-100">
                         <div class="d-flex justify-content-between align-items-start mb-3 gap-3">
                             <div>
-                                <h5 class="fw-semibold mb-1"><?= htmlspecialchars($group['label'] ?? ($typeSummary['label'] ?? '')) ?></h5>
+                                <div class="summary-meta"><?= htmlspecialchars($group['label'] ?? ($typeSummary['label'] ?? '')) ?></div>
+                                <div class="fw-semibold fs-5"><?= htmlspecialchars($group['label'] ?? ($typeSummary['label'] ?? '')) ?></div>
                                 <?php if (!empty($group['description'])): ?>
-                                    <p class="text-muted small mb-0"><?= htmlspecialchars($group['description']) ?></p>
+                                    <div class="text-muted small"><?= htmlspecialchars($group['description']) ?></div>
                                 <?php endif; ?>
                             </div>
                             <?php if ($form): ?>
@@ -199,24 +301,24 @@ $lotPrefixMap = [
                                 </button>
                             <?php endif; ?>
                         </div>
-                        <div class="row g-2 small flex-grow-1">
-                            <div class="col-6">
-                                <div class="stat-label text-muted fw-semibold">Số kho</div>
-                                <div class="stat-value"><?= number_format($typeSummary['count'] ?? 0) ?></div>
-                                <div class="text-muted">Đang hoạt động: <?= number_format($typeSummary['active_warehouses'] ?? 0) ?></div>
+                        <div class="group-stats">
+                            <div class="group-stat">
+                                <div class="label">Số kho</div>
+                                <div class="value"><?= number_format($typeSummary['count'] ?? 0) ?></div>
+                                <div class="text-muted small">Đang hoạt động: <?= number_format($typeSummary['active_warehouses'] ?? 0) ?></div>
                             </div>
-                            <div class="col-6">
-                                <div class="stat-label text-muted fw-semibold">Giá trị tồn</div>
-                                <div class="fs-5 fw-semibold text-primary"><?= number_format($typeSummary['total_inventory_value'] ?? 0, 0, ',', '.') ?> đ</div>
-                                <div class="text-muted">Sức chứa: <?= number_format($typeSummary['total_capacity'] ?? 0) ?></div>
+                            <div class="group-stat">
+                                <div class="label">Giá trị tồn</div>
+                                <div class="value text-primary"><?= number_format($typeSummary['total_inventory_value'] ?? 0, 0, ',', '.') ?> đ</div>
+                                <div class="text-muted small">Sức chứa: <?= number_format($typeSummary['total_capacity'] ?? 0) ?></div>
                             </div>
-                            <div class="col-6">
-                                <div class="stat-label text-muted fw-semibold">Tổng lô</div>
-                                <div class="fs-5 fw-semibold"><?= number_format($typeSummary['total_lots'] ?? 0) ?></div>
+                            <div class="group-stat">
+                                <div class="label">Tổng lô</div>
+                                <div class="value"><?= number_format($typeSummary['total_lots'] ?? 0) ?></div>
                             </div>
-                            <div class="col-6">
-                                <div class="stat-label text-muted fw-semibold">Tổng lượng</div>
-                                <div class="fs-5 fw-semibold"><?= number_format($typeSummary['total_quantity'] ?? 0) ?></div>
+                            <div class="group-stat">
+                                <div class="label">Tổng lượng</div>
+                                <div class="value"><?= number_format($typeSummary['total_quantity'] ?? 0) ?></div>
                             </div>
                         </div>
                         <?php if ($form && !$canCreateDocument): ?>
@@ -226,10 +328,9 @@ $lotPrefixMap = [
                         <?php endif; ?>
                     </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 
 <?php foreach ($warehouseGroups as $typeKey => $group): ?>
     <?php $form = $warehouseEntryForms[$typeKey] ?? null; ?>
@@ -240,8 +341,8 @@ $lotPrefixMap = [
     <?php $lotInfo = $lotMeta[$typeKey] ?? $lotMetaDefault; ?>
     <?php $lotPrefix = $lotPrefixMap[$typeKey] ?? 'LONL'; ?>
     <section class="warehouse-section" id="warehouse-group-<?= htmlspecialchars($typeKey) ?>">
-        <div class="warehouse-surface shadow-sm mb-3">
-            <div class="section-header d-flex justify-content-between align-items-start rounded-3 p-3">
+        <div class="group-card">
+            <div class="group-header">
                 <div>
                     <h4 class="fw-semibold mb-1"><?= htmlspecialchars($group['label']) ?></h4>
                     <?php if (!empty($group['description'])): ?>
@@ -262,12 +363,33 @@ $lotPrefixMap = [
                 <?php endif; ?>
             </div>
 
+            <div class="group-stats">
+                <div class="group-stat">
+                    <div class="label">Số kho</div>
+                    <div class="value"><?= number_format($group['statistics']['count'] ?? 0) ?></div>
+                    <div class="text-muted small">Hoạt động: <?= number_format($group['statistics']['active_warehouses'] ?? 0) ?></div>
+                </div>
+                <div class="group-stat">
+                    <div class="label">Giá trị tồn</div>
+                    <div class="value text-primary"><?= number_format($group['statistics']['total_inventory_value'] ?? 0, 0, ',', '.') ?> đ</div>
+                    <div class="text-muted small">Sức chứa: <?= number_format($group['statistics']['total_capacity'] ?? 0) ?></div>
+                </div>
+                <div class="group-stat">
+                    <div class="label">Tổng lô</div>
+                    <div class="value"><?= number_format($group['statistics']['total_lots'] ?? 0) ?></div>
+                </div>
+                <div class="group-stat">
+                    <div class="label">Tổng lượng</div>
+                    <div class="value"><?= number_format($group['statistics']['total_quantity'] ?? 0) ?></div>
+                </div>
+            </div>
+
             <?php if (empty($group['warehouses'])): ?>
                 <div class="alert alert-light border mb-0 rounded-3 mt-3">
                     Chưa có kho nào thuộc nhóm "<?= htmlspecialchars($group['label']) ?>". Vui lòng thêm kho mới để bắt đầu quản lý.
                 </div>
             <?php else: ?>
-                <div class="table-responsive table-modern mt-3">
+                <div class="table-responsive table-modern mt-4">
                     <table class="table align-middle mb-0 table-hover">
                         <thead>
                         <tr>
@@ -317,6 +439,9 @@ $lotPrefixMap = [
                                     <span class="badge <?= $utilization > 85 ? 'badge-soft-danger' : ($utilization > 60 ? 'badge-soft-warning' : 'badge-soft-success') ?>">
                                         <?= number_format($utilization, 1) ?>%
                                     </span>
+                                    <div class="utilization-bar">
+                                        <span style="width: <?= min(100, max(0, $utilization)) ?>%; background: <?= $utilization > 85 ? '#ef4444' : ($utilization > 60 ? '#f59e0b' : '#22c55e') ?>;"></span>
+                                    </div>
                                 </td>
                                 <td><span class="badge bg-light text-dark"><?= htmlspecialchars($warehouse['TrangThai']) ?></span></td>
                                 <td class="text-end">
@@ -521,6 +646,7 @@ $lotPrefixMap = [
         </div>
     <?php endif; ?>
 <?php endforeach; ?>
+</div>
 
 <div id="warehouse-document-data" data-document-groups='<?= $documentGroupsJson ?>'></div>
 
