@@ -180,7 +180,7 @@ $shiftTypeMap = static function (string $label) use ($shiftTypes): string {
                         <div class="fw-semibold mb-2">Chọn ca</div>
                         <div class="d-flex flex-wrap gap-2">
                             <?php foreach ($shiftTypes as $type): ?>
-                                <label class="btn btn -sm btn-outline-secondary">
+                                <label class="btn btn-sm btn-outline-secondary">
                                     <input type="checkbox" class="form-check-input me-2 assignment-shift" value="<?= htmlspecialchars($type) ?>">
                                     <?= htmlspecialchars($type) ?>
                                 </label>
