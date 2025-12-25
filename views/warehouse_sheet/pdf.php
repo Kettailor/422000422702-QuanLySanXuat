@@ -2,6 +2,7 @@
 $document = $document ?? [];
 $details = $details ?? [];
 $warehouse = $warehouse ?? [];
+$destination = $destination ?? [];
 $classification = $classification ?? null;
 ?>
 <!DOCTYPE html>
@@ -70,6 +71,10 @@ $classification = $classification ?? null;
         <div><?= !empty($document['NgayXN']) ? date('d/m/Y', strtotime($document['NgayXN'])) : '-' ?></div>
         <div>Đối tác/Đơn vị:</div>
         <div><?= htmlspecialchars($document['DoiTac'] ?? '-') ?> (<?= htmlspecialchars($document['LoaiDoiTac'] ?? '') ?>)</div>
+        <?php if (!empty($document['IdKhoNhan'])): ?>
+            <div>Kho nhận:</div>
+            <div><?= htmlspecialchars($destination['TenKho'] ?? ($document['IdKhoNhan'] ?? '-')) ?></div>
+        <?php endif; ?>
         <div>Lý do:</div>
         <div><?= nl2br(htmlspecialchars($document['LyDo'] ?? '-')) ?></div>
         <div>Số tham chiếu:</div>
@@ -86,12 +91,13 @@ $classification = $classification ?? null;
         <th style="width: 22%;">Tên lô</th>
         <th style="width: 25%;">Mặt hàng</th>
         <th style="width: 10%;">Số lượng</th>
+        <th style="width: 10%;">Thực nhận</th>
         <th style="width: 10%;">Đơn vị</th>
     </tr>
     </thead>
     <tbody>
     <?php if (empty($details)): ?>
-        <tr><td colspan="6" class="text-center muted">Chưa có chi tiết.</td></tr>
+        <tr><td colspan="7" class="text-center muted">Chưa có chi tiết.</td></tr>
     <?php else: ?>
         <?php foreach ($details as $detail): ?>
             <tr>
@@ -102,6 +108,7 @@ $classification = $classification ?? null;
                     <div class="muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></div>
                 </td>
                 <td class="text-end"><?= number_format($detail['SoLuong'] ?? 0) ?></td>
+                <td class="text-end"><?= number_format($detail['ThucNhan'] ?? $detail['SoLuong'] ?? 0) ?></td>
                 <td class="text-center"><?= htmlspecialchars($detail['DonViTinh'] ?? $detail['DonVi'] ?? '-') ?></td>
             </tr>
         <?php endforeach; ?>

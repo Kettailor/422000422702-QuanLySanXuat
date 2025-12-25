@@ -12,6 +12,17 @@ class InventorySheetDetail extends BaseModel
         return $this->create($payload);
     }
 
+    public function updateDetail(string $id, array $data): bool
+    {
+        $payload = $this->sanitizeDetailPayload($data);
+
+        if (empty($payload)) {
+            return true;
+        }
+
+        return $this->update($id, $payload);
+    }
+
     public function getDetailsByDocument(string $documentId): array
     {
         $stmt = $this->db->prepare('SELECT IdTTCTPhieu, DonViTinh, SoLuong, ThucNhan, IdPhieu, IdLo FROM CT_PHIEU WHERE IdPhieu = :id');

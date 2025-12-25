@@ -578,6 +578,8 @@ CREATE TABLE `phieu` (
   `TongTien` int(10) DEFAULT NULL,
   `LoaiPhieu` varchar(255) DEFAULT NULL,
   `IdKho` varchar(50) NOT NULL,
+  `IdKhoNhan` varchar(50) DEFAULT NULL,
+  `IdXuongNhan` varchar(50) DEFAULT NULL,
   `NHAN_VIENIdNhanVien` varchar(50) NOT NULL,
   `NHAN_VIENIdNhanVien2` varchar(50) NOT NULL,
   `LoaiDoiTac` varchar(50) DEFAULT NULL,

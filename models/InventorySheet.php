@@ -247,6 +247,13 @@ class InventorySheet extends BaseModel
         return $this->update($id, $payload);
     }
 
+    public function supportsColumn(string $column): bool
+    {
+        $available = $this->getColumnMap();
+
+        return isset($available[$column]);
+    }
+
     public function deleteDocument(string $id): bool
     {
         $this->db->beginTransaction();
@@ -293,6 +300,8 @@ class InventorySheet extends BaseModel
             'TongTien',
             'LoaiPhieu',
             'IdKho',
+            'IdKhoNhan',
+            'IdXuongNhan',
             'NHAN_VIENIdNhanVien',
             'NHAN_VIENIdNhanVien2',
             'LoaiDoiTac',
@@ -341,7 +350,15 @@ class InventorySheet extends BaseModel
 
     private function hydrateOptionalColumns(array $row): array
     {
-        $optional = ['LoaiDoiTac', 'DoiTac', 'SoThamChieu', 'LyDo', 'GhiChu'];
+        $optional = [
+            'LoaiDoiTac',
+            'DoiTac',
+            'SoThamChieu',
+            'LyDo',
+            'GhiChu',
+            'IdKhoNhan',
+            'IdXuongNhan',
+        ];
 
         foreach ($optional as $field) {
             if (!array_key_exists($field, $row)) {
@@ -365,7 +382,15 @@ class InventorySheet extends BaseModel
             'PHIEU.NHAN_VIENIdNhanVien2',
         ];
 
-        $optionalColumns = ['LoaiDoiTac', 'DoiTac', 'SoThamChieu', 'LyDo', 'GhiChu'];
+        $optionalColumns = [
+            'LoaiDoiTac',
+            'DoiTac',
+            'SoThamChieu',
+            'LyDo',
+            'GhiChu',
+            'IdKhoNhan',
+            'IdXuongNhan',
+        ];
         $available = $this->getColumnMap();
 
         if ($this->allowOptionalColumns) {

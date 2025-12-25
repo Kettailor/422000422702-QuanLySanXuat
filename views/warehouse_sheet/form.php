@@ -11,7 +11,9 @@ $workshops = $workshops ?? [];
 $warehouseWorkshopMap = $warehouseWorkshopMap ?? [];
 $currentUser = $currentUser ?? null;
 $approvers = $approvers ?? [];
+$workshopApprovers = $workshopApprovers ?? [];
 $approversJson = htmlspecialchars(json_encode($approvers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
+$workshopApproversJson = htmlspecialchars(json_encode($workshopApprovers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 $details = $details ?? [];
 $productsJson = htmlspecialchars(json_encode($products, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
@@ -19,7 +21,8 @@ $warehousesJson = htmlspecialchars(json_encode($warehouses, JSON_UNESCAPED_UNICO
 $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8');
 $currentWarehouseId = $document['IdKho'] ?? '';
 $currentApprover = $approvers[$currentWarehouseId] ?? null;
-$defaultWorkshopId = $warehouseWorkshopMap[$currentWarehouseId]['IdXuong'] ?? '';
+$defaultWorkshopId = $document['IdXuongNhan'] ?? ($warehouseWorkshopMap[$currentWarehouseId]['IdXuong'] ?? '');
+$defaultPartnerWarehouseId = $document['IdKhoNhan'] ?? '';
 $warehouseWorkshopMapJson = htmlspecialchars(json_encode($warehouseWorkshopMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 $isExternalPartner = in_array($document['LoaiDoiTac'] ?? '', ['Nhà cung cấp', 'Khách hàng'], true);
 $partnerScope = $isExternalPartner ? 'external' : 'internal';
@@ -81,10 +84,10 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                                 <?php endforeach; ?>
                             </select>
                             <label class="form-label fw-semibold mt-2">Kho nội bộ <span class="text-danger">*</span></label>
-                            <select name="PartnerWarehouse" class="form-select">
+                            <select name="PartnerWarehouse" class="form-select" data-selected="<?= htmlspecialchars($defaultPartnerWarehouseId) ?>">
                                 <option value="">-- Chọn kho --</option>
                             </select>
-                            <div class="form-text">Hệ thống sẽ tự điền đối tác theo xưởng/kho đã chọn.</div>
+                            <div class="form-text">Chọn xưởng/kho nhận đối với phiếu xuất nội bộ. Hệ thống sẽ tự điền thông tin đối tác.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Số chứng từ tham chiếu</label>
@@ -119,7 +122,8 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">Ngày xác nhận</label>
-                            <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($document['NgayXN'] ?? '') ?>">
+                            <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($document['NgayXN'] ?? '') ?>" readonly>
+                            <div class="form-text">Tự động cập nhật khi xưởng trưởng xác nhận phiếu.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tổng giá trị</label>
@@ -265,6 +269,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
             const products = JSON.parse('<?= $productsJson ?>');
             const lots = JSON.parse('<?= $lotsJson ?>');
             const approvers = JSON.parse('<?= $approversJson ?>');
+            const workshopApprovers = JSON.parse('<?= $workshopApproversJson ?>');
             const warehouses = JSON.parse('<?= $warehousesJson ?>');
             const warehouseMap = JSON.parse('<?= $warehouseWorkshopMapJson ?>');
             const lotMap = {};
@@ -297,8 +302,17 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                 if (!warehouseSelect || !approverDisplay || !approverInput) {
                     return;
                 }
-                const warehouseId = warehouseSelect.value || '';
-                const approver = approvers[warehouseId] || null;
+                const scope = partnerScopeSelect ? partnerScopeSelect.value : 'internal';
+                const outbound = isOutbound();
+                let approver = null;
+
+                if (scope === 'internal' && outbound) {
+                    const workshopId = partnerWorkshopSelect ? partnerWorkshopSelect.value : '';
+                    approver = workshopApprovers[workshopId] || null;
+                } else {
+                    const warehouseId = warehouseSelect.value || '';
+                    approver = approvers[warehouseId] || null;
+                }
 
                 if (approver) {
                     approverDisplay.textContent = approver.HoTen || approver.IdNhanVien || '';
@@ -322,21 +336,31 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                 const workshopId = partnerWorkshopSelect.value || '';
                 const currentWarehouseId = warehouseSelect ? warehouseSelect.value : '';
                 const options = filterWarehousesByWorkshop(workshopId);
+                const selectedWarehouse = partnerWarehouseSelect.dataset.selected || '';
 
                 partnerWarehouseSelect.innerHTML = '<option value=\"\">-- Chọn kho --</option>';
                 options.forEach((w) => {
                     const opt = document.createElement('option');
                     opt.value = w.IdKho || '';
                     opt.textContent = w.TenKho || w.IdKho || '';
-                    if (w.IdKho === currentWarehouseId) {
+                    if (selectedWarehouse && w.IdKho === selectedWarehouse) {
+                        opt.selected = true;
+                    } else if (!selectedWarehouse && w.IdKho === currentWarehouseId) {
                         opt.selected = true;
                     }
                     partnerWarehouseSelect.appendChild(opt);
                 });
+                partnerWarehouseSelect.dataset.selected = '';
             };
 
             const syncWorkshopByWarehouse = () => {
                 if (!warehouseSelect || !partnerWorkshopSelect) return;
+                if (isOutbound()) {
+                    return;
+                }
+                if (partnerWorkshopSelect.value) {
+                    return;
+                }
                 const selected = warehouseMap[warehouseSelect.value] || {};
                 if (selected.IdXuong) {
                     partnerWorkshopSelect.value = selected.IdXuong;
@@ -366,6 +390,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                     partnerWarehouseSelect.disabled = scope !== 'internal';
                     partnerWarehouseSelect.required = scope === 'internal';
                 }
+                updateApprover();
             };
 
             const resolveWarehouseType = () => {
@@ -597,6 +622,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
             if (typeInput) {
                 typeInput.addEventListener('input', () => {
                     tableBody.querySelectorAll('tr').forEach(row => updateRowMode(row));
+                    updateApprover();
                 });
             }
 
@@ -605,7 +631,10 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
             }
 
             if (partnerWorkshopSelect) {
-                partnerWorkshopSelect.addEventListener('change', updatePartnerInternal);
+                partnerWorkshopSelect.addEventListener('change', () => {
+                    updatePartnerInternal();
+                    updateApprover();
+                });
             }
 
             togglePartnerScope();

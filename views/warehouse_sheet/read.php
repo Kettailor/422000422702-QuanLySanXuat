@@ -2,6 +2,8 @@
 $document = $document ?? null;
 $details = $details ?? [];
 $warehouse = $warehouse ?? null;
+$destination = $destination ?? null;
+$canConfirm = $canConfirm ?? false;
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -52,6 +54,15 @@ $warehouse = $warehouse ?? null;
                                 <div class="text-muted small"><?= htmlspecialchars($warehouse['TenLoaiKho']) ?></div>
                             <?php endif; ?>
                         </dd>
+                        <?php if (!empty($destination)): ?>
+                            <dt class="col-sm-5">Kho nhận</dt>
+                            <dd class="col-sm-7">
+                                <?= htmlspecialchars($destination['TenKho'] ?? ($document['IdKhoNhan'] ?? '-')) ?>
+                                <?php if (!empty($destination['TenLoaiKho'])): ?>
+                                    <div class="text-muted small"><?= htmlspecialchars($destination['TenLoaiKho']) ?></div>
+                                <?php endif; ?>
+                            </dd>
+                        <?php endif; ?>
                         <dt class="col-sm-5">Ngày lập</dt>
                         <dd class="col-sm-7"><?= $document['NgayLP'] ? date('d/m/Y', strtotime($document['NgayLP'])) : '-' ?></dd>
                         <dt class="col-sm-5">Ngày xác nhận</dt>
@@ -101,6 +112,7 @@ $warehouse = $warehouse ?? null;
                             <th>Tên lô</th>
                             <th>Mặt hàng</th>
                             <th class="text-nowrap">Số lượng</th>
+                            <th class="text-nowrap">Thực nhận</th>
                             <th class="text-nowrap">Loại lô</th>
                             <th class="text-nowrap">Đơn vị</th>
                         </tr>
@@ -115,6 +127,7 @@ $warehouse = $warehouse ?? null;
                                     <small class="text-muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></small>
                                 </td>
                                 <td><?= number_format($detail['SoLuong'] ?? 0) ?></td>
+                                <td><?= number_format($detail['ThucNhan'] ?? $detail['SoLuong'] ?? 0) ?></td>
                                 <td><?= htmlspecialchars($detail['LoaiLo'] ?? '-') ?></td>
                                 <td><?= htmlspecialchars($detail['DonViTinh'] ?? $detail['DonVi'] ?? '-') ?></td>
                             </tr>
@@ -125,4 +138,55 @@ $warehouse = $warehouse ?? null;
             <?php endif; ?>
         </div>
     </div>
+
+    <?php if ($canConfirm && empty($document['NgayXN'])): ?>
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <h5 class="mb-3">Xác nhận phiếu & cập nhật thực nhận</h5>
+                <p class="text-muted small mb-3">Nhập số lượng thực nhận cho từng lô, hệ thống sẽ cập nhật tồn kho khi xác nhận.</p>
+                <form method="post" action="?controller=warehouse_sheet&action=confirm">
+                    <input type="hidden" name="IdPhieu" value="<?= htmlspecialchars($document['IdPhieu'] ?? '') ?>">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-3">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Mã lô</th>
+                                <th>Tên lô</th>
+                                <th>Mặt hàng</th>
+                                <th class="text-nowrap">Số lượng</th>
+                                <th class="text-nowrap">Thực nhận</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($details as $detail): ?>
+                                <tr>
+                                    <td class="fw-semibold"><?= htmlspecialchars($detail['IdLo'] ?? '-') ?></td>
+                                    <td><?= htmlspecialchars($detail['TenLo'] ?? '-') ?></td>
+                                    <td>
+                                        <div class="fw-semibold mb-0"><?= htmlspecialchars($detail['TenSanPham'] ?? '-') ?></div>
+                                        <small class="text-muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></small>
+                                    </td>
+                                    <td><?= number_format($detail['SoLuong'] ?? 0) ?></td>
+                                    <td>
+                                        <input type="number"
+                                               class="form-control form-control-sm"
+                                               name="Detail_ThucNhan[<?= htmlspecialchars($detail['IdTTCTPhieu'] ?? '') ?>]"
+                                               min="0"
+                                               max="<?= (int) ($detail['SoLuong'] ?? 0) ?>"
+                                               value="<?= htmlspecialchars($detail['ThucNhan'] ?? $detail['SoLuong'] ?? 0) ?>">
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-1"></i> Xác nhận phiếu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
 <?php endif; ?>
