@@ -38,21 +38,12 @@ class WarehouseController extends Controller
         $documents = $this->sheetModel->getDocuments(null, 200, $visibleIds);
         $documentGroups = $this->buildDocumentGroups($documents);
         $warehouseGroups = $this->warehouseModel->groupWarehousesByType($warehouses, $summary['by_type'] ?? []);
-        $employees = $this->employeeModel->getActiveEmployees();
-        $entryForms = $this->buildWarehouseEntryForms($warehouseGroups);
-        $products = $this->getProductOptionsByType();
-        $lotOptionsByType = $this->getLotOptionsByType($warehouses);
         $this->render('warehouse/index', [
             'title' => 'Kho & tồn kho',
             'warehouses' => $warehouses,
             'summary' => $summary,
             'documentGroups' => $documentGroups,
             'warehouseGroups' => $warehouseGroups,
-            'warehouseEntryForms' => $entryForms,
-            'outboundDocumentTypes' => $this->getOutboundDocumentTypes(),
-            'employees' => $employees,
-            'productOptionsByType' => $products,
-            'lotOptionsByType' => $lotOptionsByType,
         ]);
     }
 

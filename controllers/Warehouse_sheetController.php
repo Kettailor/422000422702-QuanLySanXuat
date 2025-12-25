@@ -303,6 +303,7 @@ class Warehouse_sheetController extends Controller
         $approvers = $this->buildApproverMap($filteredWarehouses, $options['employees']);
         $workshops = $this->workshopModel->getAllWithManagers(300);
         $warehouseWorkshopMap = $this->buildWarehouseWorkshopMap($filteredWarehouses, $workshops);
+        $details = $this->sheetDetailModel->getDetailsWithMeta($id);
 
         $this->render('warehouse_sheet/edit', [
             'title' => 'Cập nhật phiếu kho',
@@ -314,6 +315,7 @@ class Warehouse_sheetController extends Controller
             'workshops' => $workshops,
             'warehouseWorkshopMap' => $warehouseWorkshopMap,
             'currentUser' => $this->currentUser(),
+            'details' => $details,
         ]);
     }
 
@@ -383,13 +385,53 @@ class Warehouse_sheetController extends Controller
         $wasConfirmed = $this->isConfirmedData($existing ?? []);
         $nowConfirmed = $this->isConfirmedData(array_merge($existing ?? [], $data));
         $details = $this->sheetDetailModel->getDetailsByDocument($id);
+        $detailIds = $_POST['Detail_IdTTCTPhieu'] ?? [];
+        $detailReceived = $_POST['Detail_ThucNhan'] ?? [];
+        $receivedMap = [];
+        if (is_array($detailIds) && is_array($detailReceived)) {
+            foreach ($detailIds as $index => $detailId) {
+                $detailId = trim((string) $detailId);
+                if ($detailId === '') {
+                    continue;
+                }
+                $receivedValue = $detailReceived[$index] ?? null;
+                if ($receivedValue === '' || $receivedValue === null) {
+                    continue;
+                }
+                $receivedMap[$detailId] = max(0, (int) $receivedValue);
+            }
+        }
+
+        if ($nowConfirmed && !$wasConfirmed) {
+            $missingReceived = [];
+            foreach ($details as $detail) {
+                $detailId = $detail['IdTTCTPhieu'] ?? '';
+                if ($detailId === '') {
+                    continue;
+                }
+                if (!array_key_exists($detailId, $receivedMap) || $receivedMap[$detailId] <= 0) {
+                    $missingReceived[] = $detailId;
+                }
+            }
+            if (!empty($missingReceived)) {
+                $this->setFlash('danger', 'Vui lòng nhập số lượng thực nhận cho tất cả dòng chi tiết trước khi xác nhận.');
+                $this->redirect('?controller=warehouse_sheet&action=edit&id=' . urlencode($id));
+                return;
+            }
+        }
 
         try {
+            if (!$wasConfirmed && !empty($receivedMap)) {
+                foreach ($receivedMap as $detailId => $received) {
+                    $this->sheetDetailModel->updateReceivedQuantity($detailId, $received);
+                }
+            }
             $this->sheetModel->updateDocument($id, $data);
             if ($nowConfirmed && !$wasConfirmed) {
                 $documentType = $data['LoaiPhieu'] ?? ($existing['LoaiPhieu'] ?? '');
                 $warehouseId = $data['IdKho'] ?? ($existing['IdKho'] ?? null);
-                $this->applyStockImpact($documentType, $details, true, $id, $warehouseId);
+                $detailsForStock = $this->sheetDetailModel->getDetailsByDocument($id);
+                $this->applyStockImpact($documentType, $detailsForStock, true, $id, $warehouseId);
                 $this->setFlash('success', 'Đã xác nhận phiếu và cập nhật tồn kho.');
             } else {
                 $this->setFlash('success', 'Đã cập nhật phiếu kho.');
@@ -1101,7 +1143,7 @@ class Warehouse_sheetController extends Controller
 
         foreach ($details as $detail) {
             $lotId = $detail['IdLo'] ?? null;
-            $quantity = (int) ($detail['SoLuong'] ?? 0);
+            $quantity = (int) ($detail['ThucNhan'] ?? $detail['SoLuong'] ?? 0);
             $isNewLot = (bool) ($detail['is_new_lot'] ?? false);
 
             if (!$lotId || $quantity <= 0) {

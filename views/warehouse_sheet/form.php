@@ -27,6 +27,27 @@ $partnerExternalType = $isExternalPartner ? ($document['LoaiDoiTac'] ?? 'Nhà cu
 $partnerExternalName = $isExternalPartner ? ($document['DoiTac'] ?? '') : '';
 $currentUserName = $currentUser['HoTen'] ?? ($document['NHAN_VIENIdNhanVien'] ?? '');
 $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien'] ?? '');
+$workshopLookup = [];
+foreach ($workshops as $workshop) {
+    $id = $workshop['IdXuong'] ?? null;
+    if ($id) {
+        $workshopLookup[$id] = $workshop;
+    }
+}
+$workshopOptions = [];
+foreach ($warehouses as $warehouse) {
+    $workshopId = $warehouse['IdXuong'] ?? null;
+    if (!$workshopId) {
+        continue;
+    }
+    if (!isset($workshopOptions[$workshopId])) {
+        $workshopOptions[$workshopId] = $workshopLookup[$workshopId] ?? [
+            'IdXuong' => $workshopId,
+            'TenXuong' => $workshopId,
+        ];
+    }
+}
+$workshopOptions = array_values($workshopOptions);
 ?>
 
 <div class="card border-0 shadow-sm">
@@ -102,6 +123,18 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                         <span class="ms-2 text-muted small">Chọn kho, ngày lập và xác nhận.</span>
                     </div>
                     <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Xưởng áp dụng <span class="text-danger">*</span></label>
+                            <select class="form-select" name="WarehouseWorkshop" data-warehouse-workshop required>
+                                <option value="">-- Chọn xưởng --</option>
+                                <?php foreach ($workshopOptions as $workshop): ?>
+                                    <option value="<?= htmlspecialchars($workshop['IdXuong'] ?? '') ?>" <?= ($workshop['IdXuong'] ?? '') === $defaultWorkshopId ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($workshop['TenXuong'] ?? $workshop['IdXuong'] ?? '') ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="form-text">Chọn xưởng để lọc danh sách kho thuộc xưởng đó.</div>
+                        </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Kho áp dụng <span class="text-danger">*</span></label>
                             <select class="form-select" name="IdKho" required>
@@ -181,10 +214,11 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
 </div>
 
 <?php if ($isEdit): ?>
+    <?php $isConfirmed = !empty($document['NgayXN']); ?>
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-semibold mb-0">Chi tiết phiếu (chỉ xem)</h6>
+                <h6 class="fw-semibold mb-0">Chi tiết phiếu & thực nhận</h6>
                 <a class="btn btn-sm btn-outline-secondary" href="?controller=warehouse_sheet&action=read&id=<?= urlencode($document['IdPhieu'] ?? '') ?>">Xem đầy đủ</a>
             </div>
             <?php if (empty($details)): ?>
@@ -198,6 +232,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                             <th>Tên lô</th>
                             <th>Mặt hàng</th>
                             <th>Số lượng</th>
+                            <th class="text-nowrap">Thực nhận</th>
                             <th>Đơn vị</th>
                         </tr>
                         </thead>
@@ -211,6 +246,10 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                                     <small class="text-muted">Mã SP: <?= htmlspecialchars($detail['IdSanPham'] ?? '-') ?></small>
                                 </td>
                                 <td><?= number_format($detail['SoLuong'] ?? 0) ?></td>
+                                <td>
+                                    <input type="hidden" name="Detail_IdTTCTPhieu[]" value="<?= htmlspecialchars($detail['IdTTCTPhieu'] ?? '') ?>">
+                                    <input type="number" min="0" class="form-control form-control-sm" name="Detail_ThucNhan[]" value="<?= htmlspecialchars($detail['ThucNhan'] ?? ($detail['SoLuong'] ?? 0)) ?>" <?= $isConfirmed ? 'disabled' : '' ?>>
+                                </td>
                                 <td><?= htmlspecialchars($detail['DonViTinh'] ?? $detail['DonVi'] ?? '') ?></td>
                             </tr>
                         <?php endforeach; ?>
@@ -218,7 +257,11 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                     </table>
                 </div>
             <?php endif; ?>
-            <p class="text-muted small mb-0 mt-2">Cập nhật chi tiết lô bằng cách xóa và tạo phiếu mới để đảm bảo số liệu chính xác.</p>
+            <?php if ($isConfirmed): ?>
+                <p class="text-muted small mb-0 mt-2">Phiếu đã xác nhận, số lượng thực nhận không thể chỉnh sửa.</p>
+            <?php else: ?>
+                <p class="text-muted small mb-0 mt-2">Nhập số lượng thực nhận trước khi xác nhận để cập nhật tồn kho chính xác.</p>
+            <?php endif; ?>
         </div>
     </div>
 <?php else: ?>
@@ -259,6 +302,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                 </div>
             </div>
         </div>
+<?php endif; ?>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -282,6 +326,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
             const tableBody = document.querySelector('[data-detail-rows]');
             const addRowBtn = document.querySelector('[data-action="add-detail-row"]');
             const warehouseSelect = document.querySelector('select[name="IdKho"]');
+            const warehouseWorkshopSelect = document.querySelector('[data-warehouse-workshop]');
             const typeInput = document.querySelector('input[name="LoaiPhieu"]');
             const approverDisplay = document.querySelector('[data-role="approver-display"]');
             const approverInput = document.querySelector('[data-role="approver-input"]');
@@ -316,6 +361,28 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                 return warehouses.filter((w) => !workshopId || (w.IdXuong || '') === workshopId);
             };
 
+            const updateWarehouseOptions = (workshopId, preserveSelection = true) => {
+                if (!warehouseSelect) return;
+
+                const currentValue = preserveSelection ? warehouseSelect.value : '';
+                const options = filterWarehousesByWorkshop(workshopId);
+                warehouseSelect.innerHTML = '<option value="">-- Chọn kho --</option>';
+                options.forEach((w) => {
+                    const opt = document.createElement('option');
+                    opt.value = w.IdKho || '';
+                    opt.textContent = w.TenKho || w.IdKho || '';
+                    opt.dataset.type = w.TenLoaiKho || '';
+                    if (currentValue && w.IdKho === currentValue) {
+                        opt.selected = true;
+                    }
+                    warehouseSelect.appendChild(opt);
+                });
+
+                if (!warehouseSelect.value && options.length > 0) {
+                    warehouseSelect.value = options[0].IdKho || '';
+                }
+            };
+
             const updatePartnerInternal = () => {
                 if (!partnerWorkshopSelect || !partnerWarehouseSelect) return;
 
@@ -336,10 +403,15 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
             };
 
             const syncWorkshopByWarehouse = () => {
-                if (!warehouseSelect || !partnerWorkshopSelect) return;
+                if (!warehouseSelect) return;
                 const selected = warehouseMap[warehouseSelect.value] || {};
                 if (selected.IdXuong) {
-                    partnerWorkshopSelect.value = selected.IdXuong;
+                    if (warehouseWorkshopSelect) {
+                        warehouseWorkshopSelect.value = selected.IdXuong;
+                    }
+                    if (partnerWorkshopSelect) {
+                        partnerWorkshopSelect.value = selected.IdXuong;
+                    }
                 }
                 updatePartnerInternal();
             };
@@ -509,6 +581,9 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
             };
 
             const addRow = () => {
+                if (!tableBody) {
+                    return;
+                }
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
@@ -580,13 +655,15 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
 
             if (warehouseSelect) {
                 warehouseSelect.addEventListener('change', () => {
-                    tableBody.querySelectorAll('tr').forEach(row => {
-                        const lotSelect = row.querySelector('[data-field="existing-lot"]');
-                        if (lotSelect) {
-                            buildLotSelectOptions(lotSelect);
-                        }
-                        updateRowMode(row);
-                    });
+                    if (tableBody) {
+                        tableBody.querySelectorAll('tr').forEach(row => {
+                            const lotSelect = row.querySelector('[data-field="existing-lot"]');
+                            if (lotSelect) {
+                                buildLotSelectOptions(lotSelect);
+                            }
+                            updateRowMode(row);
+                        });
+                    }
                     updateApprover();
                     syncWorkshopByWarehouse();
                 });
@@ -594,8 +671,19 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                 syncWorkshopByWarehouse();
             }
 
+            if (warehouseWorkshopSelect) {
+                warehouseWorkshopSelect.addEventListener('change', () => {
+                    updateWarehouseOptions(warehouseWorkshopSelect.value, false);
+                    updateApprover();
+                    syncWorkshopByWarehouse();
+                });
+            }
+
             if (typeInput) {
                 typeInput.addEventListener('input', () => {
+                    if (!tableBody) {
+                        return;
+                    }
                     tableBody.querySelectorAll('tr').forEach(row => updateRowMode(row));
                 });
             }
@@ -609,11 +697,13 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
             }
 
             togglePartnerScope();
+            updateWarehouseOptions(warehouseWorkshopSelect ? warehouseWorkshopSelect.value : '');
             updatePartnerInternal();
-            addRow();
+            if (tableBody) {
+                addRow();
+            }
         });
     </script>
-<?php endif; ?>
 
 <?php if (!$isEdit): ?>
     <script>
