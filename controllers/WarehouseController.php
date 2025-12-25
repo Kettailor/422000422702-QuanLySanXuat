@@ -121,8 +121,10 @@ class WarehouseController extends Controller
                 $this->setFlash('danger', 'Bạn chỉ có thể tạo kho trong xưởng được phân công.');
             } elseif (!$this->areManagersInWorkshop($managerIds, $data['IdXuong'])) {
                 $this->setFlash('danger', 'Nhân viên quản kho phải thuộc xưởng đã chọn.');
-            } elseif (empty($this->employeeModel->getActiveWarehouseEmployeesByWorkshop($data['IdXuong'] ?? ''))) {
-                $this->setFlash('danger', 'Xưởng chưa có nhân sự để phân công quản kho. Vui lòng cập nhật nhân sự trước.');
+            } elseif (empty($this->employeeModel->getActiveWarehouseEmployeesByWorkshop($data['IdXuong'] ?? ''))
+                && !$this->resolveDefaultWarehouseManager($data['IdXuong'] ?? null)
+            ) {
+                $this->setFlash('danger', 'Xưởng chưa có xưởng trưởng hoặc nhân sự kho để phân công quản kho.');
             } else {
                 $this->warehouseModel->createWarehouse($data);
                 $this->warehouseModel->syncWarehouseManagers($data['IdKho'], $managerIds);
@@ -723,7 +725,15 @@ class WarehouseController extends Controller
                 continue;
             }
             $managerId = $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
-            $map[$workshopId] = $managerId;
+            $managerInfo = null;
+            if ($managerId) {
+                $managerInfo = $this->employeeModel->find($managerId);
+            }
+            $map[$workshopId] = [
+                'id' => $managerId,
+                'name' => $managerInfo['HoTen'] ?? null,
+                'title' => $managerInfo['ChucVu'] ?? null,
+            ];
         }
 
         return $map;

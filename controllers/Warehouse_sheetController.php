@@ -83,6 +83,7 @@ class Warehouse_sheetController extends Controller
         $presetDirection = $_GET['direction'] ?? null;
         $presetCategory = $_GET['category'] ?? null;
         $presetDocumentType = $this->resolvePresetDocumentType($presetDirection, $presetCategory);
+        $defaultWarehouseId = $presetWarehouseId ?: $this->resolveDefaultWarehouseForUser($warehouses);
 
         if ($presetWarehouseId !== null && !$this->isWarehouseAccessible($presetWarehouseId)) {
             $this->setFlash('danger', 'Bạn không có quyền lập phiếu cho kho đã chọn.');
@@ -94,7 +95,7 @@ class Warehouse_sheetController extends Controller
             $this->redirect('?controller=warehouse_sheet&action=index');
         }
 
-        $lotFilter = $presetWarehouseId ? [$presetWarehouseId] : $this->getAccessibleWarehouseIds();
+        $lotFilter = $defaultWarehouseId ? [$defaultWarehouseId] : $this->getAccessibleWarehouseIds();
         $lots = $this->lotModel->getSelectableLots(300, $lotFilter);
 
         $creatorId = $this->resolveCreator(null);
@@ -117,7 +118,7 @@ class Warehouse_sheetController extends Controller
                 'IdPhieu' => $defaultId,
                 'NgayLP' => date('Y-m-d'),
                 'NgayXN' => '',
-                'IdKho' => $presetWarehouseId,
+                'IdKho' => $defaultWarehouseId,
                 'LoaiPhieu' => $presetDocumentType,
                 'NHAN_VIENIdNhanVien' => $creatorId,
             ],
@@ -1242,6 +1243,33 @@ class Warehouse_sheetController extends Controller
         return array_values(array_filter($warehouses, function (array $warehouse) use ($accessible): bool {
             return in_array($warehouse['IdKho'] ?? null, $accessible, true);
         }));
+    }
+
+    private function resolveDefaultWarehouseForUser(array $warehouses): ?string
+    {
+        $user = $this->currentUser();
+        if (!$user) {
+            return null;
+        }
+
+        $employeeId = $user['IdNhanVien'] ?? null;
+        if (!$employeeId) {
+            return null;
+        }
+
+        $preferredIds = $this->warehouseModel->getWarehouseIdsBySupervisor($employeeId);
+        if (empty($preferredIds)) {
+            return null;
+        }
+
+        $warehouseIds = array_column($warehouses, 'IdKho');
+        foreach ($preferredIds as $warehouseId) {
+            if (in_array($warehouseId, $warehouseIds, true)) {
+                return $warehouseId;
+            }
+        }
+
+        return null;
     }
 
     private function resolveWarehouseIdsByWorkshop(array $user): ?array

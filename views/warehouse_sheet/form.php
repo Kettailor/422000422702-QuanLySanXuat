@@ -35,19 +35,17 @@ foreach ($workshops as $workshop) {
     }
 }
 $workshopOptions = [];
-foreach ($warehouses as $warehouse) {
-    $workshopId = $warehouse['IdXuong'] ?? null;
-    if (!$workshopId) {
-        continue;
-    }
-    if (!isset($workshopOptions[$workshopId])) {
-        $workshopOptions[$workshopId] = $workshopLookup[$workshopId] ?? [
+$warehouseWorkshopIds = array_values(array_unique(array_filter(array_column($warehouses, 'IdXuong'))));
+if (!empty($warehouseWorkshopIds)) {
+    foreach ($warehouseWorkshopIds as $workshopId) {
+        $workshopOptions[] = $workshopLookup[$workshopId] ?? [
             'IdXuong' => $workshopId,
             'TenXuong' => $workshopId,
         ];
     }
+} else {
+    $workshopOptions = array_values($workshopLookup);
 }
-$workshopOptions = array_values($workshopOptions);
 $defaultTypes = [
     'Phiếu nhập nguyên liệu',
     'Phiếu nhập thành phẩm',
@@ -387,7 +385,11 @@ $types = array_values(array_unique(array_merge($defaultTypes, array_filter($type
             const updatePartnerInternal = () => {
                 if (!partnerWarehouseSelect) return;
 
-                const workshopId = warehouseWorkshopSelect ? warehouseWorkshopSelect.value : '';
+                let workshopId = warehouseWorkshopSelect ? warehouseWorkshopSelect.value : '';
+                if (!workshopId && warehouseSelect) {
+                    const mapped = warehouseMap[warehouseSelect.value] || {};
+                    workshopId = mapped.IdXuong || '';
+                }
                 const currentWarehouseId = warehouseSelect ? warehouseSelect.value : '';
                 const options = filterWarehousesByWorkshop(workshopId);
 
