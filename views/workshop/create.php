@@ -67,7 +67,6 @@
             <select name="TrangThai" class="form-select">
                 <option value="Đang hoạt động">Đang hoạt động</option>
                 <option value="Bảo trì">Bảo trì</option>
-                <option value="Tạm dừng">Tạm dừng</option>
             </select>
         </div>
         <div class="col-12">

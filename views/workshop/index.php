@@ -5,6 +5,7 @@
     </div>
     <?php
     $canAssign = $canAssign ?? false;
+    $canSuspend = $canSuspend ?? false;
     $showExecutiveOverview = $showExecutiveOverview ?? true;
     $managerOverview = $managerOverview ?? null;
     ?>
@@ -217,6 +218,15 @@
                                 <div class="table-actions">
                                     <a class="btn btn-sm btn-outline-secondary" href="?controller=workshop&action=read&id=<?= urlencode($workshop['IdXuong']) ?>">Chi tiết</a>
                                     <a class="btn btn-sm btn-outline-primary" href="?controller=workshop&action=edit&id=<?= urlencode($workshop['IdXuong']) ?>">Sửa</a>
+                                    <?php if ($canSuspend): ?>
+                                        <button class="btn btn-sm btn-outline-warning"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#suspendWorkshopModal"
+                                                data-workshop-id="<?= htmlspecialchars($workshop['IdXuong']) ?>"
+                                                data-workshop-name="<?= htmlspecialchars($workshop['TenXuong']) ?>">
+                                            Tạm ngưng
+                                        </button>
+                                    <?php endif; ?>
                                     <?php if ($canAssign): ?>
                                         <a class="btn btn-sm btn-outline-danger" href="?controller=workshop&action=delete&id=<?= urlencode($workshop['IdXuong']) ?>" onclick="return confirm('Xác nhận xóa xưởng này?');">Xóa</a>
                                     <?php endif; ?>
@@ -251,3 +261,52 @@
         </div>
     </div>
 </div>
+
+<?php if ($canSuspend): ?>
+    <div class="modal fade" id="suspendWorkshopModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" action="?controller=workshop&action=suspend">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tạm ngưng xưởng</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="IdXuong" id="suspendWorkshopId">
+                        <p class="mb-3 text-muted">
+                            Xưởng <strong id="suspendWorkshopName">—</strong> sẽ tạm ngưng hoạt động.
+                            Nhân sự được gán sẽ bị thu hồi và các kế hoạch xưởng sẽ bị hủy.
+                        </p>
+                        <div class="mb-3">
+                            <label class="form-label">Lý do tạm ngưng</label>
+                            <textarea name="LyDoTamNgung" class="form-control" rows="3" required placeholder="Nhập lý do tạm ngưng..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-warning">Xác nhận tạm ngưng</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const suspendWorkshopModal = document.getElementById('suspendWorkshopModal');
+        if (suspendWorkshopModal) {
+            suspendWorkshopModal.addEventListener('show.bs.modal', event => {
+                const trigger = event.relatedTarget;
+                const workshopId = trigger?.getAttribute('data-workshop-id') || '';
+                const workshopName = trigger?.getAttribute('data-workshop-name') || workshopId;
+                const idInput = suspendWorkshopModal.querySelector('#suspendWorkshopId');
+                const nameLabel = suspendWorkshopModal.querySelector('#suspendWorkshopName');
+                if (idInput) {
+                    idInput.value = workshopId;
+                }
+                if (nameLabel) {
+                    nameLabel.textContent = workshopName;
+                }
+            });
+        }
+    </script>
+<?php endif; ?>

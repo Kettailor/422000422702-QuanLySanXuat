@@ -44,6 +44,10 @@
                             <?= htmlspecialchars($workshop['TrangThai'] ?? 'Không xác định') ?>
                         </span>
                     </dd>
+                    <?php if (($workshop['TrangThai'] ?? '') === 'Tạm dừng' && !empty($workshop['LyDoTamNgung'])): ?>
+                        <dt class="col-sm-4">Lý do tạm ngưng</dt>
+                        <dd class="col-sm-8 text-muted"><?= nl2br(htmlspecialchars($workshop['LyDoTamNgung'])) ?></dd>
+                    <?php endif; ?>
                     <dt class="col-sm-4">Ngày thành lập</dt>
                     <dd class="col-sm-8"><?= !empty($workshop['NgayThanhLap']) ? date('d/m/Y', strtotime($workshop['NgayThanhLap'])) : '-' ?></dd>
                 </dl>

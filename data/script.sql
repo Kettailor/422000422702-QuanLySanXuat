@@ -725,6 +725,7 @@ CREATE TABLE `xuong` (
   `CongSuatDangSuDung` float DEFAULT NULL,
   `LoaiXuong` varchar(255) DEFAULT 'Sản xuất',
   `TrangThai` varchar(255) NOT NULL,
+  `LyDoTamNgung` text DEFAULT NULL,
   `MoTa` text DEFAULT NULL,
   `XUONGTRUONG_IdNhanVien` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -733,9 +734,9 @@ CREATE TABLE `xuong` (
 -- Đang đổ dữ liệu cho bảng `xuong`
 --
 
-INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietBi`, `SlNhanVien`, `SoLuongCongNhan`, `TenQuyTrinh`, `CongSuatToiDa`, `CongSuatDangSuDung`, `LoaiXuong`, `TrangThai`, `MoTa`, `XUONGTRUONG_IdNhanVien`) VALUES
-('XUONG001', 'Xưởng sản xuất Bắc Ninh', 'Bắc Ninh', '2023-01-10', 20, 50, 0, 'Quy trình sản xuất chuẩn', 1000, 0, 'Sản xuất', 'Đang hoạt động', 'Xưởng sản xuất chính', 'NV005'),
-('XUONG002', 'Xưởng lắp ráp Hà Nội', 'Hà Nội', '2023-02-05', 15, 30, 0, 'Quy trình lắp ráp', 600, 0, 'Sản xuất', 'Đang hoạt động', 'Xưởng lắp ráp và đóng gói', 'NV006');
+INSERT INTO `xuong` (`IdXuong`, `TenXuong`, `DiaDiem`, `NgayThanhLap`, `SlThietBi`, `SlNhanVien`, `SoLuongCongNhan`, `TenQuyTrinh`, `CongSuatToiDa`, `CongSuatDangSuDung`, `LoaiXuong`, `TrangThai`, `LyDoTamNgung`, `MoTa`, `XUONGTRUONG_IdNhanVien`) VALUES
+('XUONG001', 'Xưởng sản xuất Bắc Ninh', 'Bắc Ninh', '2023-01-10', 20, 50, 0, 'Quy trình sản xuất chuẩn', 1000, 0, 'Sản xuất', 'Đang hoạt động', NULL, 'Xưởng sản xuất chính', 'NV005'),
+('XUONG002', 'Xưởng lắp ráp Hà Nội', 'Hà Nội', '2023-02-05', 15, 30, 0, 'Quy trình lắp ráp', 600, 0, 'Sản xuất', 'Đang hoạt động', NULL, 'Xưởng lắp ráp và đóng gói', 'NV006');
 
 -- --------------------------------------------------------
 

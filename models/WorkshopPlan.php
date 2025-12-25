@@ -98,6 +98,21 @@ class WorkshopPlan extends BaseModel
         return $stmt->execute();
     }
 
+    public function cancelByWorkshop(string $workshopId, string $note): bool
+    {
+        $sql = 'UPDATE ke_hoach_san_xuat_xuong
+                SET TrangThai = :status,
+                    GhiChu = :note
+                WHERE IdXuong = :workshopId
+                  AND (TrangThai IS NULL OR TrangThai != :status)';
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':status', 'Hủy');
+        $stmt->bindValue(':note', $note);
+        $stmt->bindValue(':workshopId', $workshopId);
+
+        return $stmt->execute();
+    }
+
     public function getByPlanIds(array $planIds): array
     {
         $planIds = array_values(array_filter($planIds));
