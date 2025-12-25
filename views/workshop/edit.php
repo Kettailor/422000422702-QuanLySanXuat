@@ -79,9 +79,21 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Trạng thái</label>
-                <select name="TrangThai" class="form-select">
-                    <?php foreach (['Đang hoạt động', 'Bảo trì', 'Tạm dừng'] as $status): ?>
-                        <option value="<?= $status ?>" <?= ($workshop['TrangThai'] ?? '') === $status ? 'selected' : '' ?>><?= $status ?></option>
+                <?php
+                $isSystemAdmin = $isSystemAdmin ?? false;
+                $currentStatus = $workshop['TrangThai'] ?? '';
+                $statusOptions = ['Đang hoạt động', 'Bảo trì'];
+                if ($isSystemAdmin || $currentStatus === 'Tạm dừng') {
+                    $statusOptions[] = 'Tạm dừng';
+                }
+                $lockStatus = !$isSystemAdmin && $currentStatus === 'Tạm dừng';
+                ?>
+                <?php if ($lockStatus): ?>
+                    <input type="hidden" name="TrangThai" value="<?= htmlspecialchars($currentStatus) ?>">
+                <?php endif; ?>
+                <select name="TrangThai" class="form-select" <?= $lockStatus ? 'disabled' : '' ?>>
+                    <?php foreach ($statusOptions as $status): ?>
+                        <option value="<?= $status ?>" <?= $currentStatus === $status ? 'selected' : '' ?>><?= $status ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

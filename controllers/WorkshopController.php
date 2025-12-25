@@ -38,6 +38,7 @@ class WorkshopController extends Controller
             'managerOverview' => $isWorkshopManager ? $this->buildManagerOverview($workshops) : null,
             'showExecutiveOverview' => !$isWorkshopManager,
             'canAssign' => $this->canAssign(),
+            'canSuspend' => $this->isSystemAdmin(),
         ]);
     }
 
@@ -64,6 +65,7 @@ class WorkshopController extends Controller
             'workshopTypes' => $this->getWorkshopTypes(),
             'workshopTypeRules' => $workshopTypeRules,
             'canAssign' => true,
+            'isSystemAdmin' => $this->isSystemAdmin(),
         ]);
     }
 
@@ -85,6 +87,12 @@ class WorkshopController extends Controller
         $data['NgayThanhLap'] = date('Y-m-d');
         $capacity = $this->warehouseModel->getFinishedQuantityByWorkshop($data['IdXuong']);
         $data['CongSuatDangSuDung'] = $capacity;
+
+        if (($data['TrangThai'] ?? '') === 'Tạm dừng') {
+            $this->setFlash('danger', 'Vui lòng dùng chức năng tạm ngưng để nhập lý do.');
+            $this->redirect('?controller=workshop&action=create');
+            return;
+        }
 
         if ($capacity !== null && $data['CongSuatToiDa'] > 0 && $data['CongSuatToiDa'] < $capacity) {
             $this->setFlash('danger', 'Công suất tối đa không được bé hơn công suất đang sử dụng.');
@@ -182,6 +190,7 @@ class WorkshopController extends Controller
             'workshopType' => $workshopType,
             'workshopTypes' => $this->getWorkshopTypes(),
             'workshopTypeRules' => $workshopTypeRules,
+            'isSystemAdmin' => $this->isSystemAdmin(),
         ]);
     }
 
@@ -202,6 +211,13 @@ class WorkshopController extends Controller
             $this->redirect('?controller=workshop&action=index');
         }
 
+        $currentWorkshop = $this->workshopModel->find($id);
+        if (!$currentWorkshop) {
+            $this->setFlash('danger', 'Không xác định được xưởng cần cập nhật.');
+            $this->redirect('?controller=workshop&action=index');
+            return;
+        }
+
         $data = $this->extractWorkshopData($_POST);
         $assignments = $this->extractAssignments($_POST);
         $assignments = $this->filterAssignmentsByWorkshopType($assignments, $data['LoaiXuong'] ?? $this->getDefaultWorkshopType());
@@ -210,6 +226,13 @@ class WorkshopController extends Controller
         $data['CongSuatDangSuDung'] = $capacity;
         unset($data['IdXuong']);
         unset($data['NgayThanhLap']);
+
+        $currentStatus = $currentWorkshop['TrangThai'] ?? null;
+        if (($data['TrangThai'] ?? '') === 'Tạm dừng' && $currentStatus !== 'Tạm dừng') {
+            $this->setFlash('danger', 'Vui lòng dùng chức năng tạm ngưng để nhập lý do.');
+            $this->redirect('?controller=workshop&action=edit&id=' . urlencode($id));
+            return;
+        }
 
         if ($capacity !== null && $data['CongSuatToiDa'] > 0 && $data['CongSuatToiDa'] < $capacity) {
             $this->setFlash('danger', 'Công suất tối đa không được bé hơn công suất đang sử dụng.');
@@ -256,6 +279,64 @@ class WorkshopController extends Controller
             Logger::error('Lỗi khi cập nhật xưởng ' . $id . ': ' . $exception->getMessage());
             /* $this->setFlash('danger', 'Không thể cập nhật xưởng: ' . $exception->getMessage()); */
             $this->setFlash('danger', 'Không thể cập nhật xưởng, vui lòng kiểm tra log để biết thêm chi tiết.');
+        }
+
+        $this->redirect('?controller=workshop&action=index');
+    }
+
+    public function suspend(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=workshop&action=index');
+        }
+
+        if (!$this->isSystemAdmin()) {
+            $this->setFlash('danger', 'Chỉ quản trị hệ thống mới được phép tạm ngưng xưởng.');
+            $this->redirect('?controller=workshop&action=index');
+        }
+
+        $id = trim($_POST['IdXuong'] ?? '');
+        $reason = trim($_POST['LyDoTamNgung'] ?? '');
+
+        if ($id === '') {
+            $this->setFlash('danger', 'Không xác định được xưởng cần tạm ngưng.');
+            $this->redirect('?controller=workshop&action=index');
+            return;
+        }
+
+        if ($reason === '') {
+            $this->setFlash('danger', 'Vui lòng nhập lý do tạm ngưng.');
+            $this->redirect('?controller=workshop&action=index');
+            return;
+        }
+
+        $workshop = $this->workshopModel->find($id);
+        if (!$workshop) {
+            $this->setFlash('danger', 'Không tìm thấy xưởng cần tạm ngưng.');
+            $this->redirect('?controller=workshop&action=index');
+            return;
+        }
+
+        $db = Database::getInstance()->getConnection();
+        $note = sprintf('Tạm ngưng xưởng %s: %s', $id, $reason);
+
+        $db->beginTransaction();
+
+        try {
+            $this->workshopModel->update($id, [
+                'TrangThai' => 'Tạm dừng',
+                'LyDoTamNgung' => $reason,
+            ]);
+            $this->assignmentModel->syncAssignments($id, [], []);
+            $this->workshopPlanModel->cancelByWorkshop($id, $note);
+            $db->commit();
+            $this->setFlash('success', 'Đã tạm ngưng xưởng và hủy các kế hoạch liên quan.');
+        } catch (Throwable $exception) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            Logger::error('Lỗi khi tạm ngưng xưởng ' . $id . ': ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể tạm ngưng xưởng: ' . $exception->getMessage());
         }
 
         $this->redirect('?controller=workshop&action=index');
@@ -491,6 +572,14 @@ class WorkshopController extends Controller
         $role = $user ? $this->resolveAccessRole($user) : null;
 
         return in_array($role, ['VT_BAN_GIAM_DOC', 'VT_ADMIN'], true);
+    }
+
+    private function isSystemAdmin(): bool
+    {
+        $user = $this->currentUser();
+        $role = $user ? $this->resolveAccessRole($user) : null;
+
+        return $role === 'VT_ADMIN';
     }
 
     private function canAssignStaff(string $workshopId): bool
