@@ -288,12 +288,6 @@
         ← Quay lại
       </a>
 
-      <button type="button"
-        class="btn btn-danger"
-        id="btnHideReport"
-        data-id="<?= htmlspecialchars($report['IdBienBanDanhGiaDX']) ?>">
-        🗑 Xóa biên bản
-      </button>
     </div>
 
 </div>
@@ -303,13 +297,3 @@
 <?php endif; ?>
 
 </div>
-<script>
-  document.getElementById('btnHideReport')?.addEventListener('click', function() {
-    const id = this.dataset.id;
-
-    if (!confirm('Bạn có muốn xóa biên bản này không?')) return;
-
-    window.location.href =
-      '?controller=suddenly&action=delete&id=' + encodeURIComponent(id);
-  });
-</script>

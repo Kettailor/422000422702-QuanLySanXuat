@@ -228,7 +228,6 @@
                                         </button>
                                     <?php endif; ?>
                                     <?php if ($canAssign): ?>
-                                        <a class="btn btn-sm btn-outline-danger" href="?controller=workshop&action=delete&id=<?= urlencode($workshop['IdXuong']) ?>" onclick="return confirm('Xác nhận xóa xưởng này?');">Xóa</a>
                                     <?php endif; ?>
                                 </div>
                             </td>

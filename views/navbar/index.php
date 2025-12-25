@@ -36,6 +36,7 @@ $showWorkshopPlanPersonal = in_array($role, ['VT_NHANVIEN_SANXUAT', 'VT_NHANVIEN
 $showWorkshop = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
 $showTimekeeping = $canAccess(array_merge(['VT_BAN_GIAM_DOC'], $workshopManagerRoles));
 $showSelfTimekeeping = !empty($role);
+$showSelfSalary = !empty($role);
 $showQuality = $canAccess(array_merge(['VT_KIEM_SOAT_CL'], $workshopManagerRoles));
 $showWarehouse = $canAccess(array_merge(['VT_NHANVIEN_KHO'], $workshopManagerRoles));
 $showWarehouseSheet = $canAccess(['VT_NHANVIEN_KHO']);
@@ -87,6 +88,11 @@ if ($isAdminMain) {
             </a>
             <a class="nav-link <?= $currentController === 'self_timekeeping' && $currentAction === 'history' ? 'active' : '' ?>" href="?controller=self_timekeeping&action=history">
                 <i class="bi bi-calendar2-check"></i> Lịch sử chấm công
+            </a>
+        <?php endif; ?>
+        <?php if ($showSelfSalary): ?>
+            <a class="nav-link <?= $currentController === 'self_salary' ? 'active' : '' ?>" href="?controller=self_salary&action=index">
+                <i class="bi bi-wallet2"></i> Bảng lương cá nhân
             </a>
         <?php endif; ?>
         <?php if ($showWorkshopPlanPersonal): ?>

@@ -69,13 +69,32 @@ $materialBadge = static function (?string $status) use ($statusBadge): string {
     </div>
     <div class="d-flex flex-wrap gap-2">
         <?php if ($plan): ?>
-            <?php if (!empty($canDelete)): ?>
-                <form method="post" action="?controller=factory_plan&action=delete&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" onsubmit="return confirm('Xóa kế hoạch xưởng này và làm lại từ đầu?');">
-                    <input type="hidden" name="id" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong']) ?>">
-                    <button type="submit" class="btn btn-outline-danger">
-                        <i class="bi bi-trash me-2"></i>Xóa kế hoạch xưởng
-                    </button>
-                </form>
+            <?php if (!empty($canCancel)): ?>
+                <?php $cancelModalId = 'cancel-workshop-plan-' . preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) ($plan['IdKeHoachSanXuatXuong'] ?? '')); ?>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#<?= htmlspecialchars($cancelModalId) ?>">
+                    <i class="bi bi-x-circle me-2"></i>Hủy kế hoạch xưởng
+                </button>
+                <div class="modal fade" id="<?= htmlspecialchars($cancelModalId) ?>" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="post" action="?controller=factory_plan&action=cancel">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Hủy kế hoạch xưởng <?= htmlspecialchars($plan['IdKeHoachSanXuatXuong'] ?? '') ?></h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                                </div>
+                                <div class="modal-body text-start">
+                                    <input type="hidden" name="IdKeHoachSanXuatXuong" value="<?= htmlspecialchars($plan['IdKeHoachSanXuatXuong'] ?? '') ?>">
+                                    <label class="form-label">Ghi chú hủy kế hoạch</label>
+                                    <textarea name="cancel_note" class="form-control" rows="3" placeholder="Lý do hủy kế hoạch..." required></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             <?php endif; ?>
             <a href="?controller=workshop_plan&action=assign&id=<?= urlencode($plan['IdKeHoachSanXuatXuong']) ?>" class="btn btn-outline-primary <?= $isCancelled ? 'disabled' : '' ?>">
                 <i class="bi bi-people me-2"></i>Phân công nhân sự theo ca

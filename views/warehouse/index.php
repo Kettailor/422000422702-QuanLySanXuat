@@ -456,10 +456,6 @@ $lotPrefixMap = [
                                                 Xuất
                                             </a>
                                         <?php endif; ?>
-                                        <form method="post" action="?controller=warehouse&action=delete" class="d-inline" onsubmit="return confirm('Xác nhận xóa kho này?');">
-                                            <input type="hidden" name="IdKho" value="<?= htmlspecialchars($warehouse['IdKho']) ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -1068,30 +1064,6 @@ $lotPrefixMap = [
             editLink.href = '?controller=warehouse_sheet&action=edit&id=' + encodeURIComponent(id);
             editLink.textContent = 'Sửa';
             container.appendChild(editLink);
-
-            var deleteForm = document.createElement('form');
-            deleteForm.method = 'post';
-            deleteForm.action = '?controller=warehouse_sheet&action=delete';
-            deleteForm.className = 'd-inline';
-
-            var idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'IdPhieu';
-            idInput.value = id;
-            deleteForm.appendChild(idInput);
-
-            var deleteButton = document.createElement('button');
-            deleteButton.type = 'submit';
-            deleteButton.className = 'btn btn-sm btn-outline-danger';
-            deleteButton.textContent = 'Xóa';
-            deleteButton.addEventListener('click', function (event) {
-                if (!confirm('Xác nhận xóa phiếu kho này?')) {
-                    event.preventDefault();
-                }
-            });
-
-            deleteForm.appendChild(deleteButton);
-            container.appendChild(deleteForm);
 
             return container;
         }

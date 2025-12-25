@@ -37,7 +37,7 @@ class Warehouse_sheetController extends Controller
 
     public function __construct()
     {
-        $this->authorize(array_merge(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG'], $this->getWorkshopManagerRoles()));
+        $this->authorize(array_merge(['VT_NHANVIEN_KHO', 'VT_KHO_TRUONG', 'VT_BAN_GIAM_DOC', 'VT_ADMIN'], $this->getWorkshopManagerRoles()));
         $this->sheetModel = new InventorySheet();
         $this->lotModel = new InventoryLot();
         $this->sheetDetailModel = new InventorySheetDetail();
@@ -409,46 +409,11 @@ class Warehouse_sheetController extends Controller
 
         $id = $_POST['IdPhieu'] ?? null;
         if (!$id) {
-            $this->setFlash('danger', 'Không xác định được phiếu cần xóa.');
+            $this->setFlash('danger', 'Không xác định được phiếu cần hủy.');
             $this->redirect('?controller=warehouse_sheet&action=index');
         }
 
-        $document = $this->sheetModel->findDocument($id);
-        if (!$document) {
-            $this->setFlash('warning', 'Phiếu kho đã không còn tồn tại.');
-            $this->redirect('?controller=warehouse_sheet&action=index');
-            return;
-        }
-
-        if (!$this->isWarehouseAccessible($document['IdKho'] ?? null)) {
-            $this->setFlash('danger', 'Bạn không có quyền xóa phiếu thuộc kho này.');
-            $this->redirect('?controller=warehouse_sheet&action=index');
-        }
-
-        $details = $this->sheetDetailModel->getDetailsByDocument($id);
-        $connection = Database::getInstance()->getConnection();
-
-        try {
-            $connection->beginTransaction();
-
-            if (!empty($details) && $this->isConfirmedData($document)) {
-                $this->applyStockImpact($document['LoaiPhieu'], $details, false, $id, $document['IdKho'] ?? null);
-            }
-
-            if ($this->sheetModel->deleteDocument($id)) {
-                $this->setFlash('success', 'Đã xóa phiếu kho.');
-            } else {
-                $this->setFlash('warning', 'Phiếu kho đã không còn tồn tại.');
-            }
-
-            $connection->commit();
-        } catch (Throwable $e) {
-            if ($connection->inTransaction()) {
-                $connection->rollBack();
-            }
-            $this->setFlash('danger', 'Không thể xóa phiếu: ' . $e->getMessage());
-        }
-
+        $this->setFlash('warning', 'Chức năng xóa phiếu kho đã bị vô hiệu. Vui lòng cập nhật trạng thái hoặc ghi chú.');
         $this->redirect('?controller=warehouse_sheet&action=index');
     }
 
@@ -1206,8 +1171,7 @@ class Warehouse_sheetController extends Controller
         }
 
         if ($role === 'VT_NHANVIEN_KHO') {
-            $employeeId = $user['IdNhanVien'] ?? null;
-            $this->accessibleWarehouseIds = $employeeId ? $this->warehouseModel->getWarehouseIdsBySupervisor($employeeId) : [];
+            $this->accessibleWarehouseIds = $this->resolveWarehouseIdsByWorkshop($user);
             return $this->accessibleWarehouseIds;
         }
 

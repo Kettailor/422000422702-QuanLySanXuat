@@ -12,7 +12,7 @@ class Factory_planController extends Controller
 
     public function __construct()
     {
-        $this->authorize(array_merge($this->getWorkshopManagerRoles(), ['VT_NHANVIEN_SANXUAT', 'VT_BAN_GIAM_DOC']));
+        $this->authorize(array_merge($this->getWorkshopManagerRoles(), ['VT_NHANVIEN_SANXUAT', 'VT_BAN_GIAM_DOC', 'VT_ADMIN']));
         $this->workshopPlanModel = new WorkshopPlan();
         $this->workshopModel = new Workshop();
         $this->assignmentModel = new WorkshopAssignment();
@@ -92,7 +92,7 @@ class Factory_planController extends Controller
         if ($isCancelled) {
             $canUpdateProgress = false;
         }
-        $canDelete = $plan ? $this->canModifyPlan($plan) && !$isCancelled : false;
+        $canCancel = $plan ? $this->canModifyPlan($plan) && !$isCancelled : false;
 
         $this->render('factory_plan/read', [
             'title' => 'Chi tiết hạng mục xưởng',
@@ -102,7 +102,7 @@ class Factory_planController extends Controller
             'progress' => $plan ? $this->calculateProgress($plan['ThoiGianBatDau'] ?? null, $plan['ThoiGianKetThuc'] ?? null, $plan['TrangThai'] ?? null) : null,
             'materialStatus' => $this->summarizeMaterialStatus($stockList, $plan['TinhTrangVatTu'] ?? null),
             'canUpdateProgress' => $canUpdateProgress,
-            'canDelete' => $canDelete,
+            'canCancel' => $canCancel,
             'isCancelled' => $isCancelled,
             'typeConfig' => $typeConfig,
             'isStorageManager' => $this->isStorageManager(),
@@ -165,29 +165,66 @@ class Factory_planController extends Controller
         }
 
         if (!$this->canModifyPlan($plan)) {
-            $this->setFlash('danger', 'Bạn không được phép xóa kế hoạch xưởng này.');
+            $this->setFlash('danger', 'Bạn không được phép hủy kế hoạch xưởng này.');
             $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
             return;
         }
 
-        $parentPlanId = $plan['IdKeHoachSanXuat'] ?? null;
-        if ($parentPlanId && $this->planModel->find($parentPlanId)) {
-            $this->setFlash('danger', 'Không thể xóa kế hoạch xưởng khi kế hoạch chính vẫn còn.');
-            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
+        $this->setFlash('warning', 'Chức năng xóa kế hoạch xưởng đã bị tắt. Vui lòng dùng chức năng hủy.');
+        $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
+    }
+
+    public function cancel(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $planId = $_POST['IdKeHoachSanXuatXuong'] ?? null;
+        if (!$planId) {
+            $this->redirect('?controller=factory_plan&action=index');
+            return;
+        }
+
+        $plan = $this->workshopPlanModel->findWithRelations($planId);
+        $plan = $this->filterPlanByAccess($plan);
+        if (!$plan) {
+            return;
+        }
+
+        if (!$this->canModifyPlan($plan)) {
+            $this->setFlash('danger', 'Bạn không được phép hủy kế hoạch xưởng này.');
+            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($planId));
+            return;
+        }
+
+        if ($this->isPlanCancelled($plan)) {
+            $this->setFlash('warning', 'Kế hoạch xưởng đã được hủy trước đó.');
+            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($planId));
+            return;
+        }
+
+        $note = trim($_POST['cancel_note'] ?? '');
+        if ($note === '') {
+            $this->setFlash('danger', 'Vui lòng nhập ghi chú khi hủy kế hoạch.');
+            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($planId));
             return;
         }
 
         try {
-            $this->workshopPlanModel->deleteWithRelations($id);
-            $this->setFlash('success', 'Đã xóa kế hoạch xưởng. Vui lòng lập lại từ kế hoạch tổng nếu cần.');
+            $this->workshopPlanModel->update($planId, [
+                'TrangThai' => 'Hủy',
+                'GhiChu' => $note,
+            ]);
+            $this->notifyWorkshopManagerCancel($plan, $note);
+            $this->setFlash('success', 'Đã hủy kế hoạch xưởng.');
         } catch (Throwable $exception) {
-            Logger::error('Lỗi khi xóa kế hoạch xưởng ' . $id . ': ' . $exception->getMessage());
-            $this->setFlash('danger', 'Không thể xóa kế hoạch xưởng. Vui lòng kiểm tra log.');
-            $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($id));
-            return;
+            Logger::error('Lỗi khi hủy kế hoạch xưởng ' . $planId . ': ' . $exception->getMessage());
+            $this->setFlash('danger', 'Không thể hủy kế hoạch xưởng. Vui lòng kiểm tra log.');
         }
 
-        $this->redirect('?controller=factory_plan&action=index');
+        $this->redirect('?controller=factory_plan&action=read&id=' . urlencode($planId));
     }
 
     private function getVisibleWorkshops(): array
@@ -547,5 +584,28 @@ class Factory_planController extends Controller
         }
 
         (new NotificationStore())->pushMany($entries);
+    }
+
+    private function notifyWorkshopManagerCancel(array $plan, string $note): void
+    {
+        $workshopId = $plan['IdXuong'] ?? null;
+        $workshop = $workshopId ? $this->workshopModel->find($workshopId) : null;
+        $managerId = $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+        if (!$managerId) {
+            return;
+        }
+
+        $planLabel = $plan['TenThanhThanhPhanSP'] ?? ($plan['IdKeHoachSanXuatXuong'] ?? '');
+        $message = sprintf('Kế hoạch xưởng %s đã bị hủy. Ghi chú: %s', $planLabel, $note);
+
+        (new NotificationStore())->push([
+            'title' => 'Hủy kế hoạch xưởng',
+            'message' => $message,
+            'recipient' => $managerId,
+            'metadata' => [
+                'plan_id' => $plan['IdKeHoachSanXuatXuong'] ?? null,
+                'workshop_id' => $workshopId,
+            ],
+        ]);
     }
 }

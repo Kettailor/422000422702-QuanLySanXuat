@@ -351,24 +351,6 @@ if (session_status() === PHP_SESSION_NONE) {
   </div>
 </div>
 
-<!-- Popup xác nhận xóa -->
-<div id="confirmModal" class="modal fade" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg rounded-3">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title fw-semibold">Xác nhận xóa biên bản</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p id="confirmMessage" class="mb-0"></p>
-      </div>
-      <div class="modal-footer border-0">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-        <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xóa</button>
-      </div>
-    </div>
-  </div>
-</div>
 <script>
   const STORAGE_KEY = 'hidden_los';
 
@@ -436,35 +418,6 @@ if (session_status() === PHP_SESSION_NONE) {
   recalcDashboard();
 
 
-  document.querySelectorAll('.btn-delete-trigger').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.preventDefault();
-      const id = btn.dataset.id || '(chưa có mã)';
-      const lo = btn.dataset.lo || '(không rõ)';
-      const url = btn.getAttribute('href');
-
-      if (!url || url.endsWith('id=&IdLo=')) {
-        const feedback = document.getElementById('quality-feedback');
-        if (feedback) {
-          feedback.textContent = 'Không tìm thấy mã biên bản để xóa. Vui lòng làm mới trang và thử lại.';
-          feedback.classList.remove('d-none');
-          feedback.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        return;
-      }
-
-      document.getElementById('confirmMessage').textContent =
-        `Bạn có chắc muốn xóa biên bản ${id} của lô ${lo} không?`;
-
-      const confirmBtn = document.getElementById('confirmDeleteBtn');
-      confirmBtn.onclick = () => {
-        window.location.href = url;
-      };
-
-      const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-      modal.show();
-    });
-  });
 </script>
 
 <?php if (!empty($_GET['msg'])): ?>

@@ -31,7 +31,9 @@ class OrderDetail extends BaseModel
                 LEFT JOIN khach_hang kh ON kh.IdKhachHang = don.IdKhachHang
                 LEFT JOIN san_pham san ON san.IdSanPham = ct.IdSanPham
                 LEFT JOIN cau_hinh_san_pham cau ON cau.IdCauHinh = ct.IdCauHinh
-                LEFT JOIN ke_hoach_san_xuat khsx ON khsx.IdTTCTDonHang = ct.IdTTCTDonHang
+                LEFT JOIN ke_hoach_san_xuat khsx
+                  ON khsx.IdTTCTDonHang = ct.IdTTCTDonHang
+                  AND (khsx.TrangThai IS NULL OR khsx.TrangThai <> "Hủy")
                 WHERE khsx.IdKeHoachSanXuat IS NULL
                 ORDER BY don.NgayLap ASC, ct.IdTTCTDonHang';
 

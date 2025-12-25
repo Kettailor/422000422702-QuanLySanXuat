@@ -69,7 +69,7 @@ if ($payroll) {
                     <dd class="col-sm-6"><?= number_format($payroll['PhuCap'] ?? 0, 0, ',', '.') ?> đ</dd>
                     <dt class="col-sm-6">Thưởng</dt>
                     <dd class="col-sm-6"><?= number_format($payroll['Thuong'] ?? 0, 0, ',', '.') ?> đ</dd>
-                    <dt class="col-sm-6">Khấu trừ (BHXH)</dt>
+                    <dt class="col-sm-6">Bảo hiểm</dt>
                     <dd class="col-sm-6">-<?= number_format($payroll['KhauTru'] ?? 0, 0, ',', '.') ?> đ</dd>
                     <dt class="col-sm-6">Thuế TNCN</dt>
                     <dd class="col-sm-6">-<?= number_format($payroll['ThueTNCN'] ?? 0, 0, ',', '.') ?> đ (<?= number_format($taxPercent, 2, ',', '.') ?>%)</dd>
