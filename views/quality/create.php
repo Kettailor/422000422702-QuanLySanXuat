@@ -231,7 +231,7 @@
 
         <div class="card">
             <h5 class="fw-bold section-title mb-3">Tiêu chí kiểm tra</h5>
-          
+
 
             <?php if (!empty($criteria)): ?>
                 <div class="table-responsive">
@@ -263,9 +263,10 @@
             <?php else: ?>
                 <div class="alert alert-warning mb-0">
                     Không tìm thấy tiêu chí tương ứng cho xưởng:
-                    <strong><?= htmlspecialchars($factoryName ?: 'Không xác định') ?></strong>
+                    <strong><?= htmlspecialchars($loInfo['TenXuong'] ?? 'Không xác định') ?></strong>
                 </div>
             <?php endif; ?>
+
         </div>
 
         <div class="card">
@@ -398,7 +399,7 @@
 
 
 
-    let fileStore = []; 
+    let fileStore = [];
     const fileInput = document.querySelector('input[name="FileMinhChung[]"]');
     const previewList = document.getElementById("preview-list");
 
