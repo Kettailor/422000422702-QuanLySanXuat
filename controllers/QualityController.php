@@ -113,36 +113,63 @@ class QualityController extends Controller
         $idLo = $_GET['IdLo'] ?? null;
         $loInfo = null;
         $criteria = [];
+        $factoryName = null;
 
         if ($idLo) {
             $db = $this->qualityModel->getConnection();
-            $stmt = $db->prepare("SELECT COUNT(*) FROM bien_ban_danh_gia_thanh_pham WHERE IdLo = :idLo");
-            $stmt->execute([':idLo' => $idLo]);
-            $exists = (int) $stmt->fetchColumn() > 0;
 
-            if ($exists) {
-                $this->redirect('?controller=quality&action=index&msg=' . urlencode("Lô $idLo đã có biên bản, không thể tạo mới.") . '&type=warning');
+            // 1. Kiểm tra đã có biên bản chưa
+            $stmt = $db->prepare("
+            SELECT COUNT(*) 
+            FROM bien_ban_danh_gia_thanh_pham 
+            WHERE IdLo = :idLo
+        ");
+            $stmt->execute([':idLo' => $idLo]);
+
+            if ((int)$stmt->fetchColumn() > 0) {
+                $this->redirect(
+                    '?controller=quality&action=index&msg=' .
+                        urlencode("Lô $idLo đã có biên bản, không thể tạo mới.") .
+                        '&type=warning'
+                );
             }
 
+            // 2. Lấy thông tin lô
             $loInfo = $this->qualityModel->getLoInfo($idLo);
-            $criteriaDir = __DIR__ . '/../storage/quality_criteria.json';
-            if (file_exists($criteriaDir)) {
-                $jsonContent = file_get_contents($criteriaDir);
-                $allCriteria = json_decode($jsonContent, true) ?? [];
-                $idXuong = $loInfo['idXuong'] ?? null;
-                if ($idXuong && isset($allCriteria[$idXuong])) {
-                    $criteria = $allCriteria[$idXuong];
+
+            // 3. Lấy TÊN XƯỞNG
+            $factoryName = trim($loInfo['TenXuong'] ?? '');
+
+            // 4. Load core tiêu chí
+            $criteriaConfig = require __DIR__ . '/../core/QualityCriteria.php';
+
+            /**
+             * Lấy tiêu chí theo TÊN XƯỞNG
+             * → NHÓM factory
+             */
+            if (
+                $factoryName &&
+                isset($criteriaConfig['factory'][$factoryName])
+            ) {
+                // Chuẩn hóa dữ liệu cho view
+                foreach ($criteriaConfig['factory'][$factoryName] as $item) {
+                    $criteria[] = [
+                        'id'        => $item[0],
+                        'criterion' => $item[1],
+                    ];
                 }
             }
         }
 
-
         $this->render('quality/create', [
-            'title'    => 'Lập biên bản đánh giá thành phẩm',
-            'loInfo'   => $loInfo,
-            'criteria' => $criteria,
+            'title'       => 'Lập biên bản đánh giá thành phẩm',
+            'loInfo'      => $loInfo,
+            'criteria'    => $criteria,
+            'factoryName' => $factoryName,
         ]);
     }
+
+
 
     /** Lưu biên bản */
     public function store(): void
@@ -268,74 +295,84 @@ class QualityController extends Controller
     /** Quan ly tieu chi danh gia */
     public function criterias(): void
     {
-        if (!$_GET['id']) {
+        $idXuong = $_GET['id']   ?? null;
+        $type    = $_GET['type'] ?? null;
+
+        // Load cấu hình tiêu chí
+        $criteriaConfig = require __DIR__ . '/../core/QualityCriteria.php';
+
+        /* =====================================================
+       1. TRANG TỔNG – CHƯA CHỌN GÌ
+       ===================================================== */
+        if (!$idXuong && !$type) {
             $this->render('quality/criterias', [
-                'title'    => 'Quản lý tiêu chí đánh giá',
+                'title'     => 'Quản lý tiêu chí đánh giá',
                 'workshops' => $this->workshopModel->all(),
+                'type'      => null,
             ]);
-        } else {
-            $criteriaPath = __DIR__ . '/../storage/quality_criteria.json';
-            $idXuong = $_GET['id'];
-            $criteriaData = [];
-            if (file_exists($criteriaPath)) {
-                $jsonContent = file_get_contents($criteriaPath);
-                $criteriaData = json_decode($jsonContent, true) ?? [];
-            }
-
-            $criteriaList = [];
-            if (isset($criteriaData[$idXuong])) {
-                $criteriaList = $criteriaData[$idXuong];
-            }
-
-            $this->render('quality/criterias', [
-                'title'    => 'Quản lý tiêu chí đánh giá',
-                'criterias' => $criteriaList,
-            ]);
+            return;
         }
-    }
 
-    public function createCriteria(): void
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $idXuong = $_GET['id'] ?? null;
+        /* =====================================================
+       2. TIÊU CHÍ DÂY CHUYỀN
+       ===================================================== */
+        if ($type === 'production') {
+            $this->render('quality/criterias', [
+                'title'                => 'Tiêu chí dây chuyền sản xuất',
+                'type'                 => 'production',
+                'productionCriterias'  => $criteriaConfig['production'] ?? [],
+            ]);
+            return;
+        }
 
-            if (!$idXuong) {
-                $this->setFlash('danger', 'Thiếu mã xưởng để thêm tiêu chí.');
+        /* =====================================================
+       3. TIÊU CHÍ NHÂN CÔNG
+       ===================================================== */
+        if ($type === 'worker') {
+            $this->render('quality/criterias', [
+                'title'           => 'Tiêu chí nhân công',
+                'type'            => 'worker',
+                'workerCriterias' => $criteriaConfig['worker'] ?? [],
+            ]);
+            return;
+        }
+
+        /* =====================================================
+       4. TIÊU CHÍ XƯỞNG (id = XU001)
+       ===================================================== */
+        if ($idXuong) {
+
+            // 🔒 AN TOÀN: chỉ find khi có id
+            $workshop = $this->workshopModel->find($idXuong);
+            if (!$workshop) {
                 $this->redirect('?controller=quality&action=criterias');
             }
 
-            $this->render('quality/create_criteria', [
-                'title'   => 'Thêm tiêu chí đánh giá',
-                'idXuong' => $idXuong,
-            ]);
-        }
+            $tenXuong = $workshop['TenXuong'];
 
-        $criteriaPath = __DIR__ . '/../storage/quality_criteria.json';
-        $idXuong = $_POST['idXuong'] ?? null;
-        $criterion = trim($_POST['criterion'] ?? '');
-        $description = trim($_POST['description'] ?? '');
-        if (!$idXuong || !$criterion) {
-            $this->setFlash('danger', 'Thiếu thông tin tiêu chí.');
-            $this->redirect('?controller=quality&action=createCriteria&id=' . urlencode($idXuong));
+            // Map tiêu chí xưởng từ core
+            $criterias = [];
+            if (isset($criteriaConfig['factory'][$tenXuong])) {
+                foreach ($criteriaConfig['factory'][$tenXuong] as $item) {
+                    $criterias[] = [
+                        'id'        => $item[0],
+                        'criterion' => $item[1],
+                    ];
+                }
+            }
+
+            $this->render('quality/criterias', [
+                'title'     => 'Quản lý tiêu chí xưởng',
+                'type'      => 'factory', // 🔥 QUAN TRỌNG
+                'idXuong'   => $idXuong,
+                'tenXuong'  => $tenXuong,
+                'criterias' => $criterias,
+            ]);
+            return;
         }
-        $criteriaData = [];
-        if (file_exists($criteriaPath)) {
-            $jsonContent = file_get_contents($criteriaPath);
-            $criteriaData = json_decode($jsonContent, true) ?? [];
-        }
-        if (!isset($criteriaData[$idXuong])) {
-            $criteriaData[$idXuong] = [];
-        }
-        $newCriteria = [
-            'id'          => uniqid('TC_'),
-            'criterion'   => $criterion,
-            'description' => $description,
-        ];
-        $criteriaData[$idXuong][] = $newCriteria;
-        file_put_contents($criteriaPath, json_encode($criteriaData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        $this->setFlash('success', 'Thêm tiêu chí thành công.');
-        $this->redirect('?controller=quality&action=criterias&id=' . urlencode($idXuong));
     }
+
+
 
     public function deleteCriteria(): void
     {
