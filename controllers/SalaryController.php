@@ -221,20 +221,43 @@ class SalaryController extends Controller
         }
 
         $defaults = $wizard['compensation'] ?? [];
+        if (!$defaults) {
+            $employeeMap = $this->getEmployeeMap();
+            foreach ($attendance as $row) {
+                $id = $row['employee_id'];
+                $employeeInfo = $employeeMap[$id] ?? [];
+                $base = $this->resolveBaseSalary($employeeInfo);
+                $dailyRate = $this->getDefaultDailyRate();
+                $workingDays = (float) ($row['working_days'] ?? 0);
+                $dayIncome = round($dailyRate * $workingDays, 2);
+                $defaults[$id] = [
+                    'employee_id' => $id,
+                    'employee_name' => $row['employee_name'],
+                    'working_days' => $workingDays,
+                    'total_hours' => (float) ($row['total_hours'] ?? 0),
+                    'base_salary' => $base,
+                    'allowance' => 0,
+                    'daily_rate' => $dailyRate,
+                    'day_income' => $dayIncome,
+                    'bonus' => 0,
+                    'total_salary' => $base + $dayIncome,
+                ];
+            }
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $baseSalaries = $_POST['LuongCoBan'] ?? [];
             $allowances = $_POST['PhuCap'] ?? [];
-            $dailyRates = $_POST['DonGiaNgayCong'] ?? [];
             $bonuses = $_POST['Thuong'] ?? [];
+            $employeeMap = $this->getEmployeeMap();
 
             $compensation = [];
             foreach ($attendance as $row) {
                 $id = $row['employee_id'];
                 $workingDays = (float) $row['working_days'];
-                $base = max((float) ($baseSalaries[$id] ?? 0), 0.0);
+                $employeeInfo = $employeeMap[$id] ?? [];
+                $base = $this->resolveBaseSalary($employeeInfo);
                 $allowance = max((float) ($allowances[$id] ?? 0), 0.0);
-                $dailyRate = max((float) ($dailyRates[$id] ?? 0), 0.0);
+                $dailyRate = $this->getDefaultDailyRate();
                 $bonus = max((float) ($bonuses[$id] ?? 0), 0.0);
                 $dayIncome = round($dailyRate * $workingDays, 2);
                 $total = round($base + $allowance + $dayIncome + $bonus, 2);
@@ -279,23 +302,17 @@ class SalaryController extends Controller
             $this->redirect('?controller=salary&action=create');
         }
 
-        $taxRate = 0.10; // 10%
+        $insuranceRate = 0.105;
         $insurance = [];
         foreach ($compensation as $id => $row) {
-            $insuranceBase = (float) ($row['base_salary'] ?? 0);
-            $bhyt = round($insuranceBase * 0.015, 2);
-            $bhxh = round($insuranceBase * 0.08, 2);
-            $bhtn = round($insuranceBase * 0.01, 2);
-            $totalInsurance = round($bhyt + $bhxh + $bhtn, 2);
-            $tax = round($row['total_salary'] * $taxRate, 2);
+            $insuranceBase = (float) ($row['base_salary'] ?? 0) + (float) ($row['day_income'] ?? 0);
+            $totalInsurance = round($insuranceBase * $insuranceRate, 2);
+            $tax = 0.0;
 
             $insurance[$id] = [
-                'bhyt' => $bhyt,
-                'bhxh' => $bhxh,
-                'bhtn' => $bhtn,
                 'tax' => $tax,
                 'total' => $totalInsurance,
-                'tax_rate' => $taxRate,
+                'tax_rate' => 0,
             ];
         }
 
@@ -524,12 +541,14 @@ class SalaryController extends Controller
             $this->redirect('?controller=salary&action=index');
         }
 
+        $insurance = round(((float) ($payroll['LuongCoBan'] ?? 0) + (float) ($payroll['TongLuongNgayCong'] ?? 0)) * 0.105, 2);
         $figures = Salary::calculateFigures($payroll);
 
         try {
             $this->salaryModel->update($id, [
                 'TongThuNhap' => $figures['net'],
-                'TongBaoHiem' => $payroll['KhauTru'] ?? 0,
+                'KhauTru' => $insurance,
+                'TongBaoHiem' => $insurance,
             ]);
             $this->setFlash('success', 'Đã tính lại lương thực nhận.');
         } catch (Throwable $e) {
@@ -568,13 +587,7 @@ class SalaryController extends Controller
         $this->requireManagePermission();
         $id = $_GET['id'] ?? null;
         if ($id) {
-            try {
-                $this->salaryModel->delete($id);
-                $this->setFlash('success', 'Đã xóa bảng lương.');
-            } catch (Throwable $e) {
-                Logger::error('Lỗi khi xóa bảng lương ' . $id . ': ' . $e->getMessage());
-                $this->setFlash('danger', 'Không thể xóa bảng lương: ' . $e->getMessage());
-            }
+            $this->setFlash('warning', 'Chức năng xóa bảng lương đã bị vô hiệu. Vui lòng cập nhật trạng thái hoặc ghi chú.');
         }
 
         $this->redirect('?controller=salary&action=index');
@@ -582,22 +595,24 @@ class SalaryController extends Controller
 
     private function mapPayrollInput(array $input): array
     {
-        $baseSalary = max((float) ($input['LuongCoBan'] ?? 0), 0);
+        $employeeId = trim($input['IdNhanVien'] ?? '');
+        $employee = $employeeId ? $this->employeeModel->find($employeeId) : null;
+        $baseSalary = $this->resolveBaseSalary($employee ?? []);
         $allowance = max((float) ($input['PhuCap'] ?? 0), 0);
-        $dailyRate = max((float) ($input['DonGiaNgayCong'] ?? 0), 0);
+        $dailyRate = $this->getDefaultDailyRate();
         $workingDays = max((float) ($input['SoNgayCong'] ?? 0), 0);
         $bonus = max((float) ($input['Thuong'] ?? 0), 0);
-        $deduction = max((float) ($input['KhauTru'] ?? 0), 0);
         $tax = max((float) ($input['ThueTNCN'] ?? 0), 0);
         $monthValue = $this->normalizeMonthInput((string) ($input['ThangNam'] ?? ''));
 
         $dayIncome = round($dailyRate * $workingDays, 2);
+        $insurance = round(($baseSalary + $dayIncome) * 0.105, 2);
         $figures = Salary::calculateFigures([
             'LuongCoBan' => $baseSalary,
             'PhuCap' => $allowance,
             'TongLuongNgayCong' => $dayIncome,
             'Thuong' => $bonus,
-            'KhauTru' => $deduction,
+            'KhauTru' => $insurance,
             'ThueTNCN' => $tax,
         ]);
 
@@ -621,7 +636,7 @@ class SalaryController extends Controller
         return [
             'IdBangLuong' => trim($input['IdBangLuong'] ?? ''),
             Salary::ACCOUNTANT_COLUMN => $accountantId,
-            Salary::EMPLOYEE_COLUMN => trim($input['IdNhanVien'] ?? ''),
+            Salary::EMPLOYEE_COLUMN => $employeeId,
             'ThangNam' => $this->formatMonthForStorage($monthValue),
             'LuongCoBan' => $baseSalary,
             'PhuCap' => $allowance,
@@ -629,14 +644,78 @@ class SalaryController extends Controller
             'SoNgayCong' => $workingDays,
             'TongLuongNgayCong' => $dayIncome,
             'Thuong' => $bonus,
-            'KhauTru' => $deduction,
-            'TongBaoHiem' => max((float) ($input['TongBaoHiem'] ?? $deduction), 0),
+            'KhauTru' => $insurance,
+            'TongBaoHiem' => max((float) ($input['TongBaoHiem'] ?? $insurance), 0),
             'ThueTNCN' => $tax,
             'TongThuNhap' => $figures['net'],
             'TrangThai' => $status,
             'NgayLap' => $input['NgayLap'] ?? date('Y-m-d'),
             'ChuKy' => trim((string) ($input['ChuKy'] ?? '')) ?: null,
         ];
+    }
+
+    private function getEmployeeMap(): array
+    {
+        $employees = $this->employeeModel->all(500);
+        $map = [];
+        foreach ($employees as $employee) {
+            $id = $employee['IdNhanVien'] ?? null;
+            if ($id) {
+                $map[$id] = $employee;
+            }
+        }
+
+        return $map;
+    }
+
+    private function resolveBaseSalary(array $employee): float
+    {
+        $position = mb_strtolower((string) ($employee['ChucVu'] ?? ''));
+        $role = $employee['IdVaiTro'] ?? null;
+
+        $roleMap = [
+            'VT_BAN_GIAM_DOC' => 10000000,
+            'VT_KETOAN' => 7000000,
+            'VT_KINH_DOANH' => 6500000,
+            'VT_TRUONG_XUONG_KIEM_DINH' => 8000000,
+            'VT_TRUONG_XUONG_LAP_RAP_DONG_GOI' => 8000000,
+            'VT_TRUONG_XUONG_SAN_XUAT' => 8000000,
+            'VT_TRUONG_XUONG_LUU_TRU' => 8000000,
+            'VT_NHANVIEN_KHO' => 5000000,
+            'VT_NHANVIEN_SANXUAT' => 4500000,
+            'VT_KIEM_SOAT_CL' => 5500000,
+            'VT_NHANVIEN_KIEM_DINH' => 5500000,
+        ];
+
+        if ($role && isset($roleMap[$role])) {
+            return (float) $roleMap[$role];
+        }
+
+        $positionMap = [
+            'giám đốc' => 10000000,
+            'pho giam doc' => 9000000,
+            'phó giám đốc' => 9000000,
+            'trưởng' => 8000000,
+            'kế toán' => 7000000,
+            'ketoan' => 7000000,
+            'kho' => 5000000,
+            'sản xuất' => 4500000,
+            'kiem dinh' => 5500000,
+            'kiểm định' => 5500000,
+        ];
+
+        foreach ($positionMap as $keyword => $salary) {
+            if ($position !== '' && str_contains($position, $keyword)) {
+                return (float) $salary;
+            }
+        }
+
+        return 4000000;
+    }
+
+    private function getDefaultDailyRate(): float
+    {
+        return 300000;
     }
 
     private function getWizardState(): array

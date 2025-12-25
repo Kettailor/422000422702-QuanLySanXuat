@@ -21,27 +21,21 @@ $period = $period ?? date('Y-m');
                     <th>STT</th>
                     <th>Mã nhân viên</th>
                     <th>Tên nhân viên</th>
-                    <th class="text-end">BHYT (1.5%)</th>
-                    <th class="text-end">BHXH (8%)</th>
-                    <th class="text-end">BHTN (1%)</th>
-                    <th class="text-end">Thuế TNCN (10%)</th>
-                    <th class="text-end">Tổng bảo hiểm</th>
+                    <th class="text-end">Bảo hiểm (10.5%)</th>
+                    <th class="text-end">Thuế TNCN</th>
                 </tr>
                 </thead>
                 <tbody>
                 <?php $index = 1;
 foreach ($compensation as $id => $row):
-    $ins = $insurance[$id] ?? ['bhyt' => 0, 'bhxh' => 0, 'bhtn' => 0, 'tax' => 0, 'total' => 0];
+    $ins = $insurance[$id] ?? ['tax' => 0, 'total' => 0];
     ?>
                     <tr>
                         <td><?= $index++ ?></td>
                         <td><?= htmlspecialchars($id) ?></td>
                         <td><?= htmlspecialchars($row['employee_name']) ?></td>
-                        <td class="text-end"><?= number_format($ins['bhyt'], 0, ',', '.') ?></td>
-                        <td class="text-end"><?= number_format($ins['bhxh'], 0, ',', '.') ?></td>
-                        <td class="text-end"><?= number_format($ins['bhtn'], 0, ',', '.') ?></td>
-                        <td class="text-end text-warning fw-semibold"><?= number_format($ins['tax'], 0, ',', '.') ?></td>
                         <td class="text-end fw-semibold"><?= number_format($ins['total'], 0, ',', '.') ?></td>
+                        <td class="text-end text-warning fw-semibold"><?= number_format($ins['tax'], 0, ',', '.') ?></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -50,11 +44,8 @@ foreach ($compensation as $id => $row):
         <div class="alert alert-info mt-3">
             <div class="fw-semibold mb-1">Công thức tính</div>
             <ul class="small mb-0 ps-3">
-                <li>BHYT = Lương cơ bản × 1.5%</li>
-                <li>BHXH = Lương cơ bản × 8%</li>
-                <li>BHTN = Lương cơ bản × 1%</li>
-                <li>Tổng bảo hiểm = BHYT + BHXH + BHTN</li>
-                <li>Thuế TNCN mặc định = Tổng thu nhập × 10%</li>
+                <li>Bảo hiểm = (Lương cơ bản + Lương ngày công) × 10.5%</li>
+                <li>Thuế TNCN có thể cập nhật ở bước chi tiết nếu cần.</li>
             </ul>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-3">

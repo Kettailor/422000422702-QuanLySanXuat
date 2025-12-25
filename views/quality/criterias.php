@@ -55,9 +55,7 @@
                         <td><?= htmlspecialchars($criteria['criterion'] ?? '') ?></td>
                         <td><?= htmlspecialchars($criteria['description'] ?? '') ?></td>
                         <td>
-                            <a href="?controller=quality&action=deleteCriteria&idXuong=<?= urlencode($_GET['id'] ?? '') ?>&criteriaId=<?= urlencode($criteria['id'] ?? '') ?>" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa tiêu chí này?');">
-                                Xoá
-                            </a>
+                            <span class="badge bg-light text-dark">Đang áp dụng</span>
                         </td>
                     </tr>
                 <?php endforeach; ?>

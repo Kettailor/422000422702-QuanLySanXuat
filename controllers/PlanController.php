@@ -324,6 +324,10 @@ class PlanController extends Controller
         try {
             $this->planModel->update($id, ['TrangThai' => 'Hủy', 'GhiChu' => $note]);
             $this->workshopPlanModel->updateStatusByPlan($id, 'Hủy', $note);
+            $orderId = $plan['IdDonHang'] ?? null;
+            if ($orderId) {
+                $this->orderModel->update($orderId, ['TrangThai' => 'Chưa có kế hoạch']);
+            }
             $this->setFlash('success', 'Đã hủy kế hoạch sản xuất.');
         } catch (Throwable $exception) {
             Logger::error('Lỗi khi hủy kế hoạch sản xuất ' . $id . ': ' . $exception->getMessage());
@@ -347,14 +351,7 @@ class PlanController extends Controller
             return;
         }
 
-        try {
-            $this->planModel->delete($id);
-            $this->setFlash('success', 'Đã xóa kế hoạch sản xuất.');
-        } catch (Throwable $exception) {
-            Logger::error('Lỗi khi xóa kế hoạch sản xuất ' . $id . ': ' . $exception->getMessage());
-            /* $this->setFlash('danger', 'Không thể xóa kế hoạch: ' . $exception->getMessage()); */
-            $this->setFlash('danger', 'Không thể xóa kế hoạch, vui lòng kiểm tra log để biết thêm chi tiết.');
-        }
+        $this->setFlash('warning', 'Chức năng xóa kế hoạch sản xuất đã bị tắt. Vui lòng sử dụng chức năng hủy.');
 
         $this->redirect('?controller=plan&action=index');
     }

@@ -86,6 +86,10 @@ $employeeFilter = $employeeFilter ?? null;
                 <th>Nhân viên</th>
                 <th>Tháng/Năm</th>
                 <th>Lương cơ bản</th>
+                <th>Ngày công</th>
+                <th>Đơn giá</th>
+                <th>Phụ cấp + Thưởng</th>
+                <th>Bảo hiểm</th>
                 <th>Thực nhận</th>
                 <th>Trạng thái</th>
                 <th>Ngày lập</th>
@@ -119,6 +123,10 @@ $employeeFilter = $employeeFilter ?? null;
                     <td><?= htmlspecialchars($payroll['HoTen']) ?></td>
                     <td><?= htmlspecialchars($monthLabel) ?></td>
                     <td><?= number_format($payroll['LuongCoBan'], 0, ',', '.') ?> đ</td>
+                    <td><?= number_format((float) ($payroll['SoNgayCong'] ?? 0), 1, ',', '.') ?> công</td>
+                    <td><?= number_format((float) ($payroll['DonGiaNgayCong'] ?? 0), 0, ',', '.') ?> đ</td>
+                    <td><?= number_format((float) ($payroll['PhuCap'] ?? 0) + (float) ($payroll['Thuong'] ?? 0), 0, ',', '.') ?> đ</td>
+                    <td class="text-danger">-<?= number_format((float) ($payroll['TongBaoHiem'] ?? ($payroll['KhauTru'] ?? 0)), 0, ',', '.') ?> đ</td>
                     <td class="fw-semibold text-primary"><?= number_format($payroll['TongThuNhap'], 0, ',', '.') ?> đ</td>
                     <td><span class="<?= $badgeClass ?>"><?= htmlspecialchars($status) ?></span></td>
                     <td><?= $payroll['NgayLap'] ? date('d/m/Y', strtotime($payroll['NgayLap'])) : '-' ?></td>
@@ -136,9 +144,6 @@ $employeeFilter = $employeeFilter ?? null;
                             <?php endif; ?>
                             <?php if ($permissions['canApprove'] && $status !== 'Chờ duyệt'): ?>
                                 <a class="btn btn-sm btn-outline-warning" href="?controller=salary&action=revert&id=<?= urlencode($payroll['IdBangLuong']) ?>">Hoàn trạng thái</a>
-                            <?php endif; ?>
-                            <?php if ($permissions['canManage']): ?>
-                                <a class="btn btn-sm btn-outline-danger" href="?controller=salary&action=delete&id=<?= urlencode($payroll['IdBangLuong']) ?>" onclick="return confirm('Xác nhận xóa bảng lương này?');">Xóa</a>
                             <?php endif; ?>
                         </div>
                     </td>

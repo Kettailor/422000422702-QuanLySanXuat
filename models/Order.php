@@ -47,4 +47,18 @@ class Order extends BaseModel
             'pending_orders' => (int) ($stats['pending_orders'] ?? 0),
         ];
     }
+
+    public function getOrdersEligibleForBilling(): array
+    {
+        $sql = 'SELECT don_hang.*, khach_hang.HoTen AS TenKhachHang, khach_hang.Email AS EmailKhachHang
+                FROM don_hang
+                JOIN ct_don_hang ct ON ct.IdDonHang = don_hang.IdDonHang
+                JOIN ke_hoach_san_xuat ksx ON ksx.IdTTCTDonHang = ct.IdTTCTDonHang
+                LEFT JOIN khach_hang ON khach_hang.IdKhachHang = don_hang.IdKhachHang
+                GROUP BY don_hang.IdDonHang
+                HAVING SUM(CASE WHEN ksx.TrangThai <> "Hoàn thành" THEN 1 ELSE 0 END) = 0
+                ORDER BY don_hang.NgayLap DESC';
+
+        return $this->db->query($sql)->fetchAll();
+    }
 }

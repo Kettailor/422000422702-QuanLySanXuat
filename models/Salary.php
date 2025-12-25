@@ -244,13 +244,14 @@ class Salary extends BaseModel
     public function recalculateAll(): int
     {
         $sql = 'UPDATE bang_luong
-                SET TongThuNhap = GREATEST(COALESCE(LuongCoBan, 0)
+                SET KhauTru = ROUND((COALESCE(LuongCoBan, 0) + COALESCE(TongLuongNgayCong, 0)) * 0.105, 2),
+                    TongBaoHiem = ROUND((COALESCE(LuongCoBan, 0) + COALESCE(TongLuongNgayCong, 0)) * 0.105, 2),
+                    TongThuNhap = GREATEST(COALESCE(LuongCoBan, 0)
                                             + COALESCE(PhuCap, 0)
                                             + COALESCE(TongLuongNgayCong, 0)
                                             + COALESCE(Thuong, 0)
-                                            - COALESCE(KhauTru, 0)
-                                            - COALESCE(ThueTNCN, 0), 0),
-                    TongBaoHiem = COALESCE(KhauTru, 0)';
+                                            - ROUND((COALESCE(LuongCoBan, 0) + COALESCE(TongLuongNgayCong, 0)) * 0.105, 2)
+                                            - COALESCE(ThueTNCN, 0), 0)';
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
 

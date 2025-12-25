@@ -61,11 +61,12 @@ if ($payroll) {
             </div>
             <div class="col-md-3">
                 <label class="form-label">Lương cơ bản</label>
-                <input type="number" name="LuongCoBan" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['LuongCoBan'] ?? 0) ?>" required>
+                <input type="number" name="LuongCoBan" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['LuongCoBan'] ?? 0) ?>" readonly>
+                <div class="form-text text-muted">Lương cơ bản được tính theo chức vụ.</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Đơn giá ngày công</label>
-                <input type="number" name="DonGiaNgayCong" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['DonGiaNgayCong'] ?? 0) ?>">
+                <input type="number" name="DonGiaNgayCong" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['DonGiaNgayCong'] ?? 0) ?>" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Số ngày công</label>
@@ -85,11 +86,11 @@ if ($payroll) {
             </div>
             <div class="col-md-3">
                 <label class="form-label">Khấu trừ (BHXH)</label>
-                <input type="number" name="KhauTru" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['KhauTru'] ?? 0) ?>">
+                <input type="number" name="KhauTru" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['KhauTru'] ?? 0) ?>" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Tổng bảo hiểm</label>
-                <input type="number" name="TongBaoHiem" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['TongBaoHiem'] ?? ($payroll['KhauTru'] ?? 0)) ?>">
+                <input type="number" name="TongBaoHiem" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['TongBaoHiem'] ?? ($payroll['KhauTru'] ?? 0)) ?>" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Thuế TNCN</label>
@@ -114,7 +115,7 @@ if ($payroll) {
             <div class="col-12">
                 <div class="alert alert-info mb-0">
                     <div class="fw-semibold">Công thức tham khảo</div>
-                    <div class="small">Thực nhận = Lương cơ bản + Tổng lương theo ngày công + Phụ cấp + Thưởng - Khấu trừ - Thuế TNCN.</div>
+                    <div class="small">Bảo hiểm = (Lương cơ bản + Lương ngày công) × 10.5%. Thực nhận = Lương cơ bản + Lương ngày công + Phụ cấp + Thưởng - Bảo hiểm - Thuế TNCN.</div>
                 </div>
             </div>
             <div class="col-12 text-end">

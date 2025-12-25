@@ -47,19 +47,34 @@ class WorkshopAssignment
         return array_column($stmt->fetchAll(), 'IdXuong');
     }
 
-    public function getWorkshopsByEmployee(string $employeeId): array
+    public function getWorkshopsByEmployee(string $employeeId, ?string $role = null): array
     {
-        $sql = 'SELECT DISTINCT IdXuong FROM xuong_nhan_vien WHERE IdNhanVien = :employeeId';
+        $conditions = ['IdNhanVien = :employeeId'];
+        if ($role !== null) {
+            $conditions[] = 'VaiTro = :role';
+        }
+        $sql = 'SELECT DISTINCT IdXuong FROM xuong_nhan_vien WHERE ' . implode(' AND ', $conditions);
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':employeeId', $employeeId);
+        if ($role !== null) {
+            $stmt->bindValue(':role', $role);
+        }
         $stmt->execute();
 
         return array_column($stmt->fetchAll(), 'IdXuong');
     }
 
-    public function getAssignedEmployeeIds(): array
+    public function getAssignedEmployeeIds(?string $role = null): array
     {
-        $stmt = $this->db->query('SELECT DISTINCT IdNhanVien FROM xuong_nhan_vien');
+        if ($role === null) {
+            $stmt = $this->db->query('SELECT DISTINCT IdNhanVien FROM xuong_nhan_vien');
+            return array_values(array_filter(array_column($stmt->fetchAll(), 'IdNhanVien')));
+        }
+
+        $stmt = $this->db->prepare('SELECT DISTINCT IdNhanVien FROM xuong_nhan_vien WHERE VaiTro = :role');
+        $stmt->bindValue(':role', $role);
+        $stmt->execute();
+
         return array_values(array_filter(array_column($stmt->fetchAll(), 'IdNhanVien')));
     }
 

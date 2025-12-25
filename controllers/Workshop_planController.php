@@ -690,6 +690,8 @@ class Workshop_planController extends Controller
                 null,
             );
             $db->commit();
+            $this->syncProductionPlanStatus($plan['IdKeHoachSanXuat'] ?? null);
+            $this->notifyInspectionWorkshop($plan, $lotId, $quantity);
             $this->setFlash('success', 'Đã cập nhật tiến độ và tạo lô thành phẩm.');
         } catch (Throwable $exception) {
             if (isset($db) && $db->inTransaction()) {
@@ -930,5 +932,90 @@ class Workshop_planController extends Controller
     {
         $config = $this->getWorkshopTypeConfig($plan['LoaiXuong'] ?? null);
         return $config['assignment_role'] ?? 'nhan_vien_san_xuat';
+    }
+
+    private function syncProductionPlanStatus(?string $planId): void
+    {
+        if (!$planId) {
+            return;
+        }
+
+        $productionPlan = $this->productionPlanModel->find($planId);
+        if (!$productionPlan || ($productionPlan['TrangThai'] ?? '') === 'Hủy') {
+            return;
+        }
+
+        $workshopPlans = $this->workshopPlanModel->getByPlan($planId);
+        if (empty($workshopPlans)) {
+            return;
+        }
+
+        $allCompleted = true;
+        foreach ($workshopPlans as $workshopPlan) {
+            if (($workshopPlan['TrangThai'] ?? '') !== 'Hoàn thành') {
+                $allCompleted = false;
+                break;
+            }
+        }
+
+        if ($allCompleted) {
+            $this->productionPlanModel->update($planId, ['TrangThai' => 'Hoàn thành']);
+        } else {
+            $this->productionPlanModel->update($planId, ['TrangThai' => 'Đang sản xuất']);
+        }
+    }
+
+    private function notifyInspectionWorkshop(array $plan, string $lotId, int $quantity): void
+    {
+        $productionPlanId = $plan['IdKeHoachSanXuat'] ?? null;
+        if (!$productionPlanId) {
+            return;
+        }
+
+        $relatedPlans = $this->workshopPlanModel->getByPlan($productionPlanId);
+        if (empty($relatedPlans)) {
+            return;
+        }
+
+        $inspectionWorkshops = [];
+        foreach ($relatedPlans as $related) {
+            $type = mb_strtolower((string) ($related['LoaiXuong'] ?? ''));
+            if (str_contains($type, 'kiểm định')) {
+                $inspectionWorkshops[] = $related['IdXuong'] ?? null;
+            }
+        }
+
+        $inspectionWorkshops = array_values(array_unique(array_filter($inspectionWorkshops)));
+        if (empty($inspectionWorkshops)) {
+            return;
+        }
+
+        $managerMap = $this->workshopModel->getManagersByWorkshopIds($inspectionWorkshops);
+        $entries = [];
+        foreach ($inspectionWorkshops as $workshopId) {
+            $managerId = $managerMap[$workshopId] ?? null;
+            if (!$managerId) {
+                continue;
+            }
+            $entries[] = [
+                'title' => 'Lô hàng cần kiểm định',
+                'message' => sprintf(
+                    'Lô %s (%d sp) từ kế hoạch %s cần được kiểm tra chất lượng.',
+                    $lotId,
+                    $quantity,
+                    $plan['IdKeHoachSanXuatXuong'] ?? $productionPlanId,
+                ),
+                'recipient' => $managerId,
+                'metadata' => [
+                    'lot_id' => $lotId,
+                    'workshop_plan_id' => $plan['IdKeHoachSanXuatXuong'] ?? null,
+                    'production_plan_id' => $productionPlanId,
+                ],
+            ];
+        }
+
+        if ($entries) {
+            (new NotificationStore())->pushMany($entries);
+        }
     }
 }

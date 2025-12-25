@@ -7,7 +7,7 @@ class SuddenlyController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
+        $this->authorize(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC', 'VT_ADMIN']);
         $this->SuddenlyModel = new SuddenlyReport();
         date_default_timezone_set('Asia/Ho_Chi_Minh');
     }
@@ -308,20 +308,6 @@ class SuddenlyController extends Controller
     /** Xóa biên bản đột xuất */
     public function delete(): void
     {
-        $id = $_GET['id'] ?? null;
-
-        if (!$id) {
-            $this->redirect('?controller=suddenly&action=index&msg=Thiếu ID&type=danger');
-            return;
-        }
-
-        $model = new SuddenlyReport();
-        $ok = $model->deleteBienBanCascade($id);
-
-        if ($ok) {
-            $this->redirect('?controller=suddenly&action=index&msg=Đã xóa biên bản&type=success');
-        } else {
-            $this->redirect('?controller=suddenly&action=index&msg=Xóa thất bại&type=danger');
-        }
+        $this->redirect('?controller=suddenly&action=index&msg=' . urlencode('Chức năng xóa đã bị vô hiệu. Vui lòng cập nhật trạng thái nếu cần.') . '&type=warning');
     }
 }

@@ -88,10 +88,10 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
                     <h6 class="fw-semibold mb-3">Thông tin quản lý kho</h6>
                     <div class="mb-3">
                         <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
-                        <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required data-live-search="true" data-role="manager-select">
-                            <option value="" disabled selected>Chọn nhân viên quản kho</option>
+                        <select name="warehouse_managers[]" class="form-select" multiple required data-role="manager-select">
+                            <option value="" disabled>Chọn nhân viên quản kho</option>
                         </select>
-                        <div class="form-text text-muted">Nhập để tìm nhanh theo họ tên/ chức vụ. Danh sách lọc theo xưởng phụ trách.</div>
+                        <div class="form-text text-muted">Chọn nhiều nhân viên nếu cần. Danh sách lọc theo xưởng phụ trách.</div>
                         <div class="form-text text-danger d-none" data-role="no-employee-alert">Xưởng chưa có nhân sự quản kho. Vui lòng thêm nhân viên trước khi tạo kho.</div>
                     </div>
                     <div class="text-muted small">Mã kho và mã lô sẽ được tạo tự động khi lưu để đồng bộ với hệ thống phiếu.</div>
@@ -146,7 +146,7 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
             const workshopId = workshopSelect.value || '';
             const employees = workshopEmployees[workshopId] || [];
 
-            managerSelect.innerHTML = '<option value="" disabled selected>Chọn nhân viên quản kho</option>';
+            managerSelect.innerHTML = '<option value="" disabled>Chọn nhân viên quản kho</option>';
 
             employees.forEach((employee) => {
                 const option = document.createElement('option');
