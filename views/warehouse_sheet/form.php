@@ -48,6 +48,15 @@ foreach ($warehouses as $warehouse) {
     }
 }
 $workshopOptions = array_values($workshopOptions);
+$defaultTypes = [
+    'Phiếu nhập nguyên liệu',
+    'Phiếu nhập thành phẩm',
+    'Phiếu nhập xử lý lỗi',
+    'Phiếu xuất nguyên liệu',
+    'Phiếu xuất thành phẩm',
+    'Phiếu xuất xử lý lỗi',
+];
+$types = array_values(array_unique(array_merge($defaultTypes, array_filter($types))));
 ?>
 
 <div class="card border-0 shadow-sm">
@@ -65,12 +74,14 @@ $workshopOptions = array_values($workshopOptions);
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label fw-semibold">Loại phiếu <span class="text-danger">*</span></label>
-                            <input type="text" name="LoaiPhieu" class="form-control" list="sheet-types" value="<?= htmlspecialchars($document['LoaiPhieu'] ?? '') ?>" required placeholder="Phiếu nhập nguyên liệu">
-                            <datalist id="sheet-types">
+                            <select name="LoaiPhieu" class="form-select" required>
+                                <option value="">-- Chọn loại phiếu --</option>
                                 <?php foreach ($types as $type): ?>
-                                    <option value="<?= htmlspecialchars($type) ?>"></option>
+                                    <option value="<?= htmlspecialchars($type) ?>" <?= ($document['LoaiPhieu'] ?? '') === $type ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($type) ?>
+                                    </option>
                                 <?php endforeach; ?>
-                            </datalist>
+                            </select>
                             <div class="form-text">Ví dụ: Phiếu nhập nguyên liệu, Phiếu xuất thành phẩm, Phiếu nhập xử lý lỗi...</div>
                         </div>
                         <div class="col-md-6">
@@ -92,20 +103,11 @@ $workshopOptions = array_values($workshopOptions);
                             <input type="text" name="PartnerExternalName" class="form-control" value="<?= htmlspecialchars($partnerExternalName) ?>" placeholder="Nhập tên khách hàng/nhà cung cấp">
                         </div>
                         <div class="col-md-6 <?= $partnerScope === 'internal' ? '' : 'd-none' ?>" data-partner-internal>
-                            <label class="form-label fw-semibold">Xưởng nội bộ <span class="text-danger">*</span></label>
-                            <select name="PartnerWorkshop" class="form-select">
-                                <option value="">-- Chọn xưởng --</option>
-                                <?php foreach ($workshops as $workshop): ?>
-                                    <option value="<?= htmlspecialchars($workshop['IdXuong'] ?? '') ?>" <?= ($workshop['IdXuong'] ?? '') === $defaultWorkshopId ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($workshop['TenXuong'] ?? $workshop['IdXuong'] ?? '') ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <label class="form-label fw-semibold mt-2">Kho nội bộ <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Kho nội bộ <span class="text-danger">*</span></label>
                             <select name="PartnerWarehouse" class="form-select">
                                 <option value="">-- Chọn kho --</option>
                             </select>
-                            <div class="form-text">Hệ thống sẽ tự điền đối tác theo xưởng/kho đã chọn.</div>
+                            <div class="form-text">Kho nội bộ được lọc theo xưởng áp dụng đã chọn.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Số chứng từ tham chiếu</label>
@@ -327,7 +329,7 @@ $workshopOptions = array_values($workshopOptions);
             const addRowBtn = document.querySelector('[data-action="add-detail-row"]');
             const warehouseSelect = document.querySelector('select[name="IdKho"]');
             const warehouseWorkshopSelect = document.querySelector('[data-warehouse-workshop]');
-            const typeInput = document.querySelector('input[name="LoaiPhieu"]');
+            const typeInput = document.querySelector('select[name="LoaiPhieu"]');
             const approverDisplay = document.querySelector('[data-role="approver-display"]');
             const approverInput = document.querySelector('[data-role="approver-input"]');
             const partnerScopeSelect = document.querySelector('[data-partner-scope]');
@@ -335,7 +337,6 @@ $workshopOptions = array_values($workshopOptions);
             const partnerInternal = document.querySelector('[data-partner-internal]');
             const partnerExternalType = document.querySelector('select[name="PartnerExternalType"]');
             const partnerExternalName = document.querySelector('input[name="PartnerExternalName"]');
-            const partnerWorkshopSelect = document.querySelector('select[name="PartnerWorkshop"]');
             const partnerWarehouseSelect = document.querySelector('select[name="PartnerWarehouse"]');
 
             const updateApprover = () => {
@@ -384,9 +385,9 @@ $workshopOptions = array_values($workshopOptions);
             };
 
             const updatePartnerInternal = () => {
-                if (!partnerWorkshopSelect || !partnerWarehouseSelect) return;
+                if (!partnerWarehouseSelect) return;
 
-                const workshopId = partnerWorkshopSelect.value || '';
+                const workshopId = warehouseWorkshopSelect ? warehouseWorkshopSelect.value : '';
                 const currentWarehouseId = warehouseSelect ? warehouseSelect.value : '';
                 const options = filterWarehousesByWorkshop(workshopId);
 
@@ -409,9 +410,6 @@ $workshopOptions = array_values($workshopOptions);
                     if (warehouseWorkshopSelect) {
                         warehouseWorkshopSelect.value = selected.IdXuong;
                     }
-                    if (partnerWorkshopSelect) {
-                        partnerWorkshopSelect.value = selected.IdXuong;
-                    }
                 }
                 updatePartnerInternal();
             };
@@ -429,10 +427,6 @@ $workshopOptions = array_values($workshopOptions);
                 }
                 if (partnerExternalType) {
                     partnerExternalType.disabled = scope !== 'external';
-                }
-                if (partnerWorkshopSelect) {
-                    partnerWorkshopSelect.disabled = scope !== 'internal';
-                    partnerWorkshopSelect.required = scope === 'internal';
                 }
                 if (partnerWarehouseSelect) {
                     partnerWarehouseSelect.disabled = scope !== 'internal';
@@ -680,7 +674,7 @@ $workshopOptions = array_values($workshopOptions);
             }
 
             if (typeInput) {
-                typeInput.addEventListener('input', () => {
+                typeInput.addEventListener('change', () => {
                     if (!tableBody) {
                         return;
                     }
@@ -690,10 +684,6 @@ $workshopOptions = array_values($workshopOptions);
 
             if (partnerScopeSelect) {
                 partnerScopeSelect.addEventListener('change', togglePartnerScope);
-            }
-
-            if (partnerWorkshopSelect) {
-                partnerWorkshopSelect.addEventListener('change', updatePartnerInternal);
             }
 
             togglePartnerScope();
@@ -708,7 +698,7 @@ $workshopOptions = array_values($workshopOptions);
 <?php if (!$isEdit): ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const typeInput = document.querySelector('input[name="LoaiPhieu"]');
+            const typeInput = document.querySelector('select[name="LoaiPhieu"]');
             const idInput = document.querySelector('input[name="IdPhieu"]');
 
             if (!typeInput || !idInput) {

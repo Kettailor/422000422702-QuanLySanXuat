@@ -6,7 +6,9 @@ $workshops = $workshops ?? [];
 $managers = $managers ?? [];
 $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
 $workshopEmployees = $workshopEmployees ?? [];
+$workshopManagerMap = $workshopManagerMap ?? [];
 $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
+$workshopManagerJson = htmlspecialchars(json_encode($workshopManagerMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 ?>
 
 <style>
@@ -133,6 +135,7 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const workshopEmployees = JSON.parse('<?= $workshopEmployeesJson ?>');
+        const workshopManagers = JSON.parse('<?= $workshopManagerJson ?>');
         const workshopSelect = document.querySelector('select[name="IdXuong"]');
         const managerSelect = document.querySelector('[data-role="manager-select"]');
         const submitBtn = document.querySelector('[data-role="submit-btn"]');
@@ -145,6 +148,7 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
 
             const workshopId = workshopSelect.value || '';
             const employees = workshopEmployees[workshopId] || [];
+            const defaultManagerId = workshopManagers[workshopId] || '';
 
             managerSelect.innerHTML = '<option value="" disabled>Chọn nhân viên quản kho</option>';
 
@@ -154,6 +158,9 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
                 option.textContent = employee.HoTen || employee.IdNhanVien || '';
                 if (employee.ChucVu) {
                     option.textContent += ' · ' + employee.ChucVu;
+                }
+                if (defaultManagerId && option.value === defaultManagerId) {
+                    option.selected = true;
                 }
                 managerSelect.appendChild(option);
             });
