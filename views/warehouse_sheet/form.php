@@ -8,15 +8,16 @@ $isEdit = $isEdit ?? false;
 $products = $products ?? [];
 $lots = $lots ?? [];
 $workshops = $workshops ?? [];
+$partnerWarehouses = $partnerWarehouses ?? [];
 $orders = $orders ?? [];
 $currentUser = $currentUser ?? null;
 $approvers = $approvers ?? [];
 $approversJson = htmlspecialchars(json_encode($approvers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
+$partnerWarehousesJson = htmlspecialchars(json_encode($partnerWarehouses, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $ordersJson = htmlspecialchars(json_encode($orders, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $details = $details ?? [];
 $productsJson = htmlspecialchars(json_encode($products, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
-$warehousesJson = htmlspecialchars(json_encode($warehouses, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8');
 $currentWarehouseId = $document['IdKho'] ?? '';
 $currentWarehouse = null;
@@ -314,7 +315,7 @@ $types = array_values(array_unique(array_merge($defaultTypes, array_filter($type
             const products = JSON.parse('<?= $productsJson ?>');
             const lots = JSON.parse('<?= $lotsJson ?>');
             const approvers = JSON.parse('<?= $approversJson ?>');
-            const warehouses = JSON.parse('<?= $warehousesJson ?>');
+            const partnerWarehouses = JSON.parse('<?= $partnerWarehousesJson ?>');
             const orders = JSON.parse('<?= $ordersJson ?>');
             const lotMap = {};
             lots.forEach(lot => {
@@ -385,7 +386,7 @@ $types = array_values(array_unique(array_merge($defaultTypes, array_filter($type
             };
 
             const filterWarehousesByWorkshop = (workshopId) => {
-                return warehouses.filter((w) => !workshopId || (w.IdXuong || '') === workshopId);
+                return partnerWarehouses.filter((w) => !workshopId || (w.IdXuong || '') === workshopId);
             };
 
             const updatePartnerInternal = () => {

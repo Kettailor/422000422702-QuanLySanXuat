@@ -81,6 +81,7 @@ class Warehouse_sheetController extends Controller
         $defaultId = $this->sheetModel->generateDocumentId();
         $products = $this->productModel->all(300);
         $warehouses = $this->filterWarehousesByAccess($options['warehouses']);
+        $partnerWarehouses = $options['warehouses'];
         $orders = $this->orderModel->getOrdersWithCustomer(200);
         $presetWarehouseId = $_GET['warehouse'] ?? null;
         $presetDirection = $_GET['direction'] ?? null;
@@ -102,9 +103,8 @@ class Warehouse_sheetController extends Controller
         $lots = $this->lotModel->getSelectableLots(300, $lotFilter);
 
         $creatorId = $this->resolveCreator(null);
-        $approvers = $this->buildApproverMap($warehouses, $options['employees']);
+        $approvers = $this->buildApproverMap($partnerWarehouses, $options['employees']);
         $workshops = $this->workshopModel->getAllWithManagers(300);
-        $warehouseWorkshopMap = $this->buildWarehouseWorkshopMap($warehouses, $workshops);
 
         $this->render('warehouse_sheet/create', [
             'title' => 'Tạo phiếu kho mới',
@@ -115,7 +115,7 @@ class Warehouse_sheetController extends Controller
             'lots' => $lots,
             'approvers' => $approvers,
             'workshops' => $workshops,
-            'warehouseWorkshopMap' => $warehouseWorkshopMap,
+            'partnerWarehouses' => $partnerWarehouses,
             'orders' => $orders,
             'currentUser' => $this->currentUser(),
             'document' => [
@@ -332,9 +332,9 @@ class Warehouse_sheetController extends Controller
 
         $options = $this->sheetModel->getFormOptions();
         $filteredWarehouses = $this->filterWarehousesByAccess($options['warehouses']);
-        $approvers = $this->buildApproverMap($filteredWarehouses, $options['employees']);
+        $partnerWarehouses = $options['warehouses'];
+        $approvers = $this->buildApproverMap($partnerWarehouses, $options['employees']);
         $workshops = $this->workshopModel->getAllWithManagers(300);
-        $warehouseWorkshopMap = $this->buildWarehouseWorkshopMap($filteredWarehouses, $workshops);
         $details = $this->sheetDetailModel->getDetailsWithMeta($id);
         $orders = $this->orderModel->getOrdersWithCustomer(200);
 
@@ -346,7 +346,7 @@ class Warehouse_sheetController extends Controller
             'types' => $options['types'],
             'approvers' => $approvers,
             'workshops' => $workshops,
-            'warehouseWorkshopMap' => $warehouseWorkshopMap,
+            'partnerWarehouses' => $partnerWarehouses,
             'orders' => $orders,
             'currentUser' => $this->currentUser(),
             'details' => $details,
