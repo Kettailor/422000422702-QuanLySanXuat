@@ -32,6 +32,29 @@ class Employee extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function getActiveWarehouseEmployeesByWorkshop(string $workshopId): array
+    {
+        $sql = 'SELECT DISTINCT nv.*
+                FROM nhan_vien nv
+                LEFT JOIN xuong_nhan_vien xnv ON xnv.IdNhanVien = nv.IdNhanVien
+                WHERE nv.TrangThai = :status
+                  AND (nv.idXuong = :workshopId OR xnv.IdXuong = :workshopId)
+                  AND (
+                    nv.IdVaiTro = :roleId
+                    OR xnv.VaiTro = :assignmentRole
+                  )
+                ORDER BY nv.HoTen';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':status', 'Đang làm việc');
+        $stmt->bindValue(':workshopId', $workshopId);
+        $stmt->bindValue(':roleId', 'VT_NHANVIEN_KHO');
+        $stmt->bindValue(':assignmentRole', 'nhan_vien_kho');
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
     public function getActiveEmployeesByWorkshops(array $workshopIds): array
     {
         $workshopIds = array_values(array_filter($workshopIds));
@@ -58,6 +81,42 @@ class Employee extends BaseModel
         foreach ($workshopIds as $workshopId) {
             $stmt->bindValue($paramIndex++, $workshopId);
         }
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    public function getActiveWarehouseEmployeesByWorkshops(array $workshopIds): array
+    {
+        $workshopIds = array_values(array_filter($workshopIds));
+        if (empty($workshopIds)) {
+            return [];
+        }
+
+        $placeholderString = implode(', ', array_fill(0, count($workshopIds), '?'));
+        $sql = 'SELECT DISTINCT nv.*
+                FROM nhan_vien nv
+                LEFT JOIN xuong_nhan_vien xnv ON xnv.IdNhanVien = nv.IdNhanVien
+                WHERE nv.TrangThai = ?
+                  AND (nv.idXuong IN (' . $placeholderString . ')
+                       OR xnv.IdXuong IN (' . $placeholderString . '))
+                  AND (
+                    nv.IdVaiTro = ?
+                    OR xnv.VaiTro = ?
+                  )
+                ORDER BY nv.HoTen';
+
+        $stmt = $this->db->prepare($sql);
+        $paramIndex = 1;
+        $stmt->bindValue($paramIndex++, 'Đang làm việc');
+        foreach ($workshopIds as $workshopId) {
+            $stmt->bindValue($paramIndex++, $workshopId);
+        }
+        foreach ($workshopIds as $workshopId) {
+            $stmt->bindValue($paramIndex++, $workshopId);
+        }
+        $stmt->bindValue($paramIndex++, 'VT_NHANVIEN_KHO');
+        $stmt->bindValue($paramIndex++, 'nhan_vien_kho');
         $stmt->execute();
 
         return $stmt->fetchAll();

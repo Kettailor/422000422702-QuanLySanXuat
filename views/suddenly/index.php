@@ -414,23 +414,6 @@ foreach ($listBienBan as $r) {
   </div>
 </div>
 
-<!-- Modal xác nhận xóa -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title" id="confirmDeleteLabel">Xác nhận xóa biên bản</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
-      </div>
-      <div class="modal-body" id="deleteMessage"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-        <a id="confirmDeleteBtn" href="#" class="btn btn-danger">Xóa</a>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
   // Lọc theo loại biên bản
   document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -461,19 +444,6 @@ foreach ($listBienBan as $r) {
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('confirmDeleteModal');
-    const message = document.getElementById('deleteMessage');
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-
-    modal.addEventListener('show.bs.modal', function(event) {
-      const button = event.relatedTarget;
-      const id = button.getAttribute('data-id');
-      const xuong = button.getAttribute('data-xuong');
-      message.innerHTML = `Bạn có chắc muốn xóa biên bản <strong>${id}</strong> của xưởng <strong>${xuong}</strong> không?`;
-      confirmBtn.href = `?controller=suddenly&action=delete&id=${encodeURIComponent(id)}`;
-    });
-  });
 </script>
 
 <?php if (!empty($_GET['msg'])): ?>

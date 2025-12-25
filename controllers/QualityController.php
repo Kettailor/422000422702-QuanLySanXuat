@@ -7,7 +7,7 @@ class QualityController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC']);
+        $this->authorize(['VT_KIEM_SOAT_CL', 'VT_QUANLY_XUONG', 'VT_BAN_GIAM_DOC', 'VT_ADMIN']);
         $this->qualityModel = new QualityReport();
         $this->workshopModel = new Workshop();
         date_default_timezone_set('Asia/Ho_Chi_Minh');
@@ -277,41 +277,32 @@ class QualityController extends Controller
     public function delete(): void
     {
         $idBienBan = $_GET['id'] ?? null;
-        $idLo = $_GET['IdLo'] ?? null;
 
         if (!$idBienBan) {
-            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Thiếu mã biên bản để xóa.') . '&type=warning');
+            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Thiếu mã biên bản để hủy.') . '&type=warning');
         }
 
-        $deleted = $this->qualityModel->deleteBienBanCascade($idBienBan);
-
-        if ($deleted) {
-            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Xóa biên bản thành công.') . '&type=success');
-        } else {
-            $this->redirect('?controller=quality&action=index&msg=' . urlencode('Không thể xóa biên bản. Vui lòng kiểm tra lại dữ liệu.') . '&type=danger');
-        }
+        $this->redirect('?controller=quality&action=index&msg=' . urlencode('Chức năng xóa biên bản đã bị vô hiệu. Vui lòng cập nhật trạng thái hoặc ghi chú.') . '&type=warning');
     }
 
     /** Quan ly tieu chi danh gia */
     public function criterias(): void
     {
-        $idXuong = $_GET['id']   ?? null;
-        $type    = $_GET['type'] ?? null;
-
-        // Load cấu hình tiêu chí
-        $criteriaConfig = require __DIR__ . '/../core/QualityCriteria.php';
-
-        /* =====================================================
-       1. TRANG TỔNG – CHƯA CHỌN GÌ
-       ===================================================== */
-        if (!$idXuong && !$type) {
+        $workshopId = $_GET['id'] ?? null;
+        if (!$workshopId) {
             $this->render('quality/criterias', [
                 'title'     => 'Quản lý tiêu chí đánh giá',
                 'workshops' => $this->workshopModel->all(),
                 'type'      => null,
             ]);
-            return;
-        }
+        } else {
+            $criteriaPath = __DIR__ . '/../storage/quality_criteria.json';
+            $idXuong = $workshopId;
+            $criteriaData = [];
+            if (file_exists($criteriaPath)) {
+                $jsonContent = file_get_contents($criteriaPath);
+                $criteriaData = json_decode($jsonContent, true) ?? [];
+            }
 
         /* =====================================================
        2. TIÊU CHÍ DÂY CHUYỀN
@@ -381,29 +372,11 @@ class QualityController extends Controller
         $criteriaId = $_GET['criteriaId'] ?? null;
 
         if (!$idXuong || !$criteriaId) {
-            $this->setFlash('danger', 'Thiếu thông tin để xóa tiêu chí.');
+            $this->setFlash('danger', 'Thiếu thông tin để hủy tiêu chí.');
             $this->redirect('?controller=quality&action=criterias');
         }
 
-        $criteriaData = [];
-        if (file_exists($criteriaPath)) {
-            $jsonContent = file_get_contents($criteriaPath);
-            $criteriaData = json_decode($jsonContent, true) ?? [];
-        }
-
-        if (isset($criteriaData[$idXuong])) {
-            $criteriaList = &$criteriaData[$idXuong];
-            foreach ($criteriaList as $index => $criteria) {
-                if (($criteria['id'] ?? '') === $criteriaId) {
-                    array_splice($criteriaList, $index, 1);
-                    break;
-                }
-            }
-            file_put_contents($criteriaPath, json_encode($criteriaData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-            $this->setFlash('success', 'Xóa tiêu chí thành công.');
-        } else {
-            $this->setFlash('warning', 'Không tìm thấy tiêu chí để xóa.');
-        }
+        $this->setFlash('warning', 'Chức năng xóa tiêu chí đã bị tắt. Vui lòng cập nhật tiêu chí nếu cần.');
 
         $this->redirect('?controller=quality&action=criterias&id=' . urlencode($idXuong));
     }

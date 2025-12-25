@@ -49,13 +49,15 @@ $period = $period ?? date('Y-m');
                             <td><?= htmlspecialchars($employeeId) ?></td>
                             <td><?= htmlspecialchars($row['employee_name']) ?></td>
                             <td class="text-center">
-                                <input type="number" min="0" step="0.01" class="form-control form-control-sm calc-input"
-                                       name="LuongCoBan[<?= htmlspecialchars($employeeId) ?>]"
+                                <input type="number" min="0" step="0.01" class="form-control form-control-sm" readonly
+                                       value="<?= htmlspecialchars($baseSalary) ?>">
+                                <input type="hidden" name="LuongCoBan[<?= htmlspecialchars($employeeId) ?>]"
                                        value="<?= htmlspecialchars($baseSalary) ?>">
                             </td>
                             <td class="text-center">
-                                <input type="number" min="0" step="0.01" class="form-control form-control-sm calc-input"
-                                       name="DonGiaNgayCong[<?= htmlspecialchars($employeeId) ?>]"
+                                <input type="number" min="0" step="0.01" class="form-control form-control-sm" readonly
+                                       value="<?= htmlspecialchars($dailyRate) ?>">
+                                <input type="hidden" name="DonGiaNgayCong[<?= htmlspecialchars($employeeId) ?>]"
                                        value="<?= htmlspecialchars($dailyRate) ?>">
                             </td>
                             <td class="text-center">

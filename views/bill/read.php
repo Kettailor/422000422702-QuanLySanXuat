@@ -3,7 +3,14 @@
         <h3 class="fw-bold mb-1">Chi tiết hóa đơn</h3>
         <p class="text-muted mb-0">Thông tin hóa đơn và liên kết với đơn hàng.</p>
     </div>
-    <a href="?controller=bill&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    <div class="d-flex gap-2">
+        <?php if (($bill['TrangThai'] ?? '') === 'Chưa thanh toán'): ?>
+            <a href="?controller=bill&action=delete&id=<?= urlencode($bill['IdHoaDon']) ?>" class="btn btn-outline-danger" onclick="return confirm('Xác nhận hủy hóa đơn này?');">
+                <i class="bi bi-x-circle"></i> Hủy hóa đơn
+            </a>
+        <?php endif; ?>
+        <a href="?controller=bill&action=index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    </div>
 </div>
 
 <?php if (!$bill): ?>
@@ -21,6 +28,12 @@
             <dd class="col-sm-9"><span class="badge bg-info bg-opacity-25 text-primary"><?= htmlspecialchars($bill['TrangThai']) ?></span></dd>
             <dt class="col-sm-3">Đơn hàng</dt>
             <dd class="col-sm-9"><?= htmlspecialchars($bill['IdDonHang']) ?></dd>
+            <dt class="col-sm-3">Thuế</dt>
+            <dd class="col-sm-9"><?= htmlspecialchars($bill['Thue'] ?? 0) ?>%</dd>
+            <dt class="col-sm-3">Mã bưu điện</dt>
+            <dd class="col-sm-9"><?= htmlspecialchars($bill['MaBuuDien'] ?? '-') ?></dd>
+            <dt class="col-sm-3">Ghi chú</dt>
+            <dd class="col-sm-9"><?= nl2br(htmlspecialchars($bill['GhiChu'] ?? '-')) ?></dd>
         </dl>
     </div>
 <?php endif; ?>

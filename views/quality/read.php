@@ -190,12 +190,6 @@
           ← Quay lại
         </a>
 
-        <button type="button"
-          class="btn btn-danger"
-          id="btnHideReport"
-          data-idlo="<?= htmlspecialchars($report['IdLo']) ?>">
-          🗑 Xóa biên bản
-        </button>
       </div>
 
     <?php endif; ?>
@@ -252,18 +246,4 @@
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }
 
-  document.getElementById('btnHideReport')?.addEventListener('click', () => {
-    const idLo = document.getElementById('btnHideReport').dataset.idlo;
-
-    if (!confirm(`Bạn có chắc muốn xóa biên bản này không?`)) return;
-
-    const hidden = getHiddenLos();
-    if (!hidden.includes(idLo)) hidden.push(idLo);
-    setHiddenLos(hidden);
-
-    // quay về index (có toast msg nếu bạn muốn)
-    window.location.href = '?controller=quality&action=index&msg=' +
-      encodeURIComponent('Đã ẩn biên bản khỏi danh sách') +
-      '&type=success';
-  });
 </script>

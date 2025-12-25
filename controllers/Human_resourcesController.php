@@ -11,7 +11,7 @@ class Human_resourcesController extends Controller
 
     public function __construct()
     {
-        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG']);
+        $this->authorize(['VT_BAN_GIAM_DOC', 'VT_KHO_TRUONG', 'VT_ADMIN']);
         $this->employeeModel = new Employee();
         $this->roleModel = new Role();
         $this->salaryModel = new Salary();
@@ -178,14 +178,7 @@ class Human_resourcesController extends Controller
                 $this->setFlash('danger', 'Bạn chỉ có thể xóa nhân viên kho.');
                 $this->redirect('?controller=human_resources&action=index');
             }
-            try {
-                $this->employeeModel->delete($id);
-                $this->setFlash('success', 'Đã xóa nhân sự.');
-            } catch (Throwable $e) {
-                Logger::error('Lỗi khi xóa nhân sự ' . $id . ': ' . $e->getMessage());
-                /* $this->setFlash('danger', 'Không thể xóa nhân sự: ' . $e->getMessage()); */
-                $this->setFlash('danger', 'Không thể xóa nhân sự, vui lòng kiểm tra log để biết thêm chi tiết.');
-            }
+            $this->setFlash('warning', 'Chức năng xóa nhân sự đã được tắt. Vui lòng cập nhật trạng thái nhân viên nếu cần.');
         }
 
         $this->redirect('?controller=human_resources&action=index');

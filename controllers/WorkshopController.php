@@ -357,13 +357,7 @@ class WorkshopController extends Controller
         }
 
         if ($id) {
-            try {
-                $this->workshopModel->delete($id);
-                $this->setFlash('success', 'Đã xóa xưởng sản xuất.');
-            } catch (Throwable $exception) {
-                Logger::error('Lỗi khi xóa xưởng ' . $id . ': ' . $exception->getMessage());
-                $this->setFlash('danger', 'Không thể xóa xưởng: ' . $exception->getMessage());
-            }
+            $this->setFlash('warning', 'Chức năng xóa xưởng đã bị vô hiệu. Vui lòng sử dụng tạm ngưng hoặc cập nhật trạng thái.');
         }
 
         $this->redirect('?controller=workshop&action=index');
@@ -803,8 +797,10 @@ class WorkshopController extends Controller
 
     private function groupEmployeesForWorkshop(array $employees, string $workshopType, array $includeIds): array
     {
-        $assignedIds = $this->assignmentModel->getAssignedEmployeeIds();
-        $assignedLookup = array_fill_keys($assignedIds, true);
+        $assignedWarehouseIds = $this->assignmentModel->getAssignedEmployeeIds('nhan_vien_kho');
+        $assignedWarehouseLookup = array_fill_keys($assignedWarehouseIds, true);
+        $assignedProductionIds = $this->assignmentModel->getAssignedEmployeeIds();
+        $assignedProductionLookup = array_fill_keys($assignedProductionIds, true);
         $includeLookup = array_fill_keys($includeIds, true);
         $rolePools = $this->getAssignmentRolePools();
 
@@ -823,11 +819,14 @@ class WorkshopController extends Controller
             $isProduction = $roleId && in_array($roleId, $productionRoles, true);
 
             if ($isWarehouse) {
+                if ($employeeId && isset($assignedWarehouseLookup[$employeeId]) && !isset($includeLookup[$employeeId])) {
+                    continue;
+                }
                 $groups['warehouse'][] = $employee;
             }
 
             if ($isProduction) {
-                if ($employeeId && isset($assignedLookup[$employeeId]) && !isset($includeLookup[$employeeId])) {
+                if ($employeeId && isset($assignedProductionLookup[$employeeId]) && !isset($includeLookup[$employeeId])) {
                     continue;
                 }
                 $groups['production'][] = $employee;
@@ -1134,7 +1133,7 @@ class WorkshopController extends Controller
 
         $conflicts = [];
         foreach ($warehouseIds as $employeeId) {
-            $assignedWorkshops = $this->assignmentModel->getWorkshopsByEmployee($employeeId);
+            $assignedWorkshops = $this->assignmentModel->getWorkshopsByEmployee($employeeId, 'nhan_vien_kho');
             $assignedWorkshops = array_values(array_filter($assignedWorkshops, static fn($id) => $id !== $workshopId));
             if (empty($assignedWorkshops)) {
                 continue;

@@ -25,7 +25,7 @@ $period = $period ?? date('Y-m');
                     <th class="text-end">Tổng lương theo ngày công</th>
                     <th class="text-end">Phụ cấp</th>
                     <th class="text-end">Thưởng</th>
-                    <th class="text-end">Khấu trừ (BHXH)</th>
+                    <th class="text-end">Bảo hiểm</th>
                     <th class="text-end">Thuế TNCN</th>
                     <th class="text-end">Tổng lương thực nhận</th>
                 </tr>

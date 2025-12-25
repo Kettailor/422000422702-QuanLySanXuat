@@ -12,6 +12,27 @@ class Warehouse extends BaseModel
 
     protected string $table = 'kho';
     protected string $primaryKey = 'IdKho';
+    private static bool $warehouseStaffTableChecked = false;
+
+    private function ensureWarehouseStaffTable(): void
+    {
+        if (self::$warehouseStaffTableChecked) {
+            return;
+        }
+
+        try {
+            $this->db->exec('CREATE TABLE IF NOT EXISTS kho_nhan_vien (
+                IdKho varchar(50) NOT NULL,
+                IdNhanVien varchar(50) NOT NULL,
+                VaiTro varchar(50) DEFAULT NULL,
+                PRIMARY KEY (IdKho, IdNhanVien)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci');
+        } catch (Throwable $exception) {
+            // Ignore if schema adjustments are not permitted.
+        }
+
+        self::$warehouseStaffTableChecked = true;
+    }
 
     /**
      * Lấy danh sách kho kèm theo thông tin quản kho và số liệu tổng hợp.
@@ -320,12 +341,66 @@ class Warehouse extends BaseModel
 
     public function getWarehouseIdsBySupervisor(string $employeeId): array
     {
-        $sql = 'SELECT IdKho FROM KHO WHERE NHAN_VIEN_KHO_IdNhanVien = :employee';
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':employee', $employeeId);
-        $stmt->execute();
+        $sql = 'SELECT DISTINCT KHO.IdKho
+                FROM KHO
+                LEFT JOIN kho_nhan_vien knv ON knv.IdKho = KHO.IdKho
+                WHERE KHO.NHAN_VIEN_KHO_IdNhanVien = :employee
+                   OR knv.IdNhanVien = :employee';
 
-        return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':employee', $employeeId);
+            $stmt->execute();
+
+            return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
+        } catch (Throwable $exception) {
+            $stmt = $this->db->prepare('SELECT IdKho FROM KHO WHERE NHAN_VIEN_KHO_IdNhanVien = :employee');
+            $stmt->bindValue(':employee', $employeeId);
+            $stmt->execute();
+
+            return array_values(array_unique($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
+        }
+    }
+
+    public function getWarehouseManagerIds(string $warehouseId): array
+    {
+        $this->ensureWarehouseStaffTable();
+
+        $stmt = $this->db->prepare('SELECT IdNhanVien FROM kho_nhan_vien WHERE IdKho = :warehouseId');
+        $stmt->bindValue(':warehouseId', $warehouseId);
+        $stmt->execute();
+        $managerIds = array_values(array_filter($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []));
+
+        $mainManager = $this->find($warehouseId);
+        $primaryId = $mainManager['NHAN_VIEN_KHO_IdNhanVien'] ?? null;
+        if ($primaryId && !in_array($primaryId, $managerIds, true)) {
+            array_unshift($managerIds, $primaryId);
+        }
+
+        return array_values(array_unique($managerIds));
+    }
+
+    public function syncWarehouseManagers(string $warehouseId, array $employeeIds): void
+    {
+        $this->ensureWarehouseStaffTable();
+        $employeeIds = array_values(array_unique(array_filter(array_map('trim', $employeeIds))));
+
+        $delete = $this->db->prepare('DELETE FROM kho_nhan_vien WHERE IdKho = :warehouseId');
+        $delete->bindValue(':warehouseId', $warehouseId);
+        $delete->execute();
+
+        if (empty($employeeIds)) {
+            return;
+        }
+
+        $insert = $this->db->prepare('INSERT INTO kho_nhan_vien (IdKho, IdNhanVien, VaiTro) VALUES (:warehouseId, :employeeId, :role)');
+        foreach ($employeeIds as $employeeId) {
+            $insert->execute([
+                ':warehouseId' => $warehouseId,
+                ':employeeId' => $employeeId,
+                ':role' => 'nhan_vien_kho',
+            ]);
+        }
     }
 
     public function getWarehouseIdsByWorkshops(array $workshopIds): array
@@ -434,6 +509,10 @@ class Warehouse extends BaseModel
 
             if (!$this->createWarehouse($payload)) {
                 throw new RuntimeException('Không thể tạo kho mặc định cho xưởng ' . $workshopId);
+            }
+
+            if (!empty($managerId)) {
+                $this->syncWarehouseManagers($payload['IdKho'], [$managerId]);
             }
 
             $created[] = $payload['IdKho'];

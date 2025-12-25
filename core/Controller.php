@@ -44,11 +44,54 @@ abstract class Controller
                 'admin',
                 'adminImpersonation',
                 'account',
+                'workshop',
+                'human_resources',
+                'warehouse',
+                'warehouse_sheet',
+                'plan',
+                'factory_plan',
+                'workshop_plan',
+                'workshop_plan_personal',
+                'timekeeping',
+                'self_timekeeping',
+                'self_salary',
+                'order',
+                'bill',
+                'salary',
+                'report',
+                'quality',
+                'suddenly',
             ];
             $currentController = $_GET['controller'] ?? 'dashboard';
             if (!in_array($currentController, $allowedControllers, true)) {
                 $this->setFlash('danger', 'Luồng chính chỉ cho phép chức năng cá nhân và quản trị.');
                 $this->redirect('?controller=dashboard&action=index');
+            }
+        }
+
+        if (!$isAdmin && !$isImpersonating) {
+            $employeeId = $user['IdNhanVien'] ?? null;
+            if ($employeeId) {
+                $employeeModel = new Employee();
+                $employee = $employeeModel->find($employeeId);
+                $status = $employee['TrangThai'] ?? null;
+                if (in_array($status, ['Tạm nghỉ', 'Tạm ngưng'], true)) {
+                    $personalControllers = [
+                        'dashboard',
+                        'auth',
+                        'setting',
+                        'notifications',
+                        'self_timekeeping',
+                        'support',
+                        'workshop_plan_personal',
+                        'self_salary',
+                    ];
+                    $currentController = $_GET['controller'] ?? 'dashboard';
+                    if (!in_array($currentController, $personalControllers, true)) {
+                        $this->setFlash('danger', 'Tài khoản tạm nghỉ chỉ được sử dụng các chức năng cá nhân.');
+                        $this->redirect('?controller=dashboard&action=index');
+                    }
+                }
             }
         }
 

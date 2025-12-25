@@ -90,6 +90,7 @@ class WarehouseController extends Controller
             'workshops' => $workshops,
             'employees' => $this->getManagersByWorkshopRequest($workshops),
             'workshopEmployees' => $this->buildWorkshopEmployeeMap($workshops),
+            'selectedManagers' => [],
         ]);
     }
 
@@ -113,18 +114,20 @@ class WarehouseController extends Controller
             'TrangThai' => $_POST['TrangThai'] ?? 'Đang sử dụng',
             'TongSL' => $_POST['TongSL'] ?? 0,
             'IdXuong' => $_POST['IdXuong'] ?? null,
-            'NHAN_VIEN_KHO_IdNhanVien' => $_POST['NHAN_VIEN_KHO_IdNhanVien'] ?? null,
         ];
+        $managerIds = $this->normalizeWarehouseManagers($_POST);
+        $data['NHAN_VIEN_KHO_IdNhanVien'] = $managerIds[0] ?? null;
 
         try {
             if (!$this->canAccessWorkshop($data['IdXuong'])) {
                 $this->setFlash('danger', 'Bạn chỉ có thể tạo kho trong xưởng được phân công.');
-            } elseif (!$this->employeeModel->isEmployeeInWorkshop($data['NHAN_VIEN_KHO_IdNhanVien'], $data['IdXuong'])) {
+            } elseif (!$this->areManagersInWorkshop($managerIds, $data['IdXuong'])) {
                 $this->setFlash('danger', 'Nhân viên quản kho phải thuộc xưởng đã chọn.');
-            } elseif (empty($this->employeeModel->getActiveEmployeesByWorkshop($data['IdXuong'] ?? ''))) {
+            } elseif (empty($this->employeeModel->getActiveWarehouseEmployeesByWorkshop($data['IdXuong'] ?? ''))) {
                 $this->setFlash('danger', 'Xưởng chưa có nhân sự để phân công quản kho. Vui lòng cập nhật nhân sự trước.');
             } else {
                 $this->warehouseModel->createWarehouse($data);
+                $this->warehouseModel->syncWarehouseManagers($data['IdKho'], $managerIds);
                 $this->setFlash('success', 'Đã thêm kho mới.');
             }
         } catch (Throwable $e) {
@@ -146,6 +149,7 @@ class WarehouseController extends Controller
         $warehouse = $id ? $this->warehouseModel->find($id) : null;
         $options = $this->warehouseModel->getFormOptions();
         $workshops = $this->getAccessibleWorkshops();
+        $selectedManagers = $warehouse ? $this->warehouseModel->getWarehouseManagerIds($warehouse['IdKho']) : [];
         $this->render('warehouse/edit', [
             'title' => 'Cập nhật kho',
             'warehouse' => $warehouse,
@@ -155,6 +159,7 @@ class WarehouseController extends Controller
             'workshops' => $workshops,
             'employees' => $this->getManagersByWorkshopRequest($workshops, $warehouse['IdXuong'] ?? null),
             'workshopEmployees' => $this->buildWorkshopEmployeeMap($workshops),
+            'selectedManagers' => $selectedManagers,
         ]);
     }
 
@@ -179,16 +184,18 @@ class WarehouseController extends Controller
             'TrangThai' => $_POST['TrangThai'] ?? 'Đang sử dụng',
             'TongSL' => $_POST['TongSL'] ?? 0,
             'IdXuong' => $_POST['IdXuong'] ?? null,
-            'NHAN_VIEN_KHO_IdNhanVien' => $_POST['NHAN_VIEN_KHO_IdNhanVien'] ?? null,
         ];
+        $managerIds = $this->normalizeWarehouseManagers($_POST);
+        $data['NHAN_VIEN_KHO_IdNhanVien'] = $managerIds[0] ?? null;
 
         try {
             if (!$this->canAccessWorkshop($data['IdXuong'])) {
                 $this->setFlash('danger', 'Bạn chỉ có thể cập nhật kho trong xưởng được phân công.');
-            } elseif (!$this->employeeModel->isEmployeeInWorkshop($data['NHAN_VIEN_KHO_IdNhanVien'], $data['IdXuong'])) {
+            } elseif (!$this->areManagersInWorkshop($managerIds, $data['IdXuong'])) {
                 $this->setFlash('danger', 'Nhân viên quản kho phải thuộc xưởng đã chọn.');
             } else {
                 $this->warehouseModel->updateWarehouse($id, $data);
+                $this->warehouseModel->syncWarehouseManagers($id, $managerIds);
                 $this->setFlash('success', 'Cập nhật kho thành công.');
             }
         } catch (Throwable $e) {
@@ -208,24 +215,17 @@ class WarehouseController extends Controller
         $id = $_POST['IdKho'] ?? null;
 
         if (!$id) {
-            $this->setFlash('danger', 'Không xác định được kho cần xóa.');
+            $this->setFlash('danger', 'Không xác định được kho cần hủy.');
             $this->redirect('?controller=warehouse&action=index');
         }
 
         if (!$this->isWarehouseAccessible($id)) {
-            $this->setFlash('danger', 'Bạn không có quyền xóa kho này.');
+            $this->setFlash('danger', 'Bạn không có quyền hủy kho này.');
             $this->redirect('?controller=warehouse&action=index');
         }
 
-        try {
-            $this->warehouseModel->delete($id);
-            $this->setFlash('success', 'Đã xóa kho.');
-            $this->redirect('?controller=warehouse&action=index');
-        } catch (Throwable $e) {
-            Logger::error('Lỗi khi xóa kho ' . $id . ': ' . $e->getMessage());
-            $this->setFlash('danger', 'Không thể xóa kho: ' . $e->getMessage());
-        }
-
+        $this->setFlash('warning', 'Chức năng xóa kho đã được thay bằng cập nhật trạng thái. Vui lòng chuyển kho sang trạng thái "Hủy" hoặc "Tạm dừng".');
+        $this->redirect('?controller=warehouse&action=index');
     }
 
     private function buildWarehouseEntryForms(array $warehouseGroups): array
@@ -424,7 +424,7 @@ class WarehouseController extends Controller
 
     private function validateWarehouseInput(array $data): bool
     {
-        $requiredFields = ['TenKho', 'IdXuong', 'NHAN_VIEN_KHO_IdNhanVien'];
+        $requiredFields = ['TenKho', 'IdXuong'];
 
         foreach ($requiredFields as $field) {
             if (!array_key_exists($field, $data)) {
@@ -439,6 +439,11 @@ class WarehouseController extends Controller
             if ($value === '' || $value === null) {
                 return false;
             }
+        }
+
+        $managerIds = $this->normalizeWarehouseManagers($data);
+        if (empty($managerIds)) {
+            return false;
         }
 
         return true;
@@ -537,8 +542,7 @@ class WarehouseController extends Controller
         }
 
         if ($role === 'VT_NHANVIEN_KHO') {
-            $employeeId = $user['IdNhanVien'] ?? null;
-            $this->visibleWarehouseIds = $employeeId ? $this->warehouseModel->getWarehouseIdsBySupervisor($employeeId) : [];
+            $this->visibleWarehouseIds = $this->resolveWarehouseIdsByWorkshop($user);
             return $this->visibleWarehouseIds;
         }
 
@@ -662,12 +666,12 @@ class WarehouseController extends Controller
         $selectedWorkshop = $_POST['IdXuong'] ?? ($_GET['IdXuong'] ?? $currentWorkshopId);
 
         if ($selectedWorkshop) {
-            return $this->employeeModel->getActiveEmployeesByWorkshop($selectedWorkshop);
+            return $this->employeeModel->getActiveWarehouseEmployeesByWorkshop($selectedWorkshop);
         }
 
         $workshopIds = array_column($workshops, 'IdXuong');
 
-        return $this->employeeModel->getActiveEmployeesByWorkshops($workshopIds);
+        return $this->employeeModel->getActiveWarehouseEmployeesByWorkshops($workshopIds);
     }
 
     private function buildWorkshopEmployeeMap(array $workshops): array
@@ -679,10 +683,39 @@ class WarehouseController extends Controller
                 continue;
             }
 
-            $map[$workshopId] = $this->employeeModel->getActiveEmployeesByWorkshop($workshopId);
+            $map[$workshopId] = $this->employeeModel->getActiveWarehouseEmployeesByWorkshop($workshopId);
         }
 
         return $map;
+    }
+
+    private function normalizeWarehouseManagers(array $input): array
+    {
+        $managerIds = $input['warehouse_managers'] ?? null;
+        if (!is_array($managerIds)) {
+            $managerIds = [];
+            $single = $input['NHAN_VIEN_KHO_IdNhanVien'] ?? null;
+            if ($single) {
+                $managerIds[] = $single;
+            }
+        }
+
+        return array_values(array_unique(array_filter(array_map('trim', $managerIds))));
+    }
+
+    private function areManagersInWorkshop(array $managerIds, ?string $workshopId): bool
+    {
+        if (!$workshopId) {
+            return false;
+        }
+
+        foreach ($managerIds as $managerId) {
+            if (!$this->employeeModel->isEmployeeInWorkshop($managerId, $workshopId)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function getOutboundDocumentTypes(): array

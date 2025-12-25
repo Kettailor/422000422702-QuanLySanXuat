@@ -95,10 +95,7 @@ if (empty($type)):
                         <td><?= htmlspecialchars($workshop['IdXuong']) ?></td>
                         <td><?= htmlspecialchars($workshop['TenXuong']) ?></td>
                         <td>
-                            <a href="?controller=quality&action=criterias&id=<?= urlencode($workshop['IdXuong']) ?>"
-                                class="btn btn-sm btn-success">
-                                Xem Tiêu Chí
-                            </a>
+                            <span class="badge bg-light text-dark">Đang áp dụng</span>
                         </td>
                     </tr>
                 <?php endforeach; ?>

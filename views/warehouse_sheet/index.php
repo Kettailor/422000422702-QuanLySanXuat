@@ -182,12 +182,6 @@ $filterLabel = $filterLabel ?? 'Tất cả phiếu kho';
                                 <a href="?controller=warehouse_sheet&action=export_pdf&id=<?= urlencode($document['IdPhieu']) ?>" class="btn btn-sm btn-outline-success" title="Xuất PDF">
                                     <i class="bi bi-filetype-pdf"></i>
                                 </a>
-                                <form method="post" action="?controller=warehouse_sheet&action=delete" onsubmit="return confirm('Bạn chắc chắn muốn xóa phiếu này?');">
-                                    <input type="hidden" name="IdPhieu" value="<?= htmlspecialchars($document['IdPhieu']) ?>">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
                             </div>
                         </td>
                     </tr>

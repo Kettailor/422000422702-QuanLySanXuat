@@ -6,6 +6,7 @@ $types = $types ?? [];
 $employees = $employees ?? [];
 $workshopEmployees = $workshopEmployees ?? [];
 $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
+$selectedManagers = $selectedManagers ?? [];
 
 $currentManagerId = $warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? null;
 $currentManager = null;
@@ -188,10 +189,10 @@ foreach ($employees as $employee) {
                         </div>
                         <div class="col">
                             <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
-                            <select name="NHAN_VIEN_KHO_IdNhanVien" class="form-select" required data-role="manager-select">
+                            <select name="warehouse_managers[]" class="form-select" multiple required data-role="manager-select">
                                 <option value="" disabled>Chọn nhân viên quản kho</option>
                             </select>
-                            <div class="form-text text-muted">Danh sách lọc theo xưởng phụ trách.</div>
+                            <div class="form-text text-muted">Có thể chọn nhiều người phụ trách. Danh sách lọc theo xưởng phụ trách.</div>
                             <div class="form-text text-danger d-none" data-role="no-employee-alert">Xưởng chưa có nhân sự quản kho. Vui lòng thêm nhân viên trước khi cập nhật kho.</div>
                         </div>
                     </div>
@@ -235,7 +236,20 @@ foreach ($employees as $employee) {
                     <div class="mb-3">
                         <label class="form-label">Nhân viên hiện tại</label>
                         <div class="form-control-plaintext">
-                            <?php if ($currentManager): ?>
+                            <?php if (!empty($selectedManagers)): ?>
+                                <?php foreach ($selectedManagers as $index => $managerId): ?>
+                                    <?php
+                                    $managerInfo = null;
+                                    foreach ($employees as $employee) {
+                                        if (($employee['IdNhanVien'] ?? null) === $managerId) {
+                                            $managerInfo = $employee;
+                                            break;
+                                        }
+                                    }
+                                    ?>
+                                    <?= htmlspecialchars($managerInfo['HoTen'] ?? $managerId) ?><?= !empty($managerInfo['ChucVu']) ? ' · ' . htmlspecialchars($managerInfo['ChucVu']) : '' ?><?= $index < count($selectedManagers) - 1 ? ', ' : '' ?>
+                                <?php endforeach; ?>
+                            <?php elseif ($currentManager): ?>
                                 <?= htmlspecialchars($currentManager['HoTen']) ?><?= !empty($currentManager['ChucVu']) ? ' · ' . htmlspecialchars($currentManager['ChucVu']) : '' ?>
                             <?php elseif (!empty($warehouse['NHAN_VIEN_KHO_IdNhanVien'])): ?>
                                 <?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien']) ?>
@@ -279,7 +293,7 @@ foreach ($employees as $employee) {
         const workshopSelect = document.querySelector('select[name="IdXuong"]');
         const managerSelect = document.querySelector('[data-role="manager-select"]');
         const alertEl = document.querySelector('[data-role="no-employee-alert"]');
-        const currentManagerId = '<?= htmlspecialchars($warehouse['NHAN_VIEN_KHO_IdNhanVien'] ?? '', ENT_QUOTES, 'UTF-8') ?>';
+        const selectedManagers = <?= json_encode($selectedManagers, JSON_UNESCAPED_UNICODE) ?>;
 
         const renderManagers = () => {
             if (!workshopSelect || !managerSelect) {
@@ -297,7 +311,7 @@ foreach ($employees as $employee) {
                 if (employee.ChucVu) {
                     option.textContent += ' · ' + employee.ChucVu;
                 }
-                if (option.value === currentManagerId) {
+                if (selectedManagers.includes(option.value)) {
                     option.selected = true;
                 }
                 managerSelect.appendChild(option);
