@@ -13,6 +13,7 @@ class Warehouse_sheetController extends Controller
     private Workshop $workshopModel;
     private Employee $employeeModel;
     private WorkshopAssignment $assignmentModel;
+    private Order $orderModel;
     private array $warehouseCache = [];
     private ?array $accessibleWarehouseIds = null;
 
@@ -46,6 +47,7 @@ class Warehouse_sheetController extends Controller
         $this->workshopModel = new Workshop();
         $this->employeeModel = new Employee();
         $this->assignmentModel = new WorkshopAssignment();
+        $this->orderModel = new Order();
     }
 
     public function index(): void
@@ -79,6 +81,7 @@ class Warehouse_sheetController extends Controller
         $defaultId = $this->sheetModel->generateDocumentId();
         $products = $this->productModel->all(300);
         $warehouses = $this->filterWarehousesByAccess($options['warehouses']);
+        $orders = $this->orderModel->getOrdersWithCustomer(200);
         $presetWarehouseId = $_GET['warehouse'] ?? null;
         $presetDirection = $_GET['direction'] ?? null;
         $presetCategory = $_GET['category'] ?? null;
@@ -113,6 +116,7 @@ class Warehouse_sheetController extends Controller
             'approvers' => $approvers,
             'workshops' => $workshops,
             'warehouseWorkshopMap' => $warehouseWorkshopMap,
+            'orders' => $orders,
             'currentUser' => $this->currentUser(),
             'document' => [
                 'IdPhieu' => $defaultId,
@@ -159,22 +163,49 @@ class Warehouse_sheetController extends Controller
 
         $warehouse = $this->findWarehouse($data['IdKho']);
         $partnerScope = $_POST['PartnerScope'] ?? 'internal';
+        $partnerWarehouseId = $_POST['PartnerWarehouse'] ?? null;
+        $partnerExternalType = $_POST['PartnerExternalType'] ?? 'Nhà cung cấp';
+        $partnerOrderId = $_POST['PartnerOrderId'] ?? null;
         $partnerData = $this->buildPartnerData($partnerScope, $_POST, $warehouse);
         $data['LoaiDoiTac'] = $partnerData['type'] ?? null;
         $data['DoiTac'] = $partnerData['name'] ?? null;
 
-        $approverId = $this->resolveWarehouseApprover($data['IdKho']);
-        if (!$approverId) {
-            $this->setFlash('danger', 'Kho chưa có xưởng trưởng để xác nhận phiếu.');
-            $this->redirect('?controller=warehouse_sheet&action=index');
+        if ($partnerScope === 'internal' && !$partnerWarehouseId) {
+            $this->setFlash('danger', 'Vui lòng chọn kho đối tác cho luồng nội bộ.');
+            $this->redirect('?controller=warehouse_sheet&action=create');
             return;
         }
-        if (!$this->validateApproverWorkshop($approverId, $warehouse)) {
-            $this->setFlash('danger', 'Người xác nhận phải thuộc xưởng của kho được chọn.');
-            $this->redirect('?controller=warehouse_sheet&action=index');
-            return;
+
+        $isOutbound = $this->isOutboundDocument($documentType);
+        if ($partnerScope === 'external' && $isOutbound && $partnerExternalType === 'Khách hàng') {
+            if (!$partnerOrderId) {
+                $this->setFlash('danger', 'Xuất ngoài cần chọn đơn hàng khách hàng.');
+                $this->redirect('?controller=warehouse_sheet&action=create');
+                return;
+            }
+            $data['SoThamChieu'] = $partnerOrderId;
         }
-        $data['NHAN_VIENIdNhanVien2'] = $approverId;
+
+        $approverWarehouseId = $this->resolveApproverWarehouseId($partnerScope, $documentType, $partnerWarehouseId, $data['IdKho']);
+        if ($approverWarehouseId) {
+            $approverId = $this->resolveWarehouseApprover($approverWarehouseId);
+            if (!$approverId) {
+                $this->setFlash('danger', 'Kho xác nhận chưa có xưởng trưởng.');
+                $this->redirect('?controller=warehouse_sheet&action=index');
+                return;
+            }
+            $approverWarehouse = $this->findWarehouse($approverWarehouseId);
+            if (!$this->validateApproverWorkshop($approverId, $approverWarehouse)) {
+                $this->setFlash('danger', 'Người xác nhận phải thuộc xưởng của kho được chọn.');
+                $this->redirect('?controller=warehouse_sheet&action=index');
+                return;
+            }
+            $data['NHAN_VIENIdNhanVien2'] = $approverId;
+        } else {
+            $data['NHAN_VIENIdNhanVien2'] = null;
+        }
+
+        $data = $this->applyExternalConfirmationRules($data, $documentType, $partnerScope);
 
         $redirectTo = trim((string) ($_POST['redirect'] ?? ''));
         if ($redirectTo === '') {
@@ -305,6 +336,7 @@ class Warehouse_sheetController extends Controller
         $workshops = $this->workshopModel->getAllWithManagers(300);
         $warehouseWorkshopMap = $this->buildWarehouseWorkshopMap($filteredWarehouses, $workshops);
         $details = $this->sheetDetailModel->getDetailsWithMeta($id);
+        $orders = $this->orderModel->getOrdersWithCustomer(200);
 
         $this->render('warehouse_sheet/edit', [
             'title' => 'Cập nhật phiếu kho',
@@ -315,6 +347,7 @@ class Warehouse_sheetController extends Controller
             'approvers' => $approvers,
             'workshops' => $workshops,
             'warehouseWorkshopMap' => $warehouseWorkshopMap,
+            'orders' => $orders,
             'currentUser' => $this->currentUser(),
             'details' => $details,
         ]);
@@ -351,22 +384,49 @@ class Warehouse_sheetController extends Controller
 
         $warehouse = $this->findWarehouse($data['IdKho'] ?? ($existing['IdKho'] ?? null));
         $partnerScope = $_POST['PartnerScope'] ?? 'internal';
+        $partnerWarehouseId = $_POST['PartnerWarehouse'] ?? null;
+        $partnerExternalType = $_POST['PartnerExternalType'] ?? 'Nhà cung cấp';
+        $partnerOrderId = $_POST['PartnerOrderId'] ?? null;
         $partnerData = $this->buildPartnerData($partnerScope, $_POST, $warehouse);
         $data['LoaiDoiTac'] = $partnerData['type'] ?? null;
         $data['DoiTac'] = $partnerData['name'] ?? null;
 
-        $approverId = $this->resolveWarehouseApprover($data['IdKho'] ?? ($existing['IdKho'] ?? null));
-        if (!$approverId) {
-            $this->setFlash('danger', 'Kho chưa có xưởng trưởng để xác nhận phiếu.');
-            $this->redirect('?controller=warehouse_sheet&action=index');
+        if ($partnerScope === 'internal' && !$partnerWarehouseId) {
+            $this->setFlash('danger', 'Vui lòng chọn kho đối tác cho luồng nội bộ.');
+            $this->redirect('?controller=warehouse_sheet&action=edit&id=' . urlencode($id));
             return;
         }
-        if (!$this->validateApproverWorkshop($approverId, $warehouse)) {
-            $this->setFlash('danger', 'Người xác nhận phải thuộc xưởng của kho được chọn.');
-            $this->redirect('?controller=warehouse_sheet&action=index');
-            return;
+
+        $isOutbound = $this->isOutboundDocument($data['LoaiPhieu'] ?? '');
+        if ($partnerScope === 'external' && $isOutbound && $partnerExternalType === 'Khách hàng') {
+            if (!$partnerOrderId) {
+                $this->setFlash('danger', 'Xuất ngoài cần chọn đơn hàng khách hàng.');
+                $this->redirect('?controller=warehouse_sheet&action=edit&id=' . urlencode($id));
+                return;
+            }
+            $data['SoThamChieu'] = $partnerOrderId;
         }
-        $data['NHAN_VIENIdNhanVien2'] = $approverId;
+
+        $approverWarehouseId = $this->resolveApproverWarehouseId($partnerScope, $data['LoaiPhieu'] ?? '', $partnerWarehouseId, $data['IdKho'] ?? ($existing['IdKho'] ?? null));
+        if ($approverWarehouseId) {
+            $approverId = $this->resolveWarehouseApprover($approverWarehouseId);
+            if (!$approverId) {
+                $this->setFlash('danger', 'Kho xác nhận chưa có xưởng trưởng.');
+                $this->redirect('?controller=warehouse_sheet&action=index');
+                return;
+            }
+            $approverWarehouse = $this->findWarehouse($approverWarehouseId);
+            if (!$this->validateApproverWorkshop($approverId, $approverWarehouse)) {
+                $this->setFlash('danger', 'Người xác nhận phải thuộc xưởng của kho được chọn.');
+                $this->redirect('?controller=warehouse_sheet&action=index');
+                return;
+            }
+            $data['NHAN_VIENIdNhanVien2'] = $approverId;
+        } else {
+            $data['NHAN_VIENIdNhanVien2'] = null;
+        }
+
+        $data = $this->applyExternalConfirmationRules($data, $data['LoaiPhieu'] ?? '', $partnerScope);
 
         if (!$this->validateRequired(array_merge($data, ['IdPhieu' => $id]))) {
             $this->setFlash('danger', 'Vui lòng điền đầy đủ thông tin bắt buộc của phiếu.');
@@ -676,6 +736,36 @@ class Warehouse_sheetController extends Controller
         $workshop = $this->workshopModel->find($workshopId);
 
         return $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+    }
+
+    private function resolveApproverWarehouseId(string $partnerScope, string $documentType, ?string $partnerWarehouseId, ?string $sourceWarehouseId): ?string
+    {
+        if ($partnerScope === 'external') {
+            return $sourceWarehouseId ?: null;
+        }
+
+        if ($this->isOutboundDocument($documentType)) {
+            return $partnerWarehouseId ?: null;
+        }
+
+        return $sourceWarehouseId ?: null;
+    }
+
+    private function applyExternalConfirmationRules(array $data, string $documentType, string $partnerScope): array
+    {
+        if ($partnerScope !== 'external') {
+            return $data;
+        }
+
+        if ($this->isOutboundDocument($documentType)) {
+            return $data;
+        }
+
+        if (empty($data['NgayXN'])) {
+            $data['NgayXN'] = $data['NgayLP'] ?: date('Y-m-d');
+        }
+
+        return $data;
     }
 
     private function validateApproverWorkshop(?string $approverId, ?array $warehouse): bool
