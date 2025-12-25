@@ -63,15 +63,15 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label">Địa điểm</label>
-                <input type="text" name="DiaDiem" class="form-control" value="<?= htmlspecialchars($workshop['DiaDiem'] ?? '') ?>">
+                <input type="text" name="DiaDiem" class="form-control" value="<?= htmlspecialchars($workshop['DiaDiem'] ?? '') ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Công suất tối đa</label>
-                <input type="number" name="CongSuatToiDa" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($workshop['CongSuatToiDa'] ?? 0) ?>">
+                <input type="number" name="CongSuatToiDa" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($workshop['CongSuatToiDa'] ?? 0) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Nhân sự tối đa</label>
-                <input type="number" name="SlNhanVien" class="form-control" min="0" value="<?= htmlspecialchars($workshop['SlNhanVien'] ?? 0) ?>">
+                <input type="number" name="SlNhanVien" class="form-control" min="0" value="<?= htmlspecialchars($workshop['SlNhanVien'] ?? 0) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Nhân sự hiện tại</label>
@@ -79,21 +79,9 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Trạng thái</label>
-                <?php
-                $isSystemAdmin = $isSystemAdmin ?? false;
-                $currentStatus = $workshop['TrangThai'] ?? '';
-                $statusOptions = ['Đang hoạt động', 'Bảo trì'];
-                if ($isSystemAdmin || $currentStatus === 'Tạm dừng') {
-                    $statusOptions[] = 'Tạm dừng';
-                }
-                $lockStatus = !$isSystemAdmin && $currentStatus === 'Tạm dừng';
-                ?>
-                <?php if ($lockStatus): ?>
-                    <input type="hidden" name="TrangThai" value="<?= htmlspecialchars($currentStatus) ?>">
-                <?php endif; ?>
-                <select name="TrangThai" class="form-select" <?= $lockStatus ? 'disabled' : '' ?>>
-                    <?php foreach ($statusOptions as $status): ?>
-                        <option value="<?= $status ?>" <?= $currentStatus === $status ? 'selected' : '' ?>><?= $status ?></option>
+                <select name="TrangThai" class="form-select" required>
+                    <?php foreach (['Đang hoạt động', 'Bảo trì', 'Tạm dừng'] as $status): ?>
+                        <option value="<?= $status ?>" <?= ($workshop['TrangThai'] ?? '') === $status ? 'selected' : '' ?>><?= $status ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -129,7 +117,7 @@
                                             <label class="form-label mb-0">Nhân viên kho</label>
                                             <div class="input-group input-group-sm assignment-search-group">
                                                 <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                                                <input type="text" class="form-control assignment-search border-start-0" data-target="#warehouse-list" placeholder="Tìm tên/mã nhân viên">
+                                                <input type="text" class="form-control assignment-search border-start-0" data-target="#warehouse-list" placeholder="Tìm tên/mã nhân viên" required>
                                             </div>
                                         </div>
                                         <div class="assignment-list list-group" id="warehouse-list">
@@ -157,7 +145,7 @@
                                             <label class="form-label mb-0" data-production-label>Nhân viên sản xuất</label>
                                             <div class="input-group input-group-sm assignment-search-group">
                                                 <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                                                <input type="text" class="form-control assignment-search border-start-0" data-target="#production-list" placeholder="Tìm tên/mã nhân viên">
+                                                <input type="text" class="form-control assignment-search border-start-0" data-target="#production-list" placeholder="Tìm tên/mã nhân viên" required>
                                             </div>
                                         </div>
                                         <div class="assignment-list list-group" id="production-list">

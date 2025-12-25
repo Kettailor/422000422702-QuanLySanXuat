@@ -553,59 +553,59 @@ if (empty($initialDetails)) {
                                 <input class="form-control" name="details[${index}][new_configuration_name]" data-field="new_configuration_name" placeholder="Tên cấu hình" value="${data.new_configuration_name || ''}" ${configurationMode === 'new' ? 'required' : 'disabled'} data-required="true" ${isEditMode ? 'disabled' : ''}>
                             </div>
                             <div class="col-sm-3">
-                                <input class="form-control" type="number" min="0" step="1000" name="details[${index}][new_configuration_price]" data-field="new_configuration_price" placeholder="Giá (đ)" value="${data.new_configuration_price || ''}" ${configurationMode === 'new' ? '' : 'disabled'} ${isEditMode ? 'disabled' : ''}>
+                                <input class="form-control" type="number" min="0" step="1000" name="details[${index}][new_configuration_price]" data-field="new_configuration_price" placeholder="Giá (đ)" value="${data.new_configuration_price || ''}" ${configurationMode === 'new' ? 'required' : 'disabled'} ${isEditMode ? 'disabled' : ''}>
                             </div>
                             <div class="col-sm-3">
-                                <textarea class="form-control" rows="1" name="details[${index}][new_configuration_description]" data-field="new_configuration_description" placeholder="Mô tả" ${configurationMode === 'new' ? '' : 'disabled'} ${isEditMode ? 'disabled' : ''}>${data.new_configuration_description || ''}</textarea>
+                                <textarea class="form-control" rows="1" name="details[${index}][new_configuration_description]" data-field="new_configuration_description" placeholder="Mô tả" ${configurationMode === 'new' ? 'required' : 'disabled'} ${isEditMode ? 'disabled' : ''}>${data.new_configuration_description || ''}</textarea>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Mô tả cấu hình</label>
-                    <input class="form-control" name="details[${index}][config_description]" data-field="config_description" value="${data.config_description || ''}" ${isEditMode ? 'readonly' : ''}>
+                    <input class="form-control" name="details[${index}][config_description]" data-field="config_description" value="${data.config_description || ''}" ${isEditMode ? 'readonly' : 'required'}>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Keycap</label>
-                    <input class="form-control" name="details[${index}][config_keycap]" data-field="config_keycap" value="${data.config_keycap || ''}" ${isEditMode ? 'readonly' : ''}>
+                    <input class="form-control" name="details[${index}][config_keycap]" data-field="config_keycap" value="${data.config_keycap || ''}" ${isEditMode ? 'readonly' : 'required'}>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Mainboard</label>
-                    <input class="form-control" name="details[${index}][config_mainboard]" data-field="config_mainboard" value="${data.config_mainboard || ''}" ${isEditMode ? 'readonly' : ''}>
+                    <input class="form-control" name="details[${index}][config_mainboard]" data-field="config_mainboard" value="${data.config_mainboard || ''}" ${isEditMode ? 'readonly' : 'required'}>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Layout</label>
-                    <input class="form-control" name="details[${index}][config_layout]" data-field="config_layout" value="${data.config_layout || ''}" ${isEditMode ? 'readonly' : ''}>
+                    <input class="form-control" name="details[${index}][config_layout]" data-field="config_layout" value="${data.config_layout || ''}" ${isEditMode ? 'readonly' : 'required'}>
                 </div>
                 <div class="col-12">
                     <label class="form-label">Switch / Case / Foam</label>
                     <div class="row g-2">
                         <div class="col-md-4">
-                            <input class="form-control" name="details[${index}][config_switch_type]" data-field="config_switch_type" placeholder="Switch" value="${data.config_switch_type || ''}" ${isEditMode ? 'readonly' : ''}>
+                            <input class="form-control" name="details[${index}][config_switch_type]" data-field="config_switch_type" placeholder="Switch" value="${data.config_switch_type || ''}" ${isEditMode ? 'readonly' : 'required'}>
                         </div>
                         <div class="col-md-4">
-                            <input class="form-control" name="details[${index}][config_case_type]" data-field="config_case_type" placeholder="Case" value="${data.config_case_type || ''}" ${isEditMode ? 'readonly' : ''}>
+                            <input class="form-control" name="details[${index}][config_case_type]" data-field="config_case_type" placeholder="Case" value="${data.config_case_type || ''}" ${isEditMode ? 'readonly' : 'required'}>
                         </div>
                         <div class="col-md-4">
-                            <input class="form-control" name="details[${index}][config_foam]" data-field="config_foam" placeholder="Foam" value="${data.config_foam || ''}" ${isEditMode ? 'readonly' : ''}>
+                            <input class="form-control" name="details[${index}][config_foam]" data-field="config_foam" placeholder="Foam" value="${data.config_foam || ''}" ${isEditMode ? 'readonly' : 'required'}>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <label class="form-label">Số lượng</label>
-                    <input class="form-control" type="number" min="${data.min_quantity || 1}" name="details[${index}][quantity]" data-field="quantity" value="${data.quantity || 1}">
+                    <input class="form-control" type="number" min="${data.min_quantity || 1}" name="details[${index}][quantity]" data-field="quantity" value="${data.quantity || 1}" required>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <label class="form-label">Đơn giá (đ)</label>
-                    <input class="form-control" type="number" min="0" step="1000" name="details[${index}][unit_price]" data-field="unit_price" value="${data.unit_price || 0}" data-manual="${data.unit_price ? 'true' : ''}" ${isEditMode ? 'readonly' : ''}>
+                    <input class="form-control" type="number" min="0" step="1000" name="details[${index}][unit_price]" data-field="unit_price" value="${data.unit_price || 0}" data-manual="${data.unit_price ? 'true' : ''}" ${isEditMode ? 'readonly' : 'required'}>
                 </div>
                 <div class="col-md-2 col-sm-6">
                     <label class="form-label">VAT (%)</label>
-                    <input class="form-control" type="number" min="0" step="0.1" name="details[${index}][vat]" data-field="vat" value="${vatValue}" ${isEditMode ? 'readonly' : ''}>
+                    <input class="form-control" type="number" min="0" step="0.1" name="details[${index}][vat]" data-field="vat" value="${vatValue}" ${isEditMode ? 'readonly' : 'required'}>
                 </div>
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label">Ngày giao dự kiến</label>
-                    <input class="form-control" type="datetime-local" name="details[${index}][delivery_date]" data-field="delivery_date" value="${data.delivery_date || ''}" data-min-base="${data.min_delivery_date || ''}">
+                    <input class="form-control" type="datetime-local" name="details[${index}][delivery_date]" data-field="delivery_date" value="${data.delivery_date || ''}" data-min-base="${data.min_delivery_date || ''}" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Yêu cầu chi tiết</label>

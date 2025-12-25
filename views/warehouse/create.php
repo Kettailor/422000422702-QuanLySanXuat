@@ -61,7 +61,7 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Trạng thái</label>
-                            <select name="TrangThai" class="form-select">
+                            <select name="TrangThai" class="form-select" required>
                                 <?php foreach ($statuses as $status): ?>
                                     <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
                                 <?php endforeach; ?>
@@ -109,15 +109,15 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label">Tổng số lô</label>
-                            <input type="number" name="TongSLLo" class="form-control" min="0" value="0">
+                            <input type="number" name="TongSLLo" class="form-control" min="0" value="0" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Tổng sức chứa</label>
-                            <input type="number" name="TongSL" class="form-control" min="0" value="0">
+                            <input type="number" name="TongSL" class="form-control" min="0" value="0" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Tổng giá trị hàng tồn (đ)</label>
-                            <input type="number" name="ThanhTien" class="form-control" min="0" value="0">
+                            <input type="number" name="ThanhTien" class="form-control" min="0" value="0" required>
                         </div>
                     </div>
                 </div>

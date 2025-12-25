@@ -20,6 +20,7 @@
         id="role" 
         name="role" 
         aria-label="Role select"
+        required
       >
         <?php foreach ($roles as $role): ?>
           <option 

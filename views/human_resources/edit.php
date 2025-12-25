@@ -14,26 +14,26 @@
             <input type="hidden" name="IdNhanVien" value="<?= htmlspecialchars($employee['IdNhanVien']) ?>">
             <div class="col-md-6">
                 <label class="form-label">Họ tên</label>
-                <input type="text" name="HoTen" class="form-control" value="<?= htmlspecialchars($employee['HoTen']) ?>">
+                <input type="text" name="HoTen" class="form-control" value="<?= htmlspecialchars($employee['HoTen']) ?>" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Ngày sinh</label>
-                <input type="date" name="NgaySinh" class="form-control" value="<?= $employee['NgaySinh'] ?>">
+                <input type="date" name="NgaySinh" class="form-control" value="<?= $employee['NgaySinh'] ?>" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Giới tính</label>
-                <select name="GioiTinh" class="form-select">
+                <select name="GioiTinh" class="form-select" required>
                     <option value="1" <?= $employee['GioiTinh'] == 1 ? 'selected' : '' ?>>Nam</option>
                     <option value="0" <?= $employee['GioiTinh'] == 0 ? 'selected' : '' ?>>Nữ</option>
                 </select>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Chức vụ</label>
-                <input type="text" name="ChucVu" class="form-control" value="<?= htmlspecialchars($employee['ChucVu']) ?>">
+                <input type="text" name="ChucVu" class="form-control" value="<?= htmlspecialchars($employee['ChucVu']) ?>" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Vai trò hệ thống</label>
-                <select name="IdVaiTro" class="form-select">
+                <select name="IdVaiTro" class="form-select" required>
                     <option value="">Chọn vai trò</option>
                     <?php foreach ($roles ?? [] as $role): ?>
                         <?php $roleId = $role['IdVaiTro'] ?? ''; ?>
@@ -45,22 +45,22 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label">Hệ số lương</label>
-                <input type="number" name="HeSoLuong" class="form-control" value="<?= $employee['HeSoLuong'] ?>">
+                <input type="number" name="HeSoLuong" class="form-control" value="<?= $employee['HeSoLuong'] ?>" min="1" step="1" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Trạng thái</label>
-                <select name="TrangThai" class="form-select">
+                <select name="TrangThai" class="form-select" required>
                     <option value="Đang làm việc" <?= $employee['TrangThai'] === 'Đang làm việc' ? 'selected' : '' ?>>Đang làm việc</option>
                     <option value="Tạm nghỉ" <?= $employee['TrangThai'] === 'Tạm nghỉ' ? 'selected' : '' ?>>Tạm nghỉ</option>
                 </select>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Thời gian làm việc</label>
-                <input type="datetime-local" name="ThoiGianLamViec" class="form-control" value="<?= date('Y-m-d\\TH:i', strtotime($employee['ThoiGianLamViec'])) ?>">
+                <input type="datetime-local" name="ThoiGianLamViec" class="form-control" value="<?= date('Y-m-d\\TH:i', strtotime($employee['ThoiGianLamViec'])) ?>" required>
             </div>
             <div class="col-12">
                 <label class="form-label">Địa chỉ</label>
-                <textarea name="DiaChi" rows="3" class="form-control"><?= htmlspecialchars($employee['DiaChi']) ?></textarea>
+                <textarea name="DiaChi" rows="3" class="form-control" required><?= htmlspecialchars($employee['DiaChi']) ?></textarea>
             </div>
             <div class="col-12 text-end">
                 <button class="btn btn-primary px-4" type="submit">Cập nhật</button>

@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             <div class="card-body py-2">
                                                 <div class="form-check mb-0">
                                                     <input class="form-check-input" type="checkbox" name="employee_id[]"
-                                                           value="<?= htmlspecialchars($id) ?>" id="employee-<?= htmlspecialchars($id) ?>">
+                                                           value="<?= htmlspecialchars($id) ?>" id="employee-<?= htmlspecialchars($id) ?>" required>
                                                     <span class="fw-semibold"><?= htmlspecialchars($name) ?></span>
                                                 </div>
                                                 <div class="text-muted small">Mã NV: <?= htmlspecialchars($id) ?></div>

@@ -48,15 +48,15 @@
         </div>
         <div class="col-md-6">
             <label class="form-label">Địa điểm</label>
-            <input type="text" name="DiaDiem" class="form-control" placeholder="Khu công nghiệp, tỉnh/thành...">
+            <input type="text" name="DiaDiem" class="form-control" placeholder="Khu công nghiệp, tỉnh/thành..." required>
         </div>
         <div class="col-md-4">
             <label class="form-label">Công suất tối đa (giờ máy / tháng)</label>
-            <input type="number" name="CongSuatToiDa" class="form-control" min="0" step="0.01">
+            <input type="number" name="CongSuatToiDa" class="form-control" min="0" step="0.01" required>
         </div>
         <div class="col-md-4">
             <label class="form-label">Nhân sự tối đa</label>
-            <input type="number" name="SlNhanVien" class="form-control" min="0" placeholder="Ví dụ: 50">
+            <input type="number" name="SlNhanVien" class="form-control" min="0" placeholder="Ví dụ: 50" required>
         </div>
         <div class="col-md-4">
             <label class="form-label">Nhân sự hiện tại</label>
@@ -64,7 +64,7 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Trạng thái</label>
-            <select name="TrangThai" class="form-select">
+            <select name="TrangThai" class="form-select" required>
                 <option value="Đang hoạt động">Đang hoạt động</option>
                 <option value="Bảo trì">Bảo trì</option>
             </select>
@@ -94,7 +94,7 @@
                                     <label class="form-label mb-0">Nhân viên kho</label>
                                     <div class="input-group input-group-sm assignment-search-group">
                                         <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                                        <input type="text" class="form-control assignment-search border-start-0" data-target="#warehouse-list" placeholder="Tìm tên/mã nhân viên">
+                                        <input type="text" class="form-control assignment-search border-start-0" data-target="#warehouse-list" placeholder="Tìm tên/mã nhân viên" required>
                                     </div>
                                 </div>
                                 <div class="assignment-list list-group" id="warehouse-list">
@@ -122,7 +122,7 @@
                                     <label class="form-label mb-0" data-production-label>Nhân viên sản xuất</label>
                                     <div class="input-group input-group-sm assignment-search-group">
                                         <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                                        <input type="text" class="form-control assignment-search border-start-0" data-target="#production-list" placeholder="Tìm tên/mã nhân viên">
+                                        <input type="text" class="form-control assignment-search border-start-0" data-target="#production-list" placeholder="Tìm tên/mã nhân viên" required>
                                     </div>
                                 </div>
                                 <div class="assignment-list list-group" id="production-list">

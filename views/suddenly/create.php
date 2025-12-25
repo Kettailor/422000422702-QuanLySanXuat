@@ -130,11 +130,11 @@ $type = $type ?? ($_GET['type'] ?? 'production');
       <div class="col-md-4">
         <label class="form-label fw-semibold">Thời gian kiểm tra</label>
         <input type="datetime-local" name="ThoiGian" class="form-control"
-          value="<?= date('Y-m-d\TH:i') ?>">
+          value="<?= date('Y-m-d\TH:i') ?>" required>
       </div>
       <div class="col-md-4">
         <label class="form-label fw-semibold">Xưởng</label>
-        <select name="IdXuong" class="form-select">
+        <select name="IdXuong" class="form-select" required>
           <option value="">-- Chọn xưởng kiểm tra --</option>
           <?php foreach ($xuongList as $x): ?>
             <option value="<?= htmlspecialchars($x['IdXuong']) ?>"><?= htmlspecialchars($x['TenXuong']) ?></option>
@@ -146,7 +146,7 @@ $type = $type ?? ($_GET['type'] ?? 'production');
     <div class="row g-3 mt-1">
       <div class="col-md-6">
         <label class="form-label fw-semibold">Loại tiêu chí</label>
-        <select id="LoaiTieuChi" name="LoaiTieuChi" class="form-select">
+        <select id="LoaiTieuChi" name="LoaiTieuChi" class="form-select" required>
           <option value="">-- Chọn loại tiêu chí --</option>
           <?php foreach (array_keys($criteriaList) as $key): ?>
             <option value="<?= htmlspecialchars($key) ?>"><?= htmlspecialchars($key) ?></option>

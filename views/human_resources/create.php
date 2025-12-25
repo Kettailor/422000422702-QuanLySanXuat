@@ -18,22 +18,22 @@
         </div>
         <div class="col-md-6">
             <label class="form-label">Ngày sinh</label>
-            <input type="date" name="NgaySinh" class="form-control">
+            <input type="date" name="NgaySinh" class="form-control" required>
         </div>
         <div class="col-md-6">
             <label class="form-label">Giới tính</label>
-            <select name="GioiTinh" class="form-select">
+            <select name="GioiTinh" class="form-select" required>
                 <option value="1">Nam</option>
                 <option value="0">Nữ</option>
             </select>
         </div>
         <div class="col-md-6">
             <label class="form-label">Chức vụ</label>
-            <input type="text" name="ChucVu" class="form-control">
+            <input type="text" name="ChucVu" class="form-control" required>
         </div>
         <div class="col-md-6">
             <label class="form-label">Vai trò hệ thống</label>
-            <select name="IdVaiTro" class="form-select">
+            <select name="IdVaiTro" class="form-select" required>
                 <option value="">Chọn vai trò</option>
                 <?php foreach ($roles ?? [] as $role): ?>
                     <option value="<?= htmlspecialchars($role['IdVaiTro']) ?>">
@@ -44,22 +44,22 @@
         </div>
         <div class="col-md-6">
             <label class="form-label">Hệ số lương</label>
-            <input type="number" name="HeSoLuong" class="form-control" min="1" step="1" value="1">
+            <input type="number" name="HeSoLuong" class="form-control" min="1" step="1" value="1" required>
         </div>
         <div class="col-md-6">
             <label class="form-label">Trạng thái</label>
-            <select name="TrangThai" class="form-select">
+            <select name="TrangThai" class="form-select" required>
                 <option value="Đang làm việc">Đang làm việc</option>
                 <option value="Tạm nghỉ">Tạm nghỉ</option>
             </select>
         </div>
         <div class="col-md-6">
             <label class="form-label">Thời gian làm việc</label>
-            <input type="datetime-local" name="ThoiGianLamViec" class="form-control" value="<?= date('Y-m-d\\TH:i') ?>">
+            <input type="datetime-local" name="ThoiGianLamViec" class="form-control" value="<?= date('Y-m-d\\TH:i') ?>" required>
         </div>
         <div class="col-12">
             <label class="form-label">Địa chỉ</label>
-            <textarea name="DiaChi" rows="3" class="form-control"></textarea>
+            <textarea name="DiaChi" rows="3" class="form-control" required></textarea>
         </div>
         <div class="col-12 text-end">
             <button class="btn btn-primary px-4" type="submit">Lưu nhân sự</button>

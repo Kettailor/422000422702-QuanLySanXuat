@@ -18,47 +18,23 @@ $eligibleOrderMap = array_fill_keys(array_column($eligibleOrders, 'IdDonHang'), 
             <input type="hidden" name="IdHoaDon" value="<?= htmlspecialchars($bill['IdHoaDon']) ?>">
             <div class="col-md-4">
                 <label class="form-label">Ngày lập</label>
-                <input type="date" name="NgayLap" class="form-control" value="<?= $bill['NgayLap'] ?>">
+                <input type="date" name="NgayLap" class="form-control" value="<?= $bill['NgayLap'] ?>" required>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Loại hóa đơn</label>
-                <input type="text" name="LoaiHD" class="form-control" value="<?= htmlspecialchars($bill['LoaiHD']) ?>">
+                <input type="text" name="LoaiHD" class="form-control" value="<?= htmlspecialchars($bill['LoaiHD']) ?>" required>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Trạng thái</label>
-                <select name="TrangThai" class="form-select">
-                    <?php foreach (['Chưa thanh toán', 'Đã thanh toán', 'Hủy'] as $status): ?>
+                <select name="TrangThai" class="form-select" required>
+                    <?php foreach (['Chưa thanh toán', 'Đã thanh toán'] as $status): ?>
                         <option value="<?= $status ?>" <?= $status === $bill['TrangThai'] ? 'selected' : '' ?>><?= $status ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Đơn hàng</label>
-                <select name="IdDonHang" class="form-select" required>
-                    <option value="" disabled>Chọn đơn hàng</option>
-                    <?php foreach ($eligibleOrders as $order): ?>
-                        <option value="<?= htmlspecialchars($order['IdDonHang'] ?? '') ?>" <?= ($order['IdDonHang'] ?? '') === ($bill['IdDonHang'] ?? '') ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($order['IdDonHang'] ?? '') ?> · <?= htmlspecialchars($order['TenKhachHang'] ?? 'Khách hàng') ?>
-                        </option>
-                    <?php endforeach; ?>
-                    <?php if (!empty($bill['IdDonHang']) && !isset($eligibleOrderMap[$bill['IdDonHang']])): ?>
-                        <option value="<?= htmlspecialchars($bill['IdDonHang']) ?>" selected>
-                            <?= htmlspecialchars($bill['IdDonHang']) ?> · Đã hủy hoặc chưa đủ điều kiện
-                        </option>
-                    <?php endif; ?>
-                </select>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Thuế (%)</label>
-                <input type="number" name="Thue" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($bill['Thue'] ?? 0) ?>">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Mã bưu điện</label>
-                <input type="text" name="MaBuuDien" class="form-control" value="<?= htmlspecialchars($bill['MaBuuDien'] ?? '') ?>">
-            </div>
-            <div class="col-12">
-                <label class="form-label">Ghi chú</label>
-                <textarea name="GhiChu" class="form-control" rows="3"><?= htmlspecialchars($bill['GhiChu'] ?? '') ?></textarea>
+                <label class="form-label">Mã đơn hàng</label>
+                <input type="text" name="IdDonHang" class="form-control" value="<?= htmlspecialchars($bill['IdDonHang']) ?>" required>
             </div>
             <div class="col-12 text-end">
                 <button class="btn btn-primary px-4" type="submit">Cập nhật hóa đơn</button>

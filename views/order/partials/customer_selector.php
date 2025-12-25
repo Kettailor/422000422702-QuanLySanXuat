@@ -83,34 +83,34 @@ $isCustomerLocked = $isCustomerLocked ?? false;
                 <input type="text" class="form-control" name="customer_company"
                        value="<?= htmlspecialchars($customerFormData['company'] ?? '') ?>"
                        <?= $customerMode === 'new' ? '' : 'disabled' ?>
-                       placeholder="Ví dụ: Công ty TNHH ABC">
+                       placeholder="Ví dụ: Công ty TNHH ABC" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Số điện thoại</label>
                 <input type="tel" class="form-control" name="customer_phone"
                        value="<?= htmlspecialchars($customerFormData['phone'] ?? '') ?>"
                        <?= $customerMode === 'new' ? '' : 'disabled' ?>
-                       placeholder="Ví dụ: 0901234567">
+                       placeholder="Ví dụ: 0901234567" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Email</label>
                 <input type="email" class="form-control" name="customer_email"
                        value="<?= htmlspecialchars($customerFormData['email'] ?? '') ?>"
                        <?= $customerMode === 'new' ? '' : 'disabled' ?>
-                       placeholder="Ví dụ: customer@example.com">
+                       placeholder="Ví dụ: customer@example.com" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Nhóm khách hàng</label>
                 <input type="text" class="form-control" name="customer_type"
                        value="<?= htmlspecialchars($customerFormData['type'] ?? '') ?>"
                        <?= $customerMode === 'new' ? '' : 'disabled' ?>
-                       placeholder="Đại lý, bán lẻ, doanh nghiệp...">
+                       placeholder="Đại lý, bán lẻ, doanh nghiệp..." required>
             </div>
             <div class="col-12">
                 <label class="form-label">Địa chỉ</label>
                 <textarea class="form-control" rows="2" name="customer_address"
                           <?= $customerMode === 'new' ? '' : 'disabled' ?>
-                          placeholder="Địa chỉ giao dịch hoặc giao hàng"><?= htmlspecialchars($customerFormData['address'] ?? '') ?></textarea>
+                          placeholder="Địa chỉ giao dịch hoặc giao hàng" required><?= htmlspecialchars($customerFormData['address'] ?? '') ?></textarea>
             </div>
         </div>
     </div>

@@ -56,11 +56,11 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
         <div class="row g-3 align-items-end">
             <div class="col-md-4">
                 <label class="form-label fw-semibold">Ngày làm việc</label>
-                <input type="date" name="work_date" class="form-control" value="<?= htmlspecialchars((string) $workDate) ?>">
+                <input type="date" name="work_date" class="form-control" value="<?= htmlspecialchars((string) $workDate) ?>" required>
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-semibold">Xưởng</label>
-                <select name="workshop_id" class="form-select">
+                <select name="workshop_id" class="form-select" required>
                     <option value="">Tất cả xưởng</option>
                     <?php foreach ($workshops as $workshop): ?>
                         <?php $id = $workshop['IdXuong'] ?? ''; ?>
@@ -72,7 +72,7 @@ $formatDate = static function (?string $value, string $format = 'd/m/Y H:i'): st
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-semibold">Kế hoạch xưởng</label>
-                <select name="plan_id" class="form-select">
+                <select name="plan_id" class="form-select" required>
                     <option value="">Tất cả kế hoạch</option>
                     <?php foreach ($plans as $plan): ?>
                         <?php $id = $plan['IdKeHoachSanXuatXuong'] ?? ''; ?>

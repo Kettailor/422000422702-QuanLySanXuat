@@ -79,7 +79,7 @@ $nowInput = date('Y-m-d\TH:i');
                 <input type="hidden" name="action" value="create">
                 <div class="col-lg-8">
                     <label class="form-label">Chọn dòng sản phẩm cần lập kế hoạch</label>
-                    <select name="order_detail_id" class="form-select" onchange="this.form.submit()">
+                    <select name="order_detail_id" class="form-select" onchange="this.form.submit()" required>
                         <option value="">-- Chọn đơn hàng --</option>
                         <?php foreach ($detailOptions as $option): ?>
                             <?php if (!$option['id']) {
@@ -294,7 +294,7 @@ $nowInput = date('Y-m-d\TH:i');
                                         </select>
                                     </td>
                                     <td style="min-width: 170px;">
-                                        <select class="form-select" name="component_assignments[<?= $index ?>][status]">
+                                        <select class="form-select" name="component_assignments[<?= $index ?>][status]" required>
                                             <?php
                                             $statuses = ['Đang chuẩn bị', 'Đang sản xuất', 'Chờ nghiệm thu', 'Hoàn thành', 'Đang chờ xác nhận'];
                                 $statusValue = $assignment['default_status'] ?? 'Đang chuẩn bị';
@@ -345,7 +345,7 @@ $nowInput = date('Y-m-d\TH:i');
                                 </select>
                             </td>
                             <td style="min-width: 170px;">
-                                <select class="form-select" name="component_assignments[__INDEX__][status]">
+                                <select class="form-select" name="component_assignments[__INDEX__][status]" required>
                                     <?php foreach (['Đang chuẩn bị', 'Đang sản xuất', 'Chờ nghiệm thu', 'Hoàn thành', 'Đang chờ xác nhận'] as $status): ?>
                                         <option value="<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status) ?></option>
                                     <?php endforeach; ?>

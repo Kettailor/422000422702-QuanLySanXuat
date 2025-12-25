@@ -1,5 +1,4 @@
 <style>
-  /* ====== TỔNG THỂ ====== */
   .container {
     max-width: 100%;
   }
@@ -10,7 +9,6 @@
     border: 1px solid #eef1f5;
   }
 
-  /* ====== HEADER ====== */
   .report-header {
     padding: 20px 22px;
     display: flex;
@@ -35,7 +33,6 @@
     margin-top: 4px;
   }
 
-  /* ====== MÃ BIÊN BẢN ====== */
   .report-code {
     text-align: right;
     min-width: 180px;
@@ -52,12 +49,10 @@
     color: #212529;
   }
 
-  /* ====== BODY ====== */
   .card-body {
     padding: 20px 22px;
   }
 
-  /* ====== INFO GRID ====== */
   .info-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -91,7 +86,6 @@
     font-size: 1.2rem;
   }
 
-  /* ====== KẾT QUẢ ====== */
   .result-box {
     margin-top: 20px;
     text-align: center;
@@ -111,7 +105,6 @@
     background: #dc3545;
   }
 
-  /* ====== CARD ẢNH ====== */
   .card.shadow-sm {
     border-radius: 14px;
     border: 1px solid #eef1f5;
@@ -124,7 +117,6 @@
     border-bottom: 1px solid #eef1f5;
   }
 
-  /* ====== ẢNH ====== */
   .card-body img {
     height: 140px;
     object-fit: cover;
@@ -143,17 +135,14 @@
     gap: 16px;
   }
 
-  /* HÀNG 1: 3 ô */
   .span-2 {
     grid-column: span 2;
   }
 
-  /* HÀNG 2: 2 ô */
   .span-3 {
     grid-column: span 3;
   }
 
-  /* ===== KẾT QUẢ ===== */
   .result-box {
     margin-top: 20px;
     text-align: center;
@@ -209,7 +198,6 @@
 
         <div class="info-grid">
 
-          <!-- HÀNG 1 -->
           <div class="info-box span-2">
             <div class="info-label">Thời gian</div>
             <div class="info-value">
@@ -227,7 +215,6 @@
             <div class="info-value"><?= htmlspecialchars($report['LoaiTieuChi']) ?></div>
           </div>
 
-          <!-- HÀNG 2 -->
           <div class="info-box span-3 text-center">
             <div class="info-label">Tiêu chí đạt</div>
             <div class="info-value text-success fs-4">
@@ -288,6 +275,12 @@
         ← Quay lại
       </a>
 
+      <button type="button"
+        class="btn btn-danger"
+        id="btnHideReport"
+        data-id="<?= htmlspecialchars($report['IdBienBanDanhGiaDX']) ?>">
+        🗑 Xóa biên bản
+      </button>
     </div>
 
 </div>
@@ -297,3 +290,13 @@
 <?php endif; ?>
 
 </div>
+<script>
+  document.getElementById('btnHideReport')?.addEventListener('click', function() {
+    const id = this.dataset.id;
+
+    if (!confirm('Bạn có muốn xóa biên bản này không?')) return;
+
+    window.location.href =
+      '?controller=suddenly&action=delete&id=' + encodeURIComponent(id);
+  });
+</script>

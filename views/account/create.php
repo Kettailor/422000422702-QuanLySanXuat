@@ -7,7 +7,7 @@
     </div>
     <div class="form-group">
       <label for="employee">Nhân viên</label>
-      <select class="form-select" id="employee" name="employee" aria-label="Employee select">
+      <select class="form-select" id="employee" name="employee" aria-label="Employee select" required>
         <?php foreach ($employees as $employee): ?>
           <option value="<?= htmlspecialchars($employee['IdNhanVien']) ?>"><?= htmlspecialchars($employee['HoTen']) ?></option>
         <?php endforeach; ?>
@@ -15,7 +15,7 @@
     </div>
     <div class="form-group">
       <label for="role">Vai trò</label>
-      <select class="form-select" id="role" name="role" aria-label="Role select">
+      <select class="form-select" id="role" name="role" aria-label="Role select" required>
         <?php foreach ($roles as $role): ?>
           <option value="<?= htmlspecialchars($role['IdVaiTro']) ?>"><?= htmlspecialchars($role['TenVaiTro']) ?></option>
         <?php endforeach; ?>

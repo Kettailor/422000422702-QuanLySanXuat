@@ -25,7 +25,7 @@ include __DIR__ . '/partials/customer_selector.php';
 ?>
         <div class="col-lg-4 col-md-6">
             <label class="form-label">Email liên hệ</label>
-            <input type="email" name="EmailLienHe" class="form-control" value="<?= htmlspecialchars($_POST['EmailLienHe'] ?? '') ?>" placeholder="Ví dụ: customer@example.com">
+            <input type="email" name="EmailLienHe" class="form-control" value="<?= htmlspecialchars($_POST['EmailLienHe'] ?? '') ?>" placeholder="Ví dụ: customer@example.com" required>
         </div>
         <div class="col-12">
             <label class="form-label">Yêu cầu chung</label>

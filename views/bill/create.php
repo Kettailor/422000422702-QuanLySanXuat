@@ -11,19 +11,19 @@
     <form action="?controller=bill&action=store" method="post" class="row g-4">
         <div class="col-md-4">
             <label class="form-label">Mã hóa đơn</label>
-            <input type="text" name="IdHoaDon" class="form-control" placeholder="Tự sinh nếu để trống">
+            <input type="text" name="IdHoaDon" class="form-control" placeholder="Tự sinh nếu để trống" required>
         </div>
         <div class="col-md-4">
             <label class="form-label">Ngày lập</label>
-            <input type="date" name="NgayLap" class="form-control" value="<?= date('Y-m-d') ?>">
+            <input type="date" name="NgayLap" class="form-control" value="<?= date('Y-m-d') ?>" required>
         </div>
         <div class="col-md-4">
             <label class="form-label">Loại hóa đơn</label>
-            <input type="text" name="LoaiHD" class="form-control" value="Bán hàng">
+            <input type="text" name="LoaiHD" class="form-control" value="Bán hàng" required>
         </div>
         <div class="col-md-4">
             <label class="form-label">Trạng thái</label>
-            <select name="TrangThai" class="form-select">
+            <select name="TrangThai" class="form-select" required>
                 <option value="Chưa thanh toán">Chưa thanh toán</option>
                 <option value="Đã thanh toán">Đã thanh toán</option>
                 <option value="Hủy">Hủy</option>
@@ -41,16 +41,8 @@
             </select>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Thuế (%)</label>
-            <input type="number" name="Thue" class="form-control" min="0" step="0.01" placeholder="Ví dụ: 10">
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Mã bưu điện</label>
-            <input type="text" name="MaBuuDien" class="form-control" placeholder="Mã bưu chính">
-        </div>
-        <div class="col-12">
-            <label class="form-label">Ghi chú</label>
-            <textarea name="GhiChu" class="form-control" rows="3" placeholder="Thông tin giao nhận, lưu ý thanh toán..."></textarea>
+            <label class="form-label">Mã đơn hàng</label>
+            <input type="text" name="IdDonHang" class="form-control" required>
         </div>
         <div class="col-12 text-end">
             <button class="btn btn-primary px-4" type="submit">Lưu hóa đơn</button>

@@ -167,11 +167,11 @@ foreach ($employees as $employee) {
                         </div>
                         <div class="col">
                             <label class="form-label">Địa chỉ</label>
-                            <input type="text" name="DiaChi" class="form-control" value="<?= htmlspecialchars($warehouse['DiaChi']) ?>">
+                            <input type="text" name="DiaChi" class="form-control" value="<?= htmlspecialchars($warehouse['DiaChi']) ?>" required>
                         </div>
                         <div class="col">
                             <label class="form-label">Trạng thái</label>
-                            <select name="TrangThai" class="form-select">
+                            <select name="TrangThai" class="form-select" required>
                                 <?php foreach ($statuses as $status): ?>
                                     <option value="<?= htmlspecialchars($status) ?>" <?= $status === ($warehouse['TrangThai'] ?? '') ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
                                 <?php endforeach; ?>
@@ -210,15 +210,15 @@ foreach ($employees as $employee) {
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label">Tổng số lô</label>
-                                <input type="number" name="TongSLLo" class="form-control" value="<?= (int) $warehouse['TongSLLo'] ?>" min="0">
+                                <input type="number" name="TongSLLo" class="form-control" value="<?= (int) $warehouse['TongSLLo'] ?>" min="0" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Tổng sức chứa</label>
-                                <input type="number" name="TongSL" class="form-control" value="<?= (int) $warehouse['TongSL'] ?>" min="0">
+                                <input type="number" name="TongSL" class="form-control" value="<?= (int) $warehouse['TongSL'] ?>" min="0" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Tổng giá trị hàng tồn (đ)</label>
-                                <input type="number" name="ThanhTien" class="form-control" value="<?= (float) $warehouse['ThanhTien'] ?>" min="0">
+                                <input type="number" name="ThanhTien" class="form-control" value="<?= (float) $warehouse['ThanhTien'] ?>" min="0" required>
                             </div>
                         </div>
                     </div>

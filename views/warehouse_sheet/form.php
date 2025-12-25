@@ -54,7 +54,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Loại đối tác <span class="text-danger">*</span></label>
-                            <select name="PartnerScope" class="form-select" data-partner-scope>
+                            <select name="PartnerScope" class="form-select" data-partner-scope required>
                                 <option value="internal" <?= $partnerScope === 'internal' ? 'selected' : '' ?>>Nội bộ</option>
                                 <option value="external" <?= $partnerScope === 'external' ? 'selected' : '' ?>>Bên ngoài</option>
                             </select>
@@ -62,17 +62,17 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                         </div>
                         <div class="col-md-6 <?= $partnerScope === 'external' ? '' : 'd-none' ?>" data-partner-external>
                             <label class="form-label fw-semibold">Loại đơn vị bên ngoài <span class="text-danger">*</span></label>
-                            <select name="PartnerExternalType" class="form-select">
+                            <select name="PartnerExternalType" class="form-select" required>
                                 <?php foreach (['Nhà cung cấp', 'Khách hàng'] as $option): ?>
                                     <option value="<?= htmlspecialchars($option) ?>" <?= $partnerExternalType === $option ? 'selected' : '' ?>><?= htmlspecialchars($option) ?></option>
                                 <?php endforeach; ?>
                             </select>
                             <label class="form-label fw-semibold mt-2">Tên đơn vị <span class="text-danger">*</span></label>
-                            <input type="text" name="PartnerExternalName" class="form-control" value="<?= htmlspecialchars($partnerExternalName) ?>" placeholder="Nhập tên khách hàng/nhà cung cấp">
+                            <input type="text" name="PartnerExternalName" class="form-control" value="<?= htmlspecialchars($partnerExternalName) ?>" placeholder="Nhập tên khách hàng/nhà cung cấp" required>
                         </div>
                         <div class="col-md-6 <?= $partnerScope === 'internal' ? '' : 'd-none' ?>" data-partner-internal>
                             <label class="form-label fw-semibold">Xưởng nội bộ <span class="text-danger">*</span></label>
-                            <select name="PartnerWorkshop" class="form-select">
+                            <select name="PartnerWorkshop" class="form-select" required>
                                 <option value="">-- Chọn xưởng --</option>
                                 <?php foreach ($workshops as $workshop): ?>
                                     <option value="<?= htmlspecialchars($workshop['IdXuong'] ?? '') ?>" <?= ($workshop['IdXuong'] ?? '') === $defaultWorkshopId ? 'selected' : '' ?>>
@@ -81,14 +81,14 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                                 <?php endforeach; ?>
                             </select>
                             <label class="form-label fw-semibold mt-2">Kho nội bộ <span class="text-danger">*</span></label>
-                            <select name="PartnerWarehouse" class="form-select">
+                            <select name="PartnerWarehouse" class="form-select" required>
                                 <option value="">-- Chọn kho --</option>
                             </select>
                             <div class="form-text">Hệ thống sẽ tự điền đối tác theo xưởng/kho đã chọn.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Số chứng từ tham chiếu</label>
-                            <input type="text" name="SoThamChieu" class="form-control" value="<?= htmlspecialchars($document['SoThamChieu'] ?? '') ?>" placeholder="PO/PR/Đơn hàng liên quan">
+                            <input type="text" name="SoThamChieu" class="form-control" value="<?= htmlspecialchars($document['SoThamChieu'] ?? '') ?>" placeholder="PO/PR/Đơn hàng liên quan" required>
                             <div class="form-text">Nhập số PO/ĐH hoặc chứng từ liên quan để truy vết.</div>
                         </div>
                     </div>
@@ -115,16 +115,16 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">Ngày lập phiếu</label>
-                            <input type="date" name="NgayLP" class="form-control" value="<?= htmlspecialchars($document['NgayLP'] ?? '') ?>">
+                            <input type="date" name="NgayLP" class="form-control" value="<?= htmlspecialchars($document['NgayLP'] ?? '') ?>" required>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">Ngày xác nhận</label>
-                            <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($document['NgayXN'] ?? '') ?>">
+                            <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($document['NgayXN'] ?? '') ?>" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tổng giá trị</label>
                             <div class="input-group">
-                                <input type="number" min="0" step="1000" name="TongTien" class="form-control" value="<?= htmlspecialchars($document['TongTien'] ?? 0) ?>">
+                                <input type="number" min="0" step="1000" name="TongTien" class="form-control" value="<?= htmlspecialchars($document['TongTien'] ?? 0) ?>" required>
                                 <span class="input-group-text">đ</span>
                             </div>
                             <div class="form-text">Giá trị dự kiến hoặc thực tế của phiếu.</div>

@@ -217,7 +217,7 @@
                 <div class="col-md-4">
                     <label class="form-label">Thời gian kiểm tra</label>
                     <input type="datetime-local" class="form-control" name="ThoiGian"
-                        value="<?= date('Y-m-d\TH:i') ?>">
+                        value="<?= date('Y-m-d\TH:i') ?>" required>
                 </div>
 
                 <div class="col-md-6">

@@ -46,7 +46,7 @@ if ($payroll) {
             </div>
             <div class="col-md-4">
                 <label class="form-label">Kế toán phụ trách</label>
-                <select name="KeToan" class="form-select">
+                <select name="KeToan" class="form-select" required>
                     <option value="">-- Chọn kế toán --</option>
                     <?php foreach ($accountants as $accountant): ?>
                         <option value="<?= htmlspecialchars($accountant['IdNhanVien']) ?>" <?= ($accountant['IdNhanVien'] === ($payroll[Salary::ACCOUNTANT_COLUMN] ?? '')) ? 'selected' : '' ?>>
@@ -66,11 +66,11 @@ if ($payroll) {
             </div>
             <div class="col-md-3">
                 <label class="form-label">Đơn giá ngày công</label>
-                <input type="number" name="DonGiaNgayCong" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['DonGiaNgayCong'] ?? 0) ?>" readonly>
+                <input type="number" name="DonGiaNgayCong" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['DonGiaNgayCong'] ?? 0) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Số ngày công</label>
-                <input type="number" name="SoNgayCong" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['SoNgayCong'] ?? 0) ?>">
+                <input type="number" name="SoNgayCong" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['SoNgayCong'] ?? 0) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Tổng lương theo ngày công</label>
@@ -78,27 +78,27 @@ if ($payroll) {
             </div>
             <div class="col-md-3">
                 <label class="form-label">Phụ cấp</label>
-                <input type="number" name="PhuCap" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['PhuCap'] ?? 0) ?>">
+                <input type="number" name="PhuCap" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['PhuCap'] ?? 0) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Thưởng</label>
-                <input type="number" name="Thuong" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['Thuong'] ?? 0) ?>">
+                <input type="number" name="Thuong" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['Thuong'] ?? 0) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Khấu trừ (BHXH)</label>
-                <input type="number" name="KhauTru" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['KhauTru'] ?? 0) ?>" readonly>
+                <input type="number" name="KhauTru" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['KhauTru'] ?? 0) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Tổng bảo hiểm</label>
-                <input type="number" name="TongBaoHiem" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['TongBaoHiem'] ?? ($payroll['KhauTru'] ?? 0)) ?>" readonly>
+                <input type="number" name="TongBaoHiem" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['TongBaoHiem'] ?? ($payroll['KhauTru'] ?? 0)) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Thuế TNCN</label>
-                <input type="number" name="ThueTNCN" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['ThueTNCN'] ?? 0) ?>">
+                <input type="number" name="ThueTNCN" class="form-control" min="0" step="0.01" value="<?= htmlspecialchars($payroll['ThueTNCN'] ?? 0) ?>" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Trạng thái</label>
-                <select name="TrangThai" class="form-select">
+                <select name="TrangThai" class="form-select" required>
                     <?php foreach (['Chờ duyệt', 'Đã duyệt', 'Đã chi'] as $status): ?>
                         <option value="<?= $status ?>" <?= $status === $payroll['TrangThai'] ? 'selected' : '' ?>><?= $status ?></option>
                     <?php endforeach; ?>
@@ -106,11 +106,11 @@ if ($payroll) {
             </div>
             <div class="col-md-3">
                 <label class="form-label">Ngày lập</label>
-                <input type="date" name="NgayLap" class="form-control" value="<?= htmlspecialchars($payroll['NgayLap']) ?>">
+                <input type="date" name="NgayLap" class="form-control" value="<?= htmlspecialchars($payroll['NgayLap']) ?>" required>
             </div>
             <div class="col-12">
                 <label class="form-label">Ghi chú / Chữ ký</label>
-                <input type="text" name="ChuKy" class="form-control" value="<?= htmlspecialchars($payroll['ChuKy'] ?? '') ?>" placeholder="Thông tin phê duyệt">
+                <input type="text" name="ChuKy" class="form-control" value="<?= htmlspecialchars($payroll['ChuKy'] ?? '') ?>" placeholder="Thông tin phê duyệt" required>
             </div>
             <div class="col-12">
                 <div class="alert alert-info mb-0">

@@ -536,7 +536,7 @@ $lotPrefixMap = [
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Đối tác/đơn vị <span class="text-danger">*</span></label>
-                                    <input type="text" name="DoiTac" class="form-control" required value="Nội bộ" placeholder="Ví dụ: Nhà cung cấp linh kiện/khách hàng">
+                                    <input type="text" name="DoiTac" class="form-control" required value="Nội bộ" placeholder="Ví dụ: Nhà cung cấp linh kiện/khách hàng" readonly>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Ngày lập phiếu <span class="text-danger">*</span></label>
@@ -544,7 +544,7 @@ $lotPrefixMap = [
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Ngày xác nhận</label>
-                                    <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($defaultDate) ?>" data-confirm-date>
+                                    <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($defaultDate) ?>" data-confirm-date required>
                                     <div class="form-check mt-1">
                                         <input class="form-check-input" type="checkbox" value="1" id="confirm-now-<?= htmlspecialchars($typeKey) ?>" data-confirm-toggle>
                                         <label class="form-check-label" for="confirm-now-<?= htmlspecialchars($typeKey) ?>">Xác nhận và cập nhật tồn ngay</label>
@@ -552,11 +552,11 @@ $lotPrefixMap = [
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Tổng giá trị (đ)</label>
-                                    <input type="number" name="TongTien" class="form-control" min="0" step="1000" value="0">
+                                    <input type="number" name="TongTien" class="form-control" min="0" step="1000" value="0" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Số chứng từ tham chiếu</label>
-                                    <input type="text" name="SoThamChieu" class="form-control" placeholder="PO/Đơn yêu cầu liên quan">
+                                    <input type="text" name="SoThamChieu" class="form-control" placeholder="PO/Đơn yêu cầu liên quan" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Người lập phiếu <span class="text-danger">*</span></label>
@@ -575,7 +575,7 @@ $lotPrefixMap = [
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Người xác nhận</label>
-                                    <select name="NguoiXacNhan" class="form-select">
+                                    <select name="NguoiXacNhan" class="form-select" required>
                                         <?php if (!empty($employees)): ?>
                                             <option value="">-- Chọn nhân viên --</option>
                                             <?php foreach ($employees as $employee): ?>

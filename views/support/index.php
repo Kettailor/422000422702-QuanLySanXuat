@@ -14,7 +14,7 @@
             <form method="post" action="?controller=support&action=index" class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">Mức độ ưu tiên</label>
-                    <select name="priority" class="form-select">
+                    <select name="priority" class="form-select" required>
                         <option value="normal">Bình thường</option>
                         <option value="high">Quan trọng</option>
                         <option value="urgent">Khẩn cấp</option>
@@ -22,11 +22,11 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Chủ đề</label>
-                    <input type="text" name="subject" class="form-control" placeholder="Ví dụ: Lỗi truy cập kế hoạch xưởng">
+                    <input type="text" name="subject" class="form-control" placeholder="Ví dụ: Lỗi truy cập kế hoạch xưởng" required>
                 </div>
                 <div class="col-12">
                     <label class="form-label">Nội dung chi tiết</label>
-                    <textarea name="message" rows="5" class="form-control" placeholder="Mô tả rõ vấn đề, thời điểm xảy ra và thông tin liên quan."></textarea>
+                    <textarea name="message" rows="5" class="form-control" placeholder="Mô tả rõ vấn đề, thời điểm xảy ra và thông tin liên quan." required></textarea>
                 </div>
                 <div class="col-12 d-flex justify-content-between align-items-center">
                     <div class="text-muted small">
