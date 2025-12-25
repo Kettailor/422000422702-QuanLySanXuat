@@ -1,6 +1,7 @@
 <?php
 $document = $document ?? [];
 $warehouses = $warehouses ?? [];
+$partnerWarehouses = $partnerWarehouses ?? $warehouses;
 $employees = $employees ?? [];
 $types = $types ?? [];
 $actionUrl = $actionUrl ?? '?controller=warehouse_sheet&action=store';
@@ -11,13 +12,11 @@ $workshops = $workshops ?? [];
 $warehouseWorkshopMap = $warehouseWorkshopMap ?? [];
 $currentUser = $currentUser ?? null;
 $approvers = $approvers ?? [];
-$workshopApprovers = $workshopApprovers ?? [];
 $approversJson = htmlspecialchars(json_encode($approvers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
-$workshopApproversJson = htmlspecialchars(json_encode($workshopApprovers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 $details = $details ?? [];
 $productsJson = htmlspecialchars(json_encode($products, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $lotsJson = htmlspecialchars(json_encode($lots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
-$warehousesJson = htmlspecialchars(json_encode($warehouses, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
+$partnerWarehousesJson = htmlspecialchars(json_encode($partnerWarehouses, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', ENT_QUOTES, 'UTF-8');
 $documentCode = htmlspecialchars($document['IdPhieu'] ?? '', ENT_QUOTES, 'UTF-8');
 $currentWarehouseId = $document['IdKho'] ?? '';
 $currentApprover = $approvers[$currentWarehouseId] ?? null;
@@ -61,7 +60,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                                 <option value="internal" <?= $partnerScope === 'internal' ? 'selected' : '' ?>>Nội bộ</option>
                                 <option value="external" <?= $partnerScope === 'external' ? 'selected' : '' ?>>Bên ngoài</option>
                             </select>
-                            <div class="form-text">Nội bộ: chọn xưởng/kho nội bộ. Bên ngoài: khách hàng/nhà cung cấp.</div>
+                            <div class="form-text">Nội bộ: chọn xưởng/kho nhận nội bộ. Bên ngoài: khách hàng/nhà cung cấp.</div>
                         </div>
                         <div class="col-md-6 <?= $partnerScope === 'external' ? '' : 'd-none' ?>" data-partner-external>
                             <label class="form-label fw-semibold">Loại đơn vị bên ngoài <span class="text-danger">*</span></label>
@@ -83,7 +82,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <label class="form-label fw-semibold mt-2">Kho nội bộ <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold mt-2">Kho nhận nội bộ <span class="text-danger">*</span></label>
                             <select name="PartnerWarehouse" class="form-select" data-selected="<?= htmlspecialchars($defaultPartnerWarehouseId) ?>">
                                 <option value="">-- Chọn kho --</option>
                             </select>
@@ -123,7 +122,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">Ngày xác nhận</label>
                             <input type="date" name="NgayXN" class="form-control" value="<?= htmlspecialchars($document['NgayXN'] ?? '') ?>" readonly>
-                            <div class="form-text">Tự động cập nhật khi xưởng trưởng xác nhận phiếu.</div>
+                            <div class="form-text">Tự động cập nhật khi nhân viên kho xác nhận phiếu.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tổng giá trị</label>
@@ -143,16 +142,16 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                 <input type="hidden" name="NguoiLap" value="<?= htmlspecialchars($currentUserId) ?>">
             </div>
 <div class="col-md-6">
-    <label class="form-label fw-semibold">Xưởng trưởng xác nhận <span class="text-danger">*</span></label>
+    <label class="form-label fw-semibold">Nhân viên kho xác nhận <span class="text-danger">*</span></label>
     <div class="form-control-plaintext" data-role="approver-display">
         <?php if ($currentApprover): ?>
             <?= htmlspecialchars($currentApprover['HoTen'] ?? '') ?><?= !empty($currentApprover['ChucVu']) ? ' · ' . htmlspecialchars($currentApprover['ChucVu']) : '' ?>
         <?php else: ?>
-            <span class="text-muted">Chọn kho để hiển thị xưởng trưởng.</span>
+            <span class="text-muted">Chọn kho để hiển thị nhân viên kho.</span>
         <?php endif; ?>
     </div>
     <input type="hidden" name="NguoiXacNhan" value="<?= htmlspecialchars($document['NHAN_VIENIdNhanVien2'] ?? ($currentApprover['IdNhanVien'] ?? '')) ?>" data-role="approver-input">
-    <div class="form-text text-muted">Hệ thống tự động gán xưởng trưởng của kho làm người xác nhận.</div>
+    <div class="form-text text-muted">Hệ thống tự động gán nhân viên kho của kho nhận làm người xác nhận.</div>
 </div>
 
             <div class="col-12">
@@ -269,8 +268,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
             const products = JSON.parse('<?= $productsJson ?>');
             const lots = JSON.parse('<?= $lotsJson ?>');
             const approvers = JSON.parse('<?= $approversJson ?>');
-            const workshopApprovers = JSON.parse('<?= $workshopApproversJson ?>');
-            const warehouses = JSON.parse('<?= $warehousesJson ?>');
+            const warehouses = JSON.parse('<?= $partnerWarehousesJson ?>');
             const warehouseMap = JSON.parse('<?= $warehouseWorkshopMapJson ?>');
             const lotMap = {};
             lots.forEach(lot => {
@@ -307,8 +305,8 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                 let approver = null;
 
                 if (scope === 'internal' && outbound) {
-                    const workshopId = partnerWorkshopSelect ? partnerWorkshopSelect.value : '';
-                    approver = workshopApprovers[workshopId] || null;
+                    const destinationWarehouseId = partnerWarehouseSelect ? partnerWarehouseSelect.value : '';
+                    approver = approvers[destinationWarehouseId] || null;
                 } else {
                     const warehouseId = warehouseSelect.value || '';
                     approver = approvers[warehouseId] || null;
@@ -321,7 +319,7 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                     }
                     approverInput.value = approver.IdNhanVien || '';
                 } else {
-                    approverDisplay.innerHTML = '<span class=\"text-muted\">Chọn kho để hiển thị xưởng trưởng.</span>';
+                    approverDisplay.innerHTML = '<span class=\"text-muted\">Chọn kho để hiển thị nhân viên kho.</span>';
                     approverInput.value = '';
                 }
             };
@@ -635,6 +633,10 @@ $currentUserId = $currentUser['IdNhanVien'] ?? ($document['NHAN_VIENIdNhanVien']
                     updatePartnerInternal();
                     updateApprover();
                 });
+            }
+
+            if (partnerWarehouseSelect) {
+                partnerWarehouseSelect.addEventListener('change', updateApprover);
             }
 
             togglePartnerScope();
