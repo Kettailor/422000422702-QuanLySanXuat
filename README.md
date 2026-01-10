@@ -1,93 +1,96 @@
-# Hệ thống quản lý sản xuất bàn phím SV5TOT (Comming soon!)
+<!-- ===================== BANNER ===================== -->
+<p align="center">
+  <a href="https://iuh.edu.vn/" title="Trường Đại học Công nghiệp TP. Hồ Chí Minh">
+    <img src="https://iuh.edu.vn/assets/images/icons/logo.svg?v=51" alt="Industrial University of Ho Chi Minh City" width="120">
+  </a>
+</p>
 
-Ứng dụng mô phỏng một hệ thống ERP nội bộ cho doanh nghiệp lắp ráp bàn phím cơ SV5TOT, xây dựng bằng PHP thuần với kiến trúc MVC đơn giản. Mục tiêu là giúp điều hành chuỗi giá trị sản xuất bàn phím từ khâu nhận đơn hàng OEM/ODM, phân rã kế hoạch cho từng xưởng lắp ráp, kiểm soát chất lượng linh kiện và thành phẩm, quản lý kho linh kiện – thành phẩm cho tới theo dõi tài chính.
+<h1 align="center">📦 PHÁT TRIỂN ỨNG DỤNG</h1>
 
-## Tính năng chính
+<p align="center">
+  <b>ĐỀ TÀI</b><br>
+  <i>XÂY DỰNG HỆ THỐNG WEB QUẢN LÝ SẢN XUẤT CHO NHÀ MÁY BÀN PHÍM</i>
+</p>
 
-- Tổng quan hoạt động sản xuất SV5TOT với dashboard thống kê nhanh.
-- Quản lý đơn hàng và khách hàng doanh nghiệp (gear store, nhà phân phối,...).
-- Lập kế hoạch sản xuất tổng thể và kế hoạch chi tiết cho từng xưởng SV5TOT.
-- Theo dõi nhân sự, chấm công và phân công ca lắp ráp/kiểm thử.
-- Quản lý kho linh kiện, phiếu nhập – xuất và các lô switch/PCB/thành phẩm.
-- Kiểm soát chất lượng lô bàn phím SV5TOT và lưu vết biên bản đánh giá.
-- Quản lý hóa đơn OEM, bảng lương và nhật ký hoạt động hệ thống.
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-MVC-blue" />
+  <img src="https://img.shields.io/badge/MySQL-Database-orange" />
+  <img src="https://img.shields.io/badge/Status-Academic%20Project-success" />
+</p>
 
-## Vai trò và phân quyền
+---
 
-Hệ thống hỗ trợ nhiều nhóm người dùng tương ứng với actor trong sơ đồ use case:
+## 👥 THÀNH VIÊN NHÓM
 
-| Mã vai trò            | Diễn giải                 | Phạm vi tính năng                                                   |
-| --------------------- | ------------------------- | ------------------------------------------------------------------- |
-| `VT_ADMIN`            | Quản trị hệ thống         | Toàn quyền các module và mục cài đặt.                               |
-| `VT_BAN_GIAM_DOC`     | Ban giám đốc              | Dashboard, kế hoạch sản xuất, nhân sự, chất lượng, lương, đơn hàng. |
-| `VT_QUANLY_XUONG`     | Quản lý xưởng             | Dashboard, kế hoạch sản xuất & xưởng, kho, chất lượng.              |
-| `VT_NHANVIEN_SANXUAT` | Nhân viên sản xuất        | Dashboard, kế hoạch xưởng được giao.                                |
-| `VT_NHANVIEN_KHO`     | Nhân viên kho             | Dashboard, kho và phiếu kho.                                        |
-| `VT_KETOAN`           | Kế toán                   | Dashboard, hóa đơn và bảng lương.                                   |
-| `VT_KIEM_SOAT_CL`     | Kiểm soát chất lượng      | Dashboard, module chất lượng.                                       |
-| `VT_KINH_DOANH`       | Nhân viên kinh doanh      | Dashboard, module đơn hàng và hóa đơn.                              |
-| `VT_NHAN_SU`          | Nhân sự                   | Dashboard, quản lý nhân sự.                                         |
-| `VT_DOI_TAC_VAN_TAI`  | Điều phối vận tải/đối tác | Chỉ truy cập dashboard và các thông báo liên quan.                  |
-| `VT_KHACH`            | Khách nội bộ              | Dành cho tích hợp về sau, không có quyền thao tác hiện tại.         |
+| STT | MSSV     | Họ và Tên              | Vai trò     | GitHub | Email |
+|----:|:--------:|------------------------|-------------|--------|-------|
+| 1 | 22694611 | **Trần Lê Kiệt** | Nhóm trưởng | [Kettailor](https://github.com/Kettailor) | 22694611.kiet@student.iuh.edu.vn |
+| 2 | 22637391 | Nguyễn Trần Thanh Trúc | Thư ký | [ntttruc123](https://github.com/ntttruc123) | 22637391.truc@gm.uit.edu.vn |
+| 3 | 22715051 | Vũ Hải Đăng | Thành viên | [kurovud](https://github.com/kurovud) | 22715051.dang@gm.uit.edu.vn |
+| 4 | 22641441 | Nguyễn Đức Huy | Thành viên | [nguyenhuyk18](https://github.com/nguyenhuyk18) | 22641441.huy@gm.uit.edu.vn |
+| 5 | 22702081 | Lê Hoàng My | Thành viên | [LeHoangMy063](https://github.com/LeHoangMy063) | 22702081.my@gm.uit.edu.vn |
+| 6 | 22653991 | Trần Tiến | Thành viên | [tiesen243](https://github.com/tiesen243) | 22653991.tien@gm.uit.edu.vn |
 
-> Lưu ý: Người dùng có vai trò `VT_ADMIN` luôn được phép truy cập mọi chức năng, các vai trò khác chỉ thấy menu và sử dụng được các module đã liệt kê.
+---
 
-## Cấu trúc thư mục
+## 📘 THÔNG TIN MÔN HỌC
 
-```
-config/          Cấu hình kết nối cơ sở dữ liệu
-controllers/    Bộ điều khiển cho từng module nghiệp vụ
-core/           Lớp nền tảng (Controller, Database)
-data/           Kịch bản SQL khởi tạo dữ liệu mẫu
-models/         Lớp truy xuất dữ liệu
-public/         Tài nguyên tĩnh (CSS, JS)
-services/       Các lớp xử lý bổ trợ (nếu có)
-views/          Giao diện hiển thị (PHP + HTML)
-```
+- **Tên môn học:** Phát triển ứng dụng  
+- **Mã môn học:** `422000422702`  
+- **Mã lớp:** `DHHTTTT18BTT`  
+- **Học kỳ:** HK1 – Năm học 2025–2026  
+- **Giảng viên hướng dẫn:** ThS. **Lê Thùy Trang**
 
-## Dữ liệu mẫu SV5TOT
+---
 
-Script `data/script.sql` tái hiện dây chuyền SV5TOT với:
+## 🏭 MÔ TẢ ĐỀ TÀI
 
-- Đơn hàng OEM (`DH20231101`, `DH20231105`,...) yêu cầu bàn phím SV5TOT 87/108 và kit custom.
-- Kế hoạch sản xuất tổng và kế hoạch xưởng cho các hạng mục như lắp switch, kiểm thử PCB, đóng gói thành phẩm.
-- Kho linh kiện (`KHO01`), kho thành phẩm (`KHO02`) với các lô switch Lotus, PCB SV5TOT R3, lô SV5TOT hoàn thiện.
-- Biên bản kiểm tra ESD, đánh giá thành phẩm, phiếu nhập/xuất và lịch ca làm cho đội kỹ thuật.
+Hệ thống web **“Quản lý sản xuất bàn phím SV5TOT”** được xây dựng nhằm mô phỏng và hỗ trợ vận hành chuỗi giá trị sản xuất bàn phím cơ trong môi trường doanh nghiệp.
 
-Có thể điều chỉnh/seed lại dữ liệu bằng cách chạy lại script trên MySQL.
+Ứng dụng được phát triển bằng **PHP thuần**, theo **kiến trúc MVC**, hướng đến:
+- Minh bạch hóa quy trình nghiệp vụ  
+- Hỗ trợ học tập & nghiên cứu  
+- Dễ dàng mở rộng và bảo trì  
 
-## Khởi chạy cục bộ
+### Các nghiệp vụ chính
+- 📦 Tiếp nhận & quản lý đơn hàng  
+- 🗓️ Lập kế hoạch và điều phối sản xuất  
+- 🏭 Quản lý xưởng sản xuất  
+- 📊 Quản lý kho nguyên vật liệu & thành phẩm  
+- ✅ Kiểm soát chất lượng  
+- 👥 Chấm công – tính lương nhân sự  
+- 🧾 Xuất hóa đơn  
 
-1. Cài đặt PHP >= 8.1 và một máy chủ web (Apache/Nginx) hoặc sử dụng PHP built-in server.
-2. Cập nhật thông tin kết nối trong `config/config.php` cho phù hợp với môi trường.
-3. Tạo cơ sở dữ liệu MySQL/MariaDB rồi chạy script `data/script.sql` để khởi tạo schema và dữ liệu mẫu SV5TOT.
-4. Khởi động ứng dụng bằng lệnh:
-   ```bash
-   php -S localhost:8000 index.php
-   ```
-5. Truy cập [http://localhost:8000](http://localhost:8000) và đăng nhập bằng một trong các tài khoản mẫu.
+---
 
-## Tài khoản mẫu
+## 🛠️ CÔNG NGHỆ SỬ DỤNG
 
-| Tên đăng nhập | Mật khẩu       | Vai trò              |
-| ------------- | -------------- | -------------------- |
-| `admin.minh`  | `Matkhau!2023` | Quản trị hệ thống    |
-| `ql.lan`      | `matkhau@123`  | Quản lý xưởng        |
-| `sx.anh`      | `matkhau@123`  | Nhân viên sản xuất   |
-| `kho.trang`   | `matkhau@123`  | Nhân viên kho        |
-| `cl.hanh`     | `matkhau@123`  | Kiểm soát chất lượng |
-| `kd.long`     | `matkhau@123`  | Kinh doanh           |
-| `ketoan.tai`  | `matkhau@123`  | Kế toán              |
-| `nhansu.mai`  | `matkhau@123`  | Nhân sự              |
+| Thành phần | Công nghệ |
+|----------|----------|
+| Front-end | HTML, CSS, JavaScript |
+| Back-end | PHP (MVC) |
+| Database | MySQL |
 
-Các tài khoản khác có thể được thêm trong `data/script.sql`.
+---
 
-## Đóng góp & phát triển
+## 📄 TÀI LIỆU & BÁO CÁO
 
-- Xem thêm tài liệu trong [`CONTRIBUTING.md`](CONTRIBUTING.md) trước khi mở pull request.
-- Mỗi module được phân tách theo controller/model/view riêng biệt; nên giữ phong cách code PHP thuần, tránh phụ thuộc mới không cần thiết.
-- Khi bổ sung tính năng, đảm bảo cập nhật tài liệu và script dữ liệu mẫu tương ứng với phân quyền.
+- 📘 **Báo cáo cuối kỳ:**  
+  👉 [Final Report – PDF](docs/SinhVien5Tot_Nhom2_BCCK.pdf)
 
-## Giấy phép
+---
 
-Dự án phục vụ mục đích học tập và có thể được tái sử dụng tự do trong phạm vi học thuật.
+## 🖥️ GIAO DIỆN MINH HỌA
+
+<p align="center">
+  <img src="https://github.com/Kettailor/422000422702-QuanLySanXuat/blob/main/docs/Home_Page.png" alt="Home Page" height="600">
+</p>
+
+---
+
+## © BẢN QUYỀN
+
+<p align="center">
+  <i>Copyright © 2026</i><br>
+  <b>Trần Lê Kiệt</b>
+</p>
