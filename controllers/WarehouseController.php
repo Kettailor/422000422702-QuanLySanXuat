@@ -38,21 +38,12 @@ class WarehouseController extends Controller
         $documents = $this->sheetModel->getDocuments(null, 200, $visibleIds);
         $documentGroups = $this->buildDocumentGroups($documents);
         $warehouseGroups = $this->warehouseModel->groupWarehousesByType($warehouses, $summary['by_type'] ?? []);
-        $employees = $this->employeeModel->getActiveEmployees();
-        $entryForms = $this->buildWarehouseEntryForms($warehouseGroups);
-        $products = $this->getProductOptionsByType();
-        $lotOptionsByType = $this->getLotOptionsByType($warehouses);
         $this->render('warehouse/index', [
             'title' => 'Kho & tồn kho',
             'warehouses' => $warehouses,
             'summary' => $summary,
             'documentGroups' => $documentGroups,
             'warehouseGroups' => $warehouseGroups,
-            'warehouseEntryForms' => $entryForms,
-            'outboundDocumentTypes' => $this->getOutboundDocumentTypes(),
-            'employees' => $employees,
-            'productOptionsByType' => $products,
-            'lotOptionsByType' => $lotOptionsByType,
         ]);
     }
 
@@ -90,6 +81,7 @@ class WarehouseController extends Controller
             'workshops' => $workshops,
             'employees' => $this->getManagersByWorkshopRequest($workshops),
             'workshopEmployees' => $this->buildWorkshopEmployeeMap($workshops),
+            'workshopManagerMap' => $this->buildWorkshopManagerMap($workshops),
             'selectedManagers' => [],
         ]);
     }
@@ -116,6 +108,12 @@ class WarehouseController extends Controller
             'IdXuong' => $_POST['IdXuong'] ?? null,
         ];
         $managerIds = $this->normalizeWarehouseManagers($_POST);
+        if (empty($managerIds)) {
+            $defaultManager = $this->resolveDefaultWarehouseManager($data['IdXuong']);
+            if ($defaultManager) {
+                $managerIds = [$defaultManager];
+            }
+        }
         $data['NHAN_VIEN_KHO_IdNhanVien'] = $managerIds[0] ?? null;
 
         try {
@@ -123,8 +121,10 @@ class WarehouseController extends Controller
                 $this->setFlash('danger', 'Bạn chỉ có thể tạo kho trong xưởng được phân công.');
             } elseif (!$this->areManagersInWorkshop($managerIds, $data['IdXuong'])) {
                 $this->setFlash('danger', 'Nhân viên quản kho phải thuộc xưởng đã chọn.');
-            } elseif (empty($this->employeeModel->getActiveWarehouseEmployeesByWorkshop($data['IdXuong'] ?? ''))) {
-                $this->setFlash('danger', 'Xưởng chưa có nhân sự để phân công quản kho. Vui lòng cập nhật nhân sự trước.');
+            } elseif (empty($this->employeeModel->getActiveWarehouseEmployeesByWorkshop($data['IdXuong'] ?? ''))
+                && !$this->resolveDefaultWarehouseManager($data['IdXuong'] ?? null)
+            ) {
+                $this->setFlash('danger', 'Xưởng chưa có xưởng trưởng hoặc nhân sự kho để phân công quản kho.');
             } else {
                 $this->warehouseModel->createWarehouse($data);
                 $this->warehouseModel->syncWarehouseManagers($data['IdKho'], $managerIds);
@@ -186,6 +186,12 @@ class WarehouseController extends Controller
             'IdXuong' => $_POST['IdXuong'] ?? null,
         ];
         $managerIds = $this->normalizeWarehouseManagers($_POST);
+        if (empty($managerIds)) {
+            $defaultManager = $this->resolveDefaultWarehouseManager($data['IdXuong']);
+            if ($defaultManager) {
+                $managerIds = [$defaultManager];
+            }
+        }
         $data['NHAN_VIEN_KHO_IdNhanVien'] = $managerIds[0] ?? null;
 
         try {
@@ -443,7 +449,10 @@ class WarehouseController extends Controller
 
         $managerIds = $this->normalizeWarehouseManagers($data);
         if (empty($managerIds)) {
-            return false;
+            $defaultManager = $this->resolveDefaultWarehouseManager($data['IdXuong'] ?? null);
+            if (!$defaultManager) {
+                return false;
+            }
         }
 
         return true;
@@ -683,7 +692,48 @@ class WarehouseController extends Controller
                 continue;
             }
 
-            $map[$workshopId] = $this->employeeModel->getActiveWarehouseEmployeesByWorkshop($workshopId);
+            $employees = $this->employeeModel->getActiveWarehouseEmployeesByWorkshop($workshopId);
+            $managerId = $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+            if ($managerId) {
+                $exists = false;
+                foreach ($employees as $employee) {
+                    if (($employee['IdNhanVien'] ?? null) === $managerId) {
+                        $exists = true;
+                        break;
+                    }
+                }
+                if (!$exists) {
+                    $manager = $this->employeeModel->find($managerId);
+                    if ($manager) {
+                        $employees[] = $manager;
+                    }
+                }
+            }
+
+            $map[$workshopId] = $employees;
+        }
+
+        return $map;
+    }
+
+    private function buildWorkshopManagerMap(array $workshops): array
+    {
+        $map = [];
+        foreach ($workshops as $workshop) {
+            $workshopId = $workshop['IdXuong'] ?? null;
+            if (!$workshopId) {
+                continue;
+            }
+            $managerId = $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+            $managerInfo = null;
+            if ($managerId) {
+                $managerInfo = $this->employeeModel->find($managerId);
+            }
+            $map[$workshopId] = [
+                'id' => $managerId,
+                'name' => $managerInfo['HoTen'] ?? null,
+                'title' => $managerInfo['ChucVu'] ?? null,
+            ];
         }
 
         return $map;
@@ -701,6 +751,25 @@ class WarehouseController extends Controller
         }
 
         return array_values(array_unique(array_filter(array_map('trim', $managerIds))));
+    }
+
+    private function resolveDefaultWarehouseManager(?string $workshopId): ?string
+    {
+        if (!$workshopId) {
+            return null;
+        }
+
+        $workshop = $this->workshopModel->find($workshopId);
+        if (!$workshop) {
+            return null;
+        }
+
+        $managerId = $workshop['XUONGTRUONG_IdNhanVien'] ?? null;
+        if (!$managerId) {
+            return null;
+        }
+
+        return $managerId;
     }
 
     private function areManagersInWorkshop(array $managerIds, ?string $workshopId): bool

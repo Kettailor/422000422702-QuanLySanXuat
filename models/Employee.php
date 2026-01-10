@@ -38,7 +38,7 @@ class Employee extends BaseModel
                 FROM nhan_vien nv
                 LEFT JOIN xuong_nhan_vien xnv ON xnv.IdNhanVien = nv.IdNhanVien
                 WHERE nv.TrangThai = :status
-                  AND (nv.idXuong = :workshopId OR xnv.IdXuong = :workshopId)
+                  AND (nv.idXuong = :workshopIdPrimary OR xnv.IdXuong = :workshopIdSecondary)
                   AND (
                     nv.IdVaiTro = :roleId
                     OR xnv.VaiTro = :assignmentRole
@@ -47,7 +47,8 @@ class Employee extends BaseModel
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':status', 'Đang làm việc');
-        $stmt->bindValue(':workshopId', $workshopId);
+        $stmt->bindValue(':workshopIdPrimary', $workshopId);
+        $stmt->bindValue(':workshopIdSecondary', $workshopId);
         $stmt->bindValue(':roleId', 'VT_NHANVIEN_KHO');
         $stmt->bindValue(':assignmentRole', 'nhan_vien_kho');
         $stmt->execute();

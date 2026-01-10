@@ -51,6 +51,13 @@ class InventorySheetDetail extends BaseModel
         return $stmt->fetchAll();
     }
 
+    public function updateReceivedQuantity(string $detailId, int $received): bool
+    {
+        return $this->update($detailId, [
+            'ThucNhan' => max(0, $received),
+        ]);
+    }
+
     private function sanitizeDetailPayload(array $data, bool $includeId = false): array
     {
         $fields = [

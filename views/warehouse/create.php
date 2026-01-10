@@ -6,7 +6,9 @@ $workshops = $workshops ?? [];
 $managers = $managers ?? [];
 $statuses = $statuses ?? ['Đang sử dụng', 'Tạm dừng', 'Bảo trì'];
 $workshopEmployees = $workshopEmployees ?? [];
+$workshopManagerMap = $workshopManagerMap ?? [];
 $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
+$workshopManagerJson = htmlspecialchars(json_encode($workshopManagerMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}', ENT_QUOTES, 'UTF-8');
 ?>
 
 <style>
@@ -88,11 +90,12 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
                     <h6 class="fw-semibold mb-3">Thông tin quản lý kho</h6>
                     <div class="mb-3">
                         <label class="form-label">Nhân viên quản kho <span class="text-danger">*</span></label>
-                        <select name="warehouse_managers[]" class="form-select" multiple required data-role="manager-select">
-                            <option value="" disabled>Chọn nhân viên quản kho</option>
-                        </select>
-                        <div class="form-text text-muted">Chọn nhiều nhân viên nếu cần. Danh sách lọc theo xưởng phụ trách.</div>
-                        <div class="form-text text-danger d-none" data-role="no-employee-alert">Xưởng chưa có nhân sự quản kho. Vui lòng thêm nhân viên trước khi tạo kho.</div>
+                        <div class="form-control-plaintext" data-role="manager-display">
+                            <span class="text-muted">Chọn xưởng để hiển thị xưởng trưởng.</span>
+                        </div>
+                        <input type="hidden" name="warehouse_managers[]" value="" data-role="manager-input">
+                        <div class="form-text text-muted">Hệ thống tự động gán xưởng trưởng của xưởng phụ trách làm quản kho mặc định.</div>
+                        <div class="form-text text-danger d-none" data-role="no-employee-alert">Xưởng chưa có xưởng trưởng. Vui lòng cập nhật thông tin trước khi tạo kho.</div>
                     </div>
                     <div class="text-muted small">Mã kho và mã lô sẽ được tạo tự động khi lưu để đồng bộ với hệ thống phiếu.</div>
                 </div>
@@ -133,38 +136,44 @@ $workshopEmployeesJson = htmlspecialchars(json_encode($workshopEmployees, JSON_U
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const workshopEmployees = JSON.parse('<?= $workshopEmployeesJson ?>');
+        const workshopManagers = JSON.parse('<?= $workshopManagerJson ?>');
         const workshopSelect = document.querySelector('select[name="IdXuong"]');
-        const managerSelect = document.querySelector('[data-role="manager-select"]');
+        const managerDisplay = document.querySelector('[data-role="manager-display"]');
+        const managerInput = document.querySelector('[data-role="manager-input"]');
         const submitBtn = document.querySelector('[data-role="submit-btn"]');
         const alertEl = document.querySelector('[data-role="no-employee-alert"]');
 
         const renderManagers = () => {
-            if (!workshopSelect || !managerSelect) {
+            if (!workshopSelect || !managerDisplay || !managerInput) {
                 return;
             }
 
             const workshopId = workshopSelect.value || '';
             const employees = workshopEmployees[workshopId] || [];
+            const defaultManager = workshopManagers[workshopId] || {};
+            const defaultManagerId = defaultManager.id || '';
 
-            managerSelect.innerHTML = '<option value="" disabled>Chọn nhân viên quản kho</option>';
+            const manager = employees.find((employee) => employee.IdNhanVien === defaultManagerId)
+                || (defaultManagerId ? { HoTen: defaultManager.name, ChucVu: defaultManager.title } : null);
 
-            employees.forEach((employee) => {
-                const option = document.createElement('option');
-                option.value = employee.IdNhanVien || '';
-                option.textContent = employee.HoTen || employee.IdNhanVien || '';
-                if (employee.ChucVu) {
-                    option.textContent += ' · ' + employee.ChucVu;
+            if (defaultManagerId) {
+                let display = manager && manager.HoTen ? manager.HoTen : defaultManagerId;
+                if (manager && manager.ChucVu) {
+                    display += ' · ' + manager.ChucVu;
                 }
-                managerSelect.appendChild(option);
-            });
+                managerDisplay.textContent = display;
+                managerInput.value = defaultManagerId;
+            } else {
+                managerDisplay.innerHTML = '<span class="text-muted">Xưởng chưa có xưởng trưởng.</span>';
+                managerInput.value = '';
+            }
 
-            const hasEmployees = employees.length > 0;
-            managerSelect.disabled = !hasEmployees;
+            const hasManager = Boolean(defaultManagerId);
             if (submitBtn) {
-                submitBtn.disabled = !hasEmployees;
+                submitBtn.disabled = !hasManager;
             }
             if (alertEl) {
-                alertEl.classList.toggle('d-none', hasEmployees);
+                alertEl.classList.toggle('d-none', hasManager);
             }
         };
 
