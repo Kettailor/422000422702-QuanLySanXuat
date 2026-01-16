@@ -25,11 +25,11 @@
 | STT | MSSV     | Họ và Tên              | Vai trò     | GitHub | Email |
 |----:|:--------:|------------------------|-------------|--------|-------|
 | 1 | 22694611 | **Trần Lê Kiệt** | Nhóm trưởng | [Kettailor](https://github.com/Kettailor) | 22694611.kiet@student.iuh.edu.vn |
-| 2 | 22637391 | Nguyễn Trần Thanh Trúc | Thư ký | [ntttruc123](https://github.com/ntttruc123) | 22637391.truc@gm.uit.edu.vn |
-| 3 | 22715051 | Vũ Hải Đăng | Thành viên | [kurovud](https://github.com/kurovud) | 22715051.dang@gm.uit.edu.vn |
-| 4 | 22641441 | Nguyễn Đức Huy | Thành viên | [nguyenhuyk18](https://github.com/nguyenhuyk18) | 22641441.huy@gm.uit.edu.vn |
-| 5 | 22702081 | Lê Hoàng My | Thành viên | [LeHoangMy063](https://github.com/LeHoangMy063) | 22702081.my@gm.uit.edu.vn |
-| 6 | 22653991 | Trần Tiến | Thành viên | [tiesen243](https://github.com/tiesen243) | 22653991.tien@gm.uit.edu.vn |
+| 2 | 22637391 | Nguyễn Trần Thanh Trúc | Thư ký | [ntttruc123](https://github.com/ntttruc123) | 22637391.truc@student.iuh.edu.vn |
+| 3 | 22715051 | Vũ Hải Đăng | Thành viên | [kurovud](https://github.com/kurovud) | 22715051.dang@student.iuh.edu.vn |
+| 4 | 22641441 | Nguyễn Đức Huy | Thành viên | [nguyenhuyk18](https://github.com/nguyenhuyk18) | 22641441.huy@student.iuh.edu.vn |
+| 5 | 22702081 | Lê Hoàng My | Thành viên | [LeHoangMy063](https://github.com/LeHoangMy063) | 22702081.my@student.iuh.edu.vn |
+| 6 | 22653991 | Trần Tiến | Thành viên | [tiesen243](https://github.com/tiesen243) | 22653991.tien@student.iuh.edu.vn |
 
 ---
 
