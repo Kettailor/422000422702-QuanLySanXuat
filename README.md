@@ -1,7 +1,7 @@
 <!-- ===================== BANNER ===================== -->
 <p align="center">
   <a href="https://iuh.edu.vn/" title="Trường Đại học Công nghiệp TP. Hồ Chí Minh">
-    <img src="https://iuh.edu.vn/assets/images/icons/logo.svg?v=51" alt="Industrial University of Ho Chi Minh City" width="120">
+    <img src="https://github.com/Kettailor/422000422702-QuanLySanXuat/blob/main/docs/Logo_IUH.png" width="120">
   </a>
 </p>
 
